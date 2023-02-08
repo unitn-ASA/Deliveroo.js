@@ -1,0 +1,22 @@
+# Dependency directories
+node_modules/
+
+# IDE
+.vscode
+
+# private folder
+private
+
+# Temp
+tmp
+*.tmp
+
+# Logs
+logs
+*.log
+
+# dotenv environment variables file
+.env
+
+# binaries
+bin
