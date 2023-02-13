@@ -5,113 +5,131 @@ const Tile =  require('./Tile');
 
 
 
-const MOVEMENT_DURATION = 1000;
+const MOVEMENT_DURATION = 500;
 
 
 /**
  * @class Agent
  * @extends Observable
- * @property {Xy} xy
  * @property {Set<Agent>} sensing agents in the sensed area
  */
-class Agent extends Observable {
+class Agent extends Xy {
     
-    /** @attribute {Grid} #grid */
+    /** @property {Grid} #grid */
     #grid;
-    /** @attribute {Set<Parcel>} #carryingParcels */
-    #carryingParcels = new Set();
-    /** @attribute {string} id */
+    /** @property {string} id */
     id;
-    /** @attribute {Xy} xy */
-    xy;
     /** @property {Set<Agent>} sensing agents in the sensed area */
     sensing;
     /** @property {Number} score */
-    score;
-    
+    score = 0;
+    /** @property {Set<Parcel>} #carryingParcels */
+    #carryingParcels = new Set();
+    get carrying () {
+        return Array.from(this.#carryingParcels);
+    }
+
     /**
      * @constructor Agent
      * @param {string} id
      * @param {Grid} grid
      */
     constructor ( id, grid ) {
-        super();
-        
-        // // Dispatch all my events
-        // this.observe( Game.dispatcher.triggerEvents.bind(Game.dispatcher) );
 
-        // Make observable
-        this.interceptValueSet('xy')
-        this.interceptValueSet('score')
+        {
+            let x, y, found=false;
+            for (x=0; x<10 && !found; x++)
+                for (y=0; y<10 && !found; y++) {
+                    found = ( grid.getTile(x, y).blocked ? false : grid.getTile(x, y).lock() );
+                    // console.log( x, y, (found?'found':'occupied') )
+                }
+            if ( !found )
+                throw new Error('no unlocked available tiles on the grid')
+
+            super(--x, --y);
+        }
+
+        // Emit score on score assignment
+        this.interceptValueSet('score', 'score')
+        // group 'xy' and 'score' into 'agent' event
+        this.on('xy', this.emitOnePerTick.bind(this, 'agent') );
+        this.on('score', this.emitOnePerTick.bind(this, 'agent') );
+        this.on('carrying', this.emitOnePerTick.bind(this, 'agent') );
 
         this.#grid = grid;
         this.id = id;
         this.sensing = new Set();
+        this.score = 0;
 
-        let tile = undefined;
-        for (var x=0; x<10; x++) {
-            for (var y=0; y<10; y++) {
-                tile = grid.getTile({x,y})
-                if ( !tile.locked ) {
-                    tile.lock();
-                    this.xy = new Xy(x,y);
-                    break;
-                }
-            }
-            if ( this.xy ) break;
-        }
-        if ( !this.xy ) {
-            throw new Error('no unlocked available tiles on the grid')
-        }
-        // this.xy = new Xy(1,1); // Cannot redefine property: xy // Object.getOwnPropertyDescriptor(this, 'xy').set(new Xy(1,1));
-        
-        // Observe agents xy (incluse me) and update sensing
+    }
+
+    /**
+     * When called, evaluate sensing, with respect to a specified agent (it).
+     * If the specified agent is me assume I moved and re-compute everything.
+     * @type {function(): void}
+     */
+    evaluateSensing (it) {
         const me = this;
-        const computeSensing = (it) => {
-                if (it.id != me.id ) {
-                    // console.log('computing', this.id, 'vs', it.id)
-                    if ( it.xy.distance(me.xy) < 5 ) {
-                        if ( !this.sensing.has(it) ) {
-                            // console.log(this.id, 'start sensing agent', it.id )
-                            this.sensing.add(it);
-                        }
-                        // console.log(this.id, 'sensing agent', it.id )
-                        this.triggerEvent( new Observable.Event('sensing agent', it, me) )
-                    }
-                    else {
-                        if ( this.sensing.has(it) ) {
-                            // console.log(this.id, 'no more sensing agent', it.id )
-                            this.triggerEvent( new Observable.Event('no more sensing agent', it, me) )
-                            this.sensing.delete(it);
-                        }
-                    }
-                }
-        }
-        for ( const id of grid.getAgentIds() ) {
-            computeSensing( grid.getAgent(id) );
-        }
-        // Wait to be notified about others movement and re-compute sensing
-        grid.observe( (events) => {
-            for ( const ev of events ) {
-                const it = ev.subject;
-                computeSensing(it);
+        if ( it.id == me.id ) {
+            // re-evaluate all others
+            for ( const id of this.#grid.getAgentIds() ) {
+                if ( id != me.id )
+                    this.evaluateSensing( this.#grid.getAgent(id) );
             }
-        }, ev => ev.name == 'changed' && ev.object == 'xy' && ev.subject instanceof Agent )//&& ev.subject.xy.x % 1 == 0 && ev.subject.xy.y % 1 == 0 );
-        
+            // evaluate parcels
+            this.emitParcelSensing();
+        }
+        else {
+            // console.log('computing', this.id, 'vs', it.id)
+            if ( it.distance(me) < 5 ) {
+                if ( !this.sensing.has(it) ) {
+                    // console.log(this.id, 'start sensing agent', it.id )
+                    this.sensing.add(it);
+                }
+                // console.log(this.id, 'sensing agent', it.id )
+            this.emit( 'sensing agent', it.id, it.x, it.y, it.score )
+            }
+            else {
+                if ( this.sensing.has(it) ) {
+                    // console.log(this.id, 'no more sensing agent', it.id )
+                    this.emit( 'sensing agent', it.id, undefined, undefined, it.score )
+                    this.sensing.delete(it);
+                }
+            }
+        }
+    }
+
+    emitParcelSensing () {
+        var parcels = [];
+        for ( var tile of this.#grid.getTiles() ) {// [this.x-5, this.x+5, this.y-5, this.y+5] ) ) {
+            let {x, y} = tile;
+            if ( tile.distance(this) < 5 ) {
+                for ( let parcel of tile.parcels ) {
+                    let {id, reward} = parcel;
+                    parcels.push( {id, x, y, reward} )
+                }
+            }
+        }
+        this.emitOnePerTick( 'parcel sensing', parcels )
     }
 
     get tile() {
-        return this.#grid.getTile( this.xy );
+        return this.#grid.getTile( Math.round(this.x), Math.round(this.y) );
     }
 
     async stepByStep ( incr_x, incr_y ) {
-        for(let progress = 0; progress < 100; progress += 10) {
+        var init_x = this.x
+        var init_y = this.y
+        // this.x += incr_x/2
+        // this.y += incr_y/2
+        for(let i=0; i<10; i++) {
             await new Promise( res => setTimeout(res, MOVEMENT_DURATION / 10))
-            const oldXy = this.xy;
-            // this.xy = new Xy( 0, 0 ); // This is a test!
-            this.xy = new Xy( (oldXy.x * 10 + incr_x ) / 10, (oldXy.y * 10 + incr_y ) / 10 );
-            // console.log("moving into ", this.xy)
+            this.x = ( this.x * 10 + incr_x ) / 10; // this keep it rounded at .1
+            this.y = ( this.y * 10 + incr_y ) / 10; // this keep it rounded at .1
+            // console.log("moving into ", (init_x * 10 + incr_x * i ) / 10, this.y)
         }
+        // this.x = init_x + incr_x
+        // this.y = init_y + incr_y
     }
 
     moving = false;
@@ -121,19 +139,18 @@ class Agent extends Observable {
         let fromTile = this.tile;
         // if (!fromTile)
         //     return false;
-        let toXy = this.xy.moveX(incr_x).moveY(incr_y)
-        let toTile = this.#grid.getTile( toXy );
-        if ( toTile && !toTile.blocked && !toTile.locked ) {
-            // console.log(this.id, 'start move in', toXy.toString())
+        let toTile = this.#grid.getTile( this.x+incr_x, this.y+incr_y );
+        if ( toTile && !toTile.blocked && toTile.lock() ) {
+            // console.log(this.id, 'start move in', this.x+incr_x, this.y+incr_y)
             this.moving = true;
-            toTile.lock();
             await this.stepByStep( incr_x, incr_y );
-            console.log(this.id, 'done move in', toXy.toString())
+            // console.log(this.id, 'done move in', this.x, this.y)
             this.moving = false;
             fromTile.unlock();
+            // this.emitParcelSensing(); // NO! this is done outside
             return true;
         }
-        console.log(this.id, 'fail move in', toXy.toString())
+        // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
         return false;
     }
 
@@ -158,27 +175,51 @@ class Agent extends Observable {
     }
 
     /**
-     * @type {function(Parcel): void}
+     * @type {function(): void}
      */
-    pickUp ( parcel ) {
-        if ( this.tile.isParcelHere(parcel) ) {
-            this.#carryingParcels.add(parcel);
-            this.tile.parcels.delete(parcel);
-            return true;
+    pickUp () {
+        var tile = this.tile
+        var picked = new Array();
+        if ( tile ) {
+            var counter = 0;
+            for (const parcel of tile.parcels) {
+                tile.removeParcel(parcel);
+                this.#carryingParcels.add(parcel);
+                this.emitOnePerTick( 'carrying', this );
+                picked.push(parcel);
+                counter++;
+            }
+            console.log(this.id, 'pickUp', counter, 'parcels')
         }
-        return false;
+        return picked; // Array.from(this.#carryingParcels);
     }
 
     /**
-     * @type {function(Parcel): void}
+     * @type {function(): void}
      */
-    putdown ( parcel ) {
-        if ( this.#carryingParcels.has(parcel) ) {
-            this.tile.parcels.add(parcel);
-            this.#carryingParcels.delete(parcel);
-            return true;
+    putDown () {
+        var tile = this.tile
+        var sc = 0;
+        var dropped = new Array();
+        if ( tile.delivery ) {
+            for ( let parcel of this.#carryingParcels ) {
+                this.#carryingParcels.delete(parcel);
+                this.emitOnePerTick( 'carrying', this );
+                dropped.push(parcel);
+                sc += parcel.reward;
+            }
         }
-        return false;
+        else {
+            for ( let parcel of this.#carryingParcels ) {
+                this.#carryingParcels.delete( parcel );
+                this.emitOnePerTick( 'carrying', this );
+                dropped.push(parcel)
+                tile.addParcel( parcel );
+            }
+        }
+        console.log(this.id, 'putDown parcels for a total of', sc, 'pti')
+        this.score += sc;
+        return dropped;
     }
 }
 

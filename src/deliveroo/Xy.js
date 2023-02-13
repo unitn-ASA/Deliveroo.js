@@ -1,24 +1,10 @@
-
+const Observable =  require('../utils/Observable')
 
 /**
  * @class Xy
  */
- class Xy {
-
-    static #set = new Array();
-    static getXy(x, y) {
-        if ( !this.#set[x] )
-            while ( !this.#set[x] )
-                this.#set.push( new Array() );
-        if ( this.#set[x][y])
-            while ( !this.#set[x][y] )
-                this.#set[x].push( new Xy(x, y) );
-        return this.#set[x][y];
-    }
-
-    #x;
-    #y;
-
+ class Xy extends Observable {
+    
     /** @attribute {Number} x */
     x;
     /** @attribute {Number} y */
@@ -30,18 +16,12 @@
      * @param {Number} y
      */
     constructor ( x, y ) {
-        this.#x = x;
-        this.#y = y;
-
-        Object.defineProperty( this, 'x', {
-            get: () => this.#x,
-            enumerable: true
-        })
-
-        Object.defineProperty( this, 'y', {
-            get: () => this.#y,
-            enumerable: true
-        })
+        super();
+        this.x = x;
+        this.y = y;
+        // group 'x' and 'y' into 'xy'
+        this.interceptValueSet('x', 'xy')
+        this.interceptValueSet('y', 'xy')
     }
 
     // get x () { return this.#x }
@@ -50,24 +30,20 @@
     /**
      * rectanguralDistanceTo
      */
-    distance (other) {
-        return  Math.abs( other.x - this.x ) +  Math.abs( other.y - this.y )
+    static distance ( a = {x, y}, b = {x, y} ) {
+        return Math.abs( b.x - a.x ) +  Math.abs( b.y - a.y )
     }
 
-    moveX (x) {
-        return  new Xy( this.x + x, this.y )
+    distance ( other = {x, y} ) {
+        return Xy.distance(this, other)
     }
 
-    moveY (y) {
-        return  new Xy( this.x, this.y + y )
+    static equals ( a = {x, y}, b = {x, y} ) {
+        return b.x == a.x && b.y == a.y;
     }
 
-    equals (other) {
-        return other.x == this.x && other.x == this.x;
-    }
-
-    toString () {
-        return '{x:'+this.x+',y:'+this.y+'}';
+    equals ( other = {x, y} ) {
+        return Xy.equals(this, other)
     }
 
 }

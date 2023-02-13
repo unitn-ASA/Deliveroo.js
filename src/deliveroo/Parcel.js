@@ -6,7 +6,7 @@ class Parcel extends Observable {
     
     static #lastId = 0;
     
-    #grid;
+    // #grid;
     id;
     reward;
     
@@ -17,29 +17,27 @@ class Parcel extends Observable {
     constructor (grid) {
         super();
 
-        this.#grid = grid;
+        // this.#grid = grid;
         this.id = Parcel.#lastId++;
-        this.reward = Math.floor(Math.random()*100);
-
-        // // Dispatch all my events
-        // this.observe( Game.dispatcher.triggerEvents.bind(Game.dispatcher) );
+        this.reward = Math.floor( Math.random()*20 + 20 );
 
         // Make observable
-        this.interceptValueSet('reward')
+        this.interceptValueSet('reward');
 
         const startDecading = async () => {
             while ( this.reward > 0 ) {
-                await new Promise( res => setTimeout(res, 1000) )
-                this.reward = Math.floor( this.reward - this.reward/4 );
+                await new Promise( res => setTimeout(res, 2000) )
+                this.reward = Math.floor( this.reward - 1 );
             }
-            this.destroy();
+            this.emitOnePerTick( 'expired', this );
+            // grid.emitOnceEveryTick( 'parcel expired', this );
         }
         startDecading();
 
-    }
+        // // Propagate events
+        // this.on('reward', grid.emit.bind(grid, 'parcel reward') );
+        // this.on('expired', grid.emit.bind(grid, 'parcel expired') );
 
-    destroy () {
-        this.triggerEvent( new Observable.Event('removed parcel', this, this) )
     }
 
 }

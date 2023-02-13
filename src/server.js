@@ -3,10 +3,10 @@ const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
-  cors: {
-    origin: "*", // http://localhost:3000",
-    methods: ["GET", "POST"]
-  }
+    cors: {
+        origin: "*", // http://localhost:3000",
+        methods: ["GET", "POST"]
+    }
 });
 
 const Observable =  require('./utils/Observable')
@@ -18,36 +18,52 @@ const Tile = require('./deliveroo/Tile');
 
 
 
-const myGrid = new Grid();
+var myMap = [
+    [1, 1, 0, 1, 0, 1, 0, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 1, 0, 1, 0, 1, 0, 1, 0, 0],
+    [1, 1, 0, 1, 0, 1, 0, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 0, 1, 1, 1, 0, 1, 1, 0],
+    [1, 1, 0, 1, 0, 0, 0, 1, 1, 0],
+    [1, 1, 0, 0, 0, 1, 0, 1, 1, 0]
+]
+
+const myGrid = new Grid(myMap);
 
 
 
 async function createRandomParcels () {
-  while ( true ) {
-    let x = Math.floor(Math.random()*10);
-    let y = Math.floor(Math.random()*10);
-    myGrid.createParcel( new Xy(x,y) );
-    await new Promise( res => setTimeout(res, 5000))
-  }
+    while ( true ) {
+        let x = Math.floor(Math.random()*10);
+        let y = Math.floor(Math.random()*10);
+        let parcel = myGrid.createParcel(x, y);
+        if (parcel)
+            console.log('parcel created at', x, y, parcel.reward)
+        await new Promise( res => setTimeout(res, 2000))
+    }
 }
 createRandomParcels ()
 
 
 
 async function randomlyMove (agent) {
-  let previousDirection = undefined;
-  while ( true ) {
-    let direction = [ 'up', 'right', 'down', 'left' ][ Math.floor(Math.random()*4) ];
-    // console.log('randomly moving agent', direction)
-    await agent[direction]();
-    await Promise.resolve(); // if stucked do not block the program in infinite loop
-  }
+    let previousDirection = undefined;
+    while ( true ) {
+        let direction = [ 'up', 'right', 'down', 'left' ][ Math.floor(Math.random()*4) ];
+        // console.log('randomly moving agent', direction)
+        await agent[direction]();
+        await Promise.resolve(); // if stucked do not block the program in infinite loop
+    }
 }
-var alice = myGrid.getAgent('alice');
-var bob = myGrid.getAgent('bob');
+// var alice = myGrid.getAgent('alice');
+// var bob = myGrid.getAgent('bob');
 // var cloe = myGrid.getAgent('cloe');
-randomlyMove (alice)
-randomlyMove (bob)
+// randomlyMove (alice)
+// randomlyMove (bob)
+// randomlyMove (cloe)
 
 
 
@@ -76,89 +92,92 @@ randomlyMove (bob)
 
 
 io.on('connection', (socket) => {
-  console.log('user', socket.id + ' connected');
+    console.log('user', socket.id + ' connected');
 
-  var me = myGrid.getAgent(socket.id);
-  socket.emit('you', me.id);
-  // socket.broadcast.emit('hi ' + me.id);
+    var me = myGrid.getAgent(socket.id);
+    // console.log('you', me.id, me.x, me.y);
+    socket.emit('you', me);
+    // socket.broadcast.emit('hi ' + me.id);
 
-
-
-  /**
-   * Emit parcel events
-   */
-  myGrid.observe( (events) => {
-    for (const ev of events) {
-      let parcel = ev.object
-      let {id, reward} = parcel
-      let tile = ev.subject
-      let {xy: {x, y}} = tile
-      socket.emit('add parcel', {id, reward, x, y} )
+    /**
+     * Emit tiles
+     */
+    for (const tile of myGrid.getTiles()) {
+        // console.log(tile)
+        if ( !tile.blocked ) 
+            socket.emit('tile', tile.x, tile.y, tile.delivery)
     }
-  }, ev => ev.name == 'add parcel' && ev.object instanceof Parcel && ev.subject instanceof Tile );
-
-  myGrid.observe( (events) => {
-    for (const ev of events) {
-      let parcel = ev.subject
-      socket.emit('parcel reward', parcel )
-    }
-  }, ev => ev.name == 'changed' && ev.object == 'reward' && ev.subject instanceof Parcel );
-  
-
-  
-  /**
-   * Emit agent events
-   */
-
-  // Emit my movements
-  const toUnsubscribe = me.observe( (events) => {
-    for (const ev of events) {
-      const {name, object, subject: {id, xy: {x, y} } } = ev;
-      // console.log('observing Agent xy:', name, object, id, xy.toString());
-      socket.emit('yourposition', {id: id, x: x, y: y})
-    }
-  }, ev => ev.name == 'changed' && ev.object == 'xy' && ev.subject instanceof Agent );
-
-  // Emit my initial sensing
-  for (const s of me.sensing) {
-    const {id, xy: {x, y} } = s;
-    // console.log(me.id, 'emit', 'sensing agent', {id, x, y});
-    socket.emit('sensing agent', {id, x, y})
-  }
-  
-  // Emit sensing events
-  const toUnsubscribe2 = me.observe( (events) => {
-    for (const ev of events) {
-      const {name, object: {id, xy: {x, y} }, subject: me} = ev;
-      // console.log(me.id, 'emit', ev.name, {who, x, y});
-      socket.emit(ev.name, {id, x, y})
-    }
-  }, ev => ['start sensing agent', 'sensing agent', 'no more sensing agent'].includes(ev.name) );
-
-  socket.on('move', async (direction, acknowledgementCallback) => {
-    console.log(me.id, direction);
-    acknowledgementCallback( await me[direction]() ); //.bind(me)()
-  });
-
-  socket.on('pickup', async (parcelId, acknowledgementCallback) => {
-    acknowledgementCallback( me.pickUp( myGrid.getParcel(parcelId) ) )
-  });
-
-  socket.on('putdown', async (parcelId, acknowledgementCallback) => {
-    me.putdown( myGrid.getParcel(parcelId) )
-  });
-  
+    
 
 
-  /**
-   * Disconnect
-   */
-  socket.on('disconnect', () => {
-    console.log('user ' + me.id + ' disconnected');
-    myGrid.deleteAgent ( me.id );
-    me.unobserve(toUnsubscribe);
-    me.unobserve(toUnsubscribe2);
-  });
+    /**
+     * Emit parcel events
+     */
+    // myGrid.on( 'parcel added', (id, x, y, reward) => {
+    //     socket.emit('parcel added', id, x, y, reward)
+    // } );
+    // myGrid.on( 'parcel removed', (id) => {
+    //     socket.emit('parcel removed', id )
+    // } );
+    // myGrid.on( 'parcel reward', (parcel) => {
+    //     socket.emit('parcel reward', parcel )
+    // } );
+    me.on( 'parcel sensing', (parcels) => {
+        socket.emit('parcel sensing', parcels )
+    } );
+    
+
+    
+    /**
+     * Emit agent events
+     */
+
+    // Emit you
+    me.on( 'agent', ({id, x, y, score}) => {
+        // console.log('yourposition:', id, x, y);
+        socket.emit( 'you', {id, x, y, score} )
+    } );
+    socket.emit( 'you', {id, x, y, score} = me )
+    
+    // // Emit my initial sensing
+    // for (const {id, x, y, score} of me.sensing) {
+    //     // console.log(me.id, 'emit', 'sensing agent', {id, x, y});
+    //     socket.emit( 'sensing agent', id, x, y, score )
+    // }
+
+    // Emit sensing events
+    me.on( 'sensing agent', (id, x, y, score) => {
+        // console.log('server.js', 'sensing agent', id, x, y, score);
+        socket.emit( 'sensing agent', id, x, y, score );
+    } );
+
+    // Trigger initial sensing
+    me.evaluateSensing( me );
+    
+    socket.on('move', async (direction, acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, direction);
+        acknowledgementCallback( await me[direction]() ); //.bind(me)()
+    });
+
+    socket.on('pickup', async (acknowledgementCallback) => {
+        acknowledgementCallback( me.pickUp() )
+    });
+
+    socket.on('putdown', async (acknowledgementCallback) => {
+        acknowledgementCallback( me.putDown() )
+    });
+    
+
+
+    /**
+     * Disconnect
+     */
+    socket.on('disconnect', () => {
+        console.log('user ' + me.id + ' disconnected');
+        myGrid.deleteAgent ( me );
+        // me.removeAllListeners('xy');
+        me.removeAllListeners('sensing agent');
+    });
 
 });
 
