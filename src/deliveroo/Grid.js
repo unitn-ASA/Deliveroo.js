@@ -88,24 +88,75 @@ class Grid extends Observable {
     getAgent ( id ) {
         if ( !this.#agents.has(id) ) {
             // Instantiate
-            var agent = new Agent(id, this)
+            var me = new Agent(id, this)
 
             // Register
-            this.#agents.set(id, agent);
+            this.#agents.set(id, me);
 
-            // Propagate agent events
-            agent.on('xy', this.emit.bind(this, 'agent xy') );
-            agent.on('score', this.emit.bind(this, 'agent score') );
-            agent.on('agent', this.emit.bind(this, 'agent') );
+            // // Tile scoped event propagation
+            // me.on( 'xy', (...args) => me.tile.emit('agent xy', ...args) );
+            // me.on( 'score', (...args) => me.tile.emit('agent score', ...args) );
+            // me.on( 'pickup', (...args) => me.tile.emit('agent pickup', ...args) );
+            // me.on( 'putdown', (...args) => me.tile.emit('agent putdown', ...args) );
+
+            // // On mine and others movement evaluateSensing
+            // const mySensor = new Observable();
+            // me.on( 'agent xy', (me) => {
+            //     if ( !me.moving ) {
+            //         const sensedTiles = this.getTiles( [me.x-5, me.x+5, me.y-5, me.y+5] )
+            //         for ( const tile of sensedTiles ) {
+            //             tile.on( 'agent xy', mySensor.emit.bind(mysensor, 'agent xy') );
+            //             tile.on( 'agent score', mySensor.emit.bind(mysensor, 'agent score') );
+            //             tile.on( 'agent pickup', mySensor.emit.bind(mysensor, 'agent pickup') );
+            //             tile.on( 'agent putdown', mySensor.emit.bind(mysensor, 'agent putdown') );
+            //         }
+            //     }
+            // } )
+
+            // Grid scoped events propagation
+            me.on( 'xy', this.emit.bind(this, 'agent xy') );
+            me.on( 'score', this.emit.bind(this, 'agent score') );
+            me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
+            me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
+            // me.on( 'agent', this.emit.bind(this, 'agent') );
+            
 
             // On mine and others movement evaluateSensing
-            this.on( 'agent xy', (sensedAgent) => { /*if ( !sensedAgent.moving )*/ agent.evaluateSensing(sensedAgent) } )
+            this.on( 'agent xy', (sensedAgent) => {
+                /*if ( !sensedAgent.moving )*/
+                    me.evaluateSensing(sensedAgent)
+            } )
             // On others score evaluateSensing
-            this.on( 'agent score', (it) => { if ( it.id != agent.id ) agent.evaluateSensing(it) } )
-            // On parcel added
-            this.on( 'parcel added', (id, x, y, reward) => agent.evaluateSensing(agent) );
-            // On parcel removed
-            this.on( 'parcel removed', (id, x, y, reward) => agent.evaluateSensing(agent) );
+            this.on( 'agent score', (it) => {
+                if ( it.id != me.id && it.distance(me) < 5 )
+                    me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
+            } )
+            // On others pickup
+            this.on( 'agent pickup', (it, picked) => {
+                if ( it.id != me.id && it.distance(me) < 5 )
+                    me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
+            } )
+            // On others putdown
+            this.on( 'agent putdown', (it, dropped) => {
+                if ( it.id != me.id && it.distance(me) < 5 )
+                    me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
+            } )
+
+            // On parcel
+            // this.on( 'parcel carriedBy', (parcel) => { if ( parcel.carriedBy.distance(me) < 5 ) me.evaluateSensing(parcel.carriedBy) } )
+            this.on( 'parcel reward', (parcel) => {
+                var parcels = [];
+                for ( var tile of this.getTiles() ) {// [me.x-5, me.x+5, me.y-5, me.y+5] ) ) {
+                    let {x, y} = tile;
+                    if ( tile.distance(me) < 5 ) {
+                        for ( let parcel of tile.parcels ) {
+                            let {id, reward} = parcel;
+                            parcels.push( {id, x, y, reward} )
+                        }
+                    }
+                }
+                me.emitOnePerTick( 'parcel sensing', parcels )
+            } );
         }
         return this.#agents.get(id);
     }
@@ -115,7 +166,7 @@ class Grid extends Observable {
             agent.tile.unlock();
         agent.x = undefined;
         agent.y = undefined;
-        this.#agents.delete(id);
+        this.#agents.delete(agent.id);
     }
 
     /**
@@ -125,15 +176,18 @@ class Grid extends Observable {
         var tile = this.getTile( x, y );
         if ( !tile || tile.blocked )
             return false;
-        // Instantiate
-        var parcel = new Parcel( this ); // Propagate // parcel.on('reward', this.emit.bind(this, 'parcel reward') );
-        parcel.on('reward', this.emit.bind(this, 'parcel reward') );
-        parcel.on('expired', this.emit.bind(this, 'parcel expired') );
-        // Register on grid
-        // this.#parcels.set( parcel.id, parcel );
-        // Place
-        tile.addParcel( parcel );
         
+        // Instantiate and add to Tile
+        var parcel = new Parcel( this ); // Propagate // parcel.on('reward', this.emit.bind(this, 'parcel reward') );
+        tile.addParcel( parcel );
+
+        // Grid scoped event propagation
+        parcel.on( 'reward', this.emit.bind(this, 'parcel reward') );
+        parcel.once( 'expired', this.emit.bind(this, 'parcel expired') );
+        
+        // // Tile scoped event propagation
+        // parcel.on( 'reward', (...args) => parcel.tile.emit('parcel reward', ...args) );
+
         return parcel;
     }
 

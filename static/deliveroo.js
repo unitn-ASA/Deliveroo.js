@@ -94,15 +94,20 @@ class onGrid {
         scene.remove( this.#mesh );
         this.x = 0
         this.y = 0
-        this.#mesh.position.y = this.#agent.carrying.size;
+        this.#mesh.position.y = this.#agent.carrying.size * 0.5;
     }
     putdown () {
         this.#agent.#mesh.remove( this.#mesh );
         this.#agent.carrying.delete(this.id);
-        this.x = this.#agent.x
-        this.y = this.#agent.y
-        this.#mesh.position.y = 0.5
-        scene.add( this.#mesh )
+        this.opacity = 1;
+        this.x = this.#agent.x;
+        this.y = this.#agent.y;
+        this.#mesh.position.y = 0.5;
+        this.#agent = undefined;
+        scene.add( this.#mesh );
+    }
+    get carriedBy () {
+        return this.#agent;
     }
 
     set opacity (opacity) {
@@ -216,7 +221,7 @@ class Parcel extends onGrid {
         this.id = id
         this.#reward = reward
 
-        console.log('created parcel', id)
+        // console.log('created parcel', id)
     }
 
 }
@@ -296,25 +301,6 @@ socket.on("tile", (x, y, delivery) => {
     setTile(x, y, delivery)
 });
 
-socket.on("sensing agent", (id, x, y, score) => {
-    console.log("sensing agent ", id, x, y, score)
-    if ( !agents.has(id) )
-        agents.set( id, new Agent(id, x, y, score) )
-    // var a_mesh = agents.get(id)
-    var agent = agents.get(id)
-
-    if ( x && y ) {
-        agent.opacity = 1;
-        agent.x = x;
-        agent.y = y;
-        agent.score = score;
-    }
-    else {
-        agent.opacity = 0;
-    }
-
-});
-
 var me = new Agent('me', 0, 0, 0);
 
 socket.on("you", ({id, x, y, score, carrying}) => {
@@ -339,12 +325,49 @@ socket.on("you", ({id, x, y, score, carrying}) => {
     //         me.carrying.set( id, parcels.get(id) );
     //     }
     // }
+    for ( let p of carrying ) {
+        var parcel = parcels.get( p.id );
+        parcel.reward = p.reward;
+        parcel.pickup(me);
+    }
 
     if ( me.x % 1 == 0 && me.y % 1 == 0 )
         for ( var tile of tiles.values() ) {
             var distance = Math.abs(me.x-tile.x) + Math.abs(me.y-tile.y);
             tile.opacity = ( distance<5 ? 1 : 0.2 );
         }
+});
+
+socket.on("sensing agent", (id, x, y, score, carrying) => {
+    console.log("sensing agent ", id, x, y, score, carrying.lenght)
+    if ( !agents.has(id) )
+        agents.set( id, new Agent(id, x, y, score) )
+    // var a_mesh = agents.get(id)
+    var me = agents.get(id)
+
+    if ( x != null && y != null ) {
+        me.opacity = 1;
+        me.x = x;
+        me.y = y;
+        me.score = score;
+    }
+    else {
+        me.opacity = 0;
+    }
+
+    // pickup if carrying
+    for ( let p of carrying ) {
+        var parcel = parcels.get( p.id );
+        parcel.reward = p.reward;
+        parcel.pickup(me);
+    }
+
+    // putdown if not carrying
+    const carryingId = Array.from(carrying).map( ({id}) => id )
+    for ( let [pid,p] of me.carrying.entries() ) {
+        if ( !carryingId.includes(pid) )
+            p.putdown();
+    }
 });
 
 
@@ -365,11 +388,11 @@ socket.on("you", ({id, x, y, score, carrying}) => {
 // });
 
 socket.on("parcel sensing", (sensed) => {
-    console.log("parcel sensing", sensed.length)
+    console.log("parcel sensing")//, sensed.length)
     var sensed = Array.from(sensed)
-    for ( const knownId of parcels.keys() ) {
-        if ( !sensed.map( ({id,x,y,reward}) => id ).includes( knownId ) && !Array.from( me.carrying.keys ).includes( knownId ) ) {
-            let parcel = parcels.get(knownId)
+    var sensed_ids = sensed.map( ({id,x,y,reward}) => id )
+    for ( const [id, parcel] of parcels.entries() ) {
+        if ( !parcel.carriedBy && !sensed_ids.includes( parcel.id ) ) {
             // console.log('no more sensing parcel', knownId)
             parcel.opacity = 0;
             // parcel.removeMesh();
@@ -382,9 +405,11 @@ socket.on("parcel sensing", (sensed) => {
         if ( !parcels.has(id) )
             parcels.set( id, new Parcel(id, reward, x, y) )
         var parcel = parcels.get(id);
-        parcel.x = x;
-        parcel.y = y;
-        parcel.opacity = 1;
+        if ( !parcel.carriedBy ) {
+            parcel.x = x;
+            parcel.y = y;
+            parcel.opacity = 1;
+        }
         parcel.reward = reward;
     }
 });

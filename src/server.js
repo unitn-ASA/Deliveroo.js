@@ -15,6 +15,7 @@ const Agent = require('./deliveroo/Agent');
 const Xy = require('./deliveroo/Xy');
 const Parcel = require('./deliveroo/Parcel');
 const Tile = require('./deliveroo/Tile');
+const myClock = require('./deliveroo/Clock');
 
 
 
@@ -35,18 +36,25 @@ const myGrid = new Grid(myMap);
 
 
 
-async function createRandomParcels () {
-    while ( true ) {
-        let x = Math.floor(Math.random()*10);
-        let y = Math.floor(Math.random()*10);
-        let parcel = myGrid.createParcel(x, y);
-        if (parcel)
-            console.log('parcel created at', x, y, parcel.reward)
-        await new Promise( res => setTimeout(res, 2000))
-    }
-}
-createRandomParcels ()
+// async function createRandomParcels () {
+//     while ( true ) {
+//         let x = Math.floor(Math.random()*10);
+//         let y = Math.floor(Math.random()*10);
+//         let parcel = myGrid.createParcel(x, y);
+//         if (parcel)
+//             console.log('parcel created at', x, y, parcel.reward)
+//         await new Promise( res => setTimeout(res, 2000))
+//     }
+// }
+// createRandomParcels ()
 
+myClock.on( '2s', () => {
+    let x = Math.floor(Math.random()*10);
+    let y = Math.floor(Math.random()*10);
+    let parcel = myGrid.createParcel(x, y);
+    if (parcel)
+        console.log('parcel created at', x, y, parcel.reward)
+} )
 
 
 async function randomlyMove (agent) {
@@ -95,8 +103,9 @@ io.on('connection', (socket) => {
     console.log('user', socket.id + ' connected');
 
     var me = myGrid.getAgent(socket.id);
-    // console.log('you', me.id, me.x, me.y);
-    socket.emit('you', me);
+    var {id, x, y, score, carrying} = me;
+    console.log('you', id, x, y, score, carrying );
+    socket.emit( 'you', me );
     // socket.broadcast.emit('hi ' + me.id);
 
     /**
@@ -105,7 +114,7 @@ io.on('connection', (socket) => {
     for (const tile of myGrid.getTiles()) {
         // console.log(tile)
         if ( !tile.blocked ) 
-            socket.emit('tile', tile.x, tile.y, tile.delivery)
+            socket.emit( 'tile', tile.x, tile.y, tile.delivery )
     }
     
 
@@ -133,11 +142,11 @@ io.on('connection', (socket) => {
      */
 
     // Emit you
-    me.on( 'agent', ({id, x, y, score}) => {
+    me.on( 'agent', ({id, x, y, score, carrying}) => {
         // console.log('yourposition:', id, x, y);
-        socket.emit( 'you', {id, x, y, score} )
+        socket.emit( 'you', {id, x, y, score, carrying} )
     } );
-    socket.emit( 'you', {id, x, y, score} = me )
+    socket.emit( 'you', {id, x, y, score, carrying} = me )
     
     // // Emit my initial sensing
     // for (const {id, x, y, score} of me.sensing) {
@@ -146,9 +155,9 @@ io.on('connection', (socket) => {
     // }
 
     // Emit sensing events
-    me.on( 'sensing agent', (id, x, y, score) => {
+    me.on( 'sensing agent', (id, x, y, score, carrying) => {
         // console.log('server.js', 'sensing agent', id, x, y, score);
-        socket.emit( 'sensing agent', id, x, y, score );
+        socket.emit( 'sensing agent', id, x, y, score, carrying );
     } );
 
     // Trigger initial sensing

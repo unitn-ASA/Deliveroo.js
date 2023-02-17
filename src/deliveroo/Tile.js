@@ -65,8 +65,8 @@ const Grid =  require('./Grid')
     addParcel ( parcel ) {
         // Add on tile
         this.#parcels.add( parcel );
-        // Emit parcel added
-        this.emit( 'parcel added', parcel.id, this.x, this.y, parcel.reward );
+        // // Emit parcel added
+        // this.emit( 'parcel added', parcel.id, this.x, this.y, parcel.reward );
 
         // On reward emit parcel reward, until not removed from this tile
         var rewardListener = (parcel) => {
