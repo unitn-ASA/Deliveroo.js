@@ -81,84 +81,93 @@ class Grid extends Observable {
     getAgentIds () {
         return this.#agents.keys();
     }
+    
+    getAgents () {
+        return this.#agents.values();
+    }
+
+    getAgent ( id ) {
+        return this.#agents.get( id );
+    }
 
     /**
      * @type {function(string): Agent}
      */
-    getAgent ( id ) {
-        if ( !this.#agents.has(id) ) {
-            // Instantiate
-            var me = new Agent(id, this)
+    createAgent ( name = null, password = null ) {
+        
+        // Instantiate
+        var me = new Agent( this, name, password )
 
-            // Register
-            this.#agents.set(id, me);
+        // Register
+        this.#agents.set(me.id, me);
 
-            // // Tile scoped event propagation
-            // me.on( 'xy', (...args) => me.tile.emit('agent xy', ...args) );
-            // me.on( 'score', (...args) => me.tile.emit('agent score', ...args) );
-            // me.on( 'pickup', (...args) => me.tile.emit('agent pickup', ...args) );
-            // me.on( 'putdown', (...args) => me.tile.emit('agent putdown', ...args) );
-
-            // // On mine and others movement evaluateSensing
-            // const mySensor = new Observable();
-            // me.on( 'agent xy', (me) => {
-            //     if ( !me.moving ) {
-            //         const sensedTiles = this.getTiles( [me.x-5, me.x+5, me.y-5, me.y+5] )
-            //         for ( const tile of sensedTiles ) {
-            //             tile.on( 'agent xy', mySensor.emit.bind(mysensor, 'agent xy') );
-            //             tile.on( 'agent score', mySensor.emit.bind(mysensor, 'agent score') );
-            //             tile.on( 'agent pickup', mySensor.emit.bind(mysensor, 'agent pickup') );
-            //             tile.on( 'agent putdown', mySensor.emit.bind(mysensor, 'agent putdown') );
-            //         }
-            //     }
-            // } )
-
-            // Grid scoped events propagation
-            me.on( 'xy', this.emit.bind(this, 'agent xy') );
-            me.on( 'score', this.emit.bind(this, 'agent score') );
-            me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
-            me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
-            // me.on( 'agent', this.emit.bind(this, 'agent') );
-            
-
-            // On mine and others movement evaluateSensing
-            this.on( 'agent xy', (sensedAgent) => {
-                /*if ( !sensedAgent.moving )*/
-                    me.evaluateSensing(sensedAgent)
-            } )
-            // On others score evaluateSensing
-            this.on( 'agent score', (it) => {
-                if ( it.id != me.id && it.distance(me) < 5 )
-                    me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
-            } )
-            // On others pickup
-            this.on( 'agent pickup', (it, picked) => {
-                if ( it.id != me.id && it.distance(me) < 5 )
-                    me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
-            } )
-            // On others putdown
-            this.on( 'agent putdown', (it, dropped) => {
-                if ( it.id != me.id && it.distance(me) < 5 )
-                    me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
-            } )
-
-            // On parcel
-            // this.on( 'parcel carriedBy', (parcel) => { if ( parcel.carriedBy.distance(me) < 5 ) me.evaluateSensing(parcel.carriedBy) } )
-            this.on( 'parcel reward', (parcel) => {
-                var parcels = [];
-                for ( var tile of this.getTiles() ) {// [me.x-5, me.x+5, me.y-5, me.y+5] ) ) {
-                    let {x, y} = tile;
-                    if ( tile.distance(me) < 5 ) {
-                        for ( let parcel of tile.parcels ) {
-                            let {id, reward} = parcel;
-                            parcels.push( {id, x, y, reward} )
-                        }
-                    }
-                }
-                me.emitOnePerTick( 'parcel sensing', parcels )
-            } );
+        // Grid scoped events propagation
+        me.on( 'xy', this.emit.bind(this, 'agent xy') );
+        me.on( 'score', this.emit.bind(this, 'agent score') );
+        me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
+        me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
+        // me.on( 'agent', this.emit.bind(this, 'agent') );
+        
+        const notMeAndWithin5 = ( fn ) => {
+            return function (it, ...args) {
+                if ( ( ! it.id || me.id != it.id ) && Xy.distance(me, it) < 5 )
+                    fn (it, ...args)
+            }
         }
-        return this.#agents.get(id);
+
+        const ifNotMeAndWithin5EmitSensendAgents = notMeAndWithin5( me.emitAgentSensing.bind(me) );
+
+        // On mine and others movement emit SensendAgents
+        this.on( 'agent xy', me.emitAgentSensing.bind(me) )
+        
+        // On agent disconnect emit agentSensing
+        this.on( 'agent disconnect', me.emitAgentSensing.bind(me) )
+
+        // On others score emit SensendAgents
+        this.on( 'agent score', ifNotMeAndWithin5EmitSensendAgents )
+
+        // // On others pickup
+        // this.on( 'agent pickup', (it, picked) => {
+        //     if ( it.id != me.id && it.distance(me) < 5 )
+        //         me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
+        // } )
+        // // On others putdown
+        // this.on( 'agent putdown', (it, dropped) => {
+        //     if ( it.id != me.id && it.distance(me) < 5 )
+        //         me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
+        // } )
+
+        
+        /**
+         * Call wrapped function just once every nextTick.
+         * @function postpone
+         */
+        function postpone ( finallyDo ) {
+            var promiseFired = false;
+            return async (...args) => {
+                promiseFired = false;
+                process.nextTick( () => { // https://jinoantony.com/blog/setimmediate-vs-process-nexttick-in-nodejs
+                    if ( !promiseFired ) {
+                        promiseFired = true;
+                        finallyDo(...args);
+                    }
+                } );
+            }
+        }
+
+        const thisGrid = this;
+        const within5 = ( fn ) => {
+            return function (p, ...args) {
+                console.log(this) // this should be parcel since specified by .bind in emitting parcel state. NO x, y in parcel
+                if ( Xy.distance(me, this) < 5 )
+                    fn (p, ...args)
+            }
+        }
+
+        // On parcel
+        this.on( 'parcel', postpone( me.emitParcelSensing.bind(me) ) );
+
+        return me;
     }
 
     deleteAgent ( agent ) {
@@ -167,7 +176,13 @@ class Grid extends Observable {
         agent.x = undefined;
         agent.y = undefined;
         this.#agents.delete(agent.id);
+        this.emit('agent disconnected', agent);
     }
+
+
+    
+    /** @attribute {Map<string, Parcel>} */
+    #parcels = new Map();
 
     /**
      * @type {function(Number, Number): Parcel}
@@ -178,25 +193,35 @@ class Grid extends Observable {
             return false;
         
         // Instantiate and add to Tile
-        var parcel = new Parcel( this ); // Propagate // parcel.on('reward', this.emit.bind(this, 'parcel reward') );
-        tile.addParcel( parcel );
+        var parcel = new Parcel( x, y );
+        // tile.addParcel( parcel );
+        this.#parcels.set( parcel.id, parcel )
+
+        parcel.once( 'expired', (...args) => {
+            this.deleteParcel( parcel.id );
+        } );
 
         // Grid scoped event propagation
-        parcel.on( 'reward', this.emit.bind(this, 'parcel reward') );
-        parcel.once( 'expired', this.emit.bind(this, 'parcel expired') );
-        
-        // // Tile scoped event propagation
-        // parcel.on( 'reward', (...args) => parcel.tile.emit('parcel reward', ...args) );
+        this.emit( 'parcel', parcel )
+        parcel.on( 'reward', this.emit.bind(this, 'parcel') );
+        parcel.on( 'carriedBy', this.emit.bind(this, 'parcel') );
 
         return parcel;
     }
 
-    // /**
-    //  * @type {function(): IterableIterator<Parcel>}
-    //  */
-    // getParcels () {
-    //     return this.#parcels.values();
-    // }
+    /**
+     * @type {function(): IterableIterator<Parcel>}
+     */
+    getParcels () {
+        return this.#parcels.values();
+    }
+
+    /**
+     * @type {function(String):boolean}
+     */
+    deleteParcel ( id ) {
+        return this.#parcels.delete( id );
+    }
 
 }
 

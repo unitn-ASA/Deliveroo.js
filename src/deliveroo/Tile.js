@@ -59,50 +59,50 @@ const Grid =  require('./Grid')
         return false;
     }
 
-    /**
-     * @type {function(Parcel): void}
-     */
-    addParcel ( parcel ) {
-        // Add on tile
-        this.#parcels.add( parcel );
-        // // Emit parcel added
-        // this.emit( 'parcel added', parcel.id, this.x, this.y, parcel.reward );
+    // /**
+    //  * @type {function(Parcel): void}
+    //  */
+    // addParcel ( parcel ) {
+    //     // Add on tile
+    //     this.#parcels.add( parcel );
+    //     // // Emit parcel added
+    //     // this.emit( 'parcel added', parcel.id, this.x, this.y, parcel.reward );
 
-        // On reward emit parcel reward, until not removed from this tile
-        var rewardListener = (parcel) => {
-            if ( this.#parcels.has(parcel) )
-                this.emit.bind(this, 'parcel reward');
-            else
-                this.off( 'reward', rewardListener )
-        }
-        parcel.on( 'reward', rewardListener );
+    //     // On reward emit parcel reward, until not removed from this tile
+    //     var rewardListener = (parcel) => {
+    //         if ( this.#parcels.has(parcel) )
+    //             this.emit.bind(this, 'parcel reward');
+    //         else
+    //             this.off( 'reward', rewardListener )
+    //     }
+    //     parcel.on( 'reward', rewardListener );
 
-        // Once expired emit parcel expired 
-        parcel.once( 'expired', (parcel) => {
-            if ( this.removeParcel( parcel ) ) {
-                this.emit( 'parcel expired', parcel );
-            }
-        } );
-    }
+    //     // Once expired emit parcel expired 
+    //     parcel.once( 'expired', (parcel) => {
+    //         if ( this.removeParcel( parcel ) ) {
+    //             this.emit( 'parcel expired', parcel );
+    //         }
+    //     } );
+    // }
 
-    /**
-     * @type {function(Parcel): boolean}
-     */
-    removeParcel ( parcel ) {
-        // Unregister
-        if ( this.#parcels.delete( parcel ) ) {
-            // Emit parcel removed
-            this.emit( 'parcel removed', this.id, this.x, this.y );
-        }
-        return true;
-    }
+    // /**
+    //  * @type {function(Parcel): boolean}
+    //  */
+    // removeParcel ( parcel ) {
+    //     // Unregister
+    //     if ( this.#parcels.delete( parcel ) ) {
+    //         // Emit parcel removed
+    //         this.emit( 'parcel removed', this.id, this.x, this.y );
+    //     }
+    //     return true;
+    // }
 
-    /**
-     * @type {function(): IterableIterator<Parcel>}
-     */
-    get parcels () {
-        return this.#parcels.values();
-    }
+    // /**
+    //  * @type {function(): IterableIterator<Parcel>}
+    //  */
+    // get parcels () {
+    //     return this.#parcels.values();
+    // }
     
 }
 

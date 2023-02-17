@@ -86,28 +86,28 @@ class onGrid {
         this.#mesh.position.z = -y * 1.5
     }
 
-    #agent
+    #carriedBy
     pickup ( agent ) {
-        this.#agent = agent;
-        this.#agent.#mesh.add( this.#mesh );
-        this.#agent.carrying.set(this.id, this);
+        this.#carriedBy = agent;
+        this.#carriedBy.#mesh.add( this.#mesh );
+        this.#carriedBy.carrying.set(this.id, this);
         scene.remove( this.#mesh );
         this.x = 0
         this.y = 0
-        this.#mesh.position.y = this.#agent.carrying.size * 0.5;
+        this.#mesh.position.y = this.#carriedBy.carrying.size * 0.5;
     }
-    putdown () {
-        this.#agent.#mesh.remove( this.#mesh );
-        this.#agent.carrying.delete(this.id);
+    putdown ( x, y ) {
+        this.#carriedBy.#mesh.remove( this.#mesh );
+        this.#carriedBy.carrying.delete(this.id);
         this.opacity = 1;
-        this.x = this.#agent.x;
-        this.y = this.#agent.y;
+        this.x = x // this.#agent.x;
+        this.y = y // this.#agent.y;
         this.#mesh.position.y = 0.5;
-        this.#agent = undefined;
+        this.#carriedBy = undefined;
         scene.add( this.#mesh );
     }
     get carriedBy () {
-        return this.#agent;
+        return this.#carriedBy;
     }
 
     set opacity (opacity) {
@@ -150,6 +150,10 @@ class onGrid {
         this.#mesh.geometry.dispose();
         this.#mesh.material.dispose();
         scene.remove( this.#mesh );
+        if (this.#carriedBy) {
+            this.#carriedBy.#mesh.remove( this.#mesh );
+            this.#carriedBy.carrying.delete(this.id);
+        }
         renderer.renderLists.dispose();
     }
 
@@ -192,8 +196,6 @@ function setTile(x, y, delivery) {
 
 
 
-var parcels = new Map();
-
 class Parcel extends onGrid {
 
     id
@@ -207,7 +209,7 @@ class Parcel extends onGrid {
         this.text = reward;
     }
 
-    constructor (id, reward, x, y) {
+    constructor ( id, x, y, carriedBy, reward ) {
         const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
         var color = new THREE.Color( 0xffffff );
         color.setHex( Math.random() * 0xffffff );
@@ -216,12 +218,94 @@ class Parcel extends onGrid {
         scene.add( parcel );
 
         super(parcel, x, y, reward)
-        parcels.set(id, this);
 
         this.id = id
         this.#reward = reward
 
+        if (carriedBy) {
+            this.pickup( getOrCreateAgent( carriedBy ) )
+        }
+
         // console.log('created parcel', id)
+    }
+
+}
+
+var parcels = new Map();
+
+function getOrCreateParcel ( id, x=-1, y=-1, carriedBy=null, reward=-1 ) {
+    var parcel = parcels.get(id);
+    if ( !parcel ) {
+        parcel = new Parcel(id, x, y, carriedBy, reward);
+        parcels.set( id, parcel );
+    }
+    return parcel;
+}
+
+function deleteParcel ( id ) {
+    getOrCreateParcel( id ).removeMesh();
+    parcels.delete( id );
+}
+
+
+
+class Agent extends onGrid {
+
+    id
+    name
+    carrying = new Map();
+
+    // #targetX
+    // get x () { return super.x }
+    // set x ( x ) {
+    //     // if ( super.x == NaN )
+    //     //     super.x = 0;
+    //     super.x = x;
+    //     this.#targetX = Math.round(x);
+    // }
+    // #targetY
+    // get y () { return super.y }
+    // set y ( y ) {
+    //     // if ( super.y == NaN )
+    //     //     super.y = 1;
+    //     super.y = y;
+    //     this.#targetY = Math.round(y);
+    // }
+    // async movement ( ) {
+    //     while ( true ) {
+    //         await new Promise( res => setTimeout(res, 5000 / 10))
+    //         console.log( this.id, this.#targetX, this.#targetY, super.x, super.y )
+    //         if ( super.x != this.#targetX )
+    //             super.x = Math.round( super.x *10 + ( this.#targetX > super.x ? +1 : -1 ) ) / 10;
+    //         if ( super.y != this.#targetY )
+    //             super.y = Math.round( super.y *10 + ( this.#targetY > super.y ? +1 : -1 ) ) / 10;
+    //     }
+    // }
+
+    #score
+    get score () {
+        return this.#score
+    }
+    set score (score) {
+        this.#score = score
+        this.text = this.name+'\n'+score;
+    }
+
+    constructor (id, x, y, score) {
+        const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
+        var color = new THREE.Color( 0xffffff );
+        color.setHex( Math.random() * 0xffffff );
+        const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
+        const mesh = new THREE.Mesh( geometry, material );
+        scene.add( mesh );
+
+        super(mesh, x, y, id+'\n'+score)
+
+        this.id = id
+        this.name = id
+        this.#score = score
+
+        // this.movement();
     }
 
 }
@@ -230,36 +314,16 @@ class Parcel extends onGrid {
 
 var agents = new Map();
 
-class Agent extends onGrid {
-
-    id
-    carrying = new Map();
-
-    #score
-    get score () {
-        return this.#score
+function getOrCreateAgent ( id, x=-1, y=-1, score=-1 ) {
+    var agent = agents.get(id);
+    if ( !agent ) {
+        agent = new Agent(id, x, y, score);
+        agents.set( id, agent );
     }
-    set score (score) {
-        this.#score = score
-        this.text = this.id+'\n'+score;
-    }
-
-    constructor (id, x, y, score) {
-        const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
-        var color = new THREE.Color( 0xffffff );
-        color.setHex( Math.random() * 0xffffff );
-        const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
-        const agent = new THREE.Mesh( geometry, material );
-        scene.add( agent );
-
-        super(agent, x, y, id+'\n'+score)
-        agents.set(id, this);
-
-        this.id = id
-        this.#score = score
-    }
-
+    return agent;
 }
+
+
 
 // function createAgent (id) {
 //     const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
@@ -290,22 +354,42 @@ class Agent extends onGrid {
 
 
 
+var me; //new Agent('me', 0, 0, 0);
 
-var socket = io();
+let params = (new URL(document.location)).searchParams;
+var socket = io( {
+    query: {
+        id: params.get("id"),
+        name: params.get("name"),
+        password: params.get("password")
+    }
+} );
 
 socket.on("connect", () => {
-    console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+    console.log( "socket", socket.id, document.location ); // x8WIv7-mJelg7on_ALbx
+    // me = getOrCreateAgent(socket.id, 0, 0, 0); //new Agent('me', 0, 0, 0);
+    // me.name = 'me'
 });
 
 socket.on("tile", (x, y, delivery) => {
     setTile(x, y, delivery)
 });
 
-var me = new Agent('me', 0, 0, 0);
+socket.on("you", ({id, name, x, y, score}) => {
+    console.log("you", {id, name, x, y, score})
 
-socket.on("you", ({id, x, y, score, carrying}) => {
-    console.log("you", {id, x, y, score, carrying})
-    
+    if ( params.get( "id" ) != id ) {
+        params.set( "id", id )
+        document.location.search = params.toString();
+    }
+    if ( params.get( "name" ) && params.get( "name" ) != name ) {
+        params.set( "name", name )
+        document.location.search = params.toString();
+    }
+
+    me = getOrCreateAgent(id, x, y, score);
+    me.name = name;
+
     /**
      * Auto-follow camera
      */
@@ -319,18 +403,6 @@ socket.on("you", ({id, x, y, score, carrying}) => {
     me.y = y
     me.score = score
 
-    // for ( let c of carrying ){
-    //     var {id, x, y, reward} = c;
-    //     if ( !me.carrying.has(id) ) {
-    //         me.carrying.set( id, parcels.get(id) );
-    //     }
-    // }
-    for ( let p of carrying ) {
-        var parcel = parcels.get( p.id );
-        parcel.reward = p.reward;
-        parcel.pickup(me);
-    }
-
     if ( me.x % 1 == 0 && me.y % 1 == 0 )
         for ( var tile of tiles.values() ) {
             var distance = Math.abs(me.x-tile.x) + Math.abs(me.y-tile.y);
@@ -338,80 +410,72 @@ socket.on("you", ({id, x, y, score, carrying}) => {
         }
 });
 
-socket.on("sensing agent", (id, x, y, score, carrying) => {
-    console.log("sensing agent ", id, x, y, score, carrying.lenght)
-    if ( !agents.has(id) )
-        agents.set( id, new Agent(id, x, y, score) )
-    // var a_mesh = agents.get(id)
-    var me = agents.get(id)
-
-    if ( x != null && y != null ) {
-        me.opacity = 1;
-        me.x = x;
-        me.y = y;
-        me.score = score;
-    }
-    else {
-        me.opacity = 0;
-    }
-
-    // pickup if carrying
-    for ( let p of carrying ) {
-        var parcel = parcels.get( p.id );
-        parcel.reward = p.reward;
-        parcel.pickup(me);
-    }
-
-    // putdown if not carrying
-    const carryingId = Array.from(carrying).map( ({id}) => id )
-    for ( let [pid,p] of me.carrying.entries() ) {
-        if ( !carryingId.includes(pid) )
-            p.putdown();
-    }
-});
 
 
-// socket.on("parcel added", (id, x, y, reward) => {
-//     if ( !parcels.has(id) )
-//         parcels.set( id, new Parcel(id, reward, x, y) )
-// });
-// socket.on("parcel removed", (id) => {
-//     if ( parcels.has(id) )
-//         parcels.get(id).removeMesh();
-// });
-// socket.on("parcel reward", ({id, reward}) => {
-//     // console.log("parcel reward", id, reward)
-//     if ( parcels.has(id) )
-//         parcels.get(id).reward = reward;
-//     else
-//         console.log("parcel not found", id)
-// });
+socket.on("agents sensing", (sensed) => {
 
-socket.on("parcel sensing", (sensed) => {
-    console.log("parcel sensing")//, sensed.length)
+    console.log("agents sensing", ...sensed)//, sensed.length)
+
     var sensed = Array.from(sensed)
-    var sensed_ids = sensed.map( ({id,x,y,reward}) => id )
-    for ( const [id, parcel] of parcels.entries() ) {
-        if ( !parcel.carriedBy && !sensed_ids.includes( parcel.id ) ) {
+    
+    var sensed_ids = sensed.map( ({id}) => id )
+    for ( const [id, agent] of agents.entries() ) {
+        if ( agent!=me && !sensed_ids.includes( agent.id ) ) {
             // console.log('no more sensing parcel', knownId)
-            parcel.opacity = 0;
+            agent.opacity = 0;
             // parcel.removeMesh();
             // parcels.delete(knownId);
         }
     }
-    for ( const sense of sensed ) {
+
+    for ( const sensed_p of sensed ) {
         // console.log("parcel sensing", sense)
-        let {id, x, y, reward} = sense
-        if ( !parcels.has(id) )
-            parcels.set( id, new Parcel(id, reward, x, y) )
-        var parcel = parcels.get(id);
-        if ( !parcel.carriedBy ) {
-            parcel.x = x;
-            parcel.y = y;
-            parcel.opacity = 1;
-        }
-        parcel.reward = reward;
+        const {id, x, y, score} = sensed_p;
+        var agent = getOrCreateAgent(id, x, y, score)
+        agent.opacity = 1;
+        agent.x = x;
+        agent.y = y;
+        agent.score = score;
     }
+
+});
+
+socket.on("parcels sensing", (sensed) => {
+
+    console.log("parcels sensing", ...sensed)//, sensed.length)
+
+    var sensed = Array.from(sensed)
+
+    var sensed_ids = sensed.map( ({id}) => id )
+    for ( const [id, was] of parcels.entries() ) {
+        if ( !sensed_ids.includes( was.id ) ) {
+            // console.log('no more sensing parcel', knownId)
+            // was.opacity = 0;
+            deleteParcel( was.id ); // parcel.removeMesh(); // parcels.delete(knownId);
+        }
+    }
+
+    for ( const {id, x, y, carriedBy, reward} of sensed ) {
+        
+        const was = getOrCreateParcel(id, x, y, carriedBy, reward);
+
+        if ( carriedBy ) {
+            if ( !was.carriedBy ) {
+                var agent = getOrCreateAgent( carriedBy );
+                was.pickup( agent );
+            }
+        }
+        else {
+            if ( was.carriedBy )
+                was.putdown(x, y);
+            else {
+                was.x = x;
+                was.y = y;
+            }
+        }
+        was.reward = reward;
+    }
+
 });
 
 document.onkeydown = function(evt) {
@@ -424,18 +488,18 @@ document.onkeydown = function(evt) {
         console.log('emit pickup');
         socket.emit('pickup', (picked) => {
             console.log( 'pickup', picked, 'parcels' );
-            for ( let p of picked ) {
-                parcels.get( p.id ).pickup(me);
-            }
+            // for ( let p of picked ) {
+            //     parcels.get( p.id ).pickup(me);
+            // }
         } );
         break;
         case 69:// E putdown
         console.log('emit putdown');
         socket.emit('putdown', (dropped) => {
             console.log( 'putdown', dropped, 'parcels' );
-            for ( let p of dropped ) {
-                parcels.get( p.id ).putdown();
-            }
+            // for ( let p of dropped ) {
+            //     parcels.get( p.id ).putdown();
+            // }
         } );
         break;
         case 87 || 38:// W up

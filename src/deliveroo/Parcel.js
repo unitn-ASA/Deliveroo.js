@@ -1,9 +1,10 @@
 const Observable =  require('../utils/Observable')
+const Xy =  require('./Xy')
 const myClock =  require('./Clock')
 
 
 
-class Parcel extends Observable {
+class Parcel extends Xy {
     
     static #lastId = 0;
     
@@ -14,37 +15,40 @@ class Parcel extends Observable {
     
     /**
      * @constructor Parcel
-     * @param {Grid} grid
      */
-    constructor (grid) {
-        super();
+    constructor (x, y, carriedBy = null ) {
+        super(x, y);
 
-        // Make observable
-        this.interceptValueSet('reward');
+        this.carriedBy = carriedBy;
         this.interceptValueSet('carriedBy');
 
-        // this.#grid = grid;
+        // Follow carrier
+        var lastCarrier = null;
+        const followCarrier = (agent) => {
+            this.x = agent.x;
+            this.y = agent.y;
+        }
+        this.on( 'carriedBy', (parcel) => {
+            if ( lastCarrier )
+                lastCarrier.off( 'xy', followCarrier )
+            if ( this.carriedBy )
+                this.carriedBy.on( 'xy', followCarrier )
+            lastCarrier = this.carriedBy;
+        } )
+        
         this.id = Parcel.#lastId++;
+
+        this.interceptValueSet('reward');
         this.reward = Math.floor( Math.random()*20 + 20 );
 
         const decay = () => {
-            this.reward = Math.floor( this.reward - 5 );
+            this.reward = Math.floor( this.reward - 1 );
             if ( this.reward <= 0) {
                 this.emitOnePerTick( 'expired', this );
-                myClock.off( '5s', decay );
+                myClock.off( '1s', decay );
             }
         };
-        myClock.on( '5s', decay );
-
-        // const startDecading = async () => {
-        //     while ( this.reward > 0 ) {
-        //         await new Promise( res => setTimeout(res, 2000) )
-        //         this.reward = Math.floor( this.reward - 1 );
-        //     }
-        //     this.emitOnePerTick( 'expired', this );
-        //     // grid.emitOnceEveryTick( 'parcel expired', this );
-        // }
-        // startDecading();
+        myClock.on( '1s', decay );
     }
 
 }

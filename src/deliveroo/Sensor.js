@@ -63,7 +63,7 @@ class Sensor extends Xy {
             if ( it.id == me.id ) {
                 for ( const id of grid.getAgentIds() ) {
                     if ( id != me.id )
-                        computeSensing( grid.getAgent(id) );
+                        computeSensing( grid.createAgent(id) );
                 }
             }
             else {

@@ -15,11 +15,15 @@ const MOVEMENT_DURATION = 500;
  * @property {Set<Agent>} sensing agents in the sensed area
  */
 class Agent extends Xy {
+
+    static #lastId = 0;
     
     /** @property {Grid} #grid */
     #grid;
     /** @property {string} id */
     id;
+    /** @property {string} name */
+    name;
     /** @property {Set<Agent>} sensing agents in the sensed area */
     sensing;
     /** @property {Number} score */
@@ -32,10 +36,11 @@ class Agent extends Xy {
 
     /**
      * @constructor Agent
-     * @param {string} id
      * @param {Grid} grid
+     * @param {string} name
+     * @param {string} password
      */
-    constructor ( id, grid ) {
+    constructor ( grid, name = null, password = null ) {
 
         {
             let x, y, found=false;
@@ -65,61 +70,60 @@ class Agent extends Xy {
         this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
 
         this.#grid = grid;
-        this.id = id;
+        this.id = 'a_' + Agent.#lastId++;
+        this.name = ( name ? name : this.id );
+        this.password = password;
         this.sensing = new Set();
         this.score = 0;
 
     }
 
     /**
-     * When called, evaluate sensing, with respect to a specified agent (it).
-     * If the specified agent is me assume I moved and re-compute everything.
+     * Agents sensend on the grid
      * @type {function(Agent,Array<Parcel>): void}
      */
-    evaluateSensing ( it ) {
-        const me = this;
-        if ( it.id == me.id ) {
-            // re-evaluate all others
-            for ( const id of this.#grid.getAgentIds() ) {
-                if ( id != me.id )
-                    this.evaluateSensing( this.#grid.getAgent(id) );
-            }
-        }
-        else {
-            // console.log('computing', this.id, 'vs', it.id)
-            if ( it.distance(me) < 5 ) {
-                if ( !this.sensing.has(it) ) {
-                    // console.log(this.id, 'start sensing agent', it.id )
-                    this.sensing.add(it);
-                }
-                // console.log(this.id, 'sensing agent', it.id )
-                this.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
-            }
-            else {
-                if ( this.sensing.has(it) ) {
-                    // console.log(this.id, 'no more sensing agent', it.id )
-                    this.emit( 'sensing agent', it.id, undefined, undefined, it.score, it.carrying )
-                    this.sensing.delete(it);
-                }
-            }
-        }
+    emitAgentSensing () {
+        // var agents = [];
+        // for ( let agent of this.#agents ) {
+        //     if ( Xy.distance(agent, me) < 5 ) {
+        //         let {id, x, y, score} = agent;
+        //         agents.push( {id, x, y, score} )
+        //     }
+        // }
+        // me.emitOnePerTick( 'sensing agents', agents )
+        
+        this.emitOnePerTick( 'agents sensing',
+            Array.from( this.#grid.getAgents() ).filter( a => a != this && Xy.distance(a, this) < 5 ).map( ( {id, x, y, score} ) => { return {id, x, y, score} } )
+        );
     }
 
     /**
-     * Parcels on the grid
+     * Parcels sensend on the grid
      */
     emitParcelSensing () {
-        var parcels = [];
-        for ( var tile of this.#grid.getTiles() ) {// [this.x-5, this.x+5, this.y-5, this.y+5] ) ) {
-            let {x, y} = tile;
-            if ( tile.distance(this) < 5 ) {
-                for ( let parcel of tile.parcels ) {
-                    let {id, reward} = parcel;
-                    parcels.push( {id, x, y, reward} )
-                }
-            }
-        }
-        this.emitOnePerTick( 'parcel sensing', parcels )
+        // var parcels = [];
+        // for ( const tile of this.#grid.getTiles( [this.x-5, this.x+5, this.y-5, this.y+5] ) ) {
+        //     let {x, y} = tile;
+        //     if ( tile.distance(this) < 5 ) {
+        //         for ( let parcel of tile.parcels ) {
+        //             let {id, reward} = parcel;
+        //             parcels.push( {id, x, y, reward} )
+        //         }
+        //     }
+        // }
+        // this.emit( 'parcels sensing', parcels )
+        
+        this.emitOnePerTick( 'parcels sensing',
+            Array.from( this.#grid.getParcels() ).filter( p => Xy.distance(p, this) < 5 ).map( p => {
+                return {
+                    id: p.id,
+                    x: p.x,
+                    y: p.y,
+                    carriedBy: ( p.carriedBy ? p.carriedBy.id : null ),
+                    reward: p.reward
+                };
+            } )
+        );
     }
 
     get tile() {
@@ -129,16 +133,16 @@ class Agent extends Xy {
     async stepByStep ( incr_x, incr_y ) {
         var init_x = this.x
         var init_y = this.y
-        // this.x += incr_x/2
-        // this.y += incr_y/2
+        this.x = ( this.x * 10 + incr_x*6 ) / 10; // this keep it rounded at .1
+        this.y = ( this.y * 10 + incr_y*6 ) / 10; // this keep it rounded at .1
         for(let i=0; i<10; i++) {
             await new Promise( res => setTimeout(res, MOVEMENT_DURATION / 10))
-            this.x = ( this.x * 10 + incr_x ) / 10; // this keep it rounded at .1
-            this.y = ( this.y * 10 + incr_y ) / 10; // this keep it rounded at .1
+            // this.x = ( this.x * 10 + incr_x ) / 10; // this keep it rounded at .1
+            // this.y = ( this.y * 10 + incr_y ) / 10; // this keep it rounded at .1
             // console.log("moving into ", (init_x * 10 + incr_x * i ) / 10, this.y)
         }
-        // this.x = init_x + incr_x
-        // this.y = init_y + incr_y
+        this.x = init_x + incr_x
+        this.y = init_y + incr_y
     }
 
     moving = false;
@@ -187,17 +191,17 @@ class Agent extends Xy {
      * @type {function(): void}
      */
     pickUp () {
-        const tile = this.tile
-        if ( !tile ) 
-            return false;
         const picked = new Array();
         var counter = 0;
-        for (const /**@type {Parcel} parcel*/ parcel of tile.parcels) {
-            tile.removeParcel(parcel);
-            this.#carryingParcels.add(parcel);
-            parcel.carriedBy = this;
-            picked.push(parcel);
-            counter++;
+        for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcels() ) {
+            if ( parcel.x == this.x && parcel.y == this.y && parcel.carriedBy == null ) {
+                this.#carryingParcels.add(parcel);
+                parcel.carriedBy = this;
+                // parcel.x = 0;
+                // parcel.y = 0;
+                picked.push(parcel);
+                counter++;
+            }
         }
         console.log(this.id, 'pickUp', counter, 'parcels')
         if ( picked.length > 0 )
@@ -214,12 +218,14 @@ class Agent extends Xy {
         var dropped = new Array();
         for ( const parcel of this.#carryingParcels ) {
             this.#carryingParcels.delete(parcel);
-            parcel.carriedBy = this;
+            parcel.carriedBy = null;
+            // parcel.x = this.x;
+            // parcel.y = this.y;
             dropped.push(parcel);
-            if ( tile.delivery )
+            if ( tile.delivery ) {
                 sc += parcel.reward;
-            else
-                tile.addParcel( parcel );
+                this.#grid.deleteParcel( parcel.id );
+            }
         }
         console.log(this.id, 'putDown parcels for a total of', sc, 'pti')
         if ( dropped.length > 0 )

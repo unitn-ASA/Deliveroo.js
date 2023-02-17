@@ -100,16 +100,26 @@ async function randomlyMove (agent) {
 
 
 io.on('connection', (socket) => {
-    console.log('user', socket.id + ' connected');
-
-    var me = myGrid.getAgent(socket.id);
-    var {id, x, y, score, carrying} = me;
-    console.log('you', id, x, y, score, carrying );
-    socket.emit( 'you', me );
     // socket.broadcast.emit('hi ' + me.id);
 
+    console.log('socket', socket.id + ' connected', socket.handshake.url);
+    // console.log('socket', socket.id + ' connected', socket.handshake.headers.referer);
+    
+    let id = socket.handshake.query.id
+    let name = socket.handshake.query.name
+    let password = socket.handshake.query.password
+    
+    var me = myGrid.getAgent( id )
+    if ( me && me.password == password ) {
+        if ( name ) 
+            me.name = name;
+    }
+    else
+        me = myGrid.createAgent( name, password );
+    
+
     /**
-     * Emit tiles
+     * Emit map (tiles)
      */
     for (const tile of myGrid.getTiles()) {
         // console.log(tile)
@@ -118,50 +128,44 @@ io.on('connection', (socket) => {
     }
     
 
-
-    /**
-     * Emit parcel events
-     */
-    // myGrid.on( 'parcel added', (id, x, y, reward) => {
-    //     socket.emit('parcel added', id, x, y, reward)
-    // } );
-    // myGrid.on( 'parcel removed', (id) => {
-    //     socket.emit('parcel removed', id )
-    // } );
-    // myGrid.on( 'parcel reward', (parcel) => {
-    //     socket.emit('parcel reward', parcel )
-    // } );
-    me.on( 'parcel sensing', (parcels) => {
-        socket.emit('parcel sensing', parcels )
-    } );
-    
-
     
     /**
-     * Emit agent events
+     * Emit me
      */
 
     // Emit you
-    me.on( 'agent', ({id, x, y, score, carrying}) => {
+    me.on( 'agent', ({id, name, x, y, score}) => {
         // console.log('yourposition:', id, x, y);
-        socket.emit( 'you', {id, x, y, score, carrying} )
+        socket.emit( 'you', {id, name, x, y, score} );
     } );
-    socket.emit( 'you', {id, x, y, score, carrying} = me )
+    // console.log('you', me.id, me.x, me.y, me.score, me.carrying );
+    socket.emit( 'you', {id, name, x, y, score} = me );
     
-    // // Emit my initial sensing
-    // for (const {id, x, y, score} of me.sensing) {
-    //     // console.log(me.id, 'emit', 'sensing agent', {id, x, y});
-    //     socket.emit( 'sensing agent', id, x, y, score )
-    // }
 
-    // Emit sensing events
-    me.on( 'sensing agent', (id, x, y, score, carrying) => {
-        // console.log('server.js', 'sensing agent', id, x, y, score);
-        socket.emit( 'sensing agent', id, x, y, score, carrying );
+
+    /**
+     * Emit sensing
+     */
+
+    // Parcels
+    me.on( 'parcels sensing', (parcels) => {
+        // console.log('server.js', 'parcels sensing', ...parcels);
+        socket.emit('parcels sensing', parcels )
     } );
+    me.emitParcelSensing();
 
-    // Trigger initial sensing
-    me.evaluateSensing( me );
+    // Agents
+    me.on( 'agents sensing', (id, x, y, score, carrying) => {
+        // console.log('server.js', 'sensing agent', id, x, y, score);
+        socket.emit( 'agents sensing', id, x, y, score, carrying );
+    } );
+    me.emitAgentSensing();
+    
+
+
+    /**
+     * Actions
+     */
     
     socket.on('move', async (direction, acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, direction);
@@ -179,13 +183,14 @@ io.on('connection', (socket) => {
 
 
     /**
-     * Disconnect
+     * on Disconnect
      */
     socket.on('disconnect', () => {
-        console.log('user ' + me.id + ' disconnected');
-        myGrid.deleteAgent ( me );
+        console.log('socket ' + socket.id + ' (' + me.id + ') ' + 'disconnected');
+        // myGrid.deleteAgent ( me );
         // me.removeAllListeners('xy');
-        me.removeAllListeners('sensing agent');
+        // me.removeAllListeners('sensing agents');
+        // me.removeAllListeners('agent');
     });
 
 });
