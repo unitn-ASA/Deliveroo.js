@@ -3,7 +3,6 @@ const Tile =  require('./Tile')
 const Agent =  require('./Agent')
 const Parcel = require('./Parcel');
 const Xy = require('./Xy');
-const { MinEquation } = require('three');
 
 
 

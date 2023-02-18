@@ -60,10 +60,13 @@ class Authentication {
     
         
     
+        const tokenToSockets = this.tokenToSockets;
+
         /**
          * on Disconnect
          */
         socket.on('disconnect', () => {
+
             console.log( `Socket ${socket.id} disconnected from agent ${me.name}(${me.id})` );
             tokenToSockets.get( token ).sockets.delete( socket );
     
