@@ -1,4 +1,4 @@
-const Observable =  require('../utils/Observable')
+const Observable =  require('./Observable')
 const Xy =  require('./Xy')
 const Grid =  require('./Grid')
 const Tile =  require('./Tile');
@@ -18,17 +18,17 @@ class Agent extends Xy {
 
     static #lastId = 0;
     
-    /** @property {Grid} #grid */
+    /** @type {Grid} #grid */
     #grid;
-    /** @property {string} id */
+    /** @type {string} id */
     id;
-    /** @property {string} name */
+    /** @type {string} name */
     name;
-    /** @property {Set<Agent>} sensing agents in the sensed area */
+    /** @type {Set<Agent>} sensing agents in the sensed area */
     sensing;
-    /** @property {Number} score */
+    /** @type {Number} score */
     score = 0;
-    /** @property {Set<Parcel>} #carryingParcels */
+    /** @type {Set<Parcel>} #carryingParcels */
     #carryingParcels = new Set();
     // get carrying () {
     //     return Array.from(this.#carryingParcels);
@@ -70,7 +70,7 @@ class Agent extends Xy {
         this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
 
         this.#grid = grid;
-        this.id = 'a_' + Agent.#lastId++;
+        this.id = 'a' + Agent.#lastId++;
         this.name = ( name ? name : this.id );
         this.password = password;
         this.sensing = new Set();
@@ -93,7 +93,7 @@ class Agent extends Xy {
         // me.emitOnePerTick( 'sensing agents', agents )
         
         this.emitOnePerTick( 'agents sensing',
-            Array.from( this.#grid.getAgents() ).filter( a => a != this && Xy.distance(a, this) < 5 ).map( ( {id, x, y, score} ) => { return {id, x, y, score} } )
+            Array.from( this.#grid.getAgents() ).filter( a => a != this && Xy.distance(a, this) < 5 ).map( ( {id, name, x, y, score} ) => { return {id, name, x, y, score} } )
         );
     }
 
@@ -203,7 +203,7 @@ class Agent extends Xy {
                 counter++;
             }
         }
-        console.log(this.id, 'pickUp', counter, 'parcels')
+        // console.log(this.id, 'pickUp', counter, 'parcels')
         if ( picked.length > 0 )
             this.emit( 'pickup', this, picked );
         return picked; // Array.from(this.#carryingParcels);
@@ -227,7 +227,8 @@ class Agent extends Xy {
                 this.#grid.deleteParcel( parcel.id );
             }
         }
-        console.log(this.id, 'putDown parcels for a total of', sc, 'pti')
+        if ( sc > 0 )
+            console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti)` )
         if ( dropped.length > 0 )
             this.emitOnePerTick( 'putdown', this, dropped );
         this.score += sc;

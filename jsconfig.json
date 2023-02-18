@@ -1,6 +1,2 @@
 {
-    "compilerOptions": {
-        "experimentalDecorators": true,
-    },
-    "include": ["src/**/*"]
 }

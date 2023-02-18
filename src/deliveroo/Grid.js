@@ -1,4 +1,4 @@
-const Observable =  require('../utils/Observable')
+const Observable =  require('./Observable')
 const Tile =  require('./Tile')
 const Agent =  require('./Agent')
 const Parcel = require('./Parcel');

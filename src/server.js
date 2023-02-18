@@ -9,113 +9,37 @@ const io = new Server(server, {
     }
 });
 
-const Observable =  require('./utils/Observable')
+const Observable =  require('./deliveroo/Observable')
 const Grid = require('./deliveroo/Grid');
 const Agent = require('./deliveroo/Agent');
 const Xy = require('./deliveroo/Xy');
 const Parcel = require('./deliveroo/Parcel');
 const Tile = require('./deliveroo/Tile');
 const myClock = require('./deliveroo/Clock');
+const jwt = require('jsonwebtoken');
 
 
 
-var myMap = [
-    [1, 1, 0, 1, 0, 1, 0, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 1, 0, 1, 0, 1, 0, 1, 0, 0],
-    [1, 1, 0, 1, 0, 1, 0, 1, 1, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 0, 1, 1, 1, 0, 1, 1, 0],
-    [1, 1, 0, 1, 0, 0, 0, 1, 1, 0],
-    [1, 1, 0, 0, 0, 1, 0, 1, 1, 0]
-]
-
-const myGrid = new Grid(myMap);
+const myGrid = require('../my_game');
 
 
 
-// async function createRandomParcels () {
-//     while ( true ) {
-//         let x = Math.floor(Math.random()*10);
-//         let y = Math.floor(Math.random()*10);
-//         let parcel = myGrid.createParcel(x, y);
-//         if (parcel)
-//             console.log('parcel created at', x, y, parcel.reward)
-//         await new Promise( res => setTimeout(res, 2000))
-//     }
-// }
-// createRandomParcels ()
-
-myClock.on( '2s', () => {
-    let x = Math.floor(Math.random()*10);
-    let y = Math.floor(Math.random()*10);
-    let parcel = myGrid.createParcel(x, y);
-    if (parcel)
-        console.log('parcel created at', x, y, parcel.reward)
-} )
-
-
-async function randomlyMove (agent) {
-    let previousDirection = undefined;
-    while ( true ) {
-        let direction = [ 'up', 'right', 'down', 'left' ][ Math.floor(Math.random()*4) ];
-        // console.log('randomly moving agent', direction)
-        await agent[direction]();
-        await Promise.resolve(); // if stucked do not block the program in infinite loop
-    }
-}
-// var alice = myGrid.getAgent('alice');
-// var bob = myGrid.getAgent('bob');
-// var cloe = myGrid.getAgent('cloe');
-// randomlyMove (alice)
-// randomlyMove (bob)
-// randomlyMove (cloe)
-
-
-
-// async function test () {
-//   // myGrid.observe( (events) => {
-//   //   // var i=0
-//   //   for (const ev of events) {
-//   //     const {name, object, subject: {id, xy } } = ev
-//   //     console.log('observing Agent xy:', name, object, id, xy.toString());
-//   //   }
-//   // }, ev => ev.name == 'changed' && ev.object == 'xy' && ev.subject instanceof Agent );
-
-//   // await alice.up();
-//   // await alice.up();
-//   // await alice.up();
-
-//   // await bob.right();
-//   // await bob.right();
-//   // await bob.up();
-//   // await bob.up();
-//   // await bob.left();
-// }
-// test();
-
+const Authentication = require('./deliveroo/Authentication');
+const myAuthenticator = new Authentication( myGrid )
 
 
 
 io.on('connection', (socket) => {
-    // socket.broadcast.emit('hi ' + me.id);
+    
 
-    console.log('socket', socket.id + ' connected', socket.handshake.url);
-    // console.log('socket', socket.id + ' connected', socket.handshake.headers.referer);
-    
-    let id = socket.handshake.query.id
-    let name = socket.handshake.query.name
-    let password = socket.handshake.query.password
-    
-    var me = myGrid.getAgent( id )
-    if ( me && me.password == password ) {
-        if ( name ) 
-            me.name = name;
-    }
-    else
-        me = myGrid.createAgent( name, password );
+
+    /**
+     * Authenticate socket on agent
+     */
+    const me = myAuthenticator.authenticate(socket);
+    if ( !me ) return;
+    socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
+
     
 
     /**
@@ -135,10 +59,10 @@ io.on('connection', (socket) => {
 
     // Emit you
     me.on( 'agent', ({id, name, x, y, score}) => {
-        // console.log('yourposition:', id, x, y);
+        // console.log( 'emit you', id, name, x, y, score );
         socket.emit( 'you', {id, name, x, y, score} );
     } );
-    // console.log('you', me.id, me.x, me.y, me.score, me.carrying );
+    // console.log( 'emit you', id, name, x, y, score );
     socket.emit( 'you', {id, name, x, y, score} = me );
     
 
@@ -149,15 +73,15 @@ io.on('connection', (socket) => {
 
     // Parcels
     me.on( 'parcels sensing', (parcels) => {
-        // console.log('server.js', 'parcels sensing', ...parcels);
+        // console.log('emit parcels sensing', ...parcels);
         socket.emit('parcels sensing', parcels )
     } );
     me.emitParcelSensing();
 
     // Agents
-    me.on( 'agents sensing', (id, x, y, score, carrying) => {
-        // console.log('server.js', 'sensing agent', id, x, y, score);
-        socket.emit( 'agents sensing', id, x, y, score, carrying );
+    me.on( 'agents sensing', (agents) => {
+        // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
+        socket.emit( 'agents sensing', agents );
     } );
     me.emitAgentSensing();
     
@@ -169,29 +93,25 @@ io.on('connection', (socket) => {
     
     socket.on('move', async (direction, acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, direction);
-        acknowledgementCallback( await me[direction]() ); //.bind(me)()
+        try {
+            acknowledgementCallback( await me[direction]() ); //.bind(me)()
+        } catch (error) {  }
     });
 
     socket.on('pickup', async (acknowledgementCallback) => {
-        acknowledgementCallback( me.pickUp() )
+        try {
+            acknowledgementCallback( me.pickUp() )
+        } catch (error) {  }
     });
 
     socket.on('putdown', async (acknowledgementCallback) => {
-        acknowledgementCallback( me.putDown() )
+        try {
+            acknowledgementCallback( me.putDown() )
+        } catch (error) {  }
+                
     });
-    
 
 
-    /**
-     * on Disconnect
-     */
-    socket.on('disconnect', () => {
-        console.log('socket ' + socket.id + ' (' + me.id + ') ' + 'disconnected');
-        // myGrid.deleteAgent ( me );
-        // me.removeAllListeners('xy');
-        // me.removeAllListeners('sensing agents');
-        // me.removeAllListeners('agent');
-    });
 
 });
 

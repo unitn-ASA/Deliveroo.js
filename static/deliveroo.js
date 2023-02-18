@@ -353,39 +353,96 @@ function getOrCreateAgent ( id, x=-1, y=-1, score=-1 ) {
 
 
 
+function setCookie(cname, cvalue, exdays) {
+    const d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    let expires = "expires="+d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
 
-var me; //new Agent('me', 0, 0, 0);
+function getCookie(cname) {
+    let name = cname + "=";
+    let ca = document.cookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+
+function checkCookieForToken ( name ) {
+    let token = getCookie( 'token_'+name );
+    if ( token == "" ) {
+        token = prompt( `No token exists for user ${name}, please insert a valid token or leave empty to get a new one:`, "");
+        if (token != "" && token != null) {
+            setCookie( 'token_'+name, token, 365 );
+        }
+    } else {
+        token = prompt( `Welcome back, ${name}, the browser has this token for you. You can 1. confirm 2. insert a different token .3 leave empty to get a new one.`, token );
+        setCookie( 'token_'+name, token, 365 );
+    }
+    return token;
+}
 
 let params = (new URL(document.location)).searchParams;
+let name = params.get("name");
+
+// Redirect if no name specified in query
+if ( !name ) {
+    name = prompt("Enter your name:", "");
+    params.set( "name", name )
+    document.location.search = params.toString(); //document.location.href
+}
+
+// Retrieve existing token, modify it, or get a new one
+var token = checkCookieForToken( name )
+
+// Connect
 var socket = io( {
+    extraHeaders: {
+        'x-token': token
+    },
     query: {
-        id: params.get("id"),
         name: params.get("name"),
-        password: params.get("password")
     }
 } );
 
-socket.on("connect", () => {
-    console.log( "socket", socket.id, document.location ); // x8WIv7-mJelg7on_ALbx
-    // me = getOrCreateAgent(socket.id, 0, 0, 0); //new Agent('me', 0, 0, 0);
-    // me.name = 'me'
+var me = getOrCreateAgent(name, 0, 0, 0);
+
+socket.on( "connect", () => {
+    console.log( "connect socket", socket.id, token ); // x8WIv7-mJelg7on_ALbx
 });
 
-socket.on("tile", (x, y, delivery) => {
+socket.on( "disconnect", () => {
+    alert( `Disconnected! Connection problems or invalid token.` );
+});
+
+socket.on( "token", (token) => {
+    prompt( `Welcome, ${name}, here is your new token. Use it to connect to your new agent.`, token );
+    setCookie( 'token_'+name, token, 365 );
+    // navigator.clipboard.writeText(token);
+});
+
+socket.on( "tile", (x, y, delivery) => {
     setTile(x, y, delivery)
 });
 
-socket.on("you", ({id, name, x, y, score}) => {
-    console.log("you", {id, name, x, y, score})
-
-    if ( params.get( "id" ) != id ) {
-        params.set( "id", id )
-        document.location.search = params.toString();
-    }
-    if ( params.get( "name" ) && params.get( "name" ) != name ) {
-        params.set( "name", name )
-        document.location.search = params.toString();
-    }
+socket.on( "you", ({id, name, x, y, score} ) => {
+    console.log( "you", {id, name, x, y, score} )
+    
+    // if ( params.get( "id" ) != id ) {
+    //     params.set( "id", id )
+    //     document.location.search = params.toString();
+    // }
+    // if ( params.get( "name" ) && params.get( "name" ) != name ) {
+    //     params.set( "name", name )
+    //     document.location.search = params.toString();
+    // }
 
     me = getOrCreateAgent(id, x, y, score);
     me.name = name;
@@ -430,8 +487,9 @@ socket.on("agents sensing", (sensed) => {
 
     for ( const sensed_p of sensed ) {
         // console.log("parcel sensing", sense)
-        const {id, x, y, score} = sensed_p;
+        const {id, name, x, y, score} = sensed_p;
         var agent = getOrCreateAgent(id, x, y, score)
+        agent.name = name;
         agent.opacity = 1;
         agent.x = x;
         agent.y = y;

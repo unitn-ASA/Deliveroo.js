@@ -1,4 +1,4 @@
-const Observable =  require('../utils/Observable')
+const Observable =  require('./Observable')
 const Xy =  require('./Xy')
 const myClock =  require('./Clock')
 
@@ -36,7 +36,7 @@ class Parcel extends Xy {
             lastCarrier = this.carriedBy;
         } )
         
-        this.id = Parcel.#lastId++;
+        this.id = 'p' + Parcel.#lastId++;
 
         this.interceptValueSet('reward');
         this.reward = Math.floor( Math.random()*20 + 20 );

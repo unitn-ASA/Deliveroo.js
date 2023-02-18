@@ -1,4 +1,4 @@
-const Observable =  require('../utils/Observable')
+const Observable =  require('./Observable')
 
 /**
  * @class Xy
