@@ -75,7 +75,7 @@ class Authentication {
                     if ( tokenToSockets.get( token ) && tokenToSockets.get( token ).sockets.size == 0 ) {
                         console.log( `Agent ${me.name}(${me.id}) deleted after 10 seconds of no connections from token ...${token.slice(-5)}` );
                         tokenToSockets.delete( token ); 
-                        myGrid.deleteAgent ( me );
+                        this.grid.deleteAgent ( me );
                         me.removeAllListeners('agents sensing');
                         me.removeAllListeners('parcels sensing');
                     }
