@@ -1,6 +1,8 @@
 const Agent = require('./Agent');
 const jwt = require('jsonwebtoken');
 
+const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
+
 
 
 class Authentication {
@@ -38,7 +40,7 @@ class Authentication {
         // Signup
         if ( !token || token=="" ) { // no token provided, generate new one
             let name = socket.handshake.query.name;
-            token = jwt.sign( {name}, "shhhhh" );
+            token = jwt.sign( {name}, SUPER_SECRET );
             socket.emit( 'token', token, name );
             me = this.registerSocketAndGetAgent( token, name, socket );
             console.log( `Socket ${socket.id} signed up as ${me.name}(${me.id}). New token: ...${token.slice(-5)}` );
@@ -46,7 +48,7 @@ class Authentication {
         // Login
         else { // token provided, validate
             try { // verify token
-                var decoded = jwt.verify( token, 'shhhhh' );
+                var decoded = jwt.verify( token, SUPER_SECRET );
                 var {name} = decoded;
                 // Agent
                 me = this.registerSocketAndGetAgent( token, name, socket );

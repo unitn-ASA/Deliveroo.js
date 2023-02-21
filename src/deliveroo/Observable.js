@@ -12,7 +12,7 @@ const EventEmitter = require('events');
 
 
 /**
- * Call wrapped function just once every nextTick.
+ * Wrap finallyDo function and call it just once every nextTick.
  * @function postpone
  */
 function postpone ( finallyDo ) {
@@ -23,6 +23,39 @@ function postpone ( finallyDo ) {
             if ( !promiseFired ) {
                 promiseFired = true;
                 finallyDo(...args);
+            }
+        } );
+    }
+}
+
+
+
+/**
+ * https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/
+ * By using process.nextTick() we guarantee that apiCall() always runs its callback after the rest of the user's code and before the event loop is allowed to proceed.
+ * @function postpone Wrap finallyDo function, accumulate arguments, and call once every nextTick with the complete list of arguments.
+ */
+function accumulate ( finallyDo ) {
+    var promiseFired = false;
+    var accumulatedArgs = [];
+    return async (...args) => {
+        promiseFired = false;
+        for (let index = 0; index < args.length; index++) {
+            const arg = args[index];
+            if ( ! accumulatedArgs[index] ) {
+                accumulatedArgs.push([]);
+                while ( index > 0 && accumulatedArgs[index].length + 1 < accumulatedArgs[index-1].length ) {
+                    accumulatedArgs[index].push(undefined);
+                }
+            }
+            accumulatedArgs[index].push(arg)
+        }
+        process.nextTick( () => { // https://jinoantony.com/blog/setimmediate-vs-process-nexttick-in-nodejs
+            if ( !promiseFired ) {
+                promiseFired = true;
+                var accumulatedArgsTmp = accumulatedArgs;
+                accumulatedArgs = []
+                finallyDo( ...accumulatedArgsTmp );
             }
         } );
     }
@@ -68,13 +101,27 @@ class Observable extends EventEmitter {
 
     #postponer = new Map()
     /**
-     * @type {function(Event):boolean} Returns true if event triggered, false if event was already triggered before
+     * @type {function(string,[]):boolean} Returns true if event triggered, false if event was already triggered before
      */ 
     emitOnePerTick (event, ...args) {
         if ( !this.#postponer.has(event) )
-            this.#postponer.set( event, postpone(this.emit.bind(this)) );
+            this.#postponer.set( event, postpone( this.emit.bind(this) ) );
         var postponed = this.#postponer.get(event);
         postponed(event, ...args);
+    }
+
+
+
+    #accumulator = new Map()
+    /**
+     * emitAccumulatedAtNextTick (event, ...args)
+     * @type {function(string,[]):void}
+     */ 
+    emitAccumulatedAtNextTick (event, ...args) {
+        if ( !this.#accumulator.has(event) )
+            this.#accumulator.set( event, accumulate( this.emit.bind(this, event) ) );
+        var accumulated = this.#accumulator.get(event);
+        accumulated( ...args );
     }
 
 

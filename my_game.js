@@ -18,6 +18,18 @@ var myMap = [
     [1, 1, 0, 1, 0, 0, 0, 1, 1, 0],
     [1, 1, 0, 0, 0, 1, 0, 1, 1, 0]
 ]
+var unblocked10per10Map = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+]
 
 /** @type {Grid} */
 const myGrid = new Grid(myMap);
@@ -31,6 +43,12 @@ myClock.on( '2s', () => {
     if (parcel)
         console.log('parcel created at', x, y, parcel.reward)
 } )
+
+
+
+module.exports = myGrid;
+
+
 
 // async function randomlyMove (agent) {
 //     let previousDirection = undefined;
@@ -48,7 +66,3 @@ myClock.on( '2s', () => {
 // randomlyMove (alice)
 // randomlyMove (bob)
 // randomlyMove (cloe)
-
-
-
-module.exports = myGrid;

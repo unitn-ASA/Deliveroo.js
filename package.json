@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "start": "node index.js"
+    "start": "node index.js",
+    "start_local": "node -r dotenv/config index.js"
   },
   "author": "Marco Robol",
   "license": "ISC",
   "devDependencies": {
+    "dotenv": "^16.0.3",
     "jest": "^27.5.1"
   },
   "dependencies": {

@@ -10,12 +10,12 @@ const Xy = require('./Xy');
  * @class Grid
  */
 class Grid extends Observable {
-    /** @attribute {Array<Tile>} */
+    /** @type {Array<Tile>} */
     #tiles;
-    /** @attribute {Map<string, Agent>} */
+    /** @type {Map<string, Agent>} */
     #agents;
-    /** @attribute {Map<string, Parcel>} */
-    // #parcels;
+    /** @type {Map<string, Parcel>} */
+    #parcels;
     
     /**
      * @constructor Grid
@@ -40,7 +40,7 @@ class Grid extends Observable {
         // }
 
         this.#agents = new Map();
-        // this.#parcels = new Map();
+        this.#parcels = new Map();
         
         // // Dispatch all my events
         // this.observe( Game.dispatcher.triggerEvents.bind(Game.dispatcher) );
@@ -179,9 +179,6 @@ class Grid extends Observable {
     }
 
 
-    
-    /** @attribute {Map<string, Parcel>} */
-    #parcels = new Map();
 
     /**
      * @type {function(Number, Number): Parcel}

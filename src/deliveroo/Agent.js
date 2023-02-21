@@ -78,11 +78,14 @@ class Agent extends Xy {
 
     }
 
+
+
     /**
      * Agents sensend on the grid
      * @type {function(Agent,Array<Parcel>): void}
      */
     emitAgentSensing () {
+
         // var agents = [];
         // for ( let agent of this.#agents ) {
         //     if ( Xy.distance(agent, me) < 5 ) {
@@ -92,15 +95,26 @@ class Agent extends Xy {
         // }
         // me.emitOnePerTick( 'sensing agents', agents )
         
-        this.emitOnePerTick( 'agents sensing',
-            Array.from( this.#grid.getAgents() ).filter( a => a != this && Xy.distance(a, this) < 5 ).map( ( {id, name, x, y, score} ) => { return {id, name, x, y, score} } )
-        );
+        // this.emitOnePerTick( 'agents sensing',
+        //     Array.from( this.#grid.getAgents() ).filter( a => a != this && Xy.distance(a, this) < 5 ).map( ( {id, name, x, y, score} ) => { return {id, name, x, y, score} } )
+        // );
+
+        for ( let agent of this.#grid.getAgents() ) {
+            if ( Xy.distance(agent, this) < 5 ) {
+                let {id, name, x, y, score} = agent;
+                this.emitAccumulatedAtNextTick( 'agents sensing', {id, name, x, y, score} )
+            }
+        }
+
     }
+
+
 
     /**
      * Parcels sensend on the grid
      */
     emitParcelSensing () {
+
         // var parcels = [];
         // for ( const tile of this.#grid.getTiles( [this.x-5, this.x+5, this.y-5, this.y+5] ) ) {
         //     let {x, y} = tile;
@@ -113,18 +127,33 @@ class Agent extends Xy {
         // }
         // this.emit( 'parcels sensing', parcels )
         
-        this.emitOnePerTick( 'parcels sensing',
-            Array.from( this.#grid.getParcels() ).filter( p => Xy.distance(p, this) < 5 ).map( p => {
-                return {
-                    id: p.id,
-                    x: p.x,
-                    y: p.y,
-                    carriedBy: ( p.carriedBy ? p.carriedBy.id : null ),
-                    reward: p.reward
-                };
-            } )
-        );
+        // this.emitOnePerTick( 'parcels sensing',
+        //     Array.from( this.#grid.getParcels() ).filter( p => Xy.distance(p, this) < 5 ).map( p => {
+        //         return {
+        //             id: p.id,
+        //             x: p.x,
+        //             y: p.y,
+        //             carriedBy: ( p.carriedBy ? p.carriedBy.id : null ),
+        //             reward: p.reward
+        //         };
+        //     } )
+        // );
+
+        for ( let parcel of this.#grid.getParcels() ) {
+            if ( Xy.distance(parcel, this) < 5 ) {
+                this.emitAccumulatedAtNextTick( 'parcels sensing', {
+                    id: parcel.id,
+                    x: parcel.x,
+                    y: parcel.y,
+                    carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ),
+                    reward: parcel.reward
+                } )
+            }
+        }
+
     }
+
+
 
     get tile() {
         return this.#grid.getTile( Math.round(this.x), Math.round(this.y) );
