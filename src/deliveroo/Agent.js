@@ -38,10 +38,9 @@ class Agent extends Xy {
      * @constructor Agent
      * @param {Grid} grid
      * @param {string} name
-     * @param {string} password
      */
-    constructor ( grid, name = null, password = null ) {
-
+    constructor ( grid, {id, name} ) {
+        
         {
             let x, y, found=false;
             for (x=0; x<10 && !found; x++)
@@ -49,15 +48,15 @@ class Agent extends Xy {
                     found = ( grid.getTile(x, y).blocked ? false : grid.getTile(x, y).lock() );
                     // console.log( x, y, (found?'found':'occupied') )
                 }
-            if ( !found )
-                throw new Error('no unlocked available tiles on the grid')
-
+            // if ( !found )
+            //     throw new Error('No unlocked tiles available on the grid')
+            
             super(--x, --y);
         }
         
         Object.defineProperty (this, 'carrying', {
             get: () => Array.from(this.#carryingParcels).map( ({id, reward}) => { return {id, reward}; } ), // Recursion on carriedBy->agent->carrying->carriedBy ... 
-            enumerable: true
+            enumerable: false
         });
 
         // Emit score on score assignment
@@ -66,15 +65,16 @@ class Agent extends Xy {
         // Group 'xy', 'score', 'pickup', 'putdown' => into 'agent' event
         this.on('xy', this.emitOnePerTick.bind(this, 'agent') );
         this.on('score', this.emitOnePerTick.bind(this, 'agent') );
-        this.on('pickup', this.emitOnePerTick.bind(this, 'agent') );
-        this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
+        // this.on('pickup', this.emitOnePerTick.bind(this, 'agent') );
+        // this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
 
         this.#grid = grid;
-        this.id = 'a' + Agent.#lastId++;
-        this.name = ( name ? name : this.id );
-        this.password = password;
+        this.id = id || 'a' + Agent.#lastId++;
+        this.name = name || this.id;
         this.sensing = new Set();
         this.score = 0;
+
+        this.emitOnePerTick( 'xy', this ); // emit agent when spawning
 
     }
 
@@ -86,25 +86,25 @@ class Agent extends Xy {
      */
     emitAgentSensing () {
 
-        // var agents = [];
-        // for ( let agent of this.#agents ) {
-        //     if ( Xy.distance(agent, me) < 5 ) {
-        //         let {id, x, y, score} = agent;
-        //         agents.push( {id, x, y, score} )
-        //     }
-        // }
-        // me.emitOnePerTick( 'sensing agents', agents )
+        var agents = [];
+        for ( let agent of this.#grid.getAgents() ) {
+            if ( agent != this && Xy.distance(agent, this) < 5 ) {
+                agents.push( {id, name, x, y, score} = agent )
+            }
+        }
+        this.emitOnePerTick( 'agents sensing', agents )
         
         // this.emitOnePerTick( 'agents sensing',
         //     Array.from( this.#grid.getAgents() ).filter( a => a != this && Xy.distance(a, this) < 5 ).map( ( {id, name, x, y, score} ) => { return {id, name, x, y, score} } )
         // );
 
-        for ( let agent of this.#grid.getAgents() ) {
-            if ( Xy.distance(agent, this) < 5 ) {
-                let {id, name, x, y, score} = agent;
-                this.emitAccumulatedAtNextTick( 'agents sensing', {id, name, x, y, score} )
-            }
-        }
+        // TO-DO How to emit an empty array when no agents ?
+        // for ( let agent of this.#grid.getAgents() ) {
+        //     if ( Xy.distance(agent, this) < 5 ) {
+        //         let {id, name, x, y, score} = agent;
+        //         this.emitAccumulatedAtNextTick( 'agents sensing', {id, name, x, y, score} )
+        //     }
+        // }
 
     }
 
@@ -115,17 +115,14 @@ class Agent extends Xy {
      */
     emitParcelSensing () {
 
-        // var parcels = [];
-        // for ( const tile of this.#grid.getTiles( [this.x-5, this.x+5, this.y-5, this.y+5] ) ) {
-        //     let {x, y} = tile;
-        //     if ( tile.distance(this) < 5 ) {
-        //         for ( let parcel of tile.parcels ) {
-        //             let {id, reward} = parcel;
-        //             parcels.push( {id, x, y, reward} )
-        //         }
-        //     }
-        // }
-        // this.emit( 'parcels sensing', parcels )
+        var parcels = [];
+        for ( const parcel of this.#grid.getParcels() ) {
+            if ( Xy.distance(parcel, this) < 5 ) {
+                let {id, x, y, carriedBy, reward} = parcel;
+                parcels.push( {id, x, y, carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ), reward} )
+            }
+        }
+        this.emit( 'parcels sensing', parcels )
         
         // this.emitOnePerTick( 'parcels sensing',
         //     Array.from( this.#grid.getParcels() ).filter( p => Xy.distance(p, this) < 5 ).map( p => {
@@ -139,17 +136,18 @@ class Agent extends Xy {
         //     } )
         // );
 
-        for ( let parcel of this.#grid.getParcels() ) {
-            if ( Xy.distance(parcel, this) < 5 ) {
-                this.emitAccumulatedAtNextTick( 'parcels sensing', {
-                    id: parcel.id,
-                    x: parcel.x,
-                    y: parcel.y,
-                    carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ),
-                    reward: parcel.reward
-                } )
-            }
-        }
+        // TO-DO How to emit an empty array when no parcels ?
+        // for ( let parcel of this.#grid.getParcels() ) {
+        //     if ( Xy.distance(parcel, this) < 5 ) {
+        //         this.emitAccumulatedAtNextTick( 'parcels sensing', {
+        //             id: parcel.id,
+        //             x: parcel.x,
+        //             y: parcel.y,
+        //             carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ),
+        //             reward: parcel.reward
+        //         } )
+        //     }
+        // }
 
     }
 
@@ -228,7 +226,7 @@ class Agent extends Xy {
                 parcel.carriedBy = this;
                 // parcel.x = 0;
                 // parcel.y = 0;
-                picked.push(parcel);
+                picked.push( parcel );
                 counter++;
             }
         }
@@ -250,7 +248,7 @@ class Agent extends Xy {
             parcel.carriedBy = null;
             // parcel.x = this.x;
             // parcel.y = this.y;
-            dropped.push(parcel);
+            dropped.push( parcel );
             if ( tile.delivery ) {
                 sc += parcel.reward;
                 this.#grid.deleteParcel( parcel.id );

@@ -92,10 +92,10 @@ class Grid extends Observable {
     /**
      * @type {function(string): Agent}
      */
-    createAgent ( name = null, password = null ) {
+    createAgent ( { id, name } ) {
         
         // Instantiate
-        var me = new Agent( this, name, password )
+        var me = new Agent( this, { id, name } )
 
         // Register
         this.#agents.set(me.id, me);
@@ -103,8 +103,8 @@ class Grid extends Observable {
         // Grid scoped events propagation
         me.on( 'xy', this.emit.bind(this, 'agent xy') );
         me.on( 'score', this.emit.bind(this, 'agent score') );
-        me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
-        me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
+        // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
+        // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );
         
         const notMeAndWithin5 = ( fn ) => {
@@ -120,23 +120,13 @@ class Grid extends Observable {
         this.on( 'agent xy', me.emitAgentSensing.bind(me) )
         
         // On agent disconnect emit agentSensing
-        this.on( 'agent disconnect', me.emitAgentSensing.bind(me) )
+        // this.on( 'agent disconnect', me.emitAgentSensing.bind(me) )
 
         // On others score emit SensendAgents
         this.on( 'agent score', ifNotMeAndWithin5EmitSensendAgents )
 
-        // // On others pickup
-        // this.on( 'agent pickup', (it, picked) => {
-        //     if ( it.id != me.id && it.distance(me) < 5 )
-        //         me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
-        // } )
-        // // On others putdown
-        // this.on( 'agent putdown', (it, dropped) => {
-        //     if ( it.id != me.id && it.distance(me) < 5 )
-        //         me.emit( 'sensing agent', it.id, it.x, it.y, it.score, it.carrying )
-        // } )
-
         
+
         /**
          * Call wrapped function just once every nextTick.
          * @function postpone
@@ -174,8 +164,13 @@ class Grid extends Observable {
             agent.tile.unlock();
         agent.x = undefined;
         agent.y = undefined;
-        this.#agents.delete(agent.id);
-        this.emit('agent disconnected', agent);
+        agent.removeAllListeners('xy');
+        agent.removeAllListeners('score');
+        agent.removeAllListeners('agent');
+        agent.removeAllListeners('agents sensing');
+        agent.removeAllListeners('parcels sensing');
+        this.#agents.delete( agent.id );
+        // this.emit( 'agent disconnected', agent );
     }
 
 

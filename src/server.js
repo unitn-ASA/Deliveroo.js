@@ -113,6 +113,27 @@ io.on('connection', (socket) => {
 
 
 
+    /**
+     * Comunication
+     */
+
+    socket.on( 'msg', (toId, ...args) => {
+        
+        // console.log( me.id, 'msg', to, ...args);
+        for ( let socket of myAuthenticator.getSockets( toId ) ) {
+            // console.log( me.id, 'socket', socket.id, 'emit msg', ...args );
+            socket.emit( 'msg', ...args );
+        }
+
+    } )
+
+    socket.on( 'msg broadcast', (...args) => {
+        
+        socket.broadcast.emit( 'msg', ...args );
+        
+    } )
+
+
 });
 
 

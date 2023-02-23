@@ -22,10 +22,15 @@ labelRenderer.domElement.style.top = '0px';
 document.body.appendChild( labelRenderer.domElement );
 
 const controls = new OrbitControls( camera, labelRenderer.domElement );
-controls.minDistance = 5;
-controls.maxDistance = 100;
+controls.minDistance = 15;
+controls.maxDistance = 40;
+controls.maxAzimuthAngle = Math.PI/10;
+controls.minAzimuthAngle = -Math.PI/6;
+controls.maxPolarAngle = Math.PI/2.2;
+controls.minPolarAngle = 0;
 controls.target.set(0, 0, 0);
 controls.update();
+
 
 
 // for (var x=0; x<10; x++) {
@@ -61,6 +66,31 @@ animate();
 
 
 
+/**
+ * Grid axes
+ */
+{
+    const dir = new THREE.Vector3( 1, 0, 0 ).normalize(); //normalize the direction vector (convert to vector of length 1)
+    const origin = new THREE.Vector3( -1, 0, 1 );
+    const length = 1;
+    const hex = 0xffff00;
+    const headLength = 0.2; // The length of the head of the arrow. Default is 0.2 * length.
+    const headWidth = 0.2; // The width of the head of the arrow. Default is 0.2 * headLength.
+
+    const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, headLength, headWidth );
+    scene.add( arrowHelper );
+}
+{
+    const dir = new THREE.Vector3( 0, 0, -1 ).normalize(); //normalize the direction vector (convert to vector of length 1)
+    const origin = new THREE.Vector3( -1, 0, 1 );
+    const length = 1;
+    const hex = 0xffff00;
+    const headLength = 0.2; // The length of the head of the arrow. Default is 0.2 * length.
+    const headWidth = 0.2; // The width of the head of the arrow. Default is 0.2 * headLength.
+
+    const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, headLength, headWidth );
+    scene.add( arrowHelper );
+}
 
 
 
@@ -379,11 +409,11 @@ function checkCookieForToken ( name ) {
     let token = getCookie( 'token_'+name );
     if ( token == "" ) {
         token = prompt( `No token exists for user ${name}, please insert a valid token or leave empty to get a new one:`, "");
-        if (token != "" && token != null) {
+        if ( token != "" && token != null ) {
             setCookie( 'token_'+name, token, 365 );
         }
     } else {
-        token = prompt( `Welcome back, ${name}, the browser has this token for you. You can 1. confirm 2. insert a different token .3 leave empty to get a new one.`, token );
+        token = prompt( `Welcome back, ${name}, the browser has this token for you. You can 1) confirm 2) insert a different token 3) leave empty to get a new one.`, token );
         setCookie( 'token_'+name, token, 365 );
     }
     return token;
@@ -432,7 +462,7 @@ socket.on( "tile", (x, y, delivery) => {
     setTile(x, y, delivery)
 });
 
-socket.on( "you", ({id, name, x, y, score} ) => {
+socket.on( "you", ( {id, name, x, y, score} ) => {
     console.log( "you", {id, name, x, y, score} )
     
     // if ( params.get( "id" ) != id ) {
@@ -450,10 +480,10 @@ socket.on( "you", ({id, name, x, y, score} ) => {
     /**
      * Auto-follow camera
      */
-    camera.position.x += ( x - me.x ) * 1.5
-    camera.position.z -= ( y - me.y ) * 1.5
-    controls.update();
+    camera.position.x += ( x - me.x ) * 1.5;
+    camera.position.z -= ( y - me.y ) * 1.5;
     controls.target.set(x*1.5, 0, -y*1.5);
+    controls.update();
     
     // Me
     me.x = x
