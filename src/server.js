@@ -2,26 +2,28 @@ const app = require('./app');
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server, {
+const io = new Server( server, {
     cors: {
         origin: "*", // http://localhost:3000",
         methods: ["GET", "POST"]
     }
-});
+} );
 
-const Observable =  require('./deliveroo/Observable')
-const Grid = require('./deliveroo/Grid');
-const Agent = require('./deliveroo/Agent');
-const Xy = require('./deliveroo/Xy');
-const Parcel = require('./deliveroo/Parcel');
-const Tile = require('./deliveroo/Tile');
-const myClock = require('./deliveroo/Clock');
-const jwt = require('jsonwebtoken');
+// const Observable =  require('./deliveroo/Observable')
+// const Grid = require('./deliveroo/Grid');
+// const Agent = require('./deliveroo/Agent');
+// const Xy = require('./deliveroo/Xy');
+// const Parcel = require('./deliveroo/Parcel');
+// const Tile = require('./deliveroo/Tile');
+// const myClock = require('./deliveroo/Clock');
+// const jwt = require('jsonwebtoken');
 
 
 
 const myGrid = require('../my_game');
 
+const Redis = require('./deliveroo/Redis');
+const redis = new Redis( myGrid )
 
 
 const Authentication = require('./deliveroo/Authentication');
@@ -114,7 +116,7 @@ io.on('connection', (socket) => {
 
 
     /**
-     * Comunication
+     * Communication
      */
 
     socket.on( 'msg', (toId, ...args) => {
@@ -138,4 +140,4 @@ io.on('connection', (socket) => {
 
 
 
-module.exports = server;
+module.exports = { server, app };

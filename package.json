@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "start": "node index.js",
-    "start_local": "node -r dotenv/config index.js"
+    "dev": "node -r dotenv/config index.js"
   },
   "author": "Marco Robol",
   "license": "ISC",
@@ -17,6 +17,7 @@
   "dependencies": {
     "express": "^4.17.3",
     "jsonwebtoken": "^9.0.0",
+    "redis": "^4.6.4",
     "socket.io": "^4.4.1"
   },
   "engines": {

@@ -95,7 +95,8 @@ class Grid extends Observable {
     createAgent ( { id, name } ) {
         
         // Instantiate
-        var me = new Agent( this, { id, name } )
+        var me = new Agent( this, { id, name } );
+        this.emit( 'agent created', me );
 
         // Register
         this.#agents.set(me.id, me);
@@ -170,7 +171,7 @@ class Grid extends Observable {
         agent.removeAllListeners('agents sensing');
         agent.removeAllListeners('parcels sensing');
         this.#agents.delete( agent.id );
-        // this.emit( 'agent disconnected', agent );
+        this.emit( 'agent deleted', agent );
     }
 
 
