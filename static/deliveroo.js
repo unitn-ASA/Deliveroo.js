@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
 
 
@@ -54,6 +55,33 @@ function animate() {
 }
 animate();
 
+
+
+function createPanel() {
+
+    const panel = new GUI( { width: 310 } );
+
+    const leaderboardFolder = panel.addFolder( 'Leaderboard' );
+    leaderboardFolder.open();
+    
+    const players = {
+    }
+
+    function updateLeaderboard ( agent ) {
+
+        if ( ! Object.hasOwnProperty.call( players, agent.name ) ) {
+            let player = {}; player[ agent.name ] = agent.score;
+            let controller = leaderboardFolder.add( player, agent.name, 0, 1000 );
+            players [ agent.name ] = controller;
+        }
+        players[ agent.name ].setValue( agent.score );
+
+    }
+
+    return { updateLeaderboard }
+
+}
+const { updateLeaderboard } = createPanel();
 
 // const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
 // const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
@@ -342,7 +370,10 @@ class Agent extends onGrid {
 
 
 
-var agents = new Map();
+const agents = new Map();
+
+
+
 
 function getOrCreateAgent ( id, x=-1, y=-1, score=-1 ) {
     var agent = agents.get(id);
@@ -496,6 +527,9 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
             var distance = Math.abs(me.x-tile.x) + Math.abs(me.y-tile.y);
             tile.opacity = ( distance<5 ? 1 : 0.2 );
         }
+
+    updateLeaderboard( me );
+
 });
 
 
@@ -524,7 +558,10 @@ socket.on("agents sensing", (sensed) => {
         agent.opacity = 1;
         agent.x = x;
         agent.y = y;
-        agent.score = score;
+        if ( agent.score != score ) {
+            agent.score = score;
+            updateLeaderboard( agent );
+        }
     }
 
 });

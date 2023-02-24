@@ -18,7 +18,7 @@ class Redis {
         grid.on( 'agent score', /** @type {function(Agent)} */ async (agent) => {
             if ( ! Redis.client || ! Redis.client.isReady )
                 return;
-            console.log( 'Redis set', agent.id, agent.score )
+            console.log( 'Redis hSet', agent.id, 'score', agent.score )
             await Redis.client.hSet( agent.id, 'score', agent.score );
         } )
 
@@ -26,8 +26,8 @@ class Redis {
             if ( ! Redis.client || ! Redis.client.isReady )
                 return;
             let entry = await Redis.client.hGetAll( agent.id );
-            console.log( 'Redis get', agent.id, entry )
-            if ( entry )
+            console.log( 'Redis hGetAll', agent.id, entry )
+            if ( entry && entry.score && parseInt(entry.score) )
                 agent.score = parseInt( entry.score );
             else
                 await Redis.client.hSet( agent.id, 'name', agent.name );
