@@ -18,7 +18,8 @@
     "express": "^4.17.3",
     "jsonwebtoken": "^9.0.0",
     "redis": "^4.6.4",
-    "socket.io": "^4.4.1"
+    "socket.io": "^4.4.1",
+    "uid": "^2.0.1"
   },
   "engines": {
     "node": ">=18"

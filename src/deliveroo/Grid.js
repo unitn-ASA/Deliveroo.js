@@ -90,7 +90,7 @@ class Grid extends Observable {
     }
 
     /**
-     * @type {function(string): Agent}
+     * @type {function({id:string,name:string}): Agent}
      */
     createAgent ( { id, name } ) {
         

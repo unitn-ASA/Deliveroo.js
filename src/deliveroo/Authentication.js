@@ -1,6 +1,7 @@
 const Agent = require('./Agent');
 const Grid = require('./Grid');
 const jwt = require('jsonwebtoken');
+const { uid } = require('uid');
 
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
 
@@ -13,43 +14,43 @@ class Authentication {
      */
     idToAgentAndSockets = new Map();
     
-    registerSocketAndGetAgent ( uuid, name, socket ) {
+    registerSocketAndGetAgent ( id, name, socket ) {
 
         const db = this.idToAgentAndSockets;
         
-        // Get or create entry for uuid
-        var entry = db.get( uuid );
+        // Get or create entry for id
+        var entry = db.get( id );
         if ( ! entry ) {
-            db.set( uuid, { score: 0, sockets: new Set() } );
-            entry = db.get( uuid );
+            db.set( id, { score: 0, sockets: new Set() } );
+            entry = db.get( id );
         }
 
         // Register socket
         entry.sockets.add( socket );
 
-        // Get or create agent for uuid
-        var me = this.grid.getAgent( uuid );
+        // Get or create agent for id
+        var me = this.grid.getAgent( id );
         if ( ! me ) {
-            me = this.grid.createAgent( {id: uuid, name} );
-            me.score = db.get( uuid ).score;
+            me = this.grid.createAgent( {id: id, name} );
+            me.score = db.get( id ).score;
             me.on( 'score', (me) => entry.score = me.score )
         }
 
-        return me; // Return agent given the specified uuid
+        return me; // Return agent given the specified id
         
     }
     
-    getAgent ( uuid ) {
+    getAgent ( id ) {
 
-        return ( idToAgentAndSockets.get( uuid ) ? idToAgentAndSockets.get( uuid ).agent : null );
+        return ( idToAgentAndSockets.get( id ) ? idToAgentAndSockets.get( id ).agent : null );
         
     }
     
-    getSockets ( uuid ) {
+    getSockets ( id ) {
 
         return function * () {
-            if ( this.slicedTokenToSockets.has( uuid ) )
-                for ( let s of this.slicedTokenToSockets.get( uuid ).sockets.values )
+            if ( this.slicedTokenToSockets.has( id ) )
+                for ( let s of this.slicedTokenToSockets.get( id ).sockets.values )
                     yield s;
         }
         
@@ -65,54 +66,63 @@ class Authentication {
     /** @type {function(Socket):Agent} */
     authenticate ( socket ) {
     
+        var id;
+        var name;
         var token = socket.handshake.headers['x-token'];
-        var uuid = token.slice(-10);
-        var me;
-        // Signup
+
+        // No token provided, generate new one
         if ( !token || token=="" ) { // no token provided, generate new one
-            let name = socket.handshake.query.name;
-            token = jwt.sign( {name}, SUPER_SECRET );
-            uuid = token.slice(-10);
-            socket.emit( 'token', token, name );
-            me = this.registerSocketAndGetAgent( uuid, name, socket );
-            console.log( `Socket ${socket.id} signed up as ${me.name}(${me.id}). New token: ...${token.slice(-30)}` );
+
+            id = uid();
+            name = socket.handshake.query.name;
+            token = jwt.sign( {id, name}, SUPER_SECRET );
+            socket.emit( 'token', token );
+            console.log( `Socket ${socket.id} connected as ${name}(${id}). New token created: ...${token.slice(-30)}` );
+
         }
-        // Login
-        else { // token provided, validate
-            try { // verify token
-                var decoded = jwt.verify( token, SUPER_SECRET );
-                var {name} = decoded;
-                // Agent
-                me = this.registerSocketAndGetAgent( uuid, name, socket );
-                console.log( `Socket ${socket.id} logged in as ${me.name}(${me.id}) with token: ...${token.slice(-30)}` );
+
+        // Token provided
+        else {
+            try {
+
+                // Verify and decode payload
+                var {id, name} = jwt.verify( token, SUPER_SECRET );
+                console.log( `Socket ${socket.id} connected as ${name}(${id}). With token: ...${token.slice(-30)}` );
+                
             } catch(err) {
+
                 console.log( `Socket ${socket.id} log in failure. Invalid token provided` );
                 socket.disconnect();
                 return; // invalid token
+
             }
         }
+
+        // Agent
+        const me = this.registerSocketAndGetAgent( id, name, socket );
     
         
-    
-        const tokenToSockets = this.idToAgentAndSockets;
 
         /**
          * on Disconnect
          */
-        socket.on('disconnect', () => {
+        socket.on( 'disconnect', () => {
+
+            const tokenToSockets = this.idToAgentAndSockets;
 
             console.log( `Socket ${socket.id} disconnected from agent ${me.name}(${me.id})` );
-            tokenToSockets.get( uuid ).sockets.delete( socket );
+            tokenToSockets.get( id ).sockets.delete( socket );
     
-            if ( tokenToSockets.get( uuid ).sockets.size == 0 ) {
+            if ( tokenToSockets.get( id ).sockets.size == 0 ) {
                 new Promise( res => setTimeout(res, 10000) ).then( () => {
-                    if ( tokenToSockets.get( uuid ) && tokenToSockets.get( uuid ).sockets.size == 0 ) {
-                        console.log( `Agent ${me.name}(${me.id}) deleted after 10 seconds of no connections from token ...${uuid}` );
+                    if ( tokenToSockets.get( id ) && tokenToSockets.get( id ).sockets.size == 0 ) {
+                        console.log( `Agent ${me.name}(${me.id}) deleted after 10 seconds of no connections from token ...${token.slice(-30)}` );
                         this.grid.deleteAgent ( me );
-                        // tokenToSockets.delete( uuid );
+                        // tokenToSockets.delete( id );
                     }
                 } );
             }
+
         });
 
         return me;

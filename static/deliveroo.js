@@ -60,13 +60,14 @@ animate();
 function createPanel() {
 
     const panel = new GUI( { width: 310 } );
+    
+    const tokenFolder = panel.addFolder( 'Tokens' );
+    tokenFolder.open();
 
     const leaderboardFolder = panel.addFolder( 'Leaderboard' );
     leaderboardFolder.open();
     
-    const players = {
-    }
-
+    const players = {}
     function updateLeaderboard ( agent ) {
 
         if ( ! Object.hasOwnProperty.call( players, agent.name ) ) {
