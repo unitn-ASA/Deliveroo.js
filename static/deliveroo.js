@@ -449,6 +449,7 @@ socket.on( "connect", () => {
 });
 
 socket.on( "disconnect", () => {
+    socket.disconnect();
     alert( `Disconnected! Connection problems or invalid token.` );
 });
 

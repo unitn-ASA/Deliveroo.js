@@ -1,4 +1,5 @@
 const Grid = require('./Grid');
+const Agent = require('./Agent');
 const { RedisClientType, createClient } = require('redis');
 
 class Redis {
@@ -14,20 +15,23 @@ class Redis {
 
         this.grid = grid;
 
-        // If redis enabled
-        if ( Redis.client && Redis.client.isReady ) {
+        grid.on( 'agent score', /** @type {function(Agent)} */ async (agent) => {
+            if ( ! Redis.client || ! Redis.client.isReady )
+                return;
+            console.log( 'Redis set', agent.id, agent.score )
+            await Redis.client.hSet( agent.id, 'score', agent.score );
+        } )
 
-            grid.on( 'agent score', async (agent) => {
-                if ( Redis.client.isReady )
-                    await Redis.client.set( agent.id, {name: agent.name, score: agent.score} );
-            } )
-    
-            grid.on( 'agent created', async (agent) => {
-                if ( Redis.client.isReady )
-                    agent.score = await Redis.client.get( agent.id ).score;
-            } )
-
-        }
+        grid.on( 'agent created', async (agent) => {
+            if ( ! Redis.client || ! Redis.client.isReady )
+                return;
+            let entry = await Redis.client.hGetAll( agent.id );
+            console.log( 'Redis get', agent.id, entry )
+            if ( entry )
+                agent.score = parseInt( entry.score );
+            else
+                await Redis.client.hSet( agent.id, 'name', agent.name );
+        } )
 
     }
 
