@@ -6,11 +6,13 @@ const { uid } = require('uid');
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
 
 
-
+/**
+ * @class Authentication
+ */
 class Authentication {
 
     /**
-     * @type {Map<string,{agent:Agent,sockets:Set<Socket>}>}
+     * @type {Map<string,{agent:Agent,sockets:Set<Socket>}>} idToAgentAndSockets
      */
     idToAgentAndSockets = new Map();
     
@@ -40,17 +42,21 @@ class Authentication {
         
     }
     
+    /** @param {string} id @return {Agent} */
     getAgent ( id ) {
 
-        return ( idToAgentAndSockets.get( id ) ? idToAgentAndSockets.get( id ).agent : null );
+        return ( this.idToAgentAndSockets.get( id ) ? idToAgentAndSockets.get( id ).agent : null );
         
     }
     
+    /** @param {string} id */
     getSockets ( id ) {
-
+        
+        let _this = this
+        
         return function * () {
-            if ( this.slicedTokenToSockets.has( id ) )
-                for ( let s of this.slicedTokenToSockets.get( id ).sockets.values )
+            if ( _this.idToAgentAndSockets.has( id ) )
+                for ( let s of _this.idToAgentAndSockets.get( id ).sockets.values() )
                     yield s;
         }
         

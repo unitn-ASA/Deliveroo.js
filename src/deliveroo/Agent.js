@@ -237,12 +237,15 @@ class Agent extends Xy {
     }
 
     /**
-     * @type {function(): void}
+     * @type {function([id:String]): void}
      */
-    putDown () {
+    putDown ( ids = null ) {
         var tile = this.tile
         var sc = 0;
         var dropped = new Array();
+        var toPutDown = Array.from( this.#carryingParcels );    // put down all parcels
+        if ( ids && ids.length > 0 )                            // put down specified parcels
+            toPutDown = toPutDown.filter( p => ids.includes( p.id ) );
         for ( const parcel of this.#carryingParcels ) {
             this.#carryingParcels.delete(parcel);
             parcel.carriedBy = null;

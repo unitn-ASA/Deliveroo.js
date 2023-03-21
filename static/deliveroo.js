@@ -62,7 +62,15 @@ function createPanel() {
     const panel = new GUI( { width: 310 } );
     
     const tokenFolder = panel.addFolder( 'Tokens' );
-    tokenFolder.open();
+    tokenFolder.close();
+
+    const chatFolder = panel.addFolder( 'Chat' );
+    chatFolder.open();
+
+    function processMsg (id, name, msg) {
+        let line = {}; line[id+' '+name] = JSON.stringify(msg)
+        chatFolder.add( line, id+' '+name );
+    }
 
     const leaderboardFolder = panel.addFolder( 'Leaderboard' );
     leaderboardFolder.open();
@@ -79,10 +87,10 @@ function createPanel() {
 
     }
 
-    return { updateLeaderboard }
+    return { updateLeaderboard, processMsg }
 
 }
-const { updateLeaderboard } = createPanel();
+const { updateLeaderboard, processMsg } = createPanel();
 
 // const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
 // const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
@@ -495,6 +503,12 @@ socket.on( "tile", (x, y, delivery) => {
     setTile(x, y, delivery)
 });
 
+socket.on( "msg", ( id, name, msg, reply ) => {
+    console.log( 'msg', {id, name, msg, reply} )
+    processMsg( id, name, msg )
+    if ( msg == 'who are you?' && reply ) reply('I am the web app')
+})
+
 socket.on( "you", ( {id, name, x, y, score} ) => {
     console.log( "you", {id, name, x, y, score} )
     
@@ -622,7 +636,7 @@ document.onkeydown = function(evt) {
         break;
         case 69:// E putdown
         console.log('emit putdown');
-        socket.emit('putdown', (dropped) => {
+        socket.emit('putdown', null, (dropped) => {
             console.log( 'putdown', dropped, 'parcels' );
             // for ( let p of dropped ) {
             //     parcels.get( p.id ).putdown();
