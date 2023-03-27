@@ -11,53 +11,45 @@ instrument({
 
 
 
+const redisClient = require('./src/redis');
 const server = require('./src/server.js');
-const { createClient } = require('redis');
-const Redis = require('./src/deliveroo/Redis');
+const game = require('./src/game');
 
 
 
-const port = process.env.PORT || 8080;
-const REDIS_URL = process.env.REDIS_URL;
+const PORT = process.env.PORT || 8080;
 
 
 
-async function startServer () {
+async function start () {
 
     /**
      *  Start Redis
      */
+    
+    if ( redisClient ) {
 
-    if ( REDIS_URL ) {
-    
-        const client = Redis.client = createClient({
-            url: REDIS_URL
-        });
-        
-        client.on('error', err => console.log('Redis Client Error', err) );
-        client.on('ready', () => console.log('Redis connected and ready') );
-        client.on('reconnecting', () => console.log('Redis reconnecting') );
-        
-        await client.connect()
-            
+        await redisClient.connect();
         console.log("Connected to Redis");
-    
-    } else {
         
+    } else {
+
         console.log('Redis disabled');
-    
+
     }
 
     /**
      *  Start http server
      */
 
-    server.listen( port, () => {
+    server.listen( PORT, () => {
         
-        console.log(`Server listening on port ${port}`);
+        console.log(`Server listening on port ${PORT}`);
     
     } );
 
+
+    
 }
 
-startServer();
+start();

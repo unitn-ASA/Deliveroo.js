@@ -1,24 +1,13 @@
 
-var map
-try {
-    map = require( "./levels/maps/" + process.argv[2] || process.env.MAP || 'default_map' )
-} catch (error) {
-    map = require("./levels/maps/default_map")
-}
-
-var parcels_generator
-try {
-    parcels_generator = require( "./levels/parcels/" + process.argv[3] || process.env.PARCELS_GENERATOR || 'default_parcels_generator' )
-} catch (error) {
-    parcels_generator = require("./levels/parcels/default_parcels_generator")
-}
-
-
-
 module.exports = {
-    key: 'mysecret',
-    map,
-    parcels_generator
-};
+    MAP_FILE: "default_map",    // if omitted, default is 'default_map'
+    
+    PARCELS_GENERATION_INTERVAL: '2s',              // if omitted, default is '2s'
+
+    MOVEMENT_DURATION: 500,     // if omitted, default is 500
+
+    PARCEL_REWARD_AVG: 30,      // if omitted, default is 30
+    PARCEL_REWARD_VARIANCE: 10  // if omitted, default is 10
+}
 
 

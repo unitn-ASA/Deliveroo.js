@@ -3,10 +3,11 @@ const Xy =  require('./Xy')
 const Grid =  require('./Grid')
 const Tile =  require('./Tile');
 const Parcel =  require('./Parcel');
+const config =  require('../../config');
 
 
 
-const MOVEMENT_DURATION = 500;
+const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
 
 
 /**

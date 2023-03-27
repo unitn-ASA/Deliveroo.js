@@ -62,6 +62,10 @@ class Grid extends Observable {
         // return Array.from(this.#tiles).flat();
     }
 
+    getMapSize () {
+        return { width: this.#tiles.length, height:this.#tiles.at(0).length }
+    }
+
     /**
      * @type {function(number,number): Tile}
      */

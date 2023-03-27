@@ -1,6 +1,12 @@
 const Observable =  require('./Observable')
 const Xy =  require('./Xy')
 const myClock =  require('./Clock')
+const config =  require('../../config')
+
+
+
+const PARCEL_REWARD_AVG = process.env.PARCEL_REWARD_AVG || config.PARCEL_REWARD_AVG || 30;
+const PARCEL_REWARD_VARIANCE = process.env.PARCEL_REWARD_VARIANCE || config.PARCEL_REWARD_VARIANCE || 10;
 
 
 
@@ -39,7 +45,7 @@ class Parcel extends Xy {
         this.id = 'p' + Parcel.#lastId++;
 
         this.interceptValueSet('reward');
-        this.reward = Math.floor( Math.random()*20 + 20 );
+        this.reward = Math.floor( Math.random()*PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
 
         const decay = () => {
             this.reward = Math.floor( this.reward - 1 );
