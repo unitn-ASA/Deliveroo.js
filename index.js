@@ -1,30 +1,19 @@
-const { server, app } = require('./src/server.js');
-
-const port = process.env.PORT || 8080;
-
-function startServer () {
-
-    server.listen( port, () => {
-        
-        console.log(`Server listening on port ${port}`);
-    
-    } );
-
-}
-
-
-
-/**
- * Configure Redis
- */
-
+const server = require('./src/server.js');
 const { createClient } = require('redis');
 const Redis = require('./src/deliveroo/Redis');
 
+
+
+const port = process.env.PORT || 8080;
 const REDIS_URL = process.env.REDIS_URL;
 
 
-async function startRedis () {
+
+async function startServer () {
+
+    /**
+     *  Start Redis
+     */
 
     if ( REDIS_URL ) {
     
@@ -38,17 +27,24 @@ async function startRedis () {
         
         await client.connect()
             
-        // console.log("Connected to Redis");
-        
-        startServer();
+        console.log("Connected to Redis");
     
     } else {
         
         console.log('Redis disabled');
-        startServer();
     
     }
 
+    /**
+     *  Start http server
+     */
+
+    server.listen( port, () => {
+        
+        console.log(`Server listening on port ${port}`);
+    
+    } );
+
 }
 
-startRedis ();
+startServer();

@@ -1,8 +1,8 @@
-const Grid = require('./src/deliveroo/Grid');
-const Agent = require('./src/deliveroo/Agent');
-const Parcel = require('./src/deliveroo/Parcel');
-const Tile = require('./src/deliveroo/Tile');
-const myClock = require('./src/deliveroo/Clock');
+const Grid = require('../src/deliveroo/Grid');
+const Agent = require('../src/deliveroo/Agent');
+const Parcel = require('../src/deliveroo/Parcel');
+const Tile = require('../src/deliveroo/Tile');
+const myClock = require('../src/deliveroo/Clock');
 
 
 
