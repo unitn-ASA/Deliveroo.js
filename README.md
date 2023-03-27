@@ -2,16 +2,22 @@
 
 ## Autonomous Software Agents
 
-### Lab - 2022-2023
-
-University of Trento - Trento
-
 Marco Robol - marco.robol@unitn.it
 
-[InternetShortcut]
-URL=https://blog.logrocket.com/node-js-multithreading-worker-threads-why-they-matter/
+University of Trento - 2022/2023
 
 # Changelog
 
-### 1.0 (03/02/2023)
+### v1.5 (27/03/2023)
 
+`$ node index.js level_1`
+
+- config.js
+- /levels
+    - level_1
+    - level_2
+    - level_3
+    - /maps
+        - default_map
+        - empty_map
+        - map_20
