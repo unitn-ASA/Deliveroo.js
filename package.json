@@ -15,6 +15,7 @@
     "jest": "^27.5.1"
   },
   "dependencies": {
+    "@aspecto/opentelemetry": "^0.0.140",
     "express": "^4.17.3",
     "jsonwebtoken": "^9.0.0",
     "redis": "^4.6.4",
