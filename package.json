@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "deliveroo-js-server": "./cli.js"
+  },
   "scripts": {
     "test": "jest",
     "start": "node index.js",
