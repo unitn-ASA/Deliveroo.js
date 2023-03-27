@@ -26,7 +26,9 @@ class Grid extends Observable {
         var Xlength = map.length;
         var Ylength = map.length;
         this.#tiles = Array.from(map).map( (column, x) => {
-            return Array.from(column).map( (blocked, y) => new Tile(this, x, y, blocked, ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )) )
+            return Array.from(column).map( (value, y) => new Tile(
+                this, x, y, !value, ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
+            ) )
         } );
         // console.log( this.#tiles.map( c=>c.map( t=>t.x+' '+t.y+' ' ) ) )
         
@@ -42,8 +44,16 @@ class Grid extends Observable {
         this.#agents = new Map();
         this.#parcels = new Map();
         
-        // // Dispatch all my events
-        // this.observe( Game.dispatcher.triggerEvents.bind(Game.dispatcher) );
+        for (let x = 0; x < map.length; x++) {
+            const column = map[x];
+            for (let y = 0; y < column.length; y++) {
+                const value = column[y];
+                if ( value > 1 )
+                    this.createParcel( x, y, null, value );
+            }
+            
+        }
+
     }
 
     *getTiles ( [x1,x2,y1,y2]=[0,10000,0,10000] ) {
@@ -96,10 +106,10 @@ class Grid extends Observable {
     /**
      * @type {function({id:string,name:string}): Agent}
      */
-    createAgent ( { id, name } ) {
+    createAgent ( options = {} ) {
         
         // Instantiate
-        var me = new Agent( this, { id, name } );
+        var me = new Agent( this, options );
         this.emit( 'agent created', me );
 
         // Register

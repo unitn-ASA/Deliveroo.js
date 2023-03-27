@@ -12,7 +12,7 @@ class Clock extends Observable {
     constructor () {
         super();
         this.start();
-        this.setMaxListeners(50);
+        this.setMaxListeners(200);
     }
     
     #stop = true;

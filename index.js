@@ -2,18 +2,18 @@
  * https://app.aspecto.io/ Open Telemetry
  * https://docs.aspecto.io/v1/send-tracing-data-to-aspecto/aspecto-sdk/nodejs/customize-defaults/advanced
  */
-const instrument = require('@aspecto/opentelemetry');
-instrument({
-    aspectoAuth: 'e2a48aeb-1ae2-495e-bd9d-056fffd9a95d',
-    serviceName: 'deliveroo.js-service',
-    env: process.ENV || 'dev'
-});
+// const instrument = require('@aspecto/opentelemetry');
+// instrument({
+//     aspectoAuth: 'e2a48aeb-1ae2-495e-bd9d-056fffd9a95d',
+//     serviceName: 'deliveroo.js-service',
+//     env: process.ENV || 'dev'
+// });
 
 
 
-const redisClient = require('./src/redis');
-const server = require('./src/server.js');
-const game = require('./src/game');
+const redisClient = require('./src/redisClient');
+const httpServer = require('./src/httpServer.js');
+const ioServer = require('./src/ioServer');
 
 
 
@@ -42,11 +42,17 @@ async function start () {
      *  Start http server
      */
 
-    server.listen( PORT, () => {
+    httpServer.listen( PORT, () => {
         
         console.log(`Server listening on port ${PORT}`);
     
     } );
+
+    /**
+     * Start io server
+     */
+
+    ioServer.listen( httpServer );
 
 
     

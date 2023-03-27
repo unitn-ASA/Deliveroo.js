@@ -7,6 +7,7 @@ const config =  require('../../config')
 
 const PARCEL_REWARD_AVG = process.env.PARCEL_REWARD_AVG || config.PARCEL_REWARD_AVG || 30;
 const PARCEL_REWARD_VARIANCE = process.env.PARCEL_REWARD_VARIANCE || config.PARCEL_REWARD_VARIANCE || 10;
+const PARCEL_DECADING_INTERVAL = process.env.PARCEL_DECADING_INTERVAL || config.PARCEL_DECADING_INTERVAL || 'infinite';
 
 
 
@@ -22,7 +23,7 @@ class Parcel extends Xy {
     /**
      * @constructor Parcel
      */
-    constructor (x, y, carriedBy = null ) {
+    constructor (x, y, carriedBy = null, reward ) {
         super(x, y);
 
         this.carriedBy = carriedBy;
@@ -45,16 +46,17 @@ class Parcel extends Xy {
         this.id = 'p' + Parcel.#lastId++;
 
         this.interceptValueSet('reward');
-        this.reward = Math.floor( Math.random()*PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
+        this.reward = reward || Math.floor( Math.random()*PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
 
         const decay = () => {
             this.reward = Math.floor( this.reward - 1 );
             if ( this.reward <= 0) {
                 this.emitOnePerTick( 'expired', this );
-                myClock.off( '1s', decay );
+                myClock.off( PARCEL_DECADING_INTERVAL, decay );
             }
         };
-        myClock.on( '1s', decay );
+        myClock.on( PARCEL_DECADING_INTERVAL, decay );
+        
     }
 
 }

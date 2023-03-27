@@ -8,6 +8,8 @@ const config =  require('../../config');
 
 
 const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
+const AGENTS_OBSERVATION_DISTANCE = process.env.AGENTS_OBSERVATION_DISTANCE || config.AGENTS_OBSERVATION_DISTANCE || 5;
+const PARCELS_OBSERVATION_DISTANCE = process.env.PARCELS_OBSERVATION_DISTANCE || config.PARCELS_OBSERVATION_DISTANCE || 5;
 
 
 /**
@@ -38,9 +40,9 @@ class Agent extends Xy {
     /**
      * @constructor Agent
      * @param {Grid} grid
-     * @param {string} name
+     * @param {{id:number,name:string}} options
      */
-    constructor ( grid, {id, name} ) {
+    constructor ( grid, options ) {
         
         {
             let x, y, found=false;
@@ -70,8 +72,8 @@ class Agent extends Xy {
         // this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
 
         this.#grid = grid;
-        this.id = id || 'a' + Agent.#lastId++;
-        this.name = name || this.id;
+        this.id = options.id || 'a' + Agent.#lastId++;
+        this.name = options.name || this.id;
         this.sensing = new Set();
         this.score = 0;
 
@@ -89,8 +91,9 @@ class Agent extends Xy {
 
         var agents = [];
         for ( let agent of this.#grid.getAgents() ) {
-            if ( agent != this && Xy.distance(agent, this) < 5 ) {
-                agents.push( {id, name, x, y, score} = agent )
+            if ( agent != this && Xy.distance(agent, this) < AGENTS_OBSERVATION_DISTANCE ) {
+                const {id, name, x, y, score} = agent
+                agents.push( {id, name, x, y, score} )
             }
         }
         this.emitOnePerTick( 'agents sensing', agents )
@@ -118,7 +121,7 @@ class Agent extends Xy {
 
         var parcels = [];
         for ( const parcel of this.#grid.getParcels() ) {
-            if ( Xy.distance(parcel, this) < 5 ) {
+            if ( Xy.distance(parcel, this) < PARCELS_OBSERVATION_DISTANCE ) {
                 let {id, x, y, carriedBy, reward} = parcel;
                 parcels.push( {id, x, y, carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ), reward} )
             }
