@@ -1,5 +1,4 @@
-const { Server } = require("socket.io");
-const server = require('./server');
+const { Server } = require('socket.io');
 const myGrid = require('./grid');
 const Authentication = require('./deliveroo/Authentication');
 
@@ -7,7 +6,7 @@ const Authentication = require('./deliveroo/Authentication');
 
 const myAuthenticator = new Authentication( myGrid )
 
-const io = new Server( server, {
+const io = new Server( {
     cors: {
         origin: "*", // http://localhost:3000",
         methods: ["GET", "POST"]
