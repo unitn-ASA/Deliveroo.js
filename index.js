@@ -1,16 +1,3 @@
-/**
- * https://app.aspecto.io/ Open Telemetry
- * https://docs.aspecto.io/v1/send-tracing-data-to-aspecto/aspecto-sdk/nodejs/customize-defaults/advanced
- */
-// const instrument = require('@aspecto/opentelemetry');
-// instrument({
-//     aspectoAuth: 'e2a48aeb-1ae2-495e-bd9d-056fffd9a95d',
-//     serviceName: 'deliveroo.js-service',
-//     env: process.ENV || 'dev'
-// });
-
-
-
 const redisClient = require('./src/redisClient');
 const httpServer = require('./src/httpServer.js');
 const ioServer = require('./src/ioServer');

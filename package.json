@@ -1,7 +1,12 @@
 {
   "name": "deliveroo.js",
   "version": "1.5.0",
-  "description": "",
+  "description": "Deliveroo.js Development Kit - Autonomous Software Agents - 2023",
+  "author": "Marco Robol <marco.robol@unitn.it>",
+  "license": "ISC",
+  "workspaces": [
+    "packages/@unitn-asa/*"
+  ],
   "main": "index.js",
   "bin": {
     "deliveroo-js-server": "./cli.js"
@@ -11,14 +16,16 @@
     "start": "node index.js",
     "dev": "node -r dotenv/config index.js"
   },
-  "author": "Marco Robol",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
+  },
   "devDependencies": {
     "dotenv": "^16.0.3",
-    "jest": "^27.5.1"
+    "jest": "^27.5.1",
+    "lerna": "^6.6.1"
   },
   "dependencies": {
-    "@aspecto/opentelemetry": "^0.0.140",
     "express": "^4.17.3",
     "jsonwebtoken": "^9.0.0",
     "redis": "^4.6.4",
