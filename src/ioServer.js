@@ -78,19 +78,25 @@ io.on('connection', (socket) => {
     socket.on('move', async (direction, acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, direction);
         try {
-            acknowledgementCallback( await me[direction]() ); //.bind(me)()
-        } catch (error) { console.error(error) }
+            const moving = me[direction]();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); //.bind(me)()
+        } catch (error) { console.error(direction, 'is not a method of agent'); console.error(error) }
     });
 
     socket.on('pickup', async (acknowledgementCallback) => {
-        try {
-            acknowledgementCallback( me.pickUp() )
-        } catch (error) { console.error(error) }
+        const picked = me.pickUp()
+        if ( acknowledgementCallback )
+            try {
+                acknowledgementCallback( me.pickUp() )
+            } catch (error) { console.error(error) }
     });
 
     socket.on('putdown', async (selected, acknowledgementCallback) => {
         try {
-            acknowledgementCallback( me.putDown( selected ) )
+            const dropped = me.putDown( selected )
+            if ( acknowledgementCallback )
+                acknowledgementCallback( dropped )
         } catch (error) { console.error(error) }
     });
 

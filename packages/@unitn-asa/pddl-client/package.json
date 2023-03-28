@@ -9,9 +9,8 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/unitn-ASA/DeliverooDevKit.js.git"
+    "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
   },
-  "gitHead": "08d98ce3f9c8ee7d47dd7f164db66474846eb2d8",
   "publishConfig": {
     "access": "public"
   },

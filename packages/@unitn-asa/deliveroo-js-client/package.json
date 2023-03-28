@@ -9,24 +9,15 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/unitn-ASA/DeliverooDevKit.js.git"
+    "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
   },
-  "gitHead": "08d98ce3f9c8ee7d47dd7f164db66474846eb2d8",
   "publishConfig": {
     "access": "public"
   },
   "bin": {
-    "demo-client-agent": "./bin/demo_client_agent.js",
-    "demo-socketio-agent": "./bin/demo_socketio_agent.js",
-    "shout": "./bin/msg/shout.js",
-    "demo-msg-agent": "./bin/msg/demo_msg_agent.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "demo-client-agent": "node ./bin/demo_client_agent.js",
-    "demo-socketio-agent": "node ./bin/demo_socketio_agent.js",
-    "shout": "node ./bin/msg/shout.js",
-    "demo-msg-agent": "node ./bin/msg/demo_msg_agent.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "socket.io-client": "^4.6.0"
