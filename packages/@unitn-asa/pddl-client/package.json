@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/pddl-client",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
@@ -20,5 +20,5 @@
   "dependencies": {
     "node-fetch": "^3.3.0"
   },
-  "gitHead": "bf9ea4112579b52dbac266d937e401dae86738b9"
+  "gitHead": "64b48fd9882f9369a727246794f4e8f63106c89d"
 }
