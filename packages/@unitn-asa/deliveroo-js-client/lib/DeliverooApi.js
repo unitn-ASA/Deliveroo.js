@@ -19,6 +19,10 @@ export default class DeliverooApi extends EventEmitter {
             // }
         });
 
+        this.socket.on( "tile", ({x, y, delivery} ) => {
+            this.emit( "tile", {x, y, delivery} )
+        });
+
         this.socket.on( "you", ({id, name, x, y, score} ) => {
             this.emit( "you", {id, name, x, y, score} )
         });
