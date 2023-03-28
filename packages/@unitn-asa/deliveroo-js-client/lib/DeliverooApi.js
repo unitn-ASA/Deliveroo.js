@@ -19,35 +19,73 @@ export default class DeliverooApi extends EventEmitter {
             // }
         });
 
-        this.socket.on( "tile", ({x, y, delivery} ) => {
-            this.emit( "tile", {x, y, delivery} )
-        });
-
-        this.socket.on( "you", ({id, name, x, y, score} ) => {
-            this.emit( "you", {id, name, x, y, score} )
-        });
-
-        this.socket.on( "agents sensing", ( list ) => {
-            this.emit( "agents sensing", list )
-        });
-
-        this.socket.on( "parcels sensing", ( list ) => {
-            this.emit( "parcels sensing", list )
-        });
-
-        this.socket.on( "connect", (...args) => {
-            this.emit( "connect", ...args)
-        });
-
-        this.socket.on( "disconnect", (...args) => {
-            this.emit( "disconnect", ...args)
-        });
-
-        this.socket.on( "msg", (id, name, msg, reply) => {
-            this.emit( "msg", id, name, msg, reply)
-        });
-
     }
+    
+
+    
+    /**
+     * @param { function(...) } callback 
+     */
+    onConnect ( callback ) {
+        this.socket.on( "connect", callback )
+    }
+
+    /**
+     * @param { function(...) } callback 
+     */
+    onDisconnect ( callback ) {
+        this.socket.on( "disconnect", callback )
+    }
+
+
+    
+    /**
+     * @param { function( x, y, delivery ) } callback
+     */
+    onTile ( callback ) {
+        this.socket.on( "tile", callback )
+    }
+    
+    /**
+     * Listen to 'you' events
+     * @param {function({id:string, name:string, x:number, y:number, score:number})} callback 
+     */
+    onYou ( callback ) {
+        this.socket.on( "you", callback )
+    }
+    
+    /**
+     * Listen to 'agents sensing' events
+     * @param { function( [ { id:string, name:string, x:number, y:number, score:number } ] ) } callback 
+     */
+    onAgentsSensing ( callback ) {
+        this.socket.on( "agents sensing", callback )
+    }
+    
+    /**
+     * Listen to 'parcels sensing' events
+     * @param { function( [ { id:string, x:number, y:number, carriedBy:string, reward:number } ] ) } callback 
+     */
+    onParcelsSensing ( callback ) {
+        this.socket.on( "parcels sensing", callback )
+    }
+    
+    /**
+     * @callback onMsgCallback
+     * @param {string} id
+     * @param {string} name
+     * @param {string} msg
+     * @param {function(string)} replyAcknowledgmentCallback
+     */
+    /**
+     * Listen to 'msg' events
+     * @param {onMsgCallback} callback (id, name, msg, replyAcknowledgmentCallback)
+     */
+    onMsg ( callback ) {
+        this.socket.on( "msg", callback )
+    }
+
+    
 
     /**
      * Resolves after timeout
@@ -57,6 +95,14 @@ export default class DeliverooApi extends EventEmitter {
         return new Promise( res => setTimeout( res, ms ) );
     }
 
+
+
+    /**
+     * When movement completes, it resolves to true.
+     * In case of failure when moving, it resolves immediately to false
+     * @param {string} direction It can be either: 'up', 'right', 'left', or 'down'
+     * @returns {Promise<boolean>}
+     */
     async move ( direction ) {
         console.log('movement')
         return new Promise( (success, reject) => {
@@ -66,6 +112,10 @@ export default class DeliverooApi extends EventEmitter {
         } );
     }
 
+    /**
+     * When completed, resolves to the list of picked up parcels
+     * @returns {Promise<boolean>}
+     */
     async pickup (  ) {
         return new Promise( (success) => {
             this.socket.emit( 'pickup', async ( picked ) =>  {
@@ -74,6 +124,11 @@ export default class DeliverooApi extends EventEmitter {
         } );
     }
 
+    /**
+     * When completed, resolves to the list of dropped parcels
+     * @returns {Promise<boolean>}
+     * @param {[string]} selected list of parcels ids to drop
+     */
     async putdown ( selected = null ) {
         return new Promise( (success) => {
             this.socket.emit( 'putdown', selected, async ( dropped ) =>  {

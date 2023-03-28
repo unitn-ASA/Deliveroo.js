@@ -170,6 +170,7 @@ class Grid extends Observable {
 
         // On parcel
         this.on( 'parcel', postpone( me.emitParcelSensing.bind(me) ) );
+        me.on( 'xy', postpone( me.emitParcelSensing.bind(me) ) );
 
         return me;
     }
