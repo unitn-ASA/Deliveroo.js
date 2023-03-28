@@ -23,6 +23,14 @@ export default class DeliverooApi extends EventEmitter {
             this.emit( "you", {id, name, x, y, score} )
         });
 
+        this.socket.on( "agents sensing", ( list ) => {
+            this.emit( "agents sensing", list )
+        });
+
+        this.socket.on( "parcels sensing", ( list ) => {
+            this.emit( "parcels sensing", list )
+        });
+
         this.socket.on( "connect", (...args) => {
             this.emit( "connect", ...args)
         });
