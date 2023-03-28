@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-client",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
@@ -14,8 +14,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "bin": {
-  },
+  "bin": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
