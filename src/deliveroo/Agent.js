@@ -8,6 +8,7 @@ const Postponer = require('./Postponer');
 
 
 
+const MOVEMENT_STEPS = process.env.MOVEMENT_STEPS || config.MOVEMENT_STEPS || 1;
 const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
 const AGENTS_OBSERVATION_DISTANCE = process.env.AGENTS_OBSERVATION_DISTANCE || config.AGENTS_OBSERVATION_DISTANCE || 5;
 const PARCELS_OBSERVATION_DISTANCE = process.env.PARCELS_OBSERVATION_DISTANCE || config.PARCELS_OBSERVATION_DISTANCE || 5;
@@ -143,14 +144,21 @@ class Agent extends Xy {
     async stepByStep ( incr_x, incr_y ) {
         var init_x = this.x
         var init_y = this.y
-        this.x = ( this.x * 10 + incr_x*6 ) / 10; // this keep it rounded at .1
-        this.y = ( this.y * 10 + incr_y*6 ) / 10; // this keep it rounded at .1
-        for(let i=0; i<10; i++) {
-            await new Promise( res => setTimeout(res, MOVEMENT_DURATION / 10))
-            // this.x = ( this.x * 10 + incr_x ) / 10; // this keep it rounded at .1
-            // this.y = ( this.y * 10 + incr_y ) / 10; // this keep it rounded at .1
-            // console.log("moving into ", (init_x * 10 + incr_x * i ) / 10, this.y)
+        if ( MOVEMENT_STEPS ) {
+            // Immediate offset by 0.6*step
+            this.x = ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS * 12/20 ) / 100;
+            this.y = ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS * 12/20 ) / 100;
         }
+        for ( let i = 0; i < MOVEMENT_STEPS; i++ ) {
+            // Wait for next step timeout = MOVEMENT_DURATION / MOVEMENT_STEPS
+            await new Promise( res => setTimeout(res, MOVEMENT_DURATION / MOVEMENT_STEPS ) )
+            if ( i < MOVEMENT_STEPS - 1 ) {
+                // Move by one step = 1 / MOVEMENT_STEPS
+                this.x = ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS ) / 100;
+                this.y = ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS ) / 100;
+            }
+        }
+        // Finally at exact destination
         this.x = init_x + incr_x
         this.y = init_y + incr_y
     }
