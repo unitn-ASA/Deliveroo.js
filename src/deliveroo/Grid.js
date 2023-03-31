@@ -130,7 +130,7 @@ class Grid extends Observable {
 
         // On mine or others movement emit SensendAgents
         this.on( 'agent xy', ( who ) => {
-            if ( me.id == who.id || Xy.distance(me, who) < AGENTS_OBSERVATION_DISTANCE ) {
+            if ( me.id == who.id || Xy.distance(me, who) <= AGENTS_OBSERVATION_DISTANCE ) {
                 me.emitAgentSensing()
             }
         } )
