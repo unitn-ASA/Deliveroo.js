@@ -318,8 +318,10 @@ function deleteParcel ( id ) {
 
 class Agent extends onGrid {
 
+    /** @type {string} Map id to parcel */
     id
-    name
+
+    /** @type {Map<string,Parcel>} Map id to parcel */
     carrying = new Map();
 
     // #targetX
@@ -349,16 +351,25 @@ class Agent extends onGrid {
     //     }
     // }
 
-    #score
+    #name = 'loading'
+    get name () {
+        return this.#name
+    }
+    set name (name) {
+        this.#name = name
+        this.text = this.#name+'\n'+this.#score;
+    }
+
+    #score = 0
     get score () {
         return this.#score
     }
     set score (score) {
         this.#score = score
-        this.text = this.name+'\n'+score;
+        this.text = this.#name+'\n'+this.#score;
     }
 
-    constructor (id, x, y, score) {
+    constructor (id, name, x, y, score) {
         const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
         var color = new THREE.Color( 0xffffff );
         color.setHex( Math.random() * 0xffffff );
@@ -369,8 +380,8 @@ class Agent extends onGrid {
         super(mesh, x, y, id+'\n'+score)
 
         this.id = id
-        this.name = id
-        this.#score = score
+        this.score = score
+        this.name = name
 
         // this.movement();
     }
@@ -384,10 +395,10 @@ const agents = new Map();
 
 
 
-function getOrCreateAgent ( id, x=-1, y=-1, score=-1 ) {
+function getOrCreateAgent ( id, name='unknown', x=-1, y=-1, score=-1 ) {
     var agent = agents.get(id);
     if ( !agent ) {
-        agent = new Agent(id, x, y, score);
+        agent = new Agent(id, name, x, y, score);
         agents.set( id, agent );
     }
     return agent;
@@ -482,7 +493,7 @@ var socket = io( {
     }
 } );
 
-var me = getOrCreateAgent(name, 0, 0, 0);
+var me = getOrCreateAgent('loading', name, 0, 0, 0);
 
 socket.on( "connect", () => {
     console.log( "connect socket", socket.id, token ); // x8WIv7-mJelg7on_ALbx
@@ -529,8 +540,7 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
     //     document.location.search = params.toString();
     // }
 
-    me = getOrCreateAgent(id, x, y, score);
-    me.name = name;
+    me = getOrCreateAgent(id, name, x, y, score);
 
     /**
      * Auto-follow camera
@@ -576,7 +586,7 @@ socket.on("agents sensing", (sensed) => {
     for ( const sensed_p of sensed ) {
         // console.log("parcel sensing", sense)
         const {id, name, x, y, score} = sensed_p;
-        var agent = getOrCreateAgent(id, x, y, score)
+        var agent = getOrCreateAgent(id, name, x, y, score)
         agent.name = name;
         agent.opacity = 1;
         agent.x = x;
