@@ -447,7 +447,7 @@ function getCookie(cname) {
 
 function checkCookieForToken ( name ) {
     let token = getCookie( 'token_'+name );
-    if ( token == "" ) {
+    if ( token == "" || token == null ) {
         token = prompt( `No token exists for user ${name}, please insert a valid token or leave empty to get a new one:`, "");
         if ( token != "" && token != null ) {
             setCookie( 'token_'+name, token, 365 );
@@ -488,9 +488,17 @@ socket.on( "connect", () => {
     console.log( "connect socket", socket.id, token ); // x8WIv7-mJelg7on_ALbx
 });
 
-socket.on( "disconnect", () => {
-    socket.disconnect();
-    alert( `Disconnected! Connection problems or invalid token.` );
+socket.on( "disconnect", (reason) => {
+    if (reason === "io server disconnect") {
+        // the disconnection was initiated by the server, you need to reconnect manually
+        alert( `Token is invalid!` );
+        socket.connect();
+    }
+    console.error( `Socket.io connection error` );
+});
+
+socket.on("connect_error", (reason) => {
+    alert( `Reconnecting, press ok to continue.` );
 });
 
 socket.on( "token", (token) => {
