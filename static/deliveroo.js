@@ -22,6 +22,13 @@ labelRenderer.domElement.style.position = 'absolute';
 labelRenderer.domElement.style.top = '0px';
 document.body.appendChild( labelRenderer.domElement );
 
+window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.setSize( window.innerWidth, window.innerHeight );
+} );
+
 const controls = new OrbitControls( camera, labelRenderer.domElement );
 controls.minDistance = 15;
 controls.maxDistance = 40;
