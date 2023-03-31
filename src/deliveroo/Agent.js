@@ -4,6 +4,7 @@ const Grid =  require('./Grid')
 const Tile =  require('./Tile');
 const Parcel =  require('./Parcel');
 const config =  require('../../config');
+const Postponer = require('./Postponer');
 
 
 
@@ -78,6 +79,9 @@ class Agent extends Xy {
         this.score = 0;
 
         this.emitOnePerTick( 'xy', this ); // emit agent when spawning
+        
+        // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
+        this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).atSetImmediate
 
     }
 
@@ -127,31 +131,6 @@ class Agent extends Xy {
             }
         }
         this.emit( 'parcels sensing', parcels )
-        
-        // this.emitOnePerTick( 'parcels sensing',
-        //     Array.from( this.#grid.getParcels() ).filter( p => Xy.distance(p, this) < 5 ).map( p => {
-        //         return {
-        //             id: p.id,
-        //             x: p.x,
-        //             y: p.y,
-        //             carriedBy: ( p.carriedBy ? p.carriedBy.id : null ),
-        //             reward: p.reward
-        //         };
-        //     } )
-        // );
-
-        // TO-DO How to emit an empty array when no parcels ?
-        // for ( let parcel of this.#grid.getParcels() ) {
-        //     if ( Xy.distance(parcel, this) < 5 ) {
-        //         this.emitAccumulatedAtNextTick( 'parcels sensing', {
-        //             id: parcel.id,
-        //             x: parcel.x,
-        //             y: parcel.y,
-        //             carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ),
-        //             reward: parcel.reward
-        //         } )
-        //     }
-        // }
 
     }
 

@@ -3,6 +3,12 @@ const Tile =  require('./Tile')
 const Agent =  require('./Agent')
 const Parcel = require('./Parcel');
 const Xy = require('./Xy');
+const config =  require('../../config');
+
+
+
+const AGENTS_OBSERVATION_DISTANCE = process.env.AGENTS_OBSERVATION_DISTANCE || config.AGENTS_OBSERVATION_DISTANCE || 5;
+const PARCELS_OBSERVATION_DISTANCE = process.env.PARCELS_OBSERVATION_DISTANCE || config.PARCELS_OBSERVATION_DISTANCE || 5;
 
 
 
@@ -121,56 +127,31 @@ class Grid extends Observable {
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );
-        
-        const notMeAndWithin5 = ( fn ) => {
-            return function (it, ...args) {
-                if ( ( ! it.id || me.id != it.id ) && Xy.distance(me, it) < 5 )
-                    fn (it, ...args)
+
+        // On mine or others movement emit SensendAgents
+        this.on( 'agent xy', ( who ) => {
+            if ( me.id == who.id || Xy.distance(me, who) < AGENTS_OBSERVATION_DISTANCE ) {
+                me.emitAgentSensing()
             }
-        }
-
-        const ifNotMeAndWithin5EmitSensendAgents = notMeAndWithin5( me.emitAgentSensing.bind(me) );
-
-        // On mine and others movement emit SensendAgents
-        this.on( 'agent xy', me.emitAgentSensing.bind(me) )
+        } )
         
-        // On agent disconnect emit agentSensing
-        // this.on( 'agent disconnect', me.emitAgentSensing.bind(me) )
+        // On agent deleted emit agentSensing
+        this.on( 'agent deleted', ( who ) => {
+            if ( me.id != who.id && Xy.distance(me, who) < AGENTS_OBSERVATION_DISTANCE ) {
+                me.emitAgentSensing()
+            }
+        } )
 
         // On others score emit SensendAgents
-        this.on( 'agent score', ifNotMeAndWithin5EmitSensendAgents )
-
-        
-
-        /**
-         * Call wrapped function just once every nextTick.
-         * @function postpone
-         */
-        function postpone ( finallyDo ) {
-            var promiseFired = false;
-            return async (...args) => {
-                promiseFired = false;
-                process.nextTick( () => { // https://jinoantony.com/blog/setimmediate-vs-process-nexttick-in-nodejs
-                    if ( !promiseFired ) {
-                        promiseFired = true;
-                        finallyDo(...args);
-                    }
-                } );
+        this.on( 'agent score', ( who ) => {
+            if ( me.id != who.id && Xy.distance(me, who) < AGENTS_OBSERVATION_DISTANCE ) {
+                me.emitAgentSensing()
             }
-        }
+        } )
 
-        const thisGrid = this;
-        const within5 = ( fn ) => {
-            return function (p, ...args) {
-                console.log(this) // this should be parcel since specified by .bind in emitting parcel state. NO x, y in parcel
-                if ( Xy.distance(me, this) < 5 )
-                    fn (p, ...args)
-            }
-        }
-
-        // On parcel
-        this.on( 'parcel', postpone( me.emitParcelSensing.bind(me) ) );
-        me.on( 'xy', postpone( me.emitParcelSensing.bind(me) ) );
+        // On parcel and my movements emit parcels sensing
+        this.on( 'parcel', () => me.emitParcelSensing() );
+        me.on( 'xy', () => me.emitParcelSensing() );
 
         return me;
     }
@@ -212,6 +193,7 @@ class Grid extends Observable {
         this.emit( 'parcel', parcel )
         parcel.on( 'reward', this.emit.bind(this, 'parcel') );
         parcel.on( 'carriedBy', this.emit.bind(this, 'parcel') );
+        parcel.on( 'xy', this.emit.bind(this, 'parcel') );
 
         return parcel;
     }
