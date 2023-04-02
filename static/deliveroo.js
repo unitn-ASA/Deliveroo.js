@@ -543,6 +543,10 @@ socket.on( "msg", ( id, name, msg, reply ) => {
     if ( msg == 'who are you?' && reply ) reply('I am the web app')
 })
 
+socket.on( "config", ( config ) => {
+    document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
+} )
+
 socket.on( "you", ( {id, name, x, y, score} ) => {
 
     // console.log( "you", {id, name, x, y, score} )

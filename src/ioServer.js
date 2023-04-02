@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const myGrid = require('./grid');
 const Authentication = require('./deliveroo/Authentication');
+const config = require('../config');
 
 
 
@@ -25,6 +26,13 @@ io.on('connection', (socket) => {
     const me = myAuthenticator.authenticate(socket);
     if ( !me ) return;
     socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
+
+    
+
+    /**
+     * Emit config
+     */
+    socket.emit( 'config', config )
 
     
 
