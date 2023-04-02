@@ -13,6 +13,8 @@ const io = new Server( {
     }
 } );
 
+
+
 io.on('connection', (socket) => {
     
 
@@ -155,7 +157,27 @@ io.on('connection', (socket) => {
     } )
 
 
+    
+    /**
+     * Bradcast client log
+     */
+    socket.on( 'log', ( ...message ) => {
+        socket.broadcast.emit( 'log', socket.id, me.id, me.name, ...message )
+    } )
+
+
 });
+
+
+
+/**
+ * Bradcast server log
+ */
+const oldLog = console.log;
+console.log = function ( ...message ) {
+    io.emit( 'log', 'server', 'server', 'server', ...message );
+    oldLog.apply( console, message );
+};
 
 
 

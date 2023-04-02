@@ -503,7 +503,8 @@ var socket = io( {
 var me = getOrCreateAgent('loading', name, 0, 0, 0);
 
 socket.on( "connect", () => {
-    console.log( "connect socket", socket.id, token ); // x8WIv7-mJelg7on_ALbx
+    // console.log( "connect", socket.id, token ); // x8WIv7-mJelg7on_ALbx
+    document.getElementById('socket.id').textContent = `socket.id ${socket.id}`
 });
 
 socket.on( "disconnect", (reason) => {
@@ -525,6 +526,13 @@ socket.on( "token", (token) => {
     // navigator.clipboard.writeText(token);
 });
 
+socket.on( 'log', ( socket, id, name, ...message ) => {
+    if ( socket == 'server' )
+        console.log( 'server', '\t', ...message )
+    else
+        console.log( 'client', socket, id, name, '\t', ...message );
+} );
+
 socket.on( "tile", (x, y, delivery) => {
     setTile(x, y, delivery)
 });
@@ -536,7 +544,10 @@ socket.on( "msg", ( id, name, msg, reply ) => {
 })
 
 socket.on( "you", ( {id, name, x, y, score} ) => {
-    console.log( "you", {id, name, x, y, score} )
+
+    // console.log( "you", {id, name, x, y, score} )
+    document.getElementById('agent.id').textContent = `agent.id ${id}`;
+    document.getElementById('agent.name').textContent = `agent.name ${name}`;
     
     // if ( params.get( "id" ) != id ) {
     //     params.set( "id", id )
@@ -576,7 +587,7 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
 
 socket.on("agents sensing", (sensed) => {
 
-    console.log("agents sensing", ...sensed)//, sensed.length)
+    // console.log("agents sensing", ...sensed)//, sensed.length)
 
     var sensed = Array.from(sensed)
     
@@ -608,7 +619,7 @@ socket.on("agents sensing", (sensed) => {
 
 socket.on("parcels sensing", (sensed) => {
 
-    console.log("parcels sensing", ...sensed)//, sensed.length)
+    // console.log("parcels sensing", ...sensed)//, sensed.length)
 
     var sensed = Array.from(sensed)
 
@@ -651,38 +662,46 @@ document.onkeydown = function(evt) {
     // alert(charStr);
     switch (charCode) {
         case 81:// Q pickup
-        console.log('emit pickup');
+        // console.log('emit pickup');
         socket.emit('pickup', (picked) => {
-            console.log( 'pickup', picked, 'parcels' );
+            // console.log( 'pickup', picked, 'parcels' );
             // for ( let p of picked ) {
             //     parcels.get( p.id ).pickup(me);
             // }
         } );
         break;
         case 69:// E putdown
-        console.log('emit putdown');
+        // console.log('emit putdown');
         socket.emit('putdown', null, (dropped) => {
-            console.log( 'putdown', dropped, 'parcels' );
+            // console.log( 'putdown', dropped, 'parcels' );
             // for ( let p of dropped ) {
             //     parcels.get( p.id ).putdown();
             // }
         } );
         break;
         case 87 || 38:// W up
-        console.log('emit move up');
-        socket.emit('move', 'up', (status) => console.log( (status ? 'move done' : 'move failed') ) );
+        // console.log('emit move up');
+        socket.emit('move', 'up', (status) => {
+            // console.log( (status ? 'move up done' : 'move up failed') );
+        } );
         break;
         case 65 || 37:// A left
-        console.log('emit move left');
-        socket.emit('move', 'left', (status) => console.log( (status ? 'move done' : 'move failed') ) );
+        // console.log('emit move left');
+        socket.emit('move', 'left', (status) => {
+            // console.log( (status ? 'move left done' : 'move left failed') );
+        } );
         break;
         case 83 || 40:// S down 
-        console.log('emit move down');
-        socket.emit('move', 'down', (status) => console.log( (status ? 'move done' : 'move failed') ) );
+        // console.log('emit move down');
+        socket.emit('move', 'down', (status) => {
+            // console.log( (status ? 'move down done' : 'move down failed') );
+        } );
         break;
         case 68 || 39:// D right
-        console.log('emit move right');
-        socket.emit('move', 'right', (status) => console.log( (status ? 'move done' : 'move failed') ) );
+        // console.log('emit move right');
+        socket.emit('move', 'right', (status) => {
+            // console.log( (status ? 'move right done' : 'move right failed') );
+        } );
         break;
         default:
         break;

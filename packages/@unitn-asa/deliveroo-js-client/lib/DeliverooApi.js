@@ -10,7 +10,7 @@ export default class DeliverooApi extends EventEmitter {
 
         super();
 
-        this.socket = io( host, {
+        const socket = this.socket = io( host, {
             extraHeaders: {
                 'x-token': token
             },
@@ -18,6 +18,15 @@ export default class DeliverooApi extends EventEmitter {
             //     name: "scripted",
             // }
         });
+
+        /**
+         * Bradcast log
+         */
+        const oldLog = console.log;
+        console.log = function ( ...message ) {
+            socket.emit( 'log', socket.id, ...message );
+            oldLog.apply( console, message );
+        };
 
     }
     
