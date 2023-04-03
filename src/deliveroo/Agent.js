@@ -5,6 +5,7 @@ const Tile =  require('./Tile');
 const Parcel =  require('./Parcel');
 const config =  require('../../config');
 const Postponer = require('./Postponer');
+const myClock = require('./Clock');
 
 
 
@@ -82,7 +83,7 @@ class Agent extends Xy {
         this.emitOnePerTick( 'xy', this ); // emit agent when spawning
         
         // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
-        this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).atSetImmediate
+        this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
 
     }
 
@@ -151,7 +152,8 @@ class Agent extends Xy {
         }
         for ( let i = 0; i < MOVEMENT_STEPS; i++ ) {
             // Wait for next step timeout = MOVEMENT_DURATION / MOVEMENT_STEPS
-            await new Promise( res => setTimeout(res, MOVEMENT_DURATION / MOVEMENT_STEPS ) )
+            // await new Promise( res => setTimeout(res, MOVEMENT_DURATION / MOVEMENT_STEPS ) )
+            await myClock.synch( MOVEMENT_DURATION / MOVEMENT_STEPS );
             if ( i < MOVEMENT_STEPS - 1 ) {
                 // Move by one step = 1 / MOVEMENT_STEPS
                 this.x = ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS ) / 100;
@@ -185,30 +187,37 @@ class Agent extends Xy {
         return false;
     }
 
-    up () {
+    async up () {
+        await myClock.synch();
         // console.log(this.id + ' move up')
         return this.move(0, 1);
     }
 
-    down () {
+    async down () {
+        await myClock.synch();
         // console.log(this.id + ' move down')
         return this.move(0, -1);
     }
 
-    left () {
+    async left () {
+        await myClock.synch();
         // console.log(this.id + ' move left')
         return this.move(-1, 0);
     }
 
-    right () {
+    async right () {
+        await myClock.synch();
         // console.log(this.id + ' move right')
         return this.move(1, 0);
     }
 
     /**
-     * @type {function(): void}
+     * Pick up all parcels in the agent tile.
+     * @function pickUp
+     * @returns {[Parcel]} An array of parcels that have been picked up
      */
-    pickUp () {
+    async pickUp () {
+        await myClock.synch();
         const picked = new Array();
         var counter = 0;
         for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcels() ) {
@@ -228,14 +237,20 @@ class Agent extends Xy {
     }
 
     /**
-     * @type {function([id:String]): void}
+     * Put down parcels:
+     * - if array of ids is provided: putdown only specified parcels
+     * - if no list is provided: put down all parcels
+     * @function putDown
+     * @param {[string]} ids An array of parcels id
+     * @returns {[Parcel]} An array of parcels that have been put down
      */
-    putDown ( ids = null ) {
+    async putDown ( ids = [] ) {
+        await myClock.synch();
         var tile = this.tile
         var sc = 0;
         var dropped = new Array();
         var toPutDown = Array.from( this.#carryingParcels );    // put down all parcels
-        if ( ids && ids.length > 0 )                            // put down specified parcels
+        if ( ids && ids.length && ids.length > 0 )              // put down specified parcels
             toPutDown = toPutDown.filter( p => ids.includes( p.id ) );
         for ( const parcel of this.#carryingParcels ) {
             this.#carryingParcels.delete(parcel);

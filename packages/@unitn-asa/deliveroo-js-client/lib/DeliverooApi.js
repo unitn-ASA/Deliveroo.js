@@ -10,21 +10,24 @@ export default class DeliverooApi extends EventEmitter {
 
         super();
 
-        const socket = this.socket = io( host, {
-            extraHeaders: {
-                'x-token': token
-            },
-            // query: {
-            //     name: "scripted",
-            // }
-        });
+        let name = process.argv[2];
+
+        let opts = {}
+        if (name)
+            opts.query = { name: name }
+        else
+            opts.extraHeaders = { 'x-token': token }
+
+        const socket = this.socket = io( host, opts );
+        
+        socket.once( 'token', (token) => { console.log( 'New token for ' + name + ': ' + token ) } )
 
         /**
          * Bradcast log
          */
         const oldLog = console.log;
         console.log = function ( ...message ) {
-            socket.emit( 'log', socket.id, ...message );
+            socket.emit( 'log', ...message );
             oldLog.apply( console, message );
         };
 
@@ -93,6 +96,16 @@ export default class DeliverooApi extends EventEmitter {
     onMsg ( callback ) {
         this.socket.on( "msg", callback )
     }
+    
+    
+
+    /**
+     * Listen to 'log' events from server and those redirected here from others client 
+     * @type {function({src:'server'|'client', timestamp:number, socket:string, id:string, name:string}, ...message):void} 
+     */
+    onLog ( callback ) {
+        this.socket.on( "log", callback )
+    }
 
     
 
@@ -113,7 +126,6 @@ export default class DeliverooApi extends EventEmitter {
      * @returns {Promise<boolean>}
      */
     async move ( direction ) {
-        console.log('movement')
         return new Promise( (success, reject) => {
             this.socket.emit( 'move', direction, async (status) =>  {
                 success( status );

@@ -1,42 +1,67 @@
 const Observable =  require('./Observable')
+const config = require('../../config');
+
+
+
+const CLOCK = process.env.CLOCK || config.CLOCK || 50; // 40ms are 25frame/s; 50ms are 20frame/s;
 
 
 
 class Clock extends Observable {
 
-    #s = 0;
-    get s () {
-        return this.#s;
-    }
+    #base = CLOCK; // 40ms are 25frame/s
+    #id;
+    #ms = 0;
+    #isSynch = false;
     
     constructor () {
         super();
-        this.start();
         this.setMaxListeners(200);
+        this.start();
     }
     
-    #stop = true;
-    stop () {
-        this.#stop = true;
+    get ms () {
+        return this.#ms;
     }
-    async start () {
-        if ( this.#stop ) {
-            this.#stop = false;
-            while ( !this.#stop ) {
-                await new Promise( res => setTimeout(res, 1000) );
-                ++this.#s;
-                this.emit( '1s' );
-                if ( this.#s % 2 == 0 ) this.emit( '2s' );
-                if ( this.#s % 5 == 0 ) this.emit( '5s' );
-                if ( this.#s % 10 == 0 ) this.emit( '10s' );
-            }
-        }
-        else {
+    
+    stop () {
+        clearInterval( this.#id );
+        this.#id = undefined;
+    }
+
+    start () {
+        if ( this.#id )
             return;
+        this.#id = setInterval( () => {
+            this.#isSynch = true;
+            this.#ms += this.#base;
+            /** always emit frame event */      this.emit( 'frame' );
+            if ( this.#ms % 1000 == 0 ) {       this.emit( '1s' );
+                if ( this.#ms % 2000 == 0 )     this.emit( '2s' );
+                if ( this.#ms % 5000 == 0 ) {   this.emit( '5s' );
+                    if ( this.#ms % 10000 == 0 )this.emit( '10s' );
+                }
+            }
+            setImmediate( () => this.#isSynch = false );
+        }, this.#base )
+    }
+
+    async synch ( delay = 0 ) {
+
+        if ( ! this.#isSynch )
+            await new Promise( res => this.once('frame', res) );
+
+        const initial = this.#ms
+        while ( delay >= this.#ms - initial ) {
+            await new Promise( res => this.once('frame', res) )
         }
+        
+        return this.#ms;
+
     }
 
 }
+
 const myClock = new Clock();
 
 

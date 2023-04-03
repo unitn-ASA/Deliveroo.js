@@ -2,6 +2,7 @@ const { Server } = require('socket.io');
 const myGrid = require('./grid');
 const Authentication = require('./deliveroo/Authentication');
 const config = require('../config');
+const myClock = require('./deliveroo/Clock');
 
 
 
@@ -95,19 +96,19 @@ io.on('connection', (socket) => {
     });
 
     socket.on('pickup', async (acknowledgementCallback) => {
-        const picked = me.pickUp()
+        const picked = await me.pickUp()
         if ( acknowledgementCallback )
             try {
-                acknowledgementCallback( me.pickUp() )
+                acknowledgementCallback( picked )
             } catch (error) { console.error(error) }
     });
 
     socket.on('putdown', async (selected, acknowledgementCallback) => {
-        try {
-            const dropped = me.putDown( selected )
-            if ( acknowledgementCallback )
+        const dropped = await me.putDown( selected )
+        if ( acknowledgementCallback )
+            try {
                 acknowledgementCallback( dropped )
-        } catch (error) { console.error(error) }
+            } catch (error) { console.error(error) }
     });
 
 
@@ -128,7 +129,7 @@ io.on('connection', (socket) => {
         }
 
         try {
-            if (acknowledgementCallback) acknowledgementCallback( 'successfull' )
+            if (acknowledgementCallback) acknowledgementCallback( 'successful' )
         } catch (error) { console.log( me.id, 'acknowledgement of \'say\' not possible' ) }
 
     } )
@@ -159,7 +160,7 @@ io.on('connection', (socket) => {
         socket.broadcast.emit( 'msg', me.id, me.name, msg );
 
         try {
-            if (acknowledgementCallback) acknowledgementCallback( 'successfull' )
+            if (acknowledgementCallback) acknowledgementCallback( 'successful' )
         } catch (error) { console.log( me.id, 'acknowledgement of \'shout\' not possible' ) }
         
     } )
@@ -170,7 +171,7 @@ io.on('connection', (socket) => {
      * Bradcast client log
      */
     socket.on( 'log', ( ...message ) => {
-        socket.broadcast.emit( 'log', socket.id, me.id, me.name, ...message )
+        socket.broadcast.emit( 'log', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, ...message )
     } )
 
 
@@ -183,7 +184,7 @@ io.on('connection', (socket) => {
  */
 const oldLog = console.log;
 console.log = function ( ...message ) {
-    io.emit( 'log', 'server', 'server', 'server', ...message );
+    io.emit( 'log', {src: 'server', timestamp: myClock.ms}, ...message );
     oldLog.apply( console, message );
 };
 

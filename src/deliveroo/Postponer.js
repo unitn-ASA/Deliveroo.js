@@ -69,6 +69,13 @@ class Postponer {
             setTimeout( ()=>this.later() )
         }
     }
+
+    at ( promise ) {
+        return async ( ...args ) => {
+            this.now( ...args );
+            promise.then( ()=>this.later() );
+        }
+    }
     
 }
 

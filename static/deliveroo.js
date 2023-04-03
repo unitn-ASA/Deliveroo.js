@@ -526,11 +526,11 @@ socket.on( "token", (token) => {
     // navigator.clipboard.writeText(token);
 });
 
-socket.on( 'log', ( socket, id, name, ...message ) => {
-    if ( socket == 'server' )
-        console.log( 'server', '\t', ...message )
+socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
+    if ( src == 'server' )
+        console.log( 'server', timestamp, '\t', ...message )
     else
-        console.log( 'client', socket, id, name, '\t', ...message );
+        console.log( 'client', timestamp, socket, id, name, '\t', ...message );
 } );
 
 socket.on( "tile", (x, y, delivery) => {
