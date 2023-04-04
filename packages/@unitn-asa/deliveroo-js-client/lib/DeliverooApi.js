@@ -1,26 +1,52 @@
 import { io } from "socket.io-client";
 import EventEmitter from "events";
+import { default as argsParser } from "args-parser";
 
+const args = argsParser(process.argv);
+let NAME = args['name'];
+let TOKEN = args['token'];
+
+/**
+ * Takes the following arguments from console:
+ * token or name
+ * e.g:
+ * $ node index.js -token=... -name=marco
+ */
 export default class DeliverooApi extends EventEmitter {
     
     /** @type {Socket<DefaultEventsMap, DefaultEventsMap>} */
     socket;
+    token;
+    id;
+    name;
+    config;
 
     constructor ( host, token ) {
 
         super();
 
-        let name = process.argv[2];
-
         let opts = {}
-        if (name)
-            opts.query = { name: name }
+        if (NAME)
+            opts.query = { name: NAME }
         else
-            opts.extraHeaders = { 'x-token': token }
+            opts.extraHeaders = { 'x-token': TOKEN || token }
 
         const socket = this.socket = io( host, opts );
         
-        socket.once( 'token', (token) => { console.log( 'New token for ' + name + ': ' + token ) } )
+        this.token = token;
+        socket.once( 'token', (token) => {
+            this.token = token;
+            console.log( 'New token for ' + NAME + ': ' + token )
+        } );
+
+        socket.once( 'you', ({id, name}) => {
+            this.id = id;
+            this.name = name;
+        } );
+        
+        socket.once( 'config', (config) => {
+            this.config = config;
+        } );
 
         /**
          * Bradcast log
@@ -106,6 +132,16 @@ export default class DeliverooApi extends EventEmitter {
     onLog ( callback ) {
         this.socket.on( "log", callback )
     }
+    
+    
+
+    /**
+     * Listen to 'config' events from server
+     * @type {function(config):void} 
+     */
+    onConfig ( callback ) {
+        this.socket.on( "config", callback )
+    }
 
     
 
@@ -123,7 +159,7 @@ export default class DeliverooApi extends EventEmitter {
      * When movement completes, it resolves to true.
      * In case of failure when moving, it resolves immediately to false
      * @param {string} direction It can be either: 'up', 'right', 'left', or 'down'
-     * @returns {Promise<boolean>}
+     * @returns {Promise<{x:number,y:number}|'false'>}
      */
     async move ( direction ) {
         return new Promise( (success, reject) => {
@@ -134,8 +170,9 @@ export default class DeliverooApi extends EventEmitter {
     }
 
     /**
-     * When completed, resolves to the list of picked up parcels
-     * @returns {Promise<boolean>}
+     * Pick up all parcels in the agent tile.
+     * When completed, resolves to the array of picked up parcels
+     * @returns {Promise<[integer]>}
      */
     async pickup (  ) {
         return new Promise( (success) => {
@@ -146,9 +183,12 @@ export default class DeliverooApi extends EventEmitter {
     }
 
     /**
+     * Put down parcels:
+     * - if array of ids is provided: putdown only specified parcels
+     * - if no list is provided: put down all parcels
      * When completed, resolves to the list of dropped parcels
-     * @returns {Promise<boolean>}
-     * @param {[string]} selected list of parcels ids to drop
+     * @returns {Promise<[integer]>}
+     * @param {[string]} selected array of parcels id to drop
      */
     async putdown ( selected = null ) {
         return new Promise( (success) => {

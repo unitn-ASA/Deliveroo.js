@@ -181,7 +181,7 @@ class Agent extends Xy {
             this.moving = false;
             fromTile.unlock();
             // this.emitParcelSensing(); // NO! this is done outside
-            return true;
+            return { x: this.x, y: this.y };
         }
         // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
         return false;

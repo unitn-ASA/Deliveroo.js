@@ -552,6 +552,7 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
     // console.log( "you", {id, name, x, y, score} )
     document.getElementById('agent.id').textContent = `agent.id ${id}`;
     document.getElementById('agent.name').textContent = `agent.name ${name}`;
+    document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
     
     // if ( params.get( "id" ) != id ) {
     //     params.set( "id", id )
