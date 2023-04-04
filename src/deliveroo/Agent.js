@@ -263,11 +263,13 @@ class Agent extends Xy {
                 this.#grid.deleteParcel( parcel.id );
             }
         }
-        if ( sc > 0 )
-            console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti)` )
+        this.score += sc;
+        if ( sc > 0 ) {
+            console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti -> ${this.score} pti)` );
+            console.log( Array.from(this.#grid.getAgents()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
+        }
         if ( dropped.length > 0 )
             this.emitOnePerTick( 'putdown', this, dropped );
-        this.score += sc;
         return dropped;
     }
 }
