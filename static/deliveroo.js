@@ -1,6 +1,7 @@
 // import * as io from 'socket.io';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
@@ -39,7 +40,30 @@ controls.minPolarAngle = 0;
 controls.target.set(0, 0, 0);
 controls.update();
 
-
+const mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster();
+const clickables = new Array();
+// const drag_controls = new DragControls( clickables, camera, labelRenderer.domElement );
+// drag_controls.addEventListener( 'hoveron', (event) => hovered = event.object );
+// drag_controls.addEventListener( 'hoveroff', (event) => hovered = null );
+// https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_drag.html
+labelRenderer.domElement.addEventListener( 'click', ( event ) => {
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    raycaster.setFromCamera( mouse, camera );
+    const intersections = raycaster.intersectObjects( clickables, true );
+    if ( intersections.length > 0 ) {
+        let hovered = intersections[ 0 ].object;
+        let x = Math.round( hovered.position.x / 1.5 )
+        let y = Math.round( - hovered.position.z / 1.5 )
+        if ( Array.from(parcels.values()).find( p => p.x == x && p.y == y ) ) {
+            console.log( 'dispose parcel', x, y );
+            socket.emit( 'dispose parcel', x, y );
+        } else {
+            console.log( 'create parcel', x, y );
+            socket.emit( 'create parcel', x, y );
+        }
+    }
+} );
 
 // for (var x=0; x<10; x++) {
 //     for (var y=0; y<10; y++) {
@@ -202,6 +226,8 @@ class onGrid {
     #label
 
     constructor (mesh, x, y, text = null) {
+
+        clickables.push( mesh );
 
         this.#mesh = mesh
         this.#mesh.position.y = 0.5

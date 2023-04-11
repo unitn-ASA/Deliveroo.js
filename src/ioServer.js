@@ -181,6 +181,27 @@ io.on('connection', (socket) => {
     } )
 
 
+
+    /**
+     * GOD mod
+     */
+    if ( me.name == 'god' ) {
+
+        socket.on( 'create parcel', async (x, y) => {
+            console.log( 'create parcel', x, y )
+            myGrid.createParcel(x, y)
+        } );
+
+        socket.on( 'dispose parcel', async (x, y) => {
+            console.log( 'dispose parcel', x, y )
+            let parcels = Array.from(myGrid.getParcels()).filter( p => p.x == x && p.y == y );
+            for ( p of parcels)
+                myGrid.deleteParcel( p.id )
+            myGrid.emit( 'parcel' );
+        } );
+
+    }
+
 });
 
 

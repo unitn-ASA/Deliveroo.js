@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const { uid } = require('uid');
 
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
+const AGENT_TIMEOUT = process.env.AGENT_TIMEOUT || 10000;
+
 
 
 /**
@@ -127,7 +129,7 @@ class Authentication {
             tokenToSockets.get( id ).sockets.delete( socket );
     
             if ( tokenToSockets.get( id ).sockets.size == 0 ) {
-                new Promise( res => setTimeout(res, 10000) ).then( () => {
+                new Promise( res => setTimeout(res, AGENT_TIMEOUT) ).then( () => {
                     if ( tokenToSockets.get( id ) && tokenToSockets.get( id ).sockets.size == 0 ) {
                         console.log( `Agent ${me.name}(${me.id}) deleted after 10 seconds of no connections from token ...${token.slice(-30)}` );
                         this.grid.deleteAgent ( me );
