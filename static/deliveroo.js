@@ -543,8 +543,12 @@ socket.on( "msg", ( id, name, msg, reply ) => {
     if ( msg == 'who are you?' && reply ) reply('I am the web app')
 })
 
+var AGENTS_OBSERVATION_DISTANCE = 5;
+var PARCELS_OBSERVATION_DISTANCE = 5;
 socket.on( "config", ( config ) => {
     document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
+    AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
+    PARCELS_OBSERVATION_DISTANCE = config.PARCELS_OBSERVATION_DISTANCE;
 } )
 
 socket.on( "you", ( {id, name, x, y, score} ) => {
@@ -581,7 +585,10 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
     if ( me.x % 1 == 0 && me.y % 1 == 0 )
         for ( var tile of tiles.values() ) {
             var distance = Math.abs(me.x-tile.x) + Math.abs(me.y-tile.y);
-            tile.opacity = ( distance<5 ? 1 : 0.2 );
+            let opacity = 0.2;
+            if ( distance < PARCELS_OBSERVATION_DISTANCE ) opacity += 0.4;
+            if ( distance < AGENTS_OBSERVATION_DISTANCE ) opacity += 0.4;
+            tile.opacity = opacity //( distance < PARCELS_OBSERVATION_DISTANCE ? 1 : 0.2 );
         }
 
     updateLeaderboard( me );
