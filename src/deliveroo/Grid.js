@@ -30,7 +30,7 @@ class Grid extends Observable {
         super();
         
         var Xlength = map.length;
-        var Ylength = map.length;
+        var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
         this.#tiles = Array.from(map).map( (column, x) => {
             return Array.from(column).map( (value, y) => new Tile(
                 this, x, y, !value, ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
@@ -79,7 +79,7 @@ class Grid extends Observable {
     }
 
     getMapSize () {
-        return { width: this.#tiles.length, height:this.#tiles.at(0).length }
+        return { width: this.#tiles.length, height:this.#tiles.reduce( (longest, current) => (current.length>longest.length?current:longest) ).length }
     }
 
     /**

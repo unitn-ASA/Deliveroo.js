@@ -40,11 +40,17 @@ io.on('connection', (socket) => {
     /**
      * Emit map (tiles)
      */
+    let tiles = []
     for (const tile of myGrid.getTiles()) {
         // console.log(tile)
-        if ( !tile.blocked ) 
+        if ( !tile.blocked ) {
             socket.emit( 'tile', tile.x, tile.y, tile.delivery )
+            let {x, y, delivery} = tile;
+            tiles.push( {x, y, delivery} )
+        }
     }
+    let {width, height} = myGrid.getMapSize()
+    socket.emit( 'map', width, height, tiles )
     
 
     

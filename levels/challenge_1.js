@@ -1,14 +1,14 @@
 
 module.exports = {
 
-    MAP_FILE: 'map_30',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
+    MAP_FILE: 'empty_map',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
 
-    PARCELS_GENERATION_INTERVAL: '1s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
+    PARCELS_GENERATION_INTERVAL: '5s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
 
     MOVEMENT_STEPS: 1,                  // default is 1
-    MOVEMENT_DURATION: 10,              // default is 500
+    MOVEMENT_DURATION: 500,              // default is 500
     AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5
-    PARCELS_OBSERVATION_DISTANCE: 5,    // default is 5
+    PARCELS_OBSERVATION_DISTANCE: 60,    // default is 5
 
     PARCEL_REWARD_AVG: 10,             // default is 30
     PARCEL_REWARD_VARIANCE: '0',     // default is 10

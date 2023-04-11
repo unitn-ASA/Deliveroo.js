@@ -20,6 +20,8 @@ export default class DeliverooApi extends EventEmitter {
     id;
     name;
     config;
+    /** @type { { width:number, height:number, tiles:[{x,y,delivery}] } } */
+    map;
 
     constructor ( host, token ) {
 
@@ -47,6 +49,11 @@ export default class DeliverooApi extends EventEmitter {
         socket.once( 'config', (config) => {
             this.config = config;
         } );
+
+        socket.once( 'map', (width, height, tiles) => {
+            this.map = {width, height, tiles};
+            // console.log( 'map', width, height, tiles );
+        } )
 
         /**
          * Bradcast log
@@ -82,6 +89,13 @@ export default class DeliverooApi extends EventEmitter {
      */
     onTile ( callback ) {
         this.socket.on( "tile", callback )
+    }
+    
+    /**
+     * @param { function( width, height, [{x, y, delivery}] ) } callback
+     */
+    onMap ( callback ) {
+        this.socket.on( "map", callback )
     }
     
     /**
