@@ -33,12 +33,21 @@ const Grid =  require('./Grid')
         return this.#blocked;
     }
 
+    block() {
+        if (this.#blocked)
+            return false
+        this.#blocked = true;
+        this.#grid.emitOnePerTick( 'tile', this )
+        return true;
+    }
+    unblock() {
+        this.#blocked = false;
+        this.#grid.emitOnePerTick( 'tile', this )
+        return false;
+    }
+
     get locked() {
         return this.#locked;
-    }
-    
-    get delivery() {
-        return this.#delivery;
     }
 
     /**
@@ -52,11 +61,18 @@ const Grid =  require('./Grid')
         this.emitOnePerTick( 'tile', this )
         return true;
     }
-
     unlock() {
         this.#locked = false;
         this.emitOnePerTick( 'tile', this )
         return false;
+    }
+    
+    get delivery() {
+        return this.#delivery;
+    }
+    set delivery(value) {
+        this.#delivery = value;
+        this.#grid.emitOnePerTick( 'tile', this )
     }
 
     // /**

@@ -40,14 +40,20 @@ io.on('connection', (socket) => {
     /**
      * Emit map (tiles)
      */
+    myGrid.on( 'tile', ({x, y, delivery, blocked}) => {
+        // console.log( 'emit tile', x, y, delivery );
+        if (!blocked)
+            socket.emit( 'tile', x, y, delivery );
+        else
+            socket.emit( 'not_tile', x, y );
+    } );
     let tiles = []
-    for (const tile of myGrid.getTiles()) {
-        // console.log(tile)
-        if ( !tile.blocked ) {
-            socket.emit( 'tile', tile.x, tile.y, tile.delivery )
-            let {x, y, delivery} = tile;
+    for (const {x, y, delivery, blocked} of myGrid.getTiles()) {
+        if ( !blocked ) {
+            socket.emit( 'tile', x, y, delivery )
             tiles.push( {x, y, delivery} )
-        }
+        } else
+            socket.emit( 'not_tile', x, y );
     }
     let {width, height} = myGrid.getMapSize()
     socket.emit( 'map', width, height, tiles )
@@ -198,6 +204,22 @@ io.on('connection', (socket) => {
             for ( p of parcels)
                 myGrid.deleteParcel( p.id )
             myGrid.emit( 'parcel' );
+        } );
+
+        socket.on( 'tile', async (x, y) => {
+            console.log( 'create/dispose tile', x, y )
+            let tile = myGrid.getTile(x, y)
+            
+            if ( !tile ) return;
+
+            if ( tile.blocked ) {
+                tile.delivery = false;
+                tile.unblock();
+            } else if ( !tile.delivery ) {
+                tile.delivery = true;
+            } else {
+                tile.block();
+            }
         } );
 
     }

@@ -40,7 +40,16 @@ controls.minPolarAngle = 0;
 controls.target.set(0, 0, 0);
 controls.update();
 
-const mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster();
+var enable_tile_mod = false;
+window.addEventListener( 'keydown', (event) => {
+    enable_tile_mod = ( event.keyCode === 16 ) ? true : false; // 12 is SHIFT
+} );
+window.addEventListener( 'keyup', (event) => {
+    enable_tile_mod = false;
+} );
+
+const mouse = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
 const clickables = new Array();
 // const drag_controls = new DragControls( clickables, camera, labelRenderer.domElement );
 // drag_controls.addEventListener( 'hoveron', (event) => hovered = event.object );
@@ -55,12 +64,17 @@ labelRenderer.domElement.addEventListener( 'click', ( event ) => {
         let hovered = intersections[ 0 ].object;
         let x = Math.round( hovered.position.x / 1.5 )
         let y = Math.round( - hovered.position.z / 1.5 )
-        if ( Array.from(parcels.values()).find( p => p.x == x && p.y == y ) ) {
-            console.log( 'dispose parcel', x, y );
-            socket.emit( 'dispose parcel', x, y );
+        if ( enable_tile_mod ) {
+            console.log( 'tile', x, y );
+            socket.emit( 'tile', x, y );
         } else {
-            console.log( 'create parcel', x, y );
-            socket.emit( 'create parcel', x, y );
+            if ( Array.from(parcels.values()).find( p => p.x == x && p.y == y ) ) {
+                console.log( 'dispose parcel', x, y );
+                socket.emit( 'dispose parcel', x, y );
+            } else {
+                console.log( 'create parcel', x, y );
+                socket.emit( 'create parcel', x, y );
+            }
         }
     }
 } );
@@ -213,6 +227,10 @@ class onGrid {
         this.#label.element.style.visibility  = ( opacity == 0 ? "hidden" : "visible" );
     }
 
+    set color (color) {
+        this.#mesh.material.color.setHex( color );
+    }
+
     #text
     get text () {
         return this.#text
@@ -263,9 +281,31 @@ const tiles = new Map();
 
 class Tile extends onGrid {
 
-    delivery = false;
+    #delivery = false;
+    get delivery () {
+        return this.#delivery;
+    }
+    set delivery ( value ) {
+        this.#delivery = value;
+        if ( value )
+            this.color = 0xff0000
+        else
+            this.color = 0x00ff00
+    }
     
-    constructor (x, y, delivery) {
+    #blocked = false;
+    get blocked () {
+        return this.#blocked;
+    }
+    set blocked ( value ) {
+        this.#blocked = value;
+        if ( value )
+            this.color = 0x000000
+        else
+            this.delivery = this.#delivery;
+    }
+    
+    constructor (x, y, delivery=false) {
         const geometry = new THREE.BoxGeometry( 1, 0.1, 1 );
         const color = delivery ? 0xff0000 : 0x00ff00;
         const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
@@ -274,23 +314,20 @@ class Tile extends onGrid {
 
         super(cube, x, y);
         cube.position.y = 0;
-        this.delivery = delivery;
+        this.#delivery = delivery;
     }
 
 }
 
 function setTile(x, y, delivery) {
-    // const geometry = new THREE.BoxGeometry( 1, 0.1, 1 );
-    // const color = delivery ? 0xff0000 : 0x00ff00;
-    // const material = new THREE.MeshBasicMaterial( { color } );
-    // const cube = new THREE.Mesh( geometry, material );
-    // cube.position.x = x*1.5;
-    // cube.position.z = -y*1.5;
-    // tiles.set( x + y*1000, cube )
-    // scene.add( cube );
-
     if ( !tiles.has(x + y*1000) )
         tiles.set( x + y*1000, new Tile(x, y, delivery) );
+    return tiles.get( x + y*1000 );
+}
+
+function getTile(x, y) {
+    if ( !tiles.has(x + y*1000) )
+        tiles.set( x + y*1000, new Tile(x, y) );
     return tiles.get( x + y*1000 );
 }
 
@@ -357,32 +394,17 @@ class Agent extends onGrid {
     /** @type {Map<string,Parcel>} Map id to parcel */
     carrying = new Map();
 
-    // #targetX
-    // get x () { return super.x }
-    // set x ( x ) {
-    //     // if ( super.x == NaN )
-    //     //     super.x = 0;
-    //     super.x = x;
-    //     this.#targetX = Math.round(x);
-    // }
-    // #targetY
-    // get y () { return super.y }
-    // set y ( y ) {
-    //     // if ( super.y == NaN )
-    //     //     super.y = 1;
-    //     super.y = y;
-    //     this.#targetY = Math.round(y);
-    // }
-    // async movement ( ) {
-    //     while ( true ) {
-    //         await new Promise( res => setTimeout(res, 5000 / 10))
-    //         console.log( this.id, this.#targetX, this.#targetY, super.x, super.y )
-    //         if ( super.x != this.#targetX )
-    //             super.x = Math.round( super.x *10 + ( this.#targetX > super.x ? +1 : -1 ) ) / 10;
-    //         if ( super.y != this.#targetY )
-    //             super.y = Math.round( super.y *10 + ( this.#targetY > super.y ? +1 : -1 ) ) / 10;
-    //     }
-    // }
+    async animateMove (x, y) {
+        x = Math.round(x)
+        y = Math.round(y)
+        for (let i = 0; i < 10; i++) {
+            await new Promise( res => setTimeout(res, 200 / 10))
+            if ( super.x != x )
+                super.x = Math.round( super.x *10 + ( x > super.x ? +1 : -1 ) ) / 10;
+            if ( super.y != y )
+                super.y = Math.round( super.y *10 + ( y > super.y ? +1 : -1 ) ) / 10;
+        }
+    }
 
     #name = 'loading'
     get name () {
@@ -415,8 +437,6 @@ class Agent extends onGrid {
         this.id = id
         this.score = score
         this.name = name
-
-        // this.movement();
     }
 
 }
@@ -559,8 +579,14 @@ socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
         console.log( 'client', timestamp, socket, id, name, '\t', ...message );
 } );
 
+socket.on( 'not_tile', (x, y) => {
+    console.log( 'not_tile', x, y )
+    getTile(x, y).blocked = true;
+});
+
 socket.on( "tile", (x, y, delivery) => {
-    setTile(x, y, delivery)
+    // console.log( "tile", x, y, delivery )
+    getTile(x, y).delivery = delivery;
 });
 
 socket.on( "msg", ( id, name, msg, reply ) => {
@@ -608,14 +634,18 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
     me.y = y
     me.score = score
 
-    if ( me.x % 1 == 0 && me.y % 1 == 0 )
+    // when arrived
+    if ( x % 1 == 0 && y % 1 == 0 ) {
         for ( var tile of tiles.values() ) {
-            var distance = Math.abs(me.x-tile.x) + Math.abs(me.y-tile.y);
-            let opacity = 0.2;
-            if ( distance < PARCELS_OBSERVATION_DISTANCE ) opacity += 0.4;
-            if ( distance < AGENTS_OBSERVATION_DISTANCE ) opacity += 0.4;
-            tile.opacity = opacity //( distance < PARCELS_OBSERVATION_DISTANCE ? 1 : 0.2 );
+            var distance = Math.abs(x-tile.x) + Math.abs(y-tile.y);
+            let opacity = 0.1;
+            if ( distance < PARCELS_OBSERVATION_DISTANCE ) opacity += 0.2;
+            if ( distance < AGENTS_OBSERVATION_DISTANCE ) opacity += 0.2;
+            tile.opacity = ( opacity > 0.4 ? 1 : opacity );
         }
+    } else { // when moving
+        // me.animateMove(x, y)
+    }
 
     updateLeaderboard( me );
 
