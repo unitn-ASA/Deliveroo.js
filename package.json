@@ -14,7 +14,9 @@
   "scripts": {
     "test": "jest",
     "start": "node index.js",
-    "dev": "node -r dotenv/config index.js"
+    "dev": "node -r dotenv/config index.js",
+    "build": "npm run build --workspaces --if-present",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",

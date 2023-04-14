@@ -1,18 +1,18 @@
-// import * as io from 'socket.io';
+import { default as io } from 'socket.io-client';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Vector3 } from 'three';
-import { EventEmitter } from 'EventEmitter3';
+import { default as EventEmitter } from 'events';
 
 
 const scene = new THREE.Scene();
 
 // const camera = new THREE.OrthographicCamera( -100, 100, 10, -10, 1, 100 );
 const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
-camera.position.set(-2, 10, +10);
+camera.position.set(-1, 2, +2);
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -32,7 +32,7 @@ window.addEventListener("resize", () => {
 } );
 
 const controls = new OrbitControls( camera, labelRenderer.domElement );
-controls.minDistance = 15;
+controls.minDistance = 10;
 controls.maxDistance = 40;
 controls.maxAzimuthAngle = Math.PI/10;
 controls.minAzimuthAngle = -Math.PI/6;
@@ -89,6 +89,7 @@ labelRenderer.domElement.addEventListener( 'click', ( event ) => {
 const camTarget = new Vector3(0,0,0);
 
 const animator = new EventEmitter();
+animator.setMaxListeners(1000);
 
 function animate() {
     
@@ -581,7 +582,7 @@ if ( !name ) {
 var token = checkCookieForToken( name )
 
 // Connect
-var socket = io( {
+var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
     extraHeaders: {
         'x-token': token
     },
@@ -589,6 +590,7 @@ var socket = io( {
         name: params.get("name"),
     }
 } );
+
 
 var me = getOrCreateAgent('loading', name, 0, 0, 0);
 // me.mesh.add( camera );

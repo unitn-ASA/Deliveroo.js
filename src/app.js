@@ -4,7 +4,8 @@ const app = express();
 /**
  * Serve front-end static files
  */
-app.use('/', express.static('static'));
+app.use('/', express.static('packages/\@unitn-asa/vite-project/dist/'));
+// app.use('/', express.static('static'));
 
 // /**
 //  * Agent id
