@@ -237,6 +237,8 @@ class onGrid {
         this.opacity = 1;
         this.x = x // this.#agent.x;
         this.y = y // this.#agent.y;
+        this.#mesh.position.x = this.#carriedBy.#mesh.position.x;
+        this.#mesh.position.z = this.#carriedBy.#mesh.position.z;
         this.#mesh.position.y = 0.5;
         this.#carriedBy = undefined;
         scene.add( this.#mesh );
