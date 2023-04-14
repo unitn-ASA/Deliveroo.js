@@ -4,7 +4,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-
+import { Vector3 } from 'three';
+import { EventEmitter } from 'EventEmitter3';
 
 
 const scene = new THREE.Scene();
@@ -85,20 +86,36 @@ labelRenderer.domElement.addEventListener( 'click', ( event ) => {
 //     }
 // }
 
+const camPosition = new Vector3(0,0,0);
+const camTarget = new Vector3(0,0,0);
+
+const animator = new EventEmitter();
 
 function animate() {
-    requestAnimationFrame( animate );
+    
+    //me.position.lerp( new Vector3().set(me.x-2, 10, -me.y+10), 0.1 );
+    animator.emit( 'animate' );
 
-    // cube.rotation.x += 0.01;
-    // cube.rotation.y += 0.01;
+    // Initial cam state
+    const initCamPosition = new Vector3().copy( camPosition );
+    const initCamTarget = new Vector3().copy( camTarget );
+    // Toward agent
+    camPosition.lerp( new Vector3().set(me.x-2, 10, -me.y+10), 0.1 );
+    camTarget.lerp( new Vector3().set(me.x, 1, -me.y), 0.1 );
+    // Apply difference
+    camera.position.sub( initCamPosition.sub( camPosition ) );
+    controls.target.sub( initCamTarget.sub( camTarget ) );
+    // camera.position.lerp( new Vector3().set(me.x-2, 10, -me.y+10), 0.1 );
+    // controls.target.lerp( new Vector3().set(me.x, 1, -me.y), 0.1 );
 
 	// required if controls.enableDamping or controls.autoRotate are set to true
 	controls.update();
 
     renderer.render( scene, camera );
     labelRenderer.render( scene, camera );
+
+    requestAnimationFrame( animate );
 }
-animate();
 
 
 
@@ -179,6 +196,10 @@ const { updateLeaderboard, processMsg } = createPanel();
 class onGrid {
     
     #mesh
+    /** @return {THREE.Mesh} */
+    get mesh () {
+        return this.#mesh;
+    }
 
     #x
     get x () {
@@ -186,7 +207,7 @@ class onGrid {
     }
     set x (x) {
         this.#x = x
-        this.#mesh.position.x = x * 1.5
+        // this.#mesh.position.x = x * 1.5
     }
 
     #y
@@ -195,7 +216,7 @@ class onGrid {
     }
     set y (y) {
         this.#y = y
-        this.#mesh.position.z = -y * 1.5
+        // this.#mesh.position.z = -y * 1.5
     }
 
     #carriedBy
@@ -204,8 +225,10 @@ class onGrid {
         this.#carriedBy.#mesh.add( this.#mesh );
         this.#carriedBy.carrying.set(this.id, this);
         scene.remove( this.#mesh );
-        this.x = 0
-        this.y = 0
+        this.x = 0;
+        this.y = 0;
+        this.#mesh.position.x = 0;
+        this.#mesh.position.z = 0;
         this.#mesh.position.y = this.#carriedBy.carrying.size * 0.5;
     }
     putdown ( x, y ) {
@@ -251,6 +274,25 @@ class onGrid {
         this.#mesh.position.y = 0.5
         this.x = x
         this.y = y
+
+        this.#mesh.position.set( x * 1.5, 0.5, - y * 1.5 );
+
+        animator.on( 'animate', () => {
+            let x = Math.round( this.x );
+            let y = Math.round( this.y );
+            let targetVector3 = new Vector3( x * 1.5, this.#mesh.position.y, - y * 1.5 );
+
+                // // Move directly to x and y
+                // targetVector3 = new Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
+                // this.#mesh.position.copy( targetVector3 );
+
+            if ( x == this.x && y == this.y ) { // if arrived
+                this.#mesh.position.lerp( targetVector3, 0.5 );
+            } else { // if still moving
+                // targetVector3 = new Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
+                this.#mesh.position.lerp( targetVector3, 0.08 );
+            }
+        } )
     
         const div = this.#div = document.createElement( 'div' );
         div.className = 'label';
@@ -394,17 +436,17 @@ class Agent extends onGrid {
     /** @type {Map<string,Parcel>} Map id to parcel */
     carrying = new Map();
 
-    async animateMove (x, y) {
-        x = Math.round(x)
-        y = Math.round(y)
-        for (let i = 0; i < 10; i++) {
-            await new Promise( res => setTimeout(res, 200 / 10))
-            if ( super.x != x )
-                super.x = Math.round( super.x *10 + ( x > super.x ? +1 : -1 ) ) / 10;
-            if ( super.y != y )
-                super.y = Math.round( super.y *10 + ( y > super.y ? +1 : -1 ) ) / 10;
-        }
-    }
+    // async animateMove (x, y) {
+    //     x = Math.round(x)
+    //     y = Math.round(y)
+    //     for (let i = 0; i < 10; i++) {
+    //         await new Promise( res => setTimeout(res, 200 / 10))
+    //         if ( super.x != x )
+    //             super.x = Math.round( super.x *10 + ( x > super.x ? +1 : -1 ) ) / 10;
+    //         if ( super.y != y )
+    //             super.y = Math.round( super.y *10 + ( y > super.y ? +1 : -1 ) ) / 10;
+    //     }
+    // }
 
     #name = 'loading'
     get name () {
@@ -447,7 +489,15 @@ const agents = new Map();
 
 
 
-
+/**
+ * 
+ * @param {*} id 
+ * @param {*} name 
+ * @param {*} x 
+ * @param {*} y 
+ * @param {*} score 
+ * @returns {Agent}
+ */
 function getOrCreateAgent ( id, name='unknown', x=-1, y=-1, score=-1 ) {
     var agent = agents.get(id);
     if ( !agent ) {
@@ -547,6 +597,7 @@ var socket = io( {
 } );
 
 var me = getOrCreateAgent('loading', name, 0, 0, 0);
+// me.mesh.add( camera );
 
 socket.on( "connect", () => {
     // console.log( "connect", socket.id, token ); // x8WIv7-mJelg7on_ALbx
@@ -580,7 +631,7 @@ socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
 } );
 
 socket.on( 'not_tile', (x, y) => {
-    console.log( 'not_tile', x, y )
+    // console.log( 'not_tile', x, y )
     getTile(x, y).blocked = true;
 });
 
@@ -624,10 +675,10 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
     /**
      * Auto-follow camera
      */
-    camera.position.x += ( x - me.x ) * 1.5;
-    camera.position.z -= ( y - me.y ) * 1.5;
-    controls.target.set(x*1.5, 0, -y*1.5);
-    controls.update();
+    // camera.position.x += ( x - me.x ) * 1.5;
+    // camera.position.z -= ( y - me.y ) * 1.5;
+    // controls.target.set(x*1.5, 0, -y*1.5);
+    // controls.update();
     
     // Me
     me.x = x
@@ -775,3 +826,9 @@ document.onkeydown = function(evt) {
         break;
     }
 };
+
+
+
+
+
+animate();
