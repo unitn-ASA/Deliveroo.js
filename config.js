@@ -3,9 +3,10 @@ const config = {
     MAP_FILE: 'default_map',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
 
     PARCELS_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
+    PARCELS_MAX: '5',                  // 'infinite' (DEFAULT)
 
     MOVEMENT_STEPS: 1,                  // default is 1
-    MOVEMENT_DURATION: 50,             // default is 500
+    MOVEMENT_DURATION: 50,              // default is 500
     AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5
     PARCELS_OBSERVATION_DISTANCE: 5,    // default is 5
     AGENT_TIMEOUT: 10000,               // default is 10000

@@ -6,7 +6,7 @@ module.exports = {
     PARCELS_GENERATION_INTERVAL: '5s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
 
     MOVEMENT_STEPS: 1,                  // default is 1
-    MOVEMENT_DURATION: 500,              // default is 500
+    MOVEMENT_DURATION: 50,              // default is 500
     AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5
     PARCELS_OBSERVATION_DISTANCE: 10,    // default is 5
 

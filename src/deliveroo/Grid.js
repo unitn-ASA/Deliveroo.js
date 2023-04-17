@@ -62,6 +62,9 @@ class Grid extends Observable {
 
     }
 
+    /**
+     * @type {function():Generator<Tile, Tile, Tile>}
+     */
     *getTiles ( [x1,x2,y1,y2]=[0,10000,0,10000] ) {
         const xLength = ( this.#tiles.length ? this.#tiles.length : 0 );
         const yLength = ( this.#tiles.length && this.#tiles[0].length ? this.#tiles[0].length : 0 );
@@ -203,6 +206,13 @@ class Grid extends Observable {
      */
     getParcels () {
         return this.#parcels.values();
+    }
+
+    /**
+     * @type {function(): number}
+     */
+    getParcelsQuantity () {
+        return this.#parcels.size;
     }
 
     /**
