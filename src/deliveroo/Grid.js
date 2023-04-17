@@ -7,11 +7,6 @@ const config =  require('../../config');
 
 
 
-const AGENTS_OBSERVATION_DISTANCE = process.env.AGENTS_OBSERVATION_DISTANCE || config.AGENTS_OBSERVATION_DISTANCE || 5;
-const PARCELS_OBSERVATION_DISTANCE = process.env.PARCELS_OBSERVATION_DISTANCE || config.PARCELS_OBSERVATION_DISTANCE || 5;
-
-
-
 /**
  * @class Grid
  */
@@ -33,7 +28,10 @@ class Grid extends Observable {
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
         this.#tiles = Array.from(map).map( (column, x) => {
             return Array.from(column).map( (value, y) => new Tile(
-                this, x, y, !value, ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
+                this,       // grid
+                x, y,       // x, y
+                !value,     // blocked
+                value > 1   // delivery // ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
             ) )
         } );
         // console.log( this.#tiles.map( c=>c.map( t=>t.x+' '+t.y+' ' ) ) )
@@ -50,15 +48,15 @@ class Grid extends Observable {
         this.#agents = new Map();
         this.#parcels = new Map();
         
-        for (let x = 0; x < map.length; x++) {
-            const column = map[x];
-            for (let y = 0; y < column.length; y++) {
-                const value = column[y];
-                if ( value > 1 )
-                    this.createParcel( x, y, null, value );
-            }
+        // for (let x = 0; x < map.length; x++) {
+        //     const column = map[x];
+        //     for (let y = 0; y < column.length; y++) {
+        //         const value = column[y];
+        //         if ( value > 2 )
+        //             this.createParcel( x, y, null, value );
+        //     }
             
-        }
+        // }
 
     }
 
@@ -133,21 +131,21 @@ class Grid extends Observable {
 
         // On mine or others movement emit SensendAgents
         this.on( 'agent xy', ( who ) => {
-            if ( me.id == who.id || Xy.distance(me, who) <= AGENTS_OBSERVATION_DISTANCE ) {
+            if ( me.id == who.id || !( Xy.distance(me, who) > me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                 me.emitAgentSensing()
             }
         } )
         
         // On agent deleted emit agentSensing
         this.on( 'agent deleted', ( who ) => {
-            if ( me.id != who.id && Xy.distance(me, who) < AGENTS_OBSERVATION_DISTANCE ) {
+            if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                 me.emitAgentSensing()
             }
         } )
 
         // On others score emit SensendAgents
         this.on( 'agent score', ( who ) => {
-            if ( me.id != who.id && Xy.distance(me, who) < AGENTS_OBSERVATION_DISTANCE ) {
+            if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                 me.emitAgentSensing()
             }
         } )

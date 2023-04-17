@@ -10,9 +10,9 @@ const myClock = require('./Clock');
 
 
 const MOVEMENT_STEPS = process.env.MOVEMENT_STEPS || config.MOVEMENT_STEPS || 1;
-const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
-const AGENTS_OBSERVATION_DISTANCE = process.env.AGENTS_OBSERVATION_DISTANCE || config.AGENTS_OBSERVATION_DISTANCE || 5;
-const PARCELS_OBSERVATION_DISTANCE = process.env.PARCELS_OBSERVATION_DISTANCE || config.PARCELS_OBSERVATION_DISTANCE || 5;
+// const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
+// const AGENTS_OBSERVATION_DISTANCE = process.env.AGENTS_OBSERVATION_DISTANCE || config.AGENTS_OBSERVATION_DISTANCE || 5;
+// const PARCELS_OBSERVATION_DISTANCE = process.env.PARCELS_OBSERVATION_DISTANCE || config.PARCELS_OBSERVATION_DISTANCE || 5;
 
 
 /**
@@ -40,6 +40,8 @@ class Agent extends Xy {
     //     return Array.from(this.#carryingParcels);
     // }
 
+    config = {};
+
     /**
      * @constructor Agent
      * @param {Grid} grid
@@ -59,6 +61,8 @@ class Agent extends Xy {
             
             super(--x, --y);
         }
+
+        Object.assign( this.config, config );
         
         Object.defineProperty (this, 'carrying', {
             get: () => Array.from(this.#carryingParcels).map( ({id, reward}) => { return {id, reward}; } ), // Recursion on carriedBy->agent->carrying->carriedBy ... 
@@ -97,7 +101,7 @@ class Agent extends Xy {
 
         var agents = [];
         for ( let agent of this.#grid.getAgents() ) {
-            if ( agent != this && Xy.distance(agent, this) < AGENTS_OBSERVATION_DISTANCE ) {
+            if ( agent != this && !( Xy.distance(agent, this) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                 const {id, name, x, y, score} = agent
                 agents.push( {id, name, x, y, score} )
             }
@@ -127,7 +131,7 @@ class Agent extends Xy {
 
         var parcels = [];
         for ( const parcel of this.#grid.getParcels() ) {
-            if ( Xy.distance(parcel, this) < PARCELS_OBSERVATION_DISTANCE ) {
+            if ( !( Xy.distance(parcel, this) >= this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
                 let {id, x, y, carriedBy, reward} = parcel;
                 parcels.push( {id, x, y, carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ), reward} )
             }
@@ -151,9 +155,9 @@ class Agent extends Xy {
             this.y = ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS * 12/20 ) / 100;
         }
         for ( let i = 0; i < MOVEMENT_STEPS; i++ ) {
-            // Wait for next step timeout = MOVEMENT_DURATION / MOVEMENT_STEPS
-            // await new Promise( res => setTimeout(res, MOVEMENT_DURATION / MOVEMENT_STEPS ) )
-            await myClock.synch( MOVEMENT_DURATION / MOVEMENT_STEPS );
+            // Wait for next step timeout = this.config.MOVEMENT_DURATION / MOVEMENT_STEPS
+            // await new Promise( res => setTimeout(res, this.config.MOVEMENT_DURATION / MOVEMENT_STEPS ) )
+            await myClock.synch( this.config.MOVEMENT_DURATION / MOVEMENT_STEPS );
             if ( i < MOVEMENT_STEPS - 1 ) {
                 // Move by one step = 1 / MOVEMENT_STEPS
                 this.x = ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS ) / 100;

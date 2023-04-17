@@ -28,12 +28,16 @@ io.on('connection', (socket) => {
     if ( !me ) return;
     socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
 
-    
+
 
     /**
-     * Emit config
+     * Config
      */
-    socket.emit( 'config', config )
+    if ( me.name == 'god' ) { // 'god' mod
+        me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite'
+        me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite'
+    }
+    socket.emit( 'config', me.config )
 
     
 

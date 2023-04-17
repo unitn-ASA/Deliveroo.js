@@ -7,8 +7,8 @@ const config = {
 
     MOVEMENT_STEPS: 1,                  // default is 1
     MOVEMENT_DURATION: 50,              // default is 500
-    AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5
-    PARCELS_OBSERVATION_DISTANCE: 5,    // default is 5
+    AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5, supports 'infinite'
+    PARCELS_OBSERVATION_DISTANCE: 5,    // default is 5, supports 'infinite' 
     AGENT_TIMEOUT: 10000,               // default is 10000
 
     PARCEL_REWARD_AVG: 30,          // default is 30

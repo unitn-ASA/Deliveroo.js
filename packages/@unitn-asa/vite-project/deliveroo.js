@@ -11,7 +11,7 @@ import { default as EventEmitter } from 'events';
 const scene = new THREE.Scene();
 
 // const camera = new THREE.OrthographicCamera( -100, 100, 10, -10, 1, 100 );
-const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100 );
+const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 300 );
 camera.position.set(-1, 2, +2);
 
 const renderer = new THREE.WebGLRenderer();
@@ -33,11 +33,13 @@ window.addEventListener("resize", () => {
 
 const controls = new OrbitControls( camera, labelRenderer.domElement );
 controls.minDistance = 10;
-controls.maxDistance = 40;
+controls.maxDistance = 100;
 controls.maxAzimuthAngle = Math.PI/10;
 controls.minAzimuthAngle = -Math.PI/6;
 controls.maxPolarAngle = Math.PI/2.2;
 controls.minPolarAngle = 0;
+controls.listenToKeyEvents( window );
+controls.screenSpacePanning = false;
 controls.target.set(0, 0, 0);
 controls.update();
 
@@ -686,8 +688,8 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
         for ( var tile of tiles.values() ) {
             var distance = Math.abs(x-tile.x) + Math.abs(y-tile.y);
             let opacity = 0.1;
-            if ( distance < PARCELS_OBSERVATION_DISTANCE ) opacity += 0.2;
-            if ( distance < AGENTS_OBSERVATION_DISTANCE ) opacity += 0.2;
+            if ( !( distance >= PARCELS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
+            if ( !( distance >= AGENTS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
             tile.opacity = ( opacity > 0.4 ? 1 : opacity );
         }
     } else { // when moving
