@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/pddl-client",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "description": "",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
