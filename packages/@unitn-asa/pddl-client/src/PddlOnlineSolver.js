@@ -1,70 +1,77 @@
-import PddlDomain from './PddlDomain.js'
-import PddlProblem from './PddlProblem.js'
 import fetch from 'node-fetch' // import fetch from 'node-fetch';
+
+/**
+ * @typedef { { parallel: boolean, action: string, args: string [] } } pddlPlanStep
+ */
 
 
 /**
- * 
  * @param {String} pddlDomain 
  * @param {String} pddlProblem 
- * @returns { Promise < [ { parallel: boolean, action: string, args: [string] } ] > }
+ * @returns { Promise < pddlPlanStep [] > }
  */
-export async function onlineFetch (pddlDomain, pddlProblem) {
+export default async function onlineSolver (pddlDomain, pddlProblem) {
 
-    // console.log(JSON.stringify( {domain: domainFile.content, problem: problemFile.content} ))
+    if ( typeof pddlDomain !== 'string' && ! pddlDomain instanceof String )
+        throw new Error( 'pddlDomain is not a string' );
+
+    if ( typeof pddlProblem !== 'string' && ! pddlProblem instanceof String )
+        throw new Error( 'pddlProblem is not a string' );
+
     var res = await fetch("http://solver.planning.domains/solve", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify( {domain: pddlDomain, problem: pddlProblem} )
-    }).then(function (res) {
-        return res.json();
-    }).then(function (res) {
-        return res;
     })
     
+    if ( res.status != 200 ) {
+        throw new Error( 'Error at http://solver.planning.domains/solve ' + await res.text() );
+    }
+
+    res = await res.json();
+
     // console.log(res);
     // console.log(res.result.plan);
 
-    if (!res.result.plan && res.result.output.split('\n')[0] != ' --- OK.') {
-        console.log('No plan found')
-        console.log(res)
-        throw new Error('Plan not found');
+    if ( res.status == 'error' ) {
+        
+        if ( !res.result.plan && res.result.output.split('\n')[0] != ' --- OK.' ) {
+            console.error( 'Plan not found' );
+            return;
+        }
+
+        // if ( res.result.parse_status == 'err' )
+        //     console.error( 'Parse error at http://solver.planning.domains/solve ', res.result.output );
+
+        throw new Error( 'Error at http://solver.planning.domains/solve ' + res.result.error );
     }
 
-    console.log('Plan found:')
-    var planStruct = []
+    console.log( 'Plan found:' )
     var plan = []
 
-    if (res.result.plan) {
+    if ( res.result.plan ) {
         for (let step of res.result.plan) {
+
+            if ( step == '(reach-goal)' )
+                break;
+
             /**@type {string}*/
-            let line = step.name;
+            let line = step.name || step;
+
+            console.log('- ' + line);
+
             /**@type {[string]}*/
             line = line.replace('(','').replace(')','').split(' ')
-            console.log('- ' + step.name)
-            planStruct.push(line);
-            
+
             // var number = line.shift()
             var action = line.shift()
             var args = line
-            // console.log(number, action, args)
+            
             plan.push( { parallel: false/*number==previousNumber*/, action: action, args: args } );
         }
     }
     
     return plan;
-}
-
-
-
-/**
- * 
- * @param {PddlDomain} pddlDomain 
- * @param {PddlProblem} pddlProblem 
- * @returns { Promise < [ { parallel: boolean, action: string, args: [string] } ] > }
- */
-export async function onlineSolve( pddlDomain, pddlProblem ) {
-    return await onlineFetch( pddlDomain.content, pddlProblem.content )
 }

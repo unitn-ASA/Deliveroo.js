@@ -63,56 +63,42 @@ export default class Beliefset {
     }
 
 
-
+    /**
+     * @type { [fact:string, positive:boolean] [] }
+     */
     get entries () {
-        return Array.from( this.#facts );
+        return Array.from( this.#facts.entries() );
     }
 
 
 
     /**
-     * @return {Array<String>}    Return an Array of String literals (possibly negated facts) e.g. 'light_on kitchen_light' or 'not light_on kitchen_light'
+     * @return {Array<String>} Return an Array of String literals (possibly negated facts) e.g. 'light_on kitchen_light' or 'not (light_on kitchen_light)'
      */
-    get literals () {
-        return this.entries.map( ([fact, value]) => (value?fact:'not ('+fact+')') )
+    toPddlString() {
+        return this.entries.map( ([fact, value]) => (value?fact:'not ('+fact+')') ).map( fact => '('+fact+')' ).join(' ')
     }
 
-    /**
-     * 
-     * @param {String} literal Possibly negated fact, e.g. 'not light_on'
-     */
-    apply (...literals) {
-        for ( let literal of literals ) {
-            var not = literal.split(' ')[0] == 'not'
-            var fact = (not?literal.split(' ').splice(1).join(' '):literal)
-            this.declare(fact, !not)
-        }
-    }
+    
 
     /**
      * Closed World assumption; if i don't know about something then it is false!
      * 
-     * @param  {...String} literals Iterable of literals; intended as a conjunction of literals
+     * @param {boolean} positive Positive/negated
+     * @param {string} fact e.g 'light_on l1'
      * @returns {boolean} true if verified, otherwise false
      */
-    check (...literals) {
-        for ( let literal of literals ) {
-            let not = literal.split(' ')[0] == 'not'
-            let fact = (not?literal.split(' ').splice(1).join(' '):literal)
-            
-            if ( this[fact] )
-                if ( not )
-                    return false;
-                else
-                    continue;
-            else // Closed World assumption; if i don't know about something then it is false
-                if ( not )
-                    continue;
-                else
-                    return false;
-        }
-
-        return true;
+    check ( positive, fact ) {        
+        if ( this.#facts.has(fact) && this.#facts.get(fact) )
+            if ( positive )
+                return true;
+            else
+                return false;
+        else // Closed World assumption; if i don't know about something then it is false
+            if ( positive )
+                return false;
+            else
+                return true;
     }
 
 }

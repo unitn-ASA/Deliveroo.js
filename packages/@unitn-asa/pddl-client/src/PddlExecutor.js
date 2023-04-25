@@ -1,10 +1,10 @@
 
 /**
- * @typedef { { parallel: boolean, action: string, args: [string] } } PddlStep
+ * @typedef { { parallel: boolean, action: string, args: string [] } } PddlPlanStep
  */
 
 /**
- * @typedef { [ PddlStep ] } PddlPlan
+ * @typedef { PddlPlanStep [] } PddlPlan
  */
 
 export default class PddlExecutor {
@@ -14,15 +14,15 @@ export default class PddlExecutor {
      * @param { ...{pddlAction} } } actions 
      */
     constructor ( ...actions ) {
-        for ( let actionClass of actions ) {
-            this.addAction(actionClass)
-        }
+        this.addAction(...actions);
     }
 
     actions = {}
 
-    addAction (intentionClass) {
-        this.actions[intentionClass.name.toLowerCase()] = intentionClass
+    addAction (...actions) {
+        for ( let action of actions ) {
+            this.actions[action.name.toLowerCase()] = action;
+        }
     }
 
     getAction (name) {
@@ -33,6 +33,9 @@ export default class PddlExecutor {
      * @param {PddlPlan} plan 
      */
     async exec (plan) {
+
+        if ( ! plan )
+            return;
         
         var previousStepGoals = []
 
@@ -43,18 +46,23 @@ export default class PddlExecutor {
             else {
                 await Promise.all(previousStepGoals)
                 previousStepGoals = []
-                console.log( 'Starting sequential step ', step.action, ...step.args )
+                console.log( 'Starting sequential step', step.action, ...step.args )
             }
 
-            let actionClass = this.getAction(step.action)
-            if (!actionClass)
-                throw new Error( "pddlAction class not found for " + step.action )
+            let action = this.getAction(step.action)
+            if ( !action || !action.executor ) {
+                console.error( new Error("No executor for pddlAction" + step.action + ". Skip and continue with next plan step.") )
+                continue;
+            }
 
-            previousStepGoals.push(
-                new actionClass().exec(...step.args).catch( err => {
-                    throw err//new Error('Step failed');
-                } )
-            )
+            var exec = action.executor(...step.args)
+            if ( exec && exec.catch ) {
+                exec.catch( err => { throw err } ); //new Error('Step failed');
+                previousStepGoals.push( exec );
+            }
+            else {
+                previousStepGoals.push( Promise.resolve() );
+            }
         }
 
         // wait for last steps to complete before finish blackbox plan execution intention
@@ -63,11 +71,4 @@ export default class PddlExecutor {
     }
 
 }
-
-// var kitchenAgent = new Agent('kitchen')
-// kitchenAgent.intentions.push(DimOnLight)
-// kitchenAgent.intentions.push(Blackbox)
-
-// var blackbox = new Blackbox(kitchenAgent, new LightOn({l: 'light1'}), './tmp/domain-lights.pddl', './tmp/problem-lights.pddl')
-// blackbox.run()
 

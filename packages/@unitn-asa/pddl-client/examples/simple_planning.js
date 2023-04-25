@@ -1,23 +1,19 @@
-import { onlineSolve, PddlDomain, PddlAction, PddlExecutor, PddlProblem, Planner, Beliefset } from "../index.js";
+import { onlineSolver, PddlDomain, PddlAction, PddlExecutor, PddlProblem, Planner, Beliefset } from "../index.js";
 
-Planner.doPlan = onlineSolve;
+Planner.doPlan = onlineSolver;
 
-
-class LightOn extends PddlAction {
-
-    parameters = 'l'
-    precondition = [ 'switched-off l' ]
-    effect = [ 'switched-on l', 'not switched-off l' ]
-
-    async exec (...args) {
-        console.log( 'LightOn', ...args )
-    }
-
-}
-const lightOn = new LightOn();
+const lightOn = new PddlAction(
+    'LightOn',
+    '?l',
+    '(switched-off ?l)',
+    '(switched-on ?l) (not (switched-off ?l))',
+    async ( ...args ) => console.log( 'LightOn', ...args )
+);
 
 console.log( lightOn.toPddlString() )
 
+console.log( PddlAction.tokenize( lightOn.precondition ) )
+console.log( PddlAction.tokenize( lightOn.effect ) )
 
 
 const myBeliefset = new Beliefset()
@@ -33,12 +29,17 @@ const myGoal = [ 'switched-on light1' ]
 
 
 var pddlDomain = new PddlDomain( 'lights', lightOn )
+pddlDomain.saveToFile();
 
-var pddlProblem = new PddlProblem()
+console.log( pddlDomain.toPddlString() )
+
+var pddlProblem = new PddlProblem( 'lights' )
 pddlProblem.addObject(...myBeliefset.objects) //'a', 'b'
 pddlProblem.addInit(...myBeliefset.entries.filter( ([fact,value])=>value ).map( ([fact,value])=>fact ))//(...beliefs.literals)
 pddlProblem.addGoal(...myGoal)
+pddlProblem.saveToFile();
 
-var plan = await onlineSolve(pddlDomain, pddlProblem);
+var plan = await onlineSolver(pddlDomain.toPddlString(), pddlProblem.toPddlString());
 
-// PddlExecutor( plan )
+const pddlExecutor = new PddlExecutor( lightOn )
+pddlExecutor.exec( plan )

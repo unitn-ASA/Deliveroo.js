@@ -1,12 +1,9 @@
 ;; domain file: domain-lights.pddl
-(define (domain lights)
+(define (domain default)
     (:requirements :strips)
     (:predicates
         (switched-on ?l)
-		(switched-off ?l)
-		(switched-off ?l)
-		(switched-on ?l)
-		(switched-off ?l)              
+		(switched-off ?l)            
     )
     
     (:action LightOn
