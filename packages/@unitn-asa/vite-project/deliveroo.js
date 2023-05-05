@@ -666,6 +666,7 @@ socket.on( 'not_tile', (x, y) => {
 socket.on( "tile", (x, y, delivery) => {
     // console.log( "tile", x, y, delivery )
     getTile(x, y).delivery = delivery;
+    getTile(x, y).blocked = false;
 });
 
 var WIDTH;
