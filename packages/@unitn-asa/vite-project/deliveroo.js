@@ -317,6 +317,36 @@ class onGrid {
 }
 
 const tiles = new Map();
+window.getMap = function () {
+    const map = [];
+    for ( let x=0; x<WIDTH; x++ ) {
+        const row = []
+        for ( let y=0; y<HEIGHT; y++ ) {
+            if ( tiles.has(x + y*1000) ) {
+                /**@type {Tile}*/
+                let tile = tiles.get( x + y*1000 );
+                if ( tile.blocked )
+                    row.push(0);
+                else if ( tile.delivery )
+                    row.push(2);
+                else
+                    row.push(1);
+            }
+            else {
+                row.push(0);
+            }
+        }
+        map.push(row);
+    }
+    var string = "[\n";
+    string += map.map( row => '\t[' + row.join(', ') + ']' ).join( ',\n' )
+    // for (const row of map) {
+    //     string += '\t[' + row.join(', ') + '],\n';
+    // }
+    string += "\n]";
+    console.log( string );
+    return map;
+};
 
 class Tile extends onGrid {
 
@@ -638,6 +668,13 @@ socket.on( "tile", (x, y, delivery) => {
     getTile(x, y).delivery = delivery;
 });
 
+var WIDTH;
+var HEIGHT;
+socket.on( "map", (width, height, tiles) => {
+    WIDTH = width
+    HEIGHT = height
+});
+
 socket.on( "msg", ( id, name, msg, reply ) => {
     console.log( 'msg', {id, name, msg, reply} )
     processMsg( id, name, msg )
@@ -646,10 +683,12 @@ socket.on( "msg", ( id, name, msg, reply ) => {
 
 var AGENTS_OBSERVATION_DISTANCE = 5;
 var PARCELS_OBSERVATION_DISTANCE = 5;
+var CONFIG;
 socket.on( "config", ( config ) => {
     document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
     AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
     PARCELS_OBSERVATION_DISTANCE = config.PARCELS_OBSERVATION_DISTANCE;
+    CONFIG = config;
 } )
 
 socket.on( "you", ( {id, name, x, y, score} ) => {
