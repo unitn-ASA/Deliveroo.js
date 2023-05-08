@@ -5,6 +5,7 @@ import { default as argsParser } from "args-parser";
 const args = argsParser(process.argv);
 let NAME = args['name'];
 let TOKEN = args['token'];
+let HOST = args['host'];
 
 /**
  * Takes the following arguments from console:
@@ -33,7 +34,7 @@ export default class DeliverooApi extends EventEmitter {
         else
             opts.extraHeaders = { 'x-token': TOKEN || token }
 
-        const socket = this.socket = io( host, opts );
+        const socket = this.socket = io( HOST || host, opts );
         
         this.token = token;
         socket.once( 'token', (token) => {
