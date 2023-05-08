@@ -91,6 +91,13 @@ export default class DeliverooApi extends EventEmitter {
     onTile ( callback ) {
         this.socket.on( "tile", callback )
     }
+
+    /**
+     * @param { function( x, y ) } callback
+     */
+    onNotTile ( callback ) {
+        this.socket.on( "not_tile", callback )
+    }
     
     /**
      * @param { function( width, height, [{x, y, delivery}] ) } callback
