@@ -15,7 +15,7 @@ module.exports = {
     PARCEL_REWARD_VARIANCE: '50',     // default is 10
     PARCEL_DECADING_INTERVAL: '1s', // options are '1s', '2s', '5s', '10s', 'infinite' (DEFAULT)
 
-    RANDOMLY_MOVING_AGENTS: 2,  // default is 2
+    RANDOMLY_MOVING_AGENTS: 0,  // default is 2
     RANDOM_AGENT_SPEED: '1s',   // options are '1s', '2s' (DEFAULT), '5s', '10s'
 
     CLOCK: 50,  // default is 50 (50ms are 20frame/s)
