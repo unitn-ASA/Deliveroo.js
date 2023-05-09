@@ -74,7 +74,7 @@ class Agent extends Xy {
             let tile = tiles_unlocked.at( i )
             let x = tile.x, y = tile.y;
         
-            super(--x, --y);
+            super(x, y);
         }
 
         Object.assign( this.config, config );
