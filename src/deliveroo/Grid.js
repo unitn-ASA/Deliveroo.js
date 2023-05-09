@@ -158,9 +158,14 @@ class Grid extends Observable {
         return me;
     }
 
+    /**
+     * 
+     * @param {Agent} agent 
+     */
     deleteAgent ( agent ) {
         if ( agent.tile )
             agent.tile.unlock();
+        agent.putDown();
         agent.x = undefined;
         agent.y = undefined;
         agent.removeAllListeners('xy');

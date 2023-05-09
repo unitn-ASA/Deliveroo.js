@@ -369,7 +369,7 @@ class Tile extends onGrid {
         if ( value )
             this.color = 0x00ff00
         else if ( ! this.delivery )
-            this.color = 0x22dd22
+            this.color = 0x55dd55
     }
     
     #blocked = false;
@@ -762,15 +762,11 @@ socket.on("agents sensing", (sensed) => {
     var sensed_ids = sensed.map( ({id}) => id )
     for ( const [id, agent] of agents.entries() ) {
         if ( agent!=me && !sensed_ids.includes( agent.id ) ) {
-            // console.log('no more sensing parcel', knownId)
             agent.opacity = 0;
-            // parcel.removeMesh();
-            // parcels.delete(knownId);
         }
     }
 
     for ( const sensed_p of sensed ) {
-        // console.log("parcel sensing", sense)
         const {id, name, x, y, score} = sensed_p;
         var agent = getOrCreateAgent(id, name, x, y, score)
         agent.name = name;

@@ -220,9 +220,15 @@ io.on('connection', (socket) => {
                 tile.delivery = false;
                 tile.parcelSpawner = true;
                 tile.unblock();
-            } else if ( !tile.delivery ) {
+            } else if ( tile.parcelSpawner ) {
                 tile.delivery = true;
+                tile.parcelSpawner = false;
+            } else if ( tile.delivery ) {
+                tile.delivery = false;
+                tile.parcelSpawner = false;
             } else {
+                tile.delivery = false;
+                tile.parcelSpawner = false;
                 tile.block();
             }
         } );
