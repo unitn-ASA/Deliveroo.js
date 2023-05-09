@@ -50,15 +50,30 @@ class Agent extends Xy {
     constructor ( grid, options ) {
         
         {
-            let x, y, found=false;
-            for (x=0; x<10 && !found; x++)
-                for (y=0; y<10 && !found; y++) {
-                    found = ( grid.getTile(x, y).blocked ? false : grid.getTile(x, y).lock() );
-                    // console.log( x, y, (found?'found':'occupied') )
-                }
+            // let x, y, found=false;
+            // for (x=0; x<10 && !found; x++)
+            //     for (y=0; y<10 && !found; y++) {
+            //         found = ( grid.getTile(x, y).blocked ? false : grid.getTile(x, y).lock() );
+            //         // console.log( x, y, (found?'found':'occupied') )
+            //     }
             // if ( !found )
             //     throw new Error('No unlocked tiles available on the grid')
             
+            let tiles_unlocked =
+                Array.from( grid.getTiles() )
+                // not locked
+                .filter( t => ! t.blocked )
+                // not locked
+                .filter( t => ! t.locked )
+
+                
+            if ( tiles_unlocked.length == 0 )
+                throw new Error('No unlocked tiles available on the grid')
+
+            let i = Math.floor( Math.random() * tiles_unlocked.length - 1 )
+            let tile = tiles_unlocked.at( i )
+            let x = tile.x, y = tile.y;
+        
             super(--x, --y);
         }
 

@@ -44,18 +44,18 @@ io.on('connection', (socket) => {
     /**
      * Emit map (tiles)
      */
-    myGrid.on( 'tile', ({x, y, delivery, blocked}) => {
-        // console.log( 'emit tile', x, y, delivery );
+    myGrid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {
+        // console.log( 'emit tile', x, y, delivery, parcelSpawner );
         if (!blocked)
-            socket.emit( 'tile', x, y, delivery );
+            socket.emit( 'tile', x, y, delivery, parcelSpawner );
         else
             socket.emit( 'not_tile', x, y );
     } );
     let tiles = []
-    for (const {x, y, delivery, blocked} of myGrid.getTiles()) {
+    for (const {x, y, delivery, blocked, parcelSpawner} of myGrid.getTiles()) {
         if ( !blocked ) {
-            socket.emit( 'tile', x, y, delivery )
-            tiles.push( {x, y, delivery} )
+            socket.emit( 'tile', x, y, delivery, parcelSpawner )
+            tiles.push( {x, y, delivery, parcelSpawner} )
         } else
             socket.emit( 'not_tile', x, y );
     }
@@ -218,6 +218,7 @@ io.on('connection', (socket) => {
 
             if ( tile.blocked ) {
                 tile.delivery = false;
+                tile.parcelSpawner = true;
                 tile.unblock();
             } else if ( !tile.delivery ) {
                 tile.delivery = true;

@@ -361,6 +361,18 @@ class Tile extends onGrid {
         else
             this.color = 0x00ff00
     }
+
+    #parcelSpawner = false;
+    get parcelSpawner () {
+        return this.#parcelSpawner;
+    }
+    set parcelSpawner ( value ) {
+        this.#parcelSpawner = value?true:false;
+        if ( value )
+            this.color = 0x00ff00
+        else if ( ! this.delivery )
+            this.color = 0x22dd22
+    }
     
     #blocked = false;
     get blocked () {
@@ -663,10 +675,11 @@ socket.on( 'not_tile', (x, y) => {
     getTile(x, y).blocked = true;
 });
 
-socket.on( "tile", (x, y, delivery) => {
+socket.on( "tile", (x, y, delivery, parcelSpawner) => {
     // console.log( "tile", x, y, delivery )
     getTile(x, y).delivery = delivery;
     getTile(x, y).blocked = false;
+    getTile(x, y).parcelSpawner = parcelSpawner;
 });
 
 var WIDTH;

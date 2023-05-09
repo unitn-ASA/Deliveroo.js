@@ -30,8 +30,9 @@ class Grid extends Observable {
             return Array.from(column).map( (value, y) => new Tile(
                 this,       // grid
                 x, y,       // x, y
-                !value,     // blocked
-                value > 1   // delivery // ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
+                value == 0, // blocked
+                value == 2, // delivery // ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
+                value == 1  // parcelSpawner
             ) )
         } );
         // console.log( this.#tiles.map( c=>c.map( t=>t.x+' '+t.y+' ' ) ) )

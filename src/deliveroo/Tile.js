@@ -15,6 +15,7 @@ const Grid =  require('./Grid')
     /** @property {Set<Parcel>} parcel */
     #parcels = new Set();
     #delivery;
+    #parcelSpawner;
 
     /**
      * @constructor Tile
@@ -22,11 +23,12 @@ const Grid =  require('./Grid')
      * @param {*} x
      * @param {*} y
      */
-    constructor ( grid, x, y, blocked = false, delivery = false) {
+    constructor ( grid, x, y, blocked = false, delivery = false, parcelSpawner = true ) {
         super(x, y);
         this.#grid = grid;
         this.#blocked = blocked;
         this.#delivery = delivery;
+        this.#parcelSpawner = parcelSpawner;
     }
     
     get blocked() {
@@ -71,10 +73,18 @@ const Grid =  require('./Grid')
         return this.#delivery;
     }
     set delivery(value) {
-        this.#delivery = value;
+        this.#delivery = value?true:false;
         this.#grid.emitOnePerTick( 'tile', this )
     }
 
+    get parcelSpawner() {
+        return this.#parcelSpawner;
+    }
+    set parcelSpawner(value) {
+        this.#parcelSpawner = value?true:false;
+        this.#grid.emitOnePerTick( 'tile', this )
+    }
+    
     // /**
     //  * @type {function(Parcel): void}
     //  */

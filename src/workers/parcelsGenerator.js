@@ -22,8 +22,10 @@ module.exports = function (grid) {
         }
         let tiles_with_no_parcels =
             Array.from( grid.getTiles() )
-            // not a delivery tile
-            .filter( t => ! t.delivery )
+            // // not a delivery tile
+            // .filter( t => ! t.delivery )
+            // parcel spawner tile
+            .filter( t => t.parcelSpawner )
             // no parcels exists on the tile
             .filter( t =>
                 Array.from( grid.getParcels() )
