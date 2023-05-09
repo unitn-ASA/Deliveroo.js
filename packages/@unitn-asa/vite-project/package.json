@@ -1,9 +1,20 @@
 {
-  "name": "vite-project",
-  "private": true,
+  "name": "@unitn-asa/deliveroo-js-webapp",
   "version": "0.0.31",
+  "description": "",
+  "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {},
   "scripts": {
+    "prepare": "npm run build",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
@@ -12,10 +23,7 @@
     "vite": "^4.2.0"
   },
   "dependencies": {
-    "buffer": "^6.0.3",
-    "eventemitter3": "^5.0.0",
     "events": "^3.3.0",
-    "rollup-plugin-polyfill-node": "^0.12.0",
     "socket.io-client": "^4.6.1",
     "three": "^0.151.3"
   }

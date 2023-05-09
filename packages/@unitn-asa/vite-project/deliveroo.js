@@ -1,10 +1,8 @@
 import { default as io } from 'socket.io-client';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { DragControls } from 'three/addons/controls/DragControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-import { Vector3 } from 'three';
 import { default as EventEmitter } from 'events';
 
 
@@ -88,7 +86,7 @@ labelRenderer.domElement.addEventListener( 'click', ( event ) => {
 //     }
 // }
 
-const camTarget = new Vector3(0,0,0);
+const camTarget = new THREE.Vector3(0,0,0);
 
 const animator = new EventEmitter();
 animator.setMaxListeners(1000);
@@ -99,7 +97,7 @@ function animate() {
     animator.emit( 'animate' );
 
     // Lerp move cameraTarget toward agent and apply camera offset 
-    let diff = new Vector3().copy( camTarget ).sub( camTarget.lerp( me.mesh.position, 0.08 ) );
+    let diff = new THREE.Vector3().copy( camTarget ).sub( camTarget.lerp( me.mesh.position, 0.08 ) );
     camera.position.sub( diff );
     controls.target.sub( diff );
 
@@ -277,16 +275,16 @@ class onGrid {
         animator.on( 'animate', () => {
             let x = Math.round( this.x );
             let y = Math.round( this.y );
-            let targetVector3 = new Vector3( x * 1.5, this.#mesh.position.y, - y * 1.5 );
+            let targetVector3 = new THREE.Vector3( x * 1.5, this.#mesh.position.y, - y * 1.5 );
 
                 // // Move directly to x and y
-                // targetVector3 = new Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
+                // targetVector3 = new THREE.Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
                 // this.#mesh.position.copy( targetVector3 );
 
             if ( x == this.x && y == this.y ) { // if arrived
                 this.#mesh.position.lerp( targetVector3, 0.5 );
             } else { // if still moving
-                // targetVector3 = new Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
+                // targetVector3 = new THREE.Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
                 this.#mesh.position.lerp( targetVector3, 0.08 );
             }
         } )

@@ -14,7 +14,6 @@
   "scripts": {
     "prepare": "npm run build",
     "test": "jest",
-    "prestart": "npm run build",
     "start": "node index.js",
     "dev": "node -r dotenv/config index.js",
     "dev_unix": "node -r dotenv/config index.js & npm run dev -workspaces",
