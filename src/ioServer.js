@@ -184,6 +184,25 @@ io.on('connection', (socket) => {
 
     
     /**
+     * Path
+     */
+    
+    socket.on( 'path', ( path ) => {
+        
+        for ( let s of myAuthenticator.getSockets( me.id )() ) {
+
+            if ( s == socket )
+                continue;
+            
+            s.emit( 'path', path );
+
+        }
+
+    } )
+
+
+    
+    /**
      * Bradcast client log
      */
     socket.on( 'log', ( ...message ) => {

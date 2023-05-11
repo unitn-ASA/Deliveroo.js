@@ -314,6 +314,31 @@ class onGrid {
 
 }
 
+
+
+class PathPoint {
+
+    show () {
+        this.sphere.material.opacity = 1;
+    }
+    hide () {
+        this.sphere.material.opacity = 0;
+    }
+    
+    sphere;
+
+    constructor (x, y) {
+        const geometry = new THREE.SphereGeometry( 0.1, 5, 5 );
+        const material = new THREE.MeshBasicMaterial( { color: 0xffffff, transparent: true, opacity: 0 } );
+        this.sphere = new THREE.Mesh( geometry, material );
+        this.sphere.position.set( x * 1.5, 0.1, - y * 1.5 );
+        scene.add( this.sphere );
+    }
+
+}
+
+
+
 const tiles = new Map();
 window.getMap = function () {
     const map = [];
@@ -327,8 +352,10 @@ window.getMap = function () {
                     row.push(0);
                 else if ( tile.delivery )
                     row.push(2);
-                else
+                else if ( tile.parcelSpawner )
                     row.push(1);
+                else
+                    row.push(3);
             }
             else {
                 row.push(0);
@@ -347,6 +374,8 @@ window.getMap = function () {
 };
 
 class Tile extends onGrid {
+
+    pathPoint;
 
     #delivery = false;
     get delivery () {
@@ -394,6 +423,8 @@ class Tile extends onGrid {
         super(cube, x, y);
         cube.position.y = 0;
         this.#delivery = delivery;
+
+        this.pathPoint = new PathPoint(x, y);
     }
 
 }
@@ -692,6 +723,15 @@ socket.on( "msg", ( id, name, msg, reply ) => {
     processMsg( id, name, msg )
     if ( msg == 'who are you?' && reply ) reply('I am the web app')
 })
+
+socket.on( "path", (path) => {
+    for (const tile of tiles.values()) {
+        tile.pathPoint.hide();
+    }
+    for (const {x, y} of path) {
+        getTile(x, y).pathPoint.show();
+    }
+});
 
 var AGENTS_OBSERVATION_DISTANCE = 5;
 var PARCELS_OBSERVATION_DISTANCE = 5;

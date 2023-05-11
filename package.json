@@ -19,8 +19,8 @@
     "dev": "node -r dotenv/config index.js",
     "dev_unix": "node -r dotenv/config index.js & npm run dev -workspaces",
     "dev_win": "start node -r dotenv/config index.js & start npm run dev -workspaces",
-    "dev_ui": "npm run dev --workspace=packages/@unitn-asa/vite-project/",
-    "build_ui": "npm run build --workspace=packages/@unitn-asa/vite-project/",
+    "dev_ui": "npm run dev --workspace=packages/@unitn-asa/deliveroo-js-webapp/",
+    "build_ui": "npm run build --workspace=packages/@unitn-asa/deliveroo-js-webapp/",
     "build_all": "npm run build --workspaces --if-present"
   },
   "repository": {
