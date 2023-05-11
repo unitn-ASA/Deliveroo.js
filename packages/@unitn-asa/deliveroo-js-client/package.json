@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-client",
-  "version": "0.0.33",
+  "version": "0.0.34",
   "description": "",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
