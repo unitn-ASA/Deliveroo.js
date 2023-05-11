@@ -27,7 +27,7 @@ export default class PddlDomain {
     addPredicate (predicate) { // predicate = 'light-on ?l'
         if ( this.predicates.find( (e) => e == predicate ) )
             return false;
-        if ( this.predicates.find( (e) => e.split(' ')[0] == predicate.split(' ')[0] && e.length != predicate.length ) )
+        if ( this.predicates.find( (e) => e.split(' ')[0] == predicate.split(' ')[0] && e.split(' ').length != predicate.split(' ').length ) )
             throw new Error( 'Duplicated predicate with different number of parameters!' )
         this.predicates.push(predicate)
         return true;
