@@ -8,7 +8,7 @@ University of Trento - 2022/2023
 
 ## FUNZIONAMENTO
 ### 1) CONNESSIONE Client-Server:
-
+![Image text](/README-Image/Immagine-Funzionamento.PNG)
 #### Il Client
 fa il set-up della connessione:
 Controlla i parametri dell’URL alla ricerca del parametro name che viene usato per inizializzare la variabile name. Se il parametro è presente vuol dire che la socket è già collegata ad un agente nel gioco, altrimenti vuol dire che è una nuova socket.
