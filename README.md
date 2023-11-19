@@ -38,5 +38,21 @@ Le associazioni tra socket ed id degli agenti sono salvati nella mappa  idToAgen
 
 1.b) Se viene emesso il segnale socket.’token’dal server il client slava l’attributo token nel cookie ‘token_’+name. 
 
+### 2) EMISSIONE dei dati di MyGrid
 
+Invia tutti i dati delle caselle una alla volta mediante l’emissione degli eventi socket.’tile’ e socket.’not_tile’. 
+
+Invia nuovamente i dati della griglia emettendo l’evento socket.’map’ che passa al client negli attributi la larghezza, lunghezza e array delle caselle: tiles di MyGrid. 
+
+Invia i dati dell’agente associato alla socket: me; che vengono trasmessi alla socket mediante l’emissione dell’evento socket.’you’ con attributo appunto me. Il client quindi aggiorna i dati del suo agente mediante il listener a socket.’you’.
+
+
+### 3) COMUNICAZIONI Client-Server
+
+tramite i vari eventi il client ed il server continuano a scambiarsi informazioni
+
+
+## STRUTTURA
+Per maggiori informazioni sulla strutturad del progetto e sui singoli file guardare il seguente pdf. 
+[Struttura Deliveroo](/README-Image/Struttura%20Deliveroo.pdf)
 
