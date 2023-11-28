@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="home.css">
+</head>
+<body>
+    <header>
+        <h1>DELIVEROO</h1>
+    </header>
+    <div class="container">
+        <div class="main-content">
+            <!-- Contenuto principale qui -->
+            <h2>PARTITE PUBBLICHE </h2>
+            <p>lista delle partite pubbliche</p>
+            <button id="partecipaBtn">Partecipa Partita</button>
+            
+        </div>
+        <aside class="sidebar">
+            <!-- Contenuto della colonna destra -->
+            <h2>Genera Token</h2>
+            <p>Contenuto della colonna destra...</p>
+            <div class="bottoni">
+                <button id="generateTokenBtn">Genera Token</button>
+                <button id="copyTokenBtn" style="display: none;">Copia Token</button>
+            </div>
+            <div id="tokenBox"> </div> <!-- Elemento per visualizzare il token -->
+            
+        </aside>
+    </div>
+
+    <script src="gestoreToken.js"></script>
+    <script src="gestorePartite.js"></script>
+</body>
+</html>
