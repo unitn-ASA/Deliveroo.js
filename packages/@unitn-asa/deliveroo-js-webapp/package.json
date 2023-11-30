@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "events": "^3.3.0",
+    "node-fetch": "^3.3.2",
     "socket.io-client": "^4.6.1",
     "three": "^0.151.3"
   }

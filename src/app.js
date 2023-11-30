@@ -3,12 +3,14 @@ const { homedir } = require('os');
 const Path = require('path');
 const app = express();
 
+
+
 /**
  * Serve front-end static files
  */
 // app.use('/', express.static('packages/\@unitn-asa/vite-project/dist/'));
 // app.use('/', express.static(Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'vite-project', 'dist')));
-app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
+app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','home') ));
 // app.use('/', express.static('static'));
 // app.use("/", express.static(Path.join(__dirname, '..', 'static')));
 
@@ -20,5 +22,8 @@ app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn
 //     var io = req.app.get('socketio');
 //     io.emit('hi!');
 // } );
+
+
+app.use('/game', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','dist') ));
 
 module.exports = app;
