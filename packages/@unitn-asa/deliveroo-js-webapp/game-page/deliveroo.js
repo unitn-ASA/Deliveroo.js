@@ -657,7 +657,8 @@ var token = checkCookieForToken( name )
 // Connect
 var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
     extraHeaders: {
-        'x-token': token
+        'x-token': token,
+        'game': '1'
     },
     query: {
         name: params.get("name"),
@@ -669,7 +670,7 @@ var me = getOrCreateAgent('loading', name, 0, 0, 0);
 // me.mesh.add( camera );
 
 socket.on( "connect", () => {
-    // console.log( "connect", socket.id, token ); // x8WIv7-mJelg7on_ALbx
+    console.log( "connect", socket.id, token ); // x8WIv7-mJelg7on_ALbx
     document.getElementById('socket.id').textContent = `socket.id ${socket.id}`
 });
 
@@ -700,12 +701,12 @@ socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
 } );
 
 socket.on( 'not_tile', (x, y) => {
-    // console.log( 'not_tile', x, y )
+    console.log( 'not_tile', x, y )
     getTile(x, y).blocked = true;
 });
 
 socket.on( "tile", (x, y, delivery, parcelSpawner) => {
-    // console.log( "tile", x, y, delivery )
+    console.log( "tile", x, y, delivery )
     getTile(x, y).delivery = delivery;
     getTile(x, y).blocked = false;
     getTile(x, y).parcelSpawner = parcelSpawner;
@@ -743,13 +744,14 @@ socket.on( "config", ( config ) => {
     CONFIG = config;
 } )
 
-socket.on( "you", ( {id, name, x, y, score} ) => {
+socket.on( "you", ( {idme, nameme, xme, yme, scoreme} ) => {
 
-    // console.log( "you", {id, name, x, y, score} )
+    let id = idme; let name = nameme; let x = xme; let y = yme; let score = scoreme;
+   
     document.getElementById('agent.id').textContent = `agent.id ${id}`;
     document.getElementById('agent.name').textContent = `agent.name ${name}`;
     document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
-    
+    console.log( "you", {id, name, x, y, score} )
     // if ( params.get( "id" ) != id ) {
     //     params.set( "id", id )
     //     document.location.search = params.toString();

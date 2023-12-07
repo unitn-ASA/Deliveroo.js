@@ -1,12 +1,15 @@
 const { Server } = require('socket.io');
 const myGrid = require('./grid');
+const Game = require('./deliveroo/Game')
 const Authentication = require('./deliveroo/Authentication');
+const AuthenticationUnique = require('./deliveroo/AuthenticationUnique');
 const config = require('../config');
 const myClock = require('./deliveroo/Clock');
 
 
 
 const myAuthenticator = new Authentication( myGrid )
+const myAuthenticatorUnique = new AuthenticationUnique; 
 
 const io = new Server( {
     cors: {
@@ -15,7 +18,8 @@ const io = new Server( {
     }
 } );
 
-
+var game1 = new Game;
+var game2 = new Game;
 
 io.on('connection', (socket) => {
     
@@ -23,10 +27,19 @@ io.on('connection', (socket) => {
 
     /**
      * Authenticate socket on agent
-     */
-    const me = myAuthenticator.authenticate(socket);
+    */
+
+    var game = socket.handshake.headers['game'];
+    console.log('Socket entrata nel game:', game)
+
+    const me = myAuthenticatorUnique.authenticate(game1, socket)
+    game1.printAgents()
+
+    //const me = myAuthenticator.authenticate(socket);
+
     if ( !me ) return;
     socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
+
 
 
 
@@ -43,7 +56,7 @@ io.on('connection', (socket) => {
 
     /**
      * Emit map (tiles)
-     */
+     
     myGrid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {
         // console.log( 'emit tile', x, y, delivery, parcelSpawner );
         if (!blocked)
@@ -62,11 +75,11 @@ io.on('connection', (socket) => {
     let {width, height} = myGrid.getMapSize()
     socket.emit( 'map', width, height, tiles )
     
-
+    */ 
     
     /**
      * Emit me
-     */
+     
 
     // Emit you
     me.on( 'agent', ({id, name, x, y, score}) => {
@@ -76,11 +89,11 @@ io.on('connection', (socket) => {
     // console.log( 'emit you', id, name, x, y, score );
     socket.emit( 'you', {id, name, x, y, score} = me );
     
-
+    */
 
     /**
      * Emit sensing
-     */
+     
 
     // Parcels
     me.on( 'parcels sensing', (parcels) => {
@@ -96,6 +109,9 @@ io.on('connection', (socket) => {
     } );
     me.emitAgentSensing();
     
+    */
+
+    game1.join(socket, me)
 
 
     /**
