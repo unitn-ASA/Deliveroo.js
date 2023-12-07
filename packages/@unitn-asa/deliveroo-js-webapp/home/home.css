@@ -98,7 +98,7 @@ header {
 
 }
 
-#partecipaBtn {
+.partecipaBtn {
     background-color: #e6780e; /* Sfondo grigio chiaro */
     border: none;
     color: #f0f0f0; /* Colore del testo */
@@ -114,6 +114,6 @@ header {
     transition-duration: 0.4s;
 }
 
-#partecipaBtn:hover {
+.partecipaBtn:hover {
     background-color: #e6780a; /* Cambio colore al passaggio del mouse */
 }
