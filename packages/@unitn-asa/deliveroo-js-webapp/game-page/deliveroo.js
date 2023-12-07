@@ -644,6 +644,7 @@ function checkCookieForToken ( name ) {
 let params = (new URL(document.location)).searchParams;
 let name = params.get("name");
 
+
 // Redirect if no name specified in query
 if ( !name ) {
     name = prompt("Enter your name:", "");
@@ -658,7 +659,7 @@ var token = checkCookieForToken( name )
 var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
     extraHeaders: {
         'x-token': token,
-        'game': '1'
+        'game': params.get("game_number")
     },
     query: {
         name: params.get("name"),

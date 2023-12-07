@@ -118,6 +118,49 @@ class Game {
         } );
         me.emitAgentSensing();
 
+        /**
+         * GOD mod
+         */
+        if ( me.name == 'god' ) {
+
+            socket.on( 'create parcel', async (x, y) => {
+                console.log( 'create parcel', x, y )
+                this.grid.createParcel(x, y)
+            } );
+
+            socket.on( 'dispose parcel', async (x, y) => {
+                console.log( 'dispose parcel', x, y )
+                let parcels = Array.from(this.grid.getParcels()).filter( p => p.x == x && p.y == y );
+                for ( p of parcels)
+                this.grid.deleteParcel( p.id )
+                this.grid.emit( 'parcel' );
+            } );
+
+            socket.on( 'tile', async (x, y) => {
+                console.log( 'create/dispose tile', x, y )
+                let tile = this.grid.getTile(x, y)
+                
+                if ( !tile ) return;
+
+                if ( tile.blocked ) {
+                    tile.delivery = false;
+                    tile.parcelSpawner = true;
+                    tile.unblock();
+                } else if ( tile.parcelSpawner ) {
+                    tile.delivery = true;
+                    tile.parcelSpawner = false;
+                } else if ( tile.delivery ) {
+                    tile.delivery = false;
+                    tile.parcelSpawner = false;
+                } else {
+                    tile.delivery = false;
+                    tile.parcelSpawner = false;
+                    tile.block();
+                }
+            } );
+
+        }
+
     }
 
 

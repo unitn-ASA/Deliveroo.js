@@ -1,15 +1,11 @@
 const { Server } = require('socket.io');
-const myGrid = require('./grid');
-const Game = require('./deliveroo/Game')
-const Authentication = require('./deliveroo/Authentication');
+const ListaGames = require('./deliveroo/ListGames')
 const AuthenticationUnique = require('./deliveroo/AuthenticationUnique');
 const config = require('../config');
 const myClock = require('./deliveroo/Clock');
 
-
-
-const myAuthenticator = new Authentication( myGrid )
 const myAuthenticatorUnique = new AuthenticationUnique; 
+const myListaGames = new ListaGames;
 
 const io = new Server( {
     cors: {
@@ -18,29 +14,14 @@ const io = new Server( {
     }
 } );
 
-var game1 = new Game;
-var game2 = new Game;
-
 io.on('connection', (socket) => {
     
-
-
-    /**
-     * Authenticate socket on agent
-    */
-
+    console.log("Connessione ", socket + " al game ", socket.handshake.headers['game'] )
     var game = socket.handshake.headers['game'];
-    console.log('Socket entrata nel game:', game)
-
-    const me = myAuthenticatorUnique.authenticate(game1, socket)
-    game1.printAgents()
-
-    //const me = myAuthenticator.authenticate(socket);
-
+    const me = myAuthenticatorUnique.authenticate(myListaGames.lista[game], socket)
+    
     if ( !me ) return;
     socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
-
-
 
 
     /**
@@ -52,68 +33,14 @@ io.on('connection', (socket) => {
     }
     socket.emit( 'config', me.config )
 
-    
 
     /**
-     * Emit map (tiles)
-     
-    myGrid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {
-        // console.log( 'emit tile', x, y, delivery, parcelSpawner );
-        if (!blocked)
-            socket.emit( 'tile', x, y, delivery, parcelSpawner );
-        else
-            socket.emit( 'not_tile', x, y );
-    } );
-    let tiles = []
-    for (const {x, y, delivery, blocked, parcelSpawner} of myGrid.getTiles()) {
-        if ( !blocked ) {
-            socket.emit( 'tile', x, y, delivery, parcelSpawner )
-            tiles.push( {x, y, delivery, parcelSpawner} )
-        } else
-            socket.emit( 'not_tile', x, y );
-    }
-    let {width, height} = myGrid.getMapSize()
-    socket.emit( 'map', width, height, tiles )
-    
-    */ 
-    
-    /**
-     * Emit me
-     
-
-    // Emit you
-    me.on( 'agent', ({id, name, x, y, score}) => {
-        // console.log( 'emit you', id, name, x, y, score );
-        socket.emit( 'you', {id, name, x, y, score} );
-    } );
-    // console.log( 'emit you', id, name, x, y, score );
-    socket.emit( 'you', {id, name, x, y, score} = me );
-    
+     * Game Join
     */
+    myListaGames.join(game, socket, me)
+    console.log('Socket entrata nel game:', game)
 
-    /**
-     * Emit sensing
-     
-
-    // Parcels
-    me.on( 'parcels sensing', (parcels) => {
-        // console.log('emit parcels sensing', ...parcels);
-        socket.emit('parcels sensing', parcels )
-    } );
-    me.emitParcelSensing();
-
-    // Agents
-    me.on( 'agents sensing', (agents) => {
-        // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
-        socket.emit( 'agents sensing', agents );
-    } );
-    me.emitAgentSensing();
-    
-    */
-
-    game1.join(socket, me)
-
-
+      
     /**
      * Actions
      */
@@ -227,48 +154,6 @@ io.on('connection', (socket) => {
 
 
 
-    /**
-     * GOD mod
-     */
-    if ( me.name == 'god' ) {
-
-        socket.on( 'create parcel', async (x, y) => {
-            console.log( 'create parcel', x, y )
-            myGrid.createParcel(x, y)
-        } );
-
-        socket.on( 'dispose parcel', async (x, y) => {
-            console.log( 'dispose parcel', x, y )
-            let parcels = Array.from(myGrid.getParcels()).filter( p => p.x == x && p.y == y );
-            for ( p of parcels)
-                myGrid.deleteParcel( p.id )
-            myGrid.emit( 'parcel' );
-        } );
-
-        socket.on( 'tile', async (x, y) => {
-            console.log( 'create/dispose tile', x, y )
-            let tile = myGrid.getTile(x, y)
-            
-            if ( !tile ) return;
-
-            if ( tile.blocked ) {
-                tile.delivery = false;
-                tile.parcelSpawner = true;
-                tile.unblock();
-            } else if ( tile.parcelSpawner ) {
-                tile.delivery = true;
-                tile.parcelSpawner = false;
-            } else if ( tile.delivery ) {
-                tile.delivery = false;
-                tile.parcelSpawner = false;
-            } else {
-                tile.delivery = false;
-                tile.parcelSpawner = false;
-                tile.block();
-            }
-        } );
-
-    }
 
 });
 
