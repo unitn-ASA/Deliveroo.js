@@ -1,7 +1,5 @@
-const Agent = require('./Agent');
-const Grid = require('./Grid');
 const jwt = require('jsonwebtoken');
-const { uid } = require('uid');
+const {generateToken,decodeToken} = require('./Token')
 
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
 const AGENT_TIMEOUT = process.env.AGENT_TIMEOUT || 10000;
@@ -17,12 +15,18 @@ class AuthenticationUnique{
         // No token provided, generate new one
         if ( !token || token=="" ) { // no token provided, generate new one
 
-            id = uid();
-            name = socket.handshake.query.name;
-            token = jwt.sign( {id, name}, SUPER_SECRET );
+            token = generateToken(socket.handshake.headers['name'])
             socket.emit( 'token', token );
-            console.log( `Socket ${socket.id} connected as ${name}(${id}) to the game ${game.id}. New token created: ...${token.slice(-30)}` );
-
+            const decoded = decodeToken(token);
+            if ( decoded.id && decoded.name ) {
+                id = decoded.id
+                name = decoded.name
+                console.log( `Socket ${socket.id} connected as ${name}(${id}) to the game ${game.id}. With token: ...${token.slice(-30)}` );
+            }
+            else {
+                throw `Socket ${socket.id} log in failure. Token is verified but id or name are missing.`
+            }
+            
         }
 
         // Token provided
@@ -30,7 +34,7 @@ class AuthenticationUnique{
             try {
 
                 // Verify and decode payload
-                const decoded = jwt.verify( token, SUPER_SECRET );
+                const decoded = decodeToken(token);
                 if ( decoded.id && decoded.name ) {
                     id = decoded.id
                     name = decoded.name

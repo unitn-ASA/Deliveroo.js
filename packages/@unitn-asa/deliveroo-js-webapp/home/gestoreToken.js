@@ -3,8 +3,13 @@ const copyTokenBtn = document.getElementById('copyTokenBtn');
 const tokenBox = document.getElementById('tokenBox');
 
 generateTokenBtn.addEventListener('click', function() {
-    fetch('URL_del_server/per_generare_token', {
-        method: 'POST'
+    fetch('token', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'name': 'billi'
+        },
+   
     })
     .then(response => {
         if (response.ok) {

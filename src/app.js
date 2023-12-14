@@ -1,7 +1,7 @@
 const express = require('express');
-const { homedir } = require('os');
 const Path = require('path');
 const app = express();
+const {generateToken,decodeToken} = require('./deliveroo/Token');
 
 
 
@@ -26,5 +26,12 @@ const app = express();
 
 app.use('/game', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','dist') ));
 app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
+
+app.get('/token', (req, res) => {
+    const token = generateToken(req.header.name); 
+    console.log(req.header.name)
+    res.json({ token: token });
+})
+
 
 module.exports = app;
