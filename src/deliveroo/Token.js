@@ -8,8 +8,7 @@ function generateToken(gname){
     gid = uid();
     token = jwt.sign( {id:gid, name:gname}, SUPER_SECRET );
 
-    console.log('gg ', token);
-
+    console.log( 'Generato nuovo toke: ', token);
     return token
 
 }

@@ -1,11 +1,11 @@
 const { Server } = require('socket.io');
-const ListaGames = require('./deliveroo/ListGames')
+const Game = require('./deliveroo/Game')
 const AuthenticationUnique = require('./deliveroo/AuthenticationUnique');
 const config = require('../config');
 const myClock = require('./deliveroo/Clock');
 
 const myAuthenticatorUnique = new AuthenticationUnique; 
-const myListaGames = new ListaGames;
+const listagames = [];
 
 const io = new Server( {
     cors: {
@@ -14,11 +14,21 @@ const io = new Server( {
     }
 } );
 
+
+//GAmes di default 
+var game0 = new Game;
+var game1 = new Game;
+listagames.push(game0);
+listagames.push(game1);
+console.log("Lista Games: ", listagames);
+
+
+
 io.on('connection', (socket) => {
     
-    console.log("Connessione ", socket + " al game ", socket.handshake.headers['game'] )
-    var game = socket.handshake.headers['game'];
-    const me = myAuthenticatorUnique.authenticate(myListaGames.lista[game], socket)
+    console.log("\n Connessione socket:", socket.id + " al game:", socket.handshake.headers['game'] )
+    var game = listagames[socket.handshake.headers['game']];
+    const me = myAuthenticatorUnique.authenticate(game, socket)
     
     if ( !me ) return;
     socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
@@ -37,8 +47,7 @@ io.on('connection', (socket) => {
     /**
      * Game Join
     */
-    myListaGames.join(game, socket, me)
-    console.log('Socket entrata nel game:', game)
+    game.join(socket, me)
 
       
     /**

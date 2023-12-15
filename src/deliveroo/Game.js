@@ -161,6 +161,8 @@ class Game {
 
         }
 
+        console.log('Socket ', socket.id + ' entrata nel game:', this.id)
+
     }
 
 

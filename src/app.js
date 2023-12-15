@@ -29,7 +29,6 @@ app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn
 
 app.get('/token', (req, res) => {
     const token = generateToken(req.headers['nome']); 
-    console.log(req.headers['nome'])
     res.json({ token: token });
 })
 
