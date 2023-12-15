@@ -28,8 +28,8 @@ app.use('/game', express.static( Path.join(__dirname, '..', 'node_modules', '\@u
 app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 
 app.get('/token', (req, res) => {
-    const token = generateToken(req.header.name); 
-    console.log(req.header.name)
+    const token = generateToken(req.headers['nome']); 
+    console.log(req.headers['nome'])
     res.json({ token: token });
 })
 

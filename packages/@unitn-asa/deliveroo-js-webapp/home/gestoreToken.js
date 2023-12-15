@@ -1,14 +1,25 @@
 const generateTokenBtn = document.getElementById('generateTokenBtn');
 const copyTokenBtn = document.getElementById('copyTokenBtn');
 const tokenBox = document.getElementById('tokenBox');
+const nomeInput = document.getElementById('nome');
 
 generateTokenBtn.addEventListener('click', function() {
+
+    // Prendo e controllo il nome inserito
+    const nome = nomeInput.value.trim();
+    if (nome === '') {
+        nomeInput.classList.add('error');
+        return;
+    }
+    nomeInput.classList.remove('error');
+
+
     fetch('token', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'name': 'billi'
-        },
+            'nome': nome
+        }
    
     })
     .then(response => {

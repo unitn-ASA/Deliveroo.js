@@ -117,3 +117,17 @@ header {
 .partecipaBtn:hover {
     background-color: #e6780a; /* Cambio colore al passaggio del mouse */
 }
+
+/* Stile per l'animazione di errore */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-10px); }
+    80% { transform: translateX(10px); }
+    100% { transform: translateX(0); }
+}
+.error {
+    animation: shake 0.6s;
+    background-color: crimson;
+}
