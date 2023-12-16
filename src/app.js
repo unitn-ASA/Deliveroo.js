@@ -3,6 +3,26 @@ const Path = require('path');
 const app = express();
 const {generateToken,decodeToken} = require('./deliveroo/Token');
 
+const gamesRoutes = require('./routes/games');
+
+// Middleware per gestire i dati JSON e form-urlencoded
+app.use(express.json());
+
+app.use('/play', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','dist') ));
+app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
+
+app.use('/games', gamesRoutes);
+
+app.get('/token', (req, res) => {
+    const token = generateToken(req.headers['nome']); 
+    res.json({ token: token });
+})
+
+
+module.exports = app;
+
+
+
 
 
 /**
@@ -22,15 +42,3 @@ const {generateToken,decodeToken} = require('./deliveroo/Token');
 //     var io = req.app.get('socketio');
 //     io.emit('hi!');
 // } );
-
-
-app.use('/game', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','dist') ));
-app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
-
-app.get('/token', (req, res) => {
-    const token = generateToken(req.headers['nome']); 
-    res.json({ token: token });
-})
-
-
-module.exports = app;

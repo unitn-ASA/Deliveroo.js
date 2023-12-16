@@ -5,8 +5,8 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background-color: black; /* Imposta lo sfondo nero per l'intera pagina */
-    color: white; /* Cambia il colore del testo per essere leggibile sullo sfondo scuro */
+    background-color: black; 
+    color: white; 
 }
 
 header {
@@ -17,7 +17,7 @@ header {
 .container {
     display: flex;
     flex: 1;
-    background-color: black; /* Modifica dello sfondo in nero */
+    background-color: black;
 }
 
 .main-content {
@@ -30,8 +30,8 @@ header {
     background-color: black; 
     padding: 20px;
     height: 100%;
-    border-left: 3px solid darkgray; /* Aggiunge un bordo sinistro di colore grigio scuro */
-   
+    border-left: 3px solid darkgray; 
+
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Allinea il resto dei contenuti a destra */
@@ -44,30 +44,30 @@ header {
 }
 
 #generateTokenBtn {
-    background-color: #4CAF50; /* Sfondo verde */
+    background-color: #4CAF50; 
     border: none;
-    color: white; /* Testo bianco */
+    color: white; 
     padding: 5px 10px;
     margin-bottom: 10px; 
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
-    border-radius: 5px; /* Angoli arrotondati */
+    border-radius: 5px; 
     cursor: pointer;
     transition-duration: 0.4s; /* Effetto transizione */
 }
 
 #generateTokenBtn:hover {
-    background-color: #45a049; /* Cambio colore al passaggio del mouse */
-    color: white; /* Testo bianco */
+    background-color: #45a049; 
+    color: white; 
 }
 
 /* Stile per il pulsante "Copia Token" */
 #copyTokenBtn {
-    background-color: #e0e0e0; /* Sfondo grigio chiaro */
+    background-color: #e0e0e0; 
     border: none;
-    color: #333; /* Colore del testo */
+    color: #333; 
     padding: 5px 10px;
     margin-bottom: 10px; 
     margin-left: 20px;
@@ -81,7 +81,7 @@ header {
 }
 
 #copyTokenBtn:hover {
-    background-color: #d0d0d0; /* Cambio colore al passaggio del mouse */
+    background-color: #d0d0d0; 
 }
 
 #tokenBox {
@@ -90,8 +90,8 @@ header {
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
-    width: 90%; /* Larghezza al 100% della colonna */
-    text-align: center;      /* Centra il testo */
+    width: 90%; 
+    text-align: center;      
     overflow: hidden;        /* Nasconde il testo che fuoriesce dal riquadro */
     white-space: nowrap;     /* Impedisce il wrap del testo */
     text-overflow: ellipsis; /* Aggiunge ellissi per il testo che fuoriesce */
@@ -99,9 +99,9 @@ header {
 }
 
 .partecipaBtn {
-    background-color: #e6780e; /* Sfondo grigio chiaro */
+    background-color: #e6780e; 
     border: none;
-    color: #f0f0f0; /* Colore del testo */
+    color: #f0f0f0; 
     padding: 5px 10px;
     margin-bottom: 10px; 
     margin-left: 20px;
@@ -115,7 +115,7 @@ header {
 }
 
 .partecipaBtn:hover {
-    background-color: #e6780a; /* Cambio colore al passaggio del mouse */
+    background-color: #bc5f02; 
 }
 
 /* Stile per l'animazione di errore */

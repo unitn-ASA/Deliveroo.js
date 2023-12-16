@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Homepage</title>
-    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="style/home.css">
+    <link rel="stylesheet" href="style/gameForm.css">
 </head>
 <body>
     <header>
@@ -16,6 +17,105 @@
             <p>lista delle partite pubbliche</p>
             <button class="partecipaBtn" game="0">Partecipa Partita 0</button>
             <button class="partecipaBtn" game="1">Partecipa Partita 1</button>
+
+        <!-- Form Start Game -->
+        <br><br></b><button id="createGameButton">Create New Game</button>
+
+        <!-- Contenitore per il form pop-up -->
+        <div id="gameFormContainer" class="modal">
+            <div class="modal-content">
+                <div class="close">&times;</div>
+                <!-- Form qui -->
+                <form id="gameForm">
+
+                    <div style="text-align: center;">
+                        <div style="display: inline-block;">
+                            <h1 style="font-weight: bolder; display: inline-block;">NEW GAME</h1>
+                            <span> Inserisci i vari parametri</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Input per MAP_FILE -->
+                    <label for="mapFile">MAP_FILE:</label>
+                    <select id="mapFile" name="mapFile">
+                        <option value="map1">Map 1</option>
+                        <option value="map2">Map 2</option>
+                    </select><br><br>
+
+                    <!-- Input per PARCELS_GENERATION -->
+                    <label for="parcelsInterval">PARCELS_GENERATION_INTERVAL:</label>
+                    <select id="parcelsInterval" name="parcelsInterval">
+                        <option value="1s">1 second</option>
+                        <option value="2s" selected>2 second</option>
+                        <option value="5s">5 second</option>
+                        <option value="10s">10 second</option>
+                    </select>
+
+                    <label for="parcelsMax">PARCELS_MAX:</label>
+                    <input type="number" id="parcelsMax" name="parcelsMax" required>
+
+                    <label for="parcelsRewardAvg">PARCEL_REWARD_AVG:</label>
+                    <input type="number" id="parcelsRewardAvg" name="parcelsRewardAvg" required>
+
+                    <label for="parcelsRewardVariance">PARCEL_REWARD_VARIANCE:</label>
+                    <input type="number" id="parcelsRewardVariance" name="parcelsRewardVariance" required>
+
+                    <label for="parcelsDecadingInterval">PARCE_DECADING_INTERVALL:</label>
+                    <select id="parcelsDecadingInterval" name="parcelsDecadingInterval">
+                        <option value="infinite" selected>Costanti</option>
+                        <option value="1s">1 second</option>
+                        <option value="2s">2 second</option>
+                        <option value="5s">5 second</option>
+                        <option value="10s">10 second</option>
+                    </select><br>
+
+                    
+                    <!-- Input per BOT_AGENTS -->
+                    <label for="randomlyMovingAgents">RANDOMLY_MOVING_AGENTS:</label>
+                    <input type="number" id="randomlyMovingAgents" name="randomlyMovingAgents" required>
+
+                    <label for="randomlyAgentSpeed">RANDOM_AGENT_SPEED:</label>
+                    <select id="randomlyAgentSpeed" name="randomlyAgentSpeed">
+                        <option value="1s">1 second</option>
+                        <option value="2s" selected>2 second</option>
+                        <option value="5s">5 second</option>
+                        <option value="10s">10 second</option>
+                    </select><br><br>
+
+                    <!-- Input per OBSERVABLE-->
+                    <div id="inputContainerAgent">
+                        <label for="agentsObservationDistance">AGENTS_OBSERVATION_DISTANCE:</label>
+                        <input type="number" id="agentsObservationDistance" name="agentsObservationDistance" value=5>
+                        <span onclick="setInfinity('Agent')" class="returnButton">Inlimitato</span>
+                    </div>
+                    <div id="textContainerAgent" style="display: none;">
+                        <label for="agentsObservationDistance">AGENTS_OBSERVATION_DISTANCE:</label>
+                        <span>Inlimitato</span>
+                        <span onclick="returnToInput('Agent')">✕</span>
+                    </div>
+
+                    <div id="inputContainerParcels">
+                        <label for="parcelsObservationDistance">PARCELS_OBSERVATION_DISTANCE:</label>
+                        <input type="number" id="parcelsObservationDistance" name="parcelsObservationDistance" value=5>
+                        <span onclick="setInfinity('Parcels')" class="returnButton">Inlimitato</span>
+                    </div>
+                    <div id="textContainerParcels" style="display: none;">
+                        <label for="parcelsObservationDistance">PARCELS_OBSERVATION_DISTANCE:</label>
+                        <span>Inlimitato</span>
+                        <span onclick="returnToInput('Parcels')">✕</span>
+                    </div><br><br>
+                
+                    
+
+                    <!-- Bottone per inviare il form -->
+                    <div style="text-align: center;">
+                        <div style="display: inline-block;">
+                            <input type="submit" value="Submit">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
             
         </div>
         <aside class="sidebar">
@@ -33,8 +133,9 @@
         </aside>
     </div>
 
-    <script src="gestoreToken.js"></script>
-    <script src="gestorePartite.js"></script>
+    <script src="javaScript/gestoreNewGame.js"></script>
+    <script src="javaScript/gestorePlayGame.js"></script>
+    <script src="javaScript/gestoreToken.js"></script>
     
 </body>
 </html>

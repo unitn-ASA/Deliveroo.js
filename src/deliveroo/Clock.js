@@ -3,7 +3,7 @@ const config = require('../../config');
 
 
 
-const CLOCK = process.env.CLOCK || config.CLOCK || 50; // 40ms are 25frame/s; 50ms are 20frame/s;
+const CLOCK = 50; 
 
 
 
