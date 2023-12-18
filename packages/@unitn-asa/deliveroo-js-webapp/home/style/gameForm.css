@@ -33,7 +33,7 @@
 .modal-content {
     background-color: #8a6bbe;
     border-radius: 8px;
-    min-width: 500px; /* Larghezza minima del pop-up */
+    min-width: 600px; /* Larghezza minima del pop-up */
     max-height: 80%; /* Altezza massima del pop-up */
     overflow-y: auto; /* Abilita lo scrolling verticale se necessario */
     position: absolute;

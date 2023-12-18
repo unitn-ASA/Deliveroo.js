@@ -44,7 +44,14 @@ document.getElementById('gameForm').addEventListener('submit', function(event) {
       parcelsObservationDistance = document.getElementById('parcelsObservationDistance').value;
     }
     
-  
+    if (mapFile === '') {
+      document.getElementById('mapFile').classList.add('error');
+      return;
+    }else{
+      document.getElementById('mapFile').classList.remove('error');
+    }
+    
+
     // Crea un oggetto con i dati del form
     const formData = {
       MAP_FILE: mapFile,
