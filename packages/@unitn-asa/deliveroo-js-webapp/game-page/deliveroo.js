@@ -659,7 +659,7 @@ var token = checkCookieForToken( name )
 var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
     extraHeaders: {
         'x-token': token,
-        'game': params.get("game_number"),
+        'match': params.get("match"),
         'name': params.get("name")
     },
 } );

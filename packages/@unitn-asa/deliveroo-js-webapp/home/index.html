@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Homepage</title>
     <link rel="stylesheet" href="style/home.css">
-    <link rel="stylesheet" href="style/gameForm.css">
+    <link rel="stylesheet" href="style/matchForm.css">
     <link rel="stylesheet" href="style/selectMap.css">
 </head>
 <body>
@@ -16,22 +16,22 @@
             <!-- Contenuto principale qui -->
             <h2>PARTITE PUBBLICHE </h2>
             <p>lista delle partite pubbliche</p>
-            <button class="partecipaBtn" game="0">Partecipa Partita 0</button>
-            <button class="partecipaBtn" game="1">Partecipa Partita 1</button>
+            <button class="partecipaBtn" match="0">Partecipa Partita 0</button>
+            <button class="partecipaBtn" match="1">Partecipa Partita 1</button>
 
-        <!-- Form Start Game -->
-        <br><br></b><button id="createGameButton">Create New Game</button>
+        <!-- Form Start Match -->
+        <br><br></b><button id="createMatchButton">Create New Match</button>
 
         <!-- Contenitore per il form pop-up -->
-        <div id="gameFormContainer" class="modal">
+        <div id="matchFormContainer" class="modal">
             <div class="modal-content">
                 <div class="close">&times;</div>
                 <!-- Form qui -->
-                <form id="gameForm">
+                <form id="matchForm">
 
                     <div style="text-align: center;">
                         <div style="display: inline-block;">
-                            <h1 style="font-weight: bolder; display: inline-block;">NEW GAME</h1>
+                            <h1 style="font-weight: bolder; display: inline-block;">NEW MATCH</h1>
                         </div>
                     </div>
                     
@@ -119,7 +119,7 @@
         <aside class="sidebar">
             <!-- Contenuto della colonna destra -->
             <h2>Genera Token</h2>
-            <p>Inserisci un nome e genera un token da usare nei games</p><br><br>
+            <p>Inserisci un nome e genera un token da usare nei matchs</p><br><br>
             <label for="nome">Inserisci il tuo nome:</label>
             <input type="text" id="nome" name="nome"><br><br>
             <div class="bottoni">
@@ -143,8 +143,9 @@
 
     </div>
 
-    <script src="javaScript/gestoreNewGame.js"></script>
-    <script src="javaScript/gestorePlayGame.js"></script>
+    <script src="javaScript/generateMapRappresentation.js"></script>
+    <script src="javaScript/gestoreNewMatch.js"></script>
+    <script src="javaScript/gestorePlayMatch.js"></script>
     <script src="javaScript/gestoreToken.js"></script>
     <script src="javaScript/gestoreSelectMap.js"></script>
     

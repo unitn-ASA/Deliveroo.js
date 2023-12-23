@@ -1,38 +1,51 @@
 const Grid = require('./Grid');
 const randomlyMovingAgent = require('../workers/randomlyMovingAgent');
 const parcelsGenerator = require('../workers/parcelsGenerator');
-const config = require('../../config');
 
-class Game {
+class Match {
 
     static #lastId = 0;
+    static listagames =[]   //lista di tutti i game attivi 
 
     id
     grid
+    options = {}    // Opzioni per configurare la partita, essi sono:
+
+        /*  mappa: nome della mappa della partita
+            random_mov_agents: numero di boot
+            random_agent_speed: la velocità dei boot
+            parcels_generation_interval: intervallo di tempo tra lo spawn dei pacchi
+            parcels_max: numero massimo di pacchi, 
+            parcel_rewar_avg: media del valore di un pacco
+            parcel_reward_variance: varianza del valore di un pacco dalla media
+            parcel_decading_interval: intervallo di tempo per cui il valore del pacco decrementi di 1
+            agents_observation_distance: la distanza in cui un agente riesce a vedere altri agenti --> usato in registerSocketAndGetAgent e a sua volta in Agents
+            parcels_observation_distance: la distanza in cui un agente riesce a vedere altri pacchi --> usato in registerSocketAndGetAgent e a sua volta in Agents
+            movement_duration: durata di uno singolo spostamento dell'agente --> usato in registerSocketAndGetAgent e a sua volta in Agents
+        */
 
      /**
      * @type {Map<string,{agent:Agent,sockets:Set<Socket>}>} idToAgentAndSockets
      */
      idToAgentAndSockets = new Map();
 
-    constructor(mappa, random_mov_agents){
+    constructor(options)  {
 
-        this.id = Game.#lastId;
-        Game.#lastId++;
+        this.id = Match.#lastId;
+        Match.#lastId++;
 
-        const MAP_FILE = mappa || config.MAP_FILE || process.env.MAP_FILE || "default_map";
-        const RANDOMLY_MOVING_AGENTS = random_mov_agents || config.RANDOMLY_MOVING_AGENTS || process.env.RANDOMLY_MOVING_AGENTS || 0;
-
-        const map = require( '../../levels/maps/' + MAP_FILE );
+        this.options = options
+        const map = require( '../../levels/maps/' + this.options.mappa );
         this.grid = new Grid( map );
 
-        parcelsGenerator( this.grid );
+        parcelsGenerator( this.grid, this.options.parcels_generation_interval, this.options.parcels_max, this.options.parcel_rewar_avg, this.options.parcel_reward_variance,  this.options.parcel_decading_interval);
 
-        for (let i = 0; i < RANDOMLY_MOVING_AGENTS; i++) {
-            randomlyMovingAgent( this.grid );
+        for (let i = 0; i < this.options.random_mov_agents; i++) {
+            randomlyMovingAgent( this.grid, this.options.random_agent_speed );
         }
 
-        console.log("Avviato game numero: ", this.id, " con mappa: ", MAP_FILE);
+        Match.listagames.push(this);
+        console.log("Avviato game numero: ", this.id, " con opzioni: ", this.options);
 
     }
 
@@ -51,9 +64,10 @@ class Game {
         entry.sockets.add( socket );
 
         // Get or create agent for id
+        var config = { AGENTS_OBSERVATION_DISTANCE: this.options.agents_observation_distance, PARCELS_OBSERVATION_DISTANCE: this.options.parcels_observation_distance, MOVEMENT_DURATION: this.options.movement_duration}
         var me = this.grid.getAgent( id );
         if ( ! me ) {
-            me = this.grid.createAgent( {id: id, name} );
+            me = this.grid.createAgent( {id: id, name}, config );
             me.score = db.get( id ).score;
             me.on( 'score', (me) => entry.score = me.score )
         }
@@ -161,7 +175,7 @@ class Game {
 
         }
 
-        console.log('Socket ', socket.id + ' entrata nel game:', this.id)
+        console.log('Socket ', socket.id + ' entrata nel match:', this.id)
 
     }
 
@@ -169,4 +183,4 @@ class Game {
 
 }
 
-module.exports = Game;
+module.exports = Match;

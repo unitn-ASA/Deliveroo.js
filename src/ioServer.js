@@ -1,11 +1,9 @@
 const { Server } = require('socket.io');
-const Game = require('./deliveroo/Game')
+const Match = require('./deliveroo/Match')
 const AuthenticationUnique = require('./deliveroo/AuthenticationUnique');
-const config = require('../config');
 const myClock = require('./deliveroo/Clock');
 
 const myAuthenticatorUnique = new AuthenticationUnique; 
-const listagames = [];
 
 const io = new Server( {
     cors: {
@@ -16,19 +14,47 @@ const io = new Server( {
 
 
 //GAmes di default 
-var game0 = new Game;
-var game1 = new Game;
-listagames.push(game0);
-listagames.push(game1);
-console.log("Lista Games: ", listagames);
+
+var options1 = {
+    mappa:'loops',
+    random_mov_agents: 0,
+    random_agent_speed: '10s',
+    parcels_generation_interval: '1s',
+    parcels_max: 'inifinte',
+    parcel_rewar_avg: 300,
+    parcel_reward_variance: 10,
+    parcel_decading_interval: 'infinite',
+    agents_observation_distance: 10,
+    parcels_observation_distance: 10,
+    movement_duration: 400
+}
+
+var options2 = {
+    mappa:'loops',
+    random_mov_agents: 0,
+    random_agent_speed: '10s',
+    parcels_generation_interval: '1s',
+    parcels_max: 'inifinte',
+    parcel_rewar_avg: 300,
+    parcel_reward_variance: 10,
+    parcel_decading_interval: '1s', 
+    agents_observation_distance: 5,
+    parcels_observation_distance: 5,
+    movement_duration: 50
+}
+
+
+var game0 = new Match(options1);
+var game1 = new Match(options2);
+console.log("Lista Matchs: ", Match.listagames);
 
 
 
 io.on('connection', (socket) => {
     
-    console.log("\n Connessione socket:", socket.id + " al game:", socket.handshake.headers['game'] )
-    var game = listagames[socket.handshake.headers['game']];
-    const me = myAuthenticatorUnique.authenticate(game, socket)
+    console.log("\n Connessione socket:", socket.id + " al match:", socket.handshake.headers['match'] )
+    var match = Match.listagames[socket.handshake.headers['match']];
+    const me = myAuthenticatorUnique.authenticate(match, socket)
     
     if ( !me ) return;
     socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
@@ -47,7 +73,7 @@ io.on('connection', (socket) => {
     /**
      * Game Join
     */
-    game.join(socket, me)
+    match.join(socket, me)
 
       
     /**

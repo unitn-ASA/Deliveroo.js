@@ -1,12 +1,11 @@
 const jwt = require('jsonwebtoken');
 const {generateToken,decodeToken} = require('./Token')
 
-const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
 const AGENT_TIMEOUT = process.env.AGENT_TIMEOUT || 10000;
 
 class AuthenticationUnique{
 
-    authenticate ( game , socket ) {
+    authenticate ( match , socket ) {
     
         var id;
         var name;
@@ -21,7 +20,7 @@ class AuthenticationUnique{
             if ( decoded.id && decoded.name ) {
                 id = decoded.id
                 name = decoded.name
-                console.log( `Socket ${socket.id} connected as ${name}(${id}) to the game ${game.id}. With token: ...${token.slice(-30)}` );
+                console.log( `Socket ${socket.id} connected as ${name}(${id}) to the match ${match.id}. With token: ...${token.slice(-30)}` );
             }
             else {
                 throw `Socket ${socket.id} log in failure. Token is verified but id or name are missing.`
@@ -38,7 +37,7 @@ class AuthenticationUnique{
                 if ( decoded.id && decoded.name ) {
                     id = decoded.id
                     name = decoded.name
-                    console.log( `Socket ${socket.id} connected as ${name}(${id}) to the game ${game.id}. With token: ...${token.slice(-30)}` );
+                    console.log( `Socket ${socket.id} connected as ${name}(${id}) to the match ${match.id}. With token: ...${token.slice(-30)}` );
                 }
                 else {
                     throw `Socket ${socket.id} log in failure. Token is verified but id or name are missing.`
@@ -54,7 +53,7 @@ class AuthenticationUnique{
         }
 
         // Agent
-        const me = game.registerSocketAndGetAgent( id, name, socket );
+        const me = match.registerSocketAndGetAgent( id, name, socket );
     
         
 
@@ -63,7 +62,7 @@ class AuthenticationUnique{
          */
         socket.on( 'disconnect', () => {
 
-            const tokenToSockets = game.idToAgentAndSockets;
+            const tokenToSockets = match.idToAgentAndSockets;
 
             console.log( `Socket ${socket.id} disconnected from agent ${me.name}(${me.id})` );
             tokenToSockets.get( id ).sockets.delete( socket );
@@ -72,7 +71,7 @@ class AuthenticationUnique{
                 new Promise( res => setTimeout(res, AGENT_TIMEOUT) ).then( () => {
                     if ( tokenToSockets.get( id ) && tokenToSockets.get( id ).sockets.size == 0 ) {
                         console.log( `Agent ${me.name}(${me.id}) deleted after 10 seconds of no connections from token ...${token.slice(-30)}` );
-                        game.grid.deleteAgent ( me );
+                        match.grid.deleteAgent ( me );
                         // tokenToSockets.delete( id );
                     }
                 } );

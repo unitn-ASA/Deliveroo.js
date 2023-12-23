@@ -3,16 +3,11 @@ const Xy =  require('./Xy')
 const Grid =  require('./Grid')
 const Tile =  require('./Tile');
 const Parcel =  require('./Parcel');
-const config =  require('../../config');
 const Postponer = require('./Postponer');
 const myClock = require('./Clock');
 
 
-
 const MOVEMENT_STEPS = 1;
-// const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
-// const AGENTS_OBSERVATION_DISTANCE = process.env.AGENTS_OBSERVATION_DISTANCE || config.AGENTS_OBSERVATION_DISTANCE || 5;
-// const PARCELS_OBSERVATION_DISTANCE = process.env.PARCELS_OBSERVATION_DISTANCE || config.PARCELS_OBSERVATION_DISTANCE || 5;
 
 
 /**
@@ -47,7 +42,7 @@ class Agent extends Xy {
      * @param {Grid} grid
      * @param {{id:number,name:string}} options
      */
-    constructor ( grid, options ) {
+    constructor ( grid, options, config ) {
         
         {
             // let x, y, found=false;

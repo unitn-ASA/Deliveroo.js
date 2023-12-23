@@ -1,17 +1,11 @@
 const Grid = require('../deliveroo/Grid');
 const myClock =  require('../deliveroo/Clock');
-const config =  require('../../config');
-
-
-
-const RANDOM_AGENT_SPEED = process.env.RANDOM_AGENT_SPEED || config.RANDOM_AGENT_SPEED || '2s'; // move frequency
-
 
 
 /**
  * @param {Grid} myGrid 
  */
-module.exports = function ( myGrid, name ) {
+module.exports = function ( myGrid, random_agent_speed, name ) {
 
     async function randomlyMove ( agent ) {
             
@@ -22,7 +16,7 @@ module.exports = function ( myGrid, name ) {
             
             const moved = await agent[ actions[index] ](); // try moving
             if (moved)
-                await new Promise( res => myClock.once( RANDOM_AGENT_SPEED, res ) ); // wait before continue
+                await new Promise( res => myClock.once( random_agent_speed, res ) ); // wait before continue
             else
                 await new Promise( res => setImmediate( res ) ); // if agent is stucked, this avoid blocking the whole program
 

@@ -3,7 +3,7 @@ const Path = require('path');
 const app = express();
 const {generateToken,decodeToken} = require('./deliveroo/Token');
 
-const gamesRoutes = require('./routes/games');
+const matchsRoutes = require('./routes/match');
 const mapsRoutes = require('./routes/maps');
 
 // Middleware per gestire i dati JSON e form-urlencoded
@@ -12,7 +12,7 @@ app.use(express.json());
 app.use('/play', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','dist') ));
 app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 
-app.use('/games', gamesRoutes);
+app.use('/matchs', matchsRoutes);
 app.use('/maps', mapsRoutes);
 
 app.get('/token', (req, res) => {

@@ -1,4 +1,4 @@
-#createGameButton{
+#createMatchButton{
     background-color: #8a6bbe; 
     border: none;
     color: #f0f0f0; 
@@ -14,7 +14,7 @@
     transition-duration: 0.4s;
 }
 
-#createGameButton:hover {
+#createMatchButton:hover {
     background-color: #40256f; 
 }
 

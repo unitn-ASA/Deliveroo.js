@@ -1,6 +1,4 @@
 const Observable =  require('./Observable')
-const config = require('../../config');
-
 
 
 const CLOCK = 50; 

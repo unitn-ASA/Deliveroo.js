@@ -81,3 +81,8 @@
 .black {
     background-color: black;
 }
+
+.map_options{
+    display: flex;
+    gap: 10px; 
+}
