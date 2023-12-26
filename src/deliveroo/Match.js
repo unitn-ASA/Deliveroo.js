@@ -1,11 +1,14 @@
 const Grid = require('./Grid');
 const randomlyMovingAgent = require('../workers/randomlyMovingAgent');
 const parcelsGenerator = require('../workers/parcelsGenerator');
+const { uid } = require('uid'); 
 
 class Match {
 
-    static #lastId = 0;
-    static listagames =[]   //lista di tutti i game attivi 
+    /**
+     * @type {Map<string, Match>} mapMatch
+     */
+    static mapMatch = new Map()  //lista di tutti i game attivi 
 
     id
     grid
@@ -29,10 +32,11 @@ class Match {
      */
      idToAgentAndSockets = new Map();
 
-    constructor(options)  {
+    constructor(options, id=null)  {
 
-        this.id = Match.#lastId;
-        Match.#lastId++;
+        if(id == null) { 
+            this.id = uid(6) 
+        } else { this.id = id }
 
         this.options = options
         const map = require( '../../levels/maps/' + this.options.mappa );
@@ -44,7 +48,7 @@ class Match {
             randomlyMovingAgent( this.grid, this.options.random_agent_speed );
         }
 
-        Match.listagames.push(this);
+        Match.mapMatch.set(this.id,this)
         console.log("Avviato game numero: ", this.id, " con opzioni: ", this.options);
 
     }

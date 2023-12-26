@@ -1,7 +1,7 @@
 const Grid = require('../deliveroo/Grid');
 const Tile =  require('../deliveroo/Tile');
 const myClock =  require('../deliveroo/Clock');
-const config =  require('../../config');
+
 
 
 //const PARCELS_MAX = process.env.PARCELS_MAX || config.PARCELS_MAX || 'infinite';

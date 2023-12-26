@@ -44,16 +44,18 @@ var options2 = {
 }
 
 
-var game0 = new Match(options1);
-var game1 = new Match(options2);
-console.log("Lista Matchs: ", Match.listagames);
+var game0 = new Match(options1,'0');
+var game1 = new Match(options2,'1');
+console.log("Lista Matchs: ", Match.mapMatch);
+console.log("prova: ", Match.mapMatch.get('0') )
 
 
 
 io.on('connection', (socket) => {
     
     console.log("\n Connessione socket:", socket.id + " al match:", socket.handshake.headers['match'] )
-    var match = Match.listagames[socket.handshake.headers['match']];
+    var match = Match.mapMatch.get(socket.handshake.headers['match']);
+    console.log("prova: ", Match.mapMatch.get(0) )
     const me = myAuthenticatorUnique.authenticate(match, socket)
     
     if ( !me ) return;

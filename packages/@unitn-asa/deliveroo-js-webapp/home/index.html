@@ -13,17 +13,28 @@
     </header>
     <div class="container">
         <div class="main-content">
-            <!-- Contenuto principale qui -->
-            <h2>PARTITE PUBBLICHE </h2>
-            <p>lista delle partite pubbliche</p>
-            <button class="partecipaBtn" match="0">Partecipa Partita 0</button>
-            <button class="partecipaBtn" match="1">Partecipa Partita 1</button>
+            
+            <h2>PUBLIC MATCH </h2>
+            <p>List of Public Match</p>
+            <button class="partecipaBtn" match="0">Join Match 0</button>
+            <button class="partecipaBtn" match="1">Join Match 1</button>
 
-        <!-- Form Start Match -->
-        <br><br></b><button id="createMatchButton">Create New Match</button>
+            <br><br><br><br>
 
-        <!-- Contenitore per il form pop-up -->
-        <div id="matchFormContainer" class="modal">
+            <h2>PRIVATE MATCH </h2>
+            <p>Joint a Specific Match</p>
+            <form id="formPrivateMatch">
+                <input type="text" id="matchId" name="matchId" required>
+                <button type="submit" id="submitPrivateMatchButton">Join Match</button>
+            </form>
+
+
+            <br><br><br><br>
+
+            <h2>START NEW MATCH </h2>
+            <button id="createMatchButton">Create New Match</button>
+            <!-- Contenitore per il form pop-up -->
+            <div id="matchFormContainer" class="modal">
             <div class="modal-content">
                 <div class="close">&times;</div>
                 <!-- Form qui -->
@@ -113,9 +124,10 @@
                     </div>
                 </form>
             </div>
-        </div>
+            </div>
             
         </div>
+
         <aside class="sidebar">
             <!-- Contenuto della colonna destra -->
             <h2>Genera Token</h2>

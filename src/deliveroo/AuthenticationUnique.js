@@ -11,6 +11,7 @@ class AuthenticationUnique{
         var name;
         var token = socket.handshake.headers['x-token'];
 
+    
         // No token provided, generate new one
         if ( !token || token=="" ) { // no token provided, generate new one
 
