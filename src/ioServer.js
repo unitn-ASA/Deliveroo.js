@@ -52,10 +52,16 @@ console.log("prova: ", Match.mapMatch.get('0') )
 
 
 io.on('connection', (socket) => {
-    
+
+    // stampo la rihiesta di connessione     
     console.log("\n Connessione socket:", socket.id + " al match:", socket.handshake.headers['match'] )
+    if(socket.handshake.headers['x-token']){
+        console.log("con token: ", socket.handshake.headers['x-token'])
+    }else{
+        console.log("senza token")
+    }
+
     var match = Match.mapMatch.get(socket.handshake.headers['match']);
-    console.log("prova: ", Match.mapMatch.get(0) )
     const me = myAuthenticatorUnique.authenticate(match, socket)
     
     if ( !me ) return;

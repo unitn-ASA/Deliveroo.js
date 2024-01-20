@@ -669,7 +669,7 @@ var me = getOrCreateAgent('loading', name, 0, 0, 0);
 // me.mesh.add( camera );
 
 socket.on( "connect", () => {
-    console.log( "connect", socket.id, token ); // x8WIv7-mJelg7on_ALbx
+    console.log( "connect", socket.id, token ); 
     document.getElementById('socket.id').textContent = `socket.id ${socket.id}`
 });
 
@@ -700,12 +700,10 @@ socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
 } );
 
 socket.on( 'not_tile', (x, y) => {
-    console.log( 'not_tile', x, y )
     getTile(x, y).blocked = true;
 });
 
 socket.on( "tile", (x, y, delivery, parcelSpawner) => {
-    console.log( "tile", x, y, delivery )
     getTile(x, y).delivery = delivery;
     getTile(x, y).blocked = false;
     getTile(x, y).parcelSpawner = parcelSpawner;
