@@ -13,22 +13,10 @@ class AuthenticationUnique{
 
     
         // No token provided, generate new one
-        if ( !token || token=="" ) { // no token provided, generate new one
+        if ( !token || token=="" ) { // no token provided
 
-            token = generateToken(socket.handshake.headers['name'])
-            socket.emit( 'token', token );
-            const decoded = decodeToken(token);
-            if ( decoded.id && decoded.name ) {
-                id = decoded.id
-                name = decoded.name
-                console.log( `Socket ${socket.id} connected as ${name}(${id}) to the match ${match.id}. With token: ...${token.slice(-30)}` );
-            }
-            else {
-                throw `Socket ${socket.id} log in failure. Token is verified but id or name are missing.`
-            }
-            
+            console.log(`Socket ${socket.id} log in failure. Token is verified but id or name are missing.`)   
         }
-
         // Token provided
         else {
             try {

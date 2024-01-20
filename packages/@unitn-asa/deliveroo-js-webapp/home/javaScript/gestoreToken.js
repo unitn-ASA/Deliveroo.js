@@ -13,7 +13,6 @@ generateTokenBtn.addEventListener('click', function() {
     }
     nomeInput.classList.remove('error');
 
-
     fetch('token', {
         method: 'GET',
         headers: {
@@ -30,12 +29,12 @@ generateTokenBtn.addEventListener('click', function() {
     })
     .then(data => {
         // Mostra il token ricevuto nel riquadro
-        tokenBox.textContent = data.token; // Supponendo che il token ricevuto sia nel campo 'token'
+        tokenBox.textContent = data.token; 
         addCopyTokenButton();
     })
     .catch(error => {
         console.error('Si è verificato un errore:', error);
-        // In caso di errore, mostra un messaggio appropriato o mantieni il riquadro vuoto
+        // In caso di errore mostra un messaggio 
         tokenBox.textContent = 'Nessun token disponibile al momento.';
         addCopyTokenButton();
     });

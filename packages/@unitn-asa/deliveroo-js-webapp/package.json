@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "events": "^3.3.0",
+    "jsonwebtoken": "^9.0.2",
     "node-fetch": "^3.3.2",
     "socket.io-client": "^4.7.2",
     "three": "^0.151.3"
