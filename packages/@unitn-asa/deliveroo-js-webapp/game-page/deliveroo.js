@@ -86,12 +86,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         }
     } );
 
-    // for (var x=0; x<10; x++) {
-    //     for (var y=0; y<10; y++) {
-    //         addTile(x, y);
-    //     }
-    // }
-
     const camTarget = new THREE.Vector3(0,0,0);
 
     const animator = new EventEmitter();
@@ -503,9 +497,25 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         parcels.delete( id );
     }
 
+    // funzione per confrontare due colore THREE.Color per evitare colori uguali o troppo simili
+    function areColorsSimilar(color1, color2) {
+        //console.log("Colore 1:", color1 + " colore 2: ", color2);
+        let tolerance = 0.1
+        const deltaR = Math.abs(color1.r - color2.r);
+        const deltaG = Math.abs(color1.g - color2.g);
+        const deltaB = Math.abs(color1.b - color2.b);
+      
+        //console.log("Return: ", deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance);
+        return deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance;
+        
+    }
+
 
 
     class Agent extends onGrid {
+
+        /** @type {Map<string,THREE.Color>} Map team to color */
+        static teamsAndColors = new Map();
 
         /** @type {string} Map id to parcel */
         id
@@ -553,9 +563,35 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         }
 
         constructor (id, name, team, x, y, score) {
+
+            console.log("Costruzione Agente Name:", name);
             const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
-            var color = new THREE.Color( 0xffffff );
-            color.setHex( Math.random() * 0xffffff );
+            
+            // per il colore tutti gli agenti appartenti ad un team hanno stesso colore
+            var color;
+
+            if(!Agent.teamsAndColors){
+                console.log("MAppa Nulla")
+            }
+
+            // verifico se l'agente appartiene ad un team e che il team sia già stato inserito nella mappa Teams-Colori
+            if(team != "" && Agent.teamsAndColors.has(team) ){     
+                color = Agent.teamsAndColors.get(team)  // se il team è gia presente assegno all'agente il colore del suo team
+            }else{                                                                             
+                let coloriGiaUsati = Array.from(Agent.teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
+                console.log("Colori: ", Agent.teamsAndColors)
+                
+                do{
+                    color = new THREE.Color( 0xffffff );        
+                    color.setHex( Math.random() * 0xffffff );
+
+                }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // ripeto la generazione random del colore finchè non è simile a nessun colore gia usato
+                
+                // Aggiorno teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
+                if(team == ""){ Agent.teamsAndColors.set(id,color)}
+                else{ Agent.teamsAndColors.set(team,color)}   
+            }
+                       
             const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
             const mesh = new THREE.Mesh( geometry, material );
             scene.add( mesh );
@@ -751,12 +787,13 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         }
 
         for ( const sensed_p of sensed ) {
-            const {id, name, x, y, score} = sensed_p;
-            var agent = getOrCreateAgent(id, name, x, y, score)
+            const {id, name, team, x, y, score} = sensed_p;
+            var agent = getOrCreateAgent(id, name, team, x, y, score)
             agent.name = name;
             agent.opacity = 1;
             agent.x = x;
             agent.y = y;
+            agent.team = team;
             if ( agent.score != score ) {
                 agent.score = score;
                 updateLeaderboard( agent );

@@ -114,8 +114,8 @@ class Agent extends Xy {
         var agents = [];
         for ( let agent of this.#grid.getAgents() ) {
             if ( agent != this && !( Xy.distance(agent, this) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                const {id, name, x, y, score} = agent
-                agents.push( {id, name, x, y, score} )
+                const {id, name, team, x, y, score} = agent
+                agents.push( {id, name, team, x, y, score} )
             }
         }
         this.emitOnePerTick( 'agents sensing', agents )
