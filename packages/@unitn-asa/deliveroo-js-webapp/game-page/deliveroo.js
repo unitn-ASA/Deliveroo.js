@@ -6,7 +6,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { default as EventEmitter } from 'events';
 
 
-export function goToMatch(paramMatch, paramName, paramToken){
+export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //--------------------------------------------------- GESTIONE SCENA -----------------------------------------------------------------------
@@ -531,7 +531,7 @@ export function goToMatch(paramMatch, paramName, paramToken){
         }
         set name (name) {
             this.#name = name
-            this.text = this.#name+'\n'+this.#score;
+            this.text = this.#name+'\n'+this.#score+'\n'+this.#team;
         }
 
         #score = 0
@@ -540,10 +540,19 @@ export function goToMatch(paramMatch, paramName, paramToken){
         }
         set score (score) {
             this.#score = score
-            this.text = this.#name+'\n'+this.#score;
+            this.text = this.#name+'\n'+this.#score+'\n'+this.#team;
         }
 
-        constructor (id, name, x, y, score) {
+        #team =""
+        get team () {
+            return this.#team
+        }
+        set team (t) {
+            this.#team = t
+            this.text = this.#name+'\n'+this.#score+'\n'+this.#team;
+        }
+
+        constructor (id, name, team, x, y, score) {
             const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
             var color = new THREE.Color( 0xffffff );
             color.setHex( Math.random() * 0xffffff );
@@ -556,6 +565,7 @@ export function goToMatch(paramMatch, paramName, paramToken){
             this.id = id
             this.score = score
             this.name = name
+            this.team = team
         }
 
     }
@@ -572,15 +582,17 @@ export function goToMatch(paramMatch, paramName, paramToken){
      * 
      * @param {*} id 
      * @param {*} name 
+     * @param {*} team
      * @param {*} x 
      * @param {*} y 
      * @param {*} score 
      * @returns {Agent}
      */
-    function getOrCreateAgent ( id, name='unknown', x=-1, y=-1, score=-1 ) {
+
+    function getOrCreateAgent ( id, name='unknown', team='', x=-1, y=-1, score=-1 ) {
         var agent = agents.get(id);
         if ( !agent ) {
-            agent = new Agent(id, name, x, y, score);
+            agent = new Agent(id, name, team, x, y, score);
             agents.set( id, agent );
         }
         return agent;
@@ -591,7 +603,8 @@ export function goToMatch(paramMatch, paramName, paramToken){
         extraHeaders: {
             'x-token': paramToken,
             'match': paramMatch,
-            'name': paramName
+            'name': paramName,
+            'team': paramTeam
         }, 
     } ); 
 
@@ -617,11 +630,11 @@ export function goToMatch(paramMatch, paramName, paramToken){
         alert( `Reconnecting, press ok to continue.` );
     });
 
-    socket.on( "token", (token) => {
+    /*socket.on( "token", (token) => {
         prompt( `Welcome, ${name}, here is your new token. Use it to connect to your new agent.`, token );
         setCookie( 'token_'+name, token, 365 );
         // navigator.clipboard.writeText(token);
-    });
+    }); */
 
     socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
         if ( src == 'server' )
@@ -672,24 +685,25 @@ export function goToMatch(paramMatch, paramName, paramToken){
         CONFIG = config;
     } )
 
-    socket.on( "you", ( {idme, nameme, xme, yme, scoreme} ) => {
+    socket.on( "you", ( {idme, nameme, teamme, xme, yme, scoreme} ) => {
 
-        let id = idme; let name = nameme; let x = xme; let y = yme; let score = scoreme;
-    
+        let id = idme; let name = nameme; var team = teamme; let x = xme; let y = yme; let score = scoreme;
+        console.log( "you", {id, name, team, x, y, score} )
+
         document.getElementById('agent.id').textContent = `agent.id ${id}`;
         document.getElementById('agent.name').textContent = `agent.name ${name}`;
         document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
-        console.log( "you", {id, name, x, y, score} )
-        // if ( params.get( "id" ) != id ) {
-        //     params.set( "id", id )
-        //     document.location.search = params.toString();
-        // }
-        // if ( params.get( "name" ) && params.get( "name" ) != name ) {
-        //     params.set( "name", name )
-        //     document.location.search = params.toString();
-        // }
+        
+        // per l'info agent.team controllo che team non sia "" ( quindi l'agente non è in nessun team )
+        let varTeam = document.getElementById('agent.team');
+        if(team == ""){
+            document.getElementById('info').removeChild(varTeam);       // se team è "" rimuovo l'info agent.team
+        }else{
 
-        me = getOrCreateAgent(id, name, x, y, score);
+            varTeam.textContent = `agent.team ${team}`;
+        }
+
+        me = getOrCreateAgent(id, name, team, x, y, score);
 
         /**
          * Auto-follow camera

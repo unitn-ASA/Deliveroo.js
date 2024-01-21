@@ -27,10 +27,10 @@ class Match {
             movement_duration: durata di uno singolo spostamento dell'agente --> usato in registerSocketAndGetAgent e a sua volta in Agents
         */
 
-     /**
-     * @type {Map<string,{agent:Agent,sockets:Set<Socket>}>} idToAgentAndSockets
-     */
-     idToAgentAndSockets = new Map();
+    /**
+    * @type {Map<string,{agent:Agent,sockets:Set<Socket>}>} idToAgentAndSockets
+    */
+    idToAgentAndSockets = new Map();
 
     constructor(options, id=null)  {
 
@@ -53,7 +53,7 @@ class Match {
 
     }
 
-    registerSocketAndGetAgent ( id, name, socket ) {
+    registerSocketAndGetAgent ( id, name, team, socket ) {
 
         const db = this.idToAgentAndSockets;
         
@@ -71,10 +71,12 @@ class Match {
         var config = { AGENTS_OBSERVATION_DISTANCE: this.options.agents_observation_distance, PARCELS_OBSERVATION_DISTANCE: this.options.parcels_observation_distance, MOVEMENT_DURATION: this.options.movement_duration}
         var me = this.grid.getAgent( id );
         if ( ! me ) {
-            me = this.grid.createAgent( {id: id, name}, config );
+            me = this.grid.createAgent( {id: id, name, team}, config );
             me.score = db.get( id ).score;
             me.on( 'score', (me) => entry.score = me.score )
         }
+
+        //console.log("Agente: ", me);
 
         return me; // Return agent given the specified id
         
@@ -107,15 +109,15 @@ class Match {
         socket.emit( 'map', width, height, tiles )
 
 
-         // Emit you
-        me.on( 'agent', ({id, name, x, y, score}) => {
-            let idme = me.id; let nameme = me.name; let xme = me.x; let yme = me.y; let scoreme = me.score;
+        //Emit you
+        me.on( 'agent', ({id, name, team, x, y, score}) => {
+            let idme = me.id; let nameme = me.name; let teamme = team; let xme = me.x; let yme = me.y; let scoreme = me.score;
             //console.log("Dati agent: ",idme, nameme, xme, yme, scoreme)
-            socket.emit( 'you', {idme, nameme, xme, yme, scoreme} );
+            socket.emit( 'you', {idme, nameme, teamme, xme, yme, scoreme} );
         } );
-        let idme = me.id; let nameme = me.name; let xme = me.x; let yme = me.y; let scoreme = me.score;
-        //console.log("Dati me: ",idme, nameme, xme, yme, scoreme)
-        socket.emit( 'you', {idme, nameme, xme, yme, scoreme} );
+        let idme = me.id; let nameme = me.name; let teamme = me.team; let xme = me.x; let yme = me.y; let scoreme = me.score;
+        //console.log("Dati agent: ",idme, nameme, xme, yme, scoreme)
+        socket.emit( 'you', {idme, nameme, teamme, xme, yme, scoreme} );
 
 
         /**

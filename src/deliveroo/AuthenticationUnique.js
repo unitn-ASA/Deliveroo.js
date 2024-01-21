@@ -10,23 +10,23 @@ class AuthenticationUnique{
         var id;
         var name;
         var token = socket.handshake.headers['x-token'];
+        var team = socket.handshake.headers['team'];
 
     
         // No token provided, generate new one
         if ( !token || token=="" ) { // no token provided
-
-            console.log(`Socket ${socket.id} log in failure. Token is verified but id or name are missing.`)   
+            console.log(`Socket ${socket.id} log in failure. Token not provided.`)   
+            // funzione per gestire l'evento 
         }
         // Token provided
         else {
             try {
-
                 // Verify and decode payload
                 const decoded = decodeToken(token);
                 if ( decoded.id && decoded.name ) {
                     id = decoded.id
                     name = decoded.name
-                    console.log( `Socket ${socket.id} connected as ${name}(${id}) to the match ${match.id}. With token: ...${token.slice(-30)}` );
+                    console.log( `Socket ${socket.id} connected as ${name}(${id}), team:${team}, to the match ${match.id}. With token: ...${token.slice(-30)}` );
                 }
                 else {
                     throw `Socket ${socket.id} log in failure. Token is verified but id or name are missing.`
@@ -42,7 +42,7 @@ class AuthenticationUnique{
         }
 
         // Agent
-        const me = match.registerSocketAndGetAgent( id, name, socket );
+        const me = match.registerSocketAndGetAgent( id, name, team, socket );
     
         
 

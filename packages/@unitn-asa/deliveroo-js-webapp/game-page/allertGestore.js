@@ -5,7 +5,7 @@ allertAskName();
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//--------------------------------------------------- FUNZIONI SECONDARIE -----------------------------------------------------------------------
+//--------------------------------------------------- FUNZIONI -----------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // funzione che gestisce la parte html dell'allert
@@ -25,15 +25,28 @@ function allertAskName() {
     form.classList = 'formAllert';
     form.id = "formUnico";
 
-    var label = document.createElement('label');
-    label.textContent = 'Enter your Agent Name:';
-    label.classList='labelAllert';
+    // leable e input per il nome 
+    var labelName = document.createElement('label');
+    labelName.textContent = 'Enter your Agent Name:';
+    labelName.classList='labelAllert';
 
-    var input = document.createElement('input');
-    input.type = 'text';
-    input.id = 'nameInput';
-    input.classList='inputAllert';
+    var inputName = document.createElement('input');
+    inputName.type = 'text';
+    inputName.id = 'nameInput';
+    inputName.classList='inputAllert';
+    inputName.required = true;
 
+    //leable e input per il team
+    var labelTeam = document.createElement('label');
+    labelTeam.textContent = 'Enter Team of your Agent:';
+    labelTeam.classList='labelAllert';
+
+    var inputTeam = document.createElement('input');
+    inputTeam.type = 'text';
+    inputTeam.id = 'teamInput';
+    inputTeam.classList='inputAllert';
+
+    // bottone di submit 
     var button = document.createElement('button');
     button.id = "buttonSubmit"
     button.textContent = 'Submit';
@@ -43,8 +56,10 @@ function allertAskName() {
 
     // Aggiungi gli elementi al form
     form.appendChild(title);
-    form.appendChild(label);
-    form.appendChild(input);
+    form.appendChild(labelName);
+    form.appendChild(inputName);
+    form.appendChild(labelTeam);
+    form.appendChild(inputTeam);
     form.appendChild(button);
 
     // Aggiungi il form al popupDiv
@@ -62,8 +77,17 @@ function closePopup() {
 }
 
 async  function submitName() {
-    var input = document.getElementById('nameInput').value;
+
+    var inputTeam = document.getElementById('teamInput');
+    var inputName = document.getElementById('nameInput');
     var form = document.getElementById("formUnico");
+
+    var input = inputName.value;
+    var team = inputTeam.value;
+    
+    // blocco gli input 
+    inputTeam.readOnly = true;
+    inputName.readOnly = true;
     
     //controllo se l'input inserito è un token o un nome 
     if(verificaTokenOrNome(input)=='Nome'){
@@ -84,11 +108,11 @@ async  function submitName() {
 
         // se il browser non contiene un token per il nome ne richiede uno
         if(token == ""){
-            tokenMessage.innerText = "Nessun token esistente per il nome inserito, ecco qui un nuovo token";
+            tokenMessage.innerText = "No existing token for the name entered, here is a new token";
             token = await richiediToken(input);     // richiedi un nuovo token per nome input
                         
         }else{
-            tokenMessage.innerText = "Ben tornato il browser ha questo token per tè" 
+            tokenMessage.innerText = "Welcome back the browser has this token for you" 
         }
 
         tokenDiv.innerText = token;
@@ -100,12 +124,12 @@ async  function submitName() {
 
         form.appendChild(resultToken);
 
-        console.log("goToMatch parameters: \n\t match: " + params.get("match") + "\n\t name: " + input + "\n\t token" + token );     
+        console.log("goToMatch parameters: \n\t match: " + params.get("match") + "\n\t name: " + input + "\n\t token: " + token + "\n\t team: " + team);     
         
         // Aggiungo un nuovo bottone che permette l'effettivo accesso al gioco 
         var newButton = document.createElement('button');
         newButton.textContent = 'Join Match';
-        newButton.onclick = function() { goToMatchWrap(params.get("match"), input, token); }
+        newButton.onclick = function() { goToMatchWrap(params.get("match"), input, token, team); }
         newButton.classList="buttonAllert";
 
         form.appendChild(newButton)
@@ -113,7 +137,7 @@ async  function submitName() {
     }else{
 
         verificaTokenOrNome(input)=='Token';
-        goToMatchWrap(params.get("match"), "NaN", input)
+        goToMatchWrap(params.get("match"), "NaN", input, team)
     }
     
 }
@@ -175,22 +199,22 @@ function richiediToken(nome, callback) {
             if (response.ok) {
                 return response.json();
             }
-            throw new Error(`Errore nella generazione del token, Codice di stato: ${response.status}`);
+            throw new Error(`Error generating token, Status code: ${response.status}`);
         })
         .then(data => {
             console.log("token ottenuto: " + data.token);
             resolve(data.token);
         })
         .catch(error => {
-            console.error('Si è verificato un errore:', error);
-            reject('Nessun token disponibile al momento.');
+            console.error('An error occurred:', error);
+            reject('No tokens available at the moment');
         });
     });
 }
 
-function goToMatchWrap(match,name,token){
-    closePopup()                    // chiudi il pop-up di allert
-    goToMatch(match,name,token)     // fai partire il gioco
+function goToMatchWrap(match,name,token,team){
+    closePopup()                           // chiudi il pop-up di allert
+    goToMatch(match,name,token,team)       // fai partire il gioco
 }
 
 

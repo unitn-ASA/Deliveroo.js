@@ -14,7 +14,6 @@ const io = new Server( {
 
 
 //GAmes di default 
-
 var options1 = {
     mappa:'loops',
     random_mov_agents: 0,
@@ -43,14 +42,12 @@ var options2 = {
     movement_duration: 50
 }
 
-
 var game0 = new Match(options1,'0');
 var game1 = new Match(options2,'1');
 console.log("Lista Matchs: ", Match.mapMatch);
-console.log("prova: ", Match.mapMatch.get('0') )
 
 
-
+// Gestione connessioni 
 io.on('connection', (socket) => {
 
     // stampo la rihiesta di connessione     

@@ -25,6 +25,8 @@ class Agent extends Xy {
     id;
     /** @type {string} name */
     name;
+    /** @type {string} team */
+    team;
     /** @type {Set<Agent>} sensing agents in the sensed area */
     sensing;
     /** @type {Number} score */
@@ -91,6 +93,7 @@ class Agent extends Xy {
         this.#grid = grid;
         this.id = options.id || 'a' + Agent.#lastId++;
         this.name = options.name || this.id;
+        this.team = options.team || "";
         this.sensing = new Set();
         this.score = 0;
 
@@ -98,7 +101,6 @@ class Agent extends Xy {
         
         // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
         this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
-
     }
 
 
