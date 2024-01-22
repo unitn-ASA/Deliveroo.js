@@ -1,5 +1,8 @@
 import fetch from 'node-fetch' // import fetch from 'node-fetch';
 
+const HOST = 'https://solver.planning.domains:5001';
+const API = '/package/dual-bfws-ffparser/solve';
+
 /**
  * @typedef { { parallel: boolean, action: string, args: string [] } } pddlPlanStep
  */
@@ -18,7 +21,8 @@ export default async function onlineSolver (pddlDomain, pddlProblem) {
     if ( typeof pddlProblem !== 'string' && ! pddlProblem instanceof String )
         throw new Error( 'pddlProblem is not a string' );
 
-    var res = await fetch("http://solver.planning.domains/solve", {
+    // Posting solving request
+    var res = await fetch( HOST + API, {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
@@ -27,35 +31,50 @@ export default async function onlineSolver (pddlDomain, pddlProblem) {
     })
     
     if ( res.status != 200 ) {
-        throw new Error( 'Error at http://solver.planning.domains/solve ' + await res.text() );
+        throw new Error( `Error at ${HOST}${API} ${await res.text()}` );
     }
 
     res = await res.json();
 
+    if ( ! res.result ) {
+        throw new Error( `No value "result" from ${HOST+API} ` + res );
+    }
+
     // console.log(res);
-    // console.log(res.result.plan);
 
-    if ( res.status == 'error' ) {
-        
-        if ( !res.result.plan && res.result.output.split('\n')[0] != ' --- OK.' ) {
-            console.error( 'Plan not found' );
-            return;
-        }
+    // Getting result
+    res = await fetch(HOST+res.result, {
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify( {adaptor: "planning_editor_adaptor"} )
+    });
 
-        // if ( res.result.parse_status == 'err' )
-        //     console.error( 'Parse error at http://solver.planning.domains/solve ', res.result.output );
+    if ( res.status != 200 ) {
+        throw new Error( `Error at ${HOST+res.result} ` + await res.text() );
+    }
+    
+    res = await res.json();
 
-        throw new Error( 'Error at http://solver.planning.domains/solve ' + res.result.error );
+    // console.log(res);
+    // console.log(res.plans[0].result);
+    // console.log(res.plans[0].result.plan);
+
+    if ( res.status != 'ok' || res.plans[0].status != 'ok' ) {
+        throw new Error( `Error at ${HOST+API} ` + res );
+    }
+
+    if ( res.plans[0].result.output.split('\n')[0] != ' --- OK.' ) {
+        console.error( 'Plan not found', res.plans[0].result.output );
+        return;
     }
 
     console.log( 'Plan found:' )
     var plan = []
 
-    if ( res.result.plan ) {
-        for (let step of res.result.plan) {
-
-            if ( step == '(reach-goal)' )
-                break;
+    if ( res.plans[0].result.plan ) {
+        for ( let step of res.plans[0].result.plan ) {
 
             /**@type {string}*/
             let line = step.name || step;

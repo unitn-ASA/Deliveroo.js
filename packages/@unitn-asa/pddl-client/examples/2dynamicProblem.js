@@ -19,7 +19,7 @@ async function main () {
     var pddlProblem = new PddlProblem(
         'lights',
         'light1 light2',
-        '(switched-off light1) (switched-on light1)',
+        '(switched-off light1) (switched-on light2)',
         'and (switched-on light1) (switched-on light2)'
     )
     
