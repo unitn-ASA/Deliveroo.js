@@ -1,11 +1,18 @@
 import { onlineSolver, PddlExecutor, PddlProblem } from "../index.js";
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-function readFile ( path ) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function readFile ( filePath ) {
+
+    filePath = path.join(__dirname, filePath);
     
     return new Promise( (res, rej) => {
 
-        fs.readFile( path, 'utf8', (err, data) => {
+        fs.readFile( filePath, 'utf8', (err, data) => {
             if (err) rej(err)
             else res(data)
         })

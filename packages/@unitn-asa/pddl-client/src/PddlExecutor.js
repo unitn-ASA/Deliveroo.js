@@ -26,7 +26,7 @@ export default class PddlExecutor {
     }
 
     getAction (name) {
-        return this.actions[name]
+        return this.actions[name.toLowerCase()]
     }
 
     /**
