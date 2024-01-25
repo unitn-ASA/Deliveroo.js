@@ -5,7 +5,8 @@
   "author": "Marco Robol <marco.robol@unitn.it>",
   "license": "ISC",
   "workspaces": [
-    "packages/@unitn-asa/*"
+    "packages/@unitn-asa/*",
+    "."
   ],
   "main": "index.js",
   "bin": {
