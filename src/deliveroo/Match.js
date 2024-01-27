@@ -1,9 +1,11 @@
 const Grid = require('./Grid');
+const Team = require('./Team');
+const EventEmitter = require('events');
 const randomlyMovingAgent = require('../workers/randomlyMovingAgent');
 const parcelsGenerator = require('../workers/parcelsGenerator');
 const { uid } = require('uid'); 
 
-class Match {
+class Match extends EventEmitter {
 
     /**
      * @type {Map<string, Match>} mapMatch
@@ -32,7 +34,13 @@ class Match {
     */
     idToAgentAndSockets = new Map();
 
+    /**
+    * @type {Map<string,Team>} teams in the match
+    */
+    teams = new Map()
+
     constructor(options, id=null)  {
+        super();
 
         if(id == null) { 
             this.id = uid(6) 
@@ -42,6 +50,11 @@ class Match {
         const map = require( '../../levels/maps/' + this.options.mappa );
         this.grid = new Grid( map );
 
+        // quando il punteggio di un agente cambia solleva l'evento canging in scores
+        this.grid.on('agente score', (id, score) => {
+            this.emit('changing in agent scores', id, score);
+        })
+
         parcelsGenerator( this.grid, this.options.parcels_generation_interval, this.options.parcels_max, this.options.parcel_rewar_avg, this.options.parcel_reward_variance,  this.options.parcel_decading_interval);
 
         for (let i = 0; i < this.options.random_mov_agents; i++) {
@@ -50,6 +63,13 @@ class Match {
 
         Match.mapMatch.set(this.id,this)
         console.log("Avviato game numero: ", this.id, " con opzioni: ", this.options);
+
+        this.on('changing in agent scores', (id, score) => {
+            console.log("Agente ", id + " change score into ", +score)
+        })
+        this.on('changing in team scores', (name, score) => {
+            console.log("Team ", name + " change score into ", +score)
+        })
 
     }
 
@@ -74,7 +94,31 @@ class Match {
             me = this.grid.createAgent( {id: id, name, team}, config );
             me.score = db.get( id ).score;
             me.on( 'score', (me) => entry.score = me.score )
+
+            // Gestione dei team
+            if(team != "" && this.teams.has(team)){            // se il team è gia presente aggiungo l'agente al team
+                this.teams.get(team).addAgent(me)
+                console.log("Update team map: ")
+                this.teams.forEach( team => console.log(team.name + " score: ", team.score + " agents: ", team.agents));
+            }
+
+            if(team != "" && !this.teams.has(team)){        // se il team non è tra i team gia presenti nel match ne creo uno nuov
+                let newTeam = new Team(team);
+                newTeam.addAgent(me);
+                this.teams.set(team, newTeam);
+
+                this.teams.get(team).on('team score', (name, score) =>{
+                    this.emit('changing in team scores', name, score)
+                })
+
+                console.log("Update team map: ");
+                this.teams.forEach( team => console.log(team.name + " score: ", team.score + " agents: ", team.agents));
+            }
         }
+
+        
+
+        
 
         //console.log("Agente: ", me);
 

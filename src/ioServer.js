@@ -44,7 +44,8 @@ var options2 = {
 
 var game0 = new Match(options1,'0');
 var game1 = new Match(options2,'1');
-console.log("Lista Matchs: ", Match.mapMatch);
+console.log("Lista Matchs: ");
+Match.mapMatch.forEach( map => console.log("Match ", map.id + " with map: ", map.options.mappa));
 
 
 // Gestione connessioni 
@@ -196,6 +197,8 @@ io.on('connection', (socket) => {
 
 
 });
+
+
 
 
 

@@ -129,6 +129,9 @@ class Grid extends Observable {
         // Grid scoped events propagation
         me.on( 'xy', this.emit.bind(this, 'agent xy') );
         me.on( 'score', this.emit.bind(this, 'agent score') );
+        me.on( 'score', () => {
+            this.emit('agente score', me.id, me.score);
+        });
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );

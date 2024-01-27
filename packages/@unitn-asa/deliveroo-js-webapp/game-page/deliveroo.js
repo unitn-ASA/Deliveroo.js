@@ -137,7 +137,8 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         function updateLeaderboard ( agent ) {
 
             if ( ! Object.hasOwnProperty.call( players, agent.name ) ) {
-                let player = {}; player[ agent.name ] = agent.score;
+                let player = {}; 
+                player[ agent.name ] = agent.score;
                 let controller = leaderboardFolder.add( player, agent.name, 0, 1000 );
                 players [ agent.name ] = controller;
             }
@@ -497,6 +498,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         parcels.delete( id );
     }
 
+    
     // funzione per confrontare due colore THREE.Color per evitare colori uguali o troppo simili
     function areColorsSimilar(color1, color2) {
         //console.log("Colore 1:", color1 + " colore 2: ", color2);
@@ -510,12 +512,44 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         
     }
 
+    /** @type {Map<string,THREE.Color>} Map team to color */
+    var teamsAndColors = new Map();
+    
+    /*
+    class Team{
+        name;
+        color;
+        score;
+        
+        // array degli id degli agenti del teams
+        agents = new Array();
 
+        constructor(name,color){
+            this.name = name;
+            this.color = color;
+            this.score = 0;
+
+            if(!teams.has(this.name)){ teams.set(this.name, this); }
+            
+        }
+
+        addAgent(agent){
+            this.agents.push(agent.id);
+        }
+
+        updateScore(){
+            for (let i = 0; i < this.agents.length; i++) {
+                this.somma += agents.get(this.agents[i]).score;
+            }
+        }
+    }
+    */
+    
+    // Mappa di tutti i teams
+    /** @type {Map<string,THREE.Color>} Map teamname to team */
+    var teams = new Map();
 
     class Agent extends onGrid {
-
-        /** @type {Map<string,THREE.Color>} Map team to color */
-        static teamsAndColors = new Map();
 
         /** @type {string} Map id to parcel */
         id
@@ -523,17 +557,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         /** @type {Map<string,Parcel>} Map id to parcel */
         carrying = new Map();
 
-        // async animateMove (x, y) {
-        //     x = Math.round(x)
-        //     y = Math.round(y)
-        //     for (let i = 0; i < 10; i++) {
-        //         await new Promise( res => setTimeout(res, 200 / 10))
-        //         if ( super.x != x )
-        //             super.x = Math.round( super.x *10 + ( x > super.x ? +1 : -1 ) ) / 10;
-        //         if ( super.y != y )
-        //             super.y = Math.round( super.y *10 + ( y > super.y ? +1 : -1 ) ) / 10;
-        //     }
-        // }
 
         #name = 'loading'
         get name () {
@@ -570,16 +593,35 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
             // per il colore tutti gli agenti appartenti ad un team hanno stesso colore
             var color;
 
-            if(!Agent.teamsAndColors){
-                console.log("MAppa Nulla")
-            }
+            /*
+            if(team == ""){
+                do{
+                    color = new THREE.Color( 0xffffff );        
+                    color.setHex( Math.random() * 0xffffff );
+                }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))
 
-            // verifico se l'agente appartiene ad un team e che il team sia già stato inserito nella mappa Teams-Colori
-            if(team != "" && Agent.teamsAndColors.has(team) ){     
-                color = Agent.teamsAndColors.get(team)  // se il team è gia presente assegno all'agente il colore del suo team
+                coloriGiaUsati.push(color);
+            }else{
+                if(teams.has(team)){
+                    color = teams.get(team).color;
+                }else{
+                    do{
+                        color = new THREE.Color( 0xffffff );        
+                        color.setHex( Math.random() * 0xffffff );
+                    }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))
+    
+                    coloriGiaUsati.push(color);
+
+                    let newTeam = new Team(team, color);
+                }
+            } */
+
+            //verifico se l'agente appartiene ad un team e che il team sia già stato inserito nella mappa Teams-Colori
+            if(team != "" && teamsAndColors.has(team) ){     
+                color = teamsAndColors.get(team)  // se il team è gia presente assegno all'agente il colore del suo team
             }else{                                                                             
-                let coloriGiaUsati = Array.from(Agent.teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
-                console.log("Colori: ", Agent.teamsAndColors)
+                let coloriGiaUsati = Array.from(teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
+                console.log("Colori: ", teamsAndColors)
                 
                 do{
                     color = new THREE.Color( 0xffffff );        
@@ -588,9 +630,10 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
                 }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // ripeto la generazione random del colore finchè non è simile a nessun colore gia usato
                 
                 // Aggiorno teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
-                if(team == ""){ Agent.teamsAndColors.set(id,color)}
-                else{ Agent.teamsAndColors.set(team,color)}   
+                if(team == ""){ teamsAndColors.set(id,color)}
+                else{  teamsAndColors.set(team,color)}   
             }
+            
                        
             const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
             const mesh = new THREE.Mesh( geometry, material );
@@ -602,6 +645,13 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
             this.score = score
             this.name = name
             this.team = team
+
+            if(team != "" && teams.has(team)){
+                teams.get(team).addAgent(this);
+            }else{
+                console.log("No Team");
+            }
+           
         }
 
     }
@@ -735,7 +785,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         if(team == ""){
             document.getElementById('info').removeChild(varTeam);       // se team è "" rimuovo l'info agent.team
         }else{
-
             varTeam.textContent = `agent.team ${team}`;
         }
 
@@ -794,6 +843,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
             agent.x = x;
             agent.y = y;
             agent.team = team;
+
             if ( agent.score != score ) {
                 agent.score = score;
                 updateLeaderboard( agent );
