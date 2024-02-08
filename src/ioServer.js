@@ -254,6 +254,16 @@ io.on('connection', (socket) => {
 
     }
 
+    socket.on( 'draw', async (bufferPng) => {
+        // console.log( 'draw' );
+        for ( let s of myAuthenticator.getSockets( me.id )() ) {
+            if ( s == socket )
+                continue;
+            s.emit( 'draw', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, bufferPng );
+        }
+        // socket.broadcast.emit( 'draw', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, bufferPng );
+    } );
+
 });
 
 
