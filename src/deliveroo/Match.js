@@ -4,6 +4,7 @@ const EventEmitter = require('events');
 const randomlyMovingAgent = require('../workers/randomlyMovingAgent');
 const parcelsGenerator = require('../workers/parcelsGenerator');
 const { uid } = require('uid'); 
+const { forEach } = require('../../levels/maps/challenge_21');
 
 class Match extends EventEmitter {
 
@@ -51,8 +52,8 @@ class Match extends EventEmitter {
         this.grid = new Grid( map );
 
         // quando il punteggio di un agente cambia solleva l'evento canging in scores
-        this.grid.on('agente score', (id, score) => {
-            this.emit('changing in agent scores', id, score);
+        this.grid.on('agente score', (id, team, score) => {
+            this.emit('changing in agent info', id, team, score);
         })
 
         parcelsGenerator( this.grid, this.options.parcels_generation_interval, this.options.parcels_max, this.options.parcel_rewar_avg, this.options.parcel_reward_variance,  this.options.parcel_decading_interval);
@@ -64,24 +65,26 @@ class Match extends EventEmitter {
         Match.mapMatch.set(this.id,this)
         console.log("Avviato game numero: ", this.id, " con opzioni: ", this.options);
 
-        this.on('changing in agent scores', (id, score) => {
-            console.log("Agente ", id + " change score into ", +score)
+        this.on('changing in agent info', (id, team, score) => {
+            console.log("Agente ", id + " of team:", team + " change score into ", +score)
         })
-        this.on('changing in team scores', (name, score) => {
+        this.on('changing in team info', (name, score) => {
             console.log("Team ", name + " change score into ", +score)
         })
-
     }
 
     registerSocketAndGetAgent ( id, name, team, socket ) {
 
-        const db = this.idToAgentAndSockets;
-        
+        //const db = this.idToAgentAndSockets;
+
         // Get or create entry for id
-        var entry = db.get( id );
+        var entry = this.idToAgentAndSockets.get( id );
+        var newEntry = false
+
         if ( ! entry ) {
-            db.set( id, { score: 0, sockets: new Set() } );
-            entry = db.get( id );
+            this.idToAgentAndSockets.set( id, { agent: {score: 0}, sockets: new Set() } );
+            entry = this.idToAgentAndSockets.get( id );
+            newEntry = true;
         }
 
         // Register socket
@@ -90,40 +93,39 @@ class Match extends EventEmitter {
         // Get or create agent for id
         var config = { AGENTS_OBSERVATION_DISTANCE: this.options.agents_observation_distance, PARCELS_OBSERVATION_DISTANCE: this.options.parcels_observation_distance, MOVEMENT_DURATION: this.options.movement_duration}
         var me = this.grid.getAgent( id );
+
         if ( ! me ) {
             me = this.grid.createAgent( {id: id, name, team}, config );
-            me.score = db.get( id ).score;
-            me.on( 'score', (me) => entry.score = me.score )
+            me.score = this.idToAgentAndSockets.get( id ).agent.score;
 
             // Gestione dei team
             if(team != "" && this.teams.has(team)){            // se il team è gia presente aggiungo l'agente al team
                 this.teams.get(team).addAgent(me)
                 console.log("Update team map: ")
                 this.teams.forEach( team => console.log(team.name + " score: ", team.score + " agents: ", team.agents));
-            }
-
-            if(team != "" && !this.teams.has(team)){        // se il team non è tra i team gia presenti nel match ne creo uno nuov
+            }else{                                             // se il team non è tra i team gia presenti nel match ne creo uno nuov
                 let newTeam = new Team(team);
                 newTeam.addAgent(me);
                 this.teams.set(team, newTeam);
 
                 this.teams.get(team).on('team score', (name, score) =>{
-                    this.emit('changing in team scores', name, score)
+                    this.emit('changing in team info', name, score)
                 })
+                this.emit('changing in team info', team, 0)
 
                 console.log("Update team map: ");
-                this.teams.forEach( team => console.log(team.name + " score: ", team.score + " agents: ", team.agents));
+                this.teams.forEach( team => console.log("\t", team.name + " score: ", team.score + " agents: ", team.agents));
             }
+
+            this.emit('changing in agent info', name, team, 0);
+            console.log("\n")
         }
 
-        
-
-        
-
-        //console.log("Agente: ", me);
-
+        if(newEntry){
+            entry.agent = me;
+        }
+       
         return me; // Return agent given the specified id
-        
     }
 
     printAgents(){
@@ -163,6 +165,25 @@ class Match extends EventEmitter {
         //console.log("Dati agent: ",idme, nameme, xme, yme, scoreme)
         socket.emit( 'you', {idme, nameme, teamme, xme, yme, scoreme} );
 
+        this.on('changing in agent info', (id, team, score) => {
+            socket.emit("changing in agent info", id, team, score)
+        })
+        this.on('changing in team info', (name, score) => {
+            socket.emit("changing in team info", name, score)
+        })
+
+      
+        // invio le info iniziali
+        for (let team of this.teams.values()) {
+            socket.emit("changing in team info", team.name, team.score)
+        }
+        for (let agentSocket of this.idToAgentAndSockets.values()) {
+            let agent = agentSocket.agent;
+            socket.emit("changing in agent info", agent.id, agent.team, agent.score)
+        }
+        
+        
+        
 
         /**
          * Emit sensing

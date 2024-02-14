@@ -130,7 +130,7 @@ class Grid extends Observable {
         me.on( 'xy', this.emit.bind(this, 'agent xy') );
         me.on( 'score', this.emit.bind(this, 'agent score') );
         me.on( 'score', () => {
-            this.emit('agente score', me.id, me.score);
+            this.emit('agente score', me.id, me.team, me.score);
         });
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );

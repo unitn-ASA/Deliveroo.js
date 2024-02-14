@@ -134,16 +134,43 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         leaderboardFolder.open();
         
         const players = {}
-        function updateLeaderboard ( agent ) {
 
-            if ( ! Object.hasOwnProperty.call( players, agent.name ) ) {
-                let player = {}; 
-                player[ agent.name ] = agent.score;
-                let controller = leaderboardFolder.add( player, agent.name, 0, 1000 );
-                players [ agent.name ] = controller;
+        function addAgentToLeaderboard(agent, team) {
+            let player = {};
+            player[agent] = 0;
+            let controller = players[team].teamFolder.add(player, agent, 0, 1000);
+            players[agent] = controller;
+            players[agent].setValue(0);
+        }
+
+        function addTeamToLeaderboard(team) {
+            let player = {};
+            player[team] = 0;
+            let controller = leaderboardFolder.add(player, team, 0, 1000);
+            const teamFolder = leaderboardFolder.addFolder(team);
+
+            players[team] = {controller, teamFolder};
+            players[team].setValue(0);
+        }
+
+
+        function updateLeaderboard ( name, isTeam, team, score ) {
+            console.log("Aggiornamento label ", name);
+            if (players.hasOwnProperty(name)) {
+                console.log(name + " è già presente nel leaderboard.");
+                if(isTeam){players[name].controller.setValue(score);}
+                else{      players[name].setValue(score); }
+                
+            } else {
+                if(isTeam){
+                    console.log(name + " non è presente nel leaderboard. Aggiungo il team al leaderboard.");
+                    addTeamToLeaderboard(name);
+                }else{
+                    console.log("L'agente non è presente nel leaderboard. Aggiungo l'agent al leaderboard.");
+                    addAgentToLeaderboard(name, team);
+                }
+                
             }
-            players[ agent.name ].setValue( agent.score );
-
         }
 
         return { updateLeaderboard, processMsg }
@@ -514,40 +541,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
 
     /** @type {Map<string,THREE.Color>} Map team to color */
     var teamsAndColors = new Map();
-    
-    /*
-    class Team{
-        name;
-        color;
-        score;
-        
-        // array degli id degli agenti del teams
-        agents = new Array();
-
-        constructor(name,color){
-            this.name = name;
-            this.color = color;
-            this.score = 0;
-
-            if(!teams.has(this.name)){ teams.set(this.name, this); }
-            
-        }
-
-        addAgent(agent){
-            this.agents.push(agent.id);
-        }
-
-        updateScore(){
-            for (let i = 0; i < this.agents.length; i++) {
-                this.somma += agents.get(this.agents[i]).score;
-            }
-        }
-    }
-    */
-    
-    // Mappa di tutti i teams
-    /** @type {Map<string,THREE.Color>} Map teamname to team */
-    var teams = new Map();
 
     class Agent extends onGrid {
 
@@ -632,6 +625,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
                 // Aggiorno teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
                 if(team == ""){ teamsAndColors.set(id,color)}
                 else{  teamsAndColors.set(team,color)}   
+
             }
             
                        
@@ -646,12 +640,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
             this.name = name
             this.team = team
 
-            if(team != "" && teams.has(team)){
-                teams.get(team).addAgent(this);
-            }else{
-                console.log("No Team");
-            }
-           
         }
 
     }
@@ -816,7 +804,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
             // me.animateMove(x, y)
         }
 
-        updateLeaderboard( me );
+        //updateLeaderboard( me );
 
     });
 
@@ -888,6 +876,17 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
             was.reward = reward;
         }
 
+    });
+
+    socket.on("changing in agent info", (id, team, score) => {
+        console.log("changing in agent " + id +" info");    
+        updateLeaderboard(id, false, team, score);         
+        
+    });
+
+    socket.on("changing in team info", (name, score) => {
+        console.log("changing in team " + name +" info");        
+        updateLeaderboard(name, true, null, score);         
     });
 
     var action = null;

@@ -27,7 +27,6 @@ var options1 = {
     parcels_observation_distance: 10,
     movement_duration: 400
 }
-
 var options2 = {
     mappa:'loops',
     random_mov_agents: 0,
@@ -42,17 +41,18 @@ var options2 = {
     movement_duration: 50
 }
 
+// match di default
 var game0 = new Match(options1,'0');
 var game1 = new Match(options2,'1');
-console.log("Lista Matchs: ");
-Match.mapMatch.forEach( map => console.log("Match ", map.id + " with map: ", map.options.mappa));
+console.log("\nLista Matchs: ");
+Match.mapMatch.forEach( match => console.log("\tMatch ", match.id + " with map: ", match.options.mappa));
 
 
 // Gestione connessioni 
 io.on('connection', (socket) => {
 
     // stampo la rihiesta di connessione     
-    console.log("\n Connessione socket:", socket.id + " al match:", socket.handshake.headers['match'] )
+    console.log("\nConnessione socket:", socket.id + " al match:", socket.handshake.headers['match'] )
     if(socket.handshake.headers['x-token']){
         console.log("con token: ", socket.handshake.headers['x-token'])
     }else{
