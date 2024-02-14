@@ -717,6 +717,19 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
             console.log( 'client', timestamp, socket, id, name, '\t', ...message );
     } );
 
+    socket.on( 'draw', ( {src, timestamp, socket, id, name}, buffer ) => {
+        // console.log( 'draw', {src, timestamp, socket, id, name}, buffer )
+    
+        // let uint8Array = new Uint8Array(buffer);
+        // let binaryString = String.fromCharCode.apply(null, uint8Array);
+        // let base64Image = btoa(binaryString);
+        // let imgSrc = 'data:image/png;base64,' + base64Image;
+        // document.getElementById('canvas').src = imgSrc;
+    
+        document.getElementById('canvas').src = buffer;
+        
+    } );
+    
     socket.on( 'not_tile', (x, y) => {
         getTile(x, y).blocked = true;
     });

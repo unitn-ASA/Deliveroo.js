@@ -9,8 +9,8 @@ const mapsRoutes = require('./routes/maps');
 // Middleware per gestire i dati JSON e form-urlencoded
 app.use(express.json());
 
-app.use('/play', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','dist') ));
 app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
+app.use('/game', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','dist/game') ));
 
 app.use('/matchs', matchsRoutes);
 app.use('/maps', mapsRoutes);

@@ -14,7 +14,7 @@ const myClock =  require('../deliveroo/Clock');
  */
 module.exports = function (grid, parcels_generation_interval, parcels_max, parcel_rewar_avg, parcel_reward_variance, parcel_decading_interval) {
     
-    myClock.on( parcels_generation_interval, () => {
+    var listener = () => {
         if ( grid.getParcelsQuantity() >= parcels_max ) {
             return;
         }
@@ -37,6 +37,10 @@ module.exports = function (grid, parcels_generation_interval, parcels_max, parce
             let parcel = grid.createParcel( tile.x, tile.y,parcel_rewar_avg, parcel_reward_variance, parcel_decading_interval );
         }
         
-    } )
+    } 
+
+    myClock.on( parcels_generation_interval, listener );
+
+    return listener;
 
 }

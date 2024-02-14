@@ -10,10 +10,11 @@ export default defineConfig({
 //     exclude: ['buffer'] // <= The libraries that need shimming should be excluded from dependency optimization.
 //   }
 
-    root: resolve(__dirname,'game-page'),
+    root: resolve(__dirname,'game'),
     build: {
-        outDir: '../dist',
+        outDir: '../dist/game',
         emptyOutDir: true,
       },
+    base: '/game/',
     
 })

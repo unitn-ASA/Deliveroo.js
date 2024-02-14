@@ -27,4 +27,26 @@ router.post('/', (req, res) => {
 
 });
 
+// Endpoint per eliminare un gioco
+router.delete('/:id', (req, res) => {
+  const matchId = req.params.id;
+  console.log("\nRichiesta eliminazione Match: ", matchId)
+  Match.mapMatch.delete(matchId)
+  //TODO: eliminare anche i socket associati al match
+  //TODO: eliminare anche i listener associati al match (workers, ...)
+  res.status(200).json({
+    message: 'Match eliminato con successo!',
+    id: matchId
+  });
+});
+
+// Endpoint per ottenere la lista dei match attivi
+router.get('/', (req, res) => {
+  const matchs = Array.from(Match.mapMatch.keys())
+  res.status(200).json({
+    message: 'Lista match attivi',
+    data: matchs
+  });
+});
+
 module.exports = router;

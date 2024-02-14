@@ -16,7 +16,7 @@ Array.from(partecipaBtn).forEach(bottone => {
 
 function sendRequestJoinMatch(event){
 
-    var url = 'play';
+    var url = 'game';
     url += '?match=' + encodeURIComponent(event.target.getAttribute('match')); 
 
     window.location.href = url; 
