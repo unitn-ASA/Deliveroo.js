@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Deliveroo.js</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  
+  <body>
+    
+    <div id="info" style="position:absolute; color:white; z-index:1; opacity:0.3;">
+      <span id="socket.id"></span>
+      <br>
+      <span id="agent.id"></span>
+      <br>
+      <span id="agent.name"></span>
+      <br>
+      <span id="agent.team"></span>
+      <br>
+      <span id="agent.xy"></span>
+      <br>
+      <pre id="config"></pre>
+    </div>
+
+    <!-- <script src="http://localhost:8080/socket.io/socket.io.js"></script> -->
+    <script  src="/socket.io/socket.io.js"></script>
+    <script type="module" src="allertGestore.js"></script>
+
+  </body>
+</html>

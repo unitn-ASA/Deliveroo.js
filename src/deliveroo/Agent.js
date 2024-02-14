@@ -3,16 +3,11 @@ const Xy =  require('./Xy')
 const Grid =  require('./Grid')
 const Tile =  require('./Tile');
 const Parcel =  require('./Parcel');
-const config =  require('../../config');
 const Postponer = require('./Postponer');
 const myClock = require('./Clock');
 
 
-
-const MOVEMENT_STEPS = process.env.MOVEMENT_STEPS || config.MOVEMENT_STEPS || 1;
-// const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
-// const AGENTS_OBSERVATION_DISTANCE = process.env.AGENTS_OBSERVATION_DISTANCE || config.AGENTS_OBSERVATION_DISTANCE || 5;
-// const PARCELS_OBSERVATION_DISTANCE = process.env.PARCELS_OBSERVATION_DISTANCE || config.PARCELS_OBSERVATION_DISTANCE || 5;
+const MOVEMENT_STEPS = 1;
 
 
 /**
@@ -30,6 +25,8 @@ class Agent extends Xy {
     id;
     /** @type {string} name */
     name;
+    /** @type {string} team */
+    team;
     /** @type {Set<Agent>} sensing agents in the sensed area */
     sensing;
     /** @type {Number} score */
@@ -47,7 +44,7 @@ class Agent extends Xy {
      * @param {Grid} grid
      * @param {{id:number,name:string}} options
      */
-    constructor ( grid, options ) {
+    constructor ( grid, options, config ) {
         
         {
             // let x, y, found=false;
@@ -96,6 +93,7 @@ class Agent extends Xy {
         this.#grid = grid;
         this.id = options.id || 'a' + Agent.#lastId++;
         this.name = options.name || this.id;
+        this.team = options.team || "";
         this.sensing = new Set();
         this.score = 0;
 
@@ -103,7 +101,6 @@ class Agent extends Xy {
         
         // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
         this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
-
     }
 
 
@@ -117,8 +114,8 @@ class Agent extends Xy {
         var agents = [];
         for ( let agent of this.#grid.getAgents() ) {
             if ( agent != this && !( Xy.distance(agent, this) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                const {id, name, x, y, score} = agent
-                agents.push( {id, name, x, y, score} )
+                const {id, name, team, x, y, score} = agent
+                agents.push( {id, name, team, x, y, score} )
             }
         }
         this.emitOnePerTick( 'agents sensing', agents )

@@ -1,4 +1,4 @@
-const redisClient = require('./src/redisClient');
+var redisClient //= require('./src/redisClient');
 const httpServer = require('./src/httpServer.js');
 const ioServer = require('./src/ioServer');
 

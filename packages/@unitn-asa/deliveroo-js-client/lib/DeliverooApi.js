@@ -24,15 +24,18 @@ export default class DeliverooApi extends EventEmitter {
     /** @type { { width:number, height:number, tiles:[{x,y,delivery}] } } */
     map;
 
-    constructor ( host, token ) {
+    constructor ( host, token, match ) {
 
         super();
 
         let opts = {}
-        if (NAME)
-            opts.query = { name: NAME }
+
+        if (NAME){
+            opts.query = { name: NAME}
+            opts.extraHeaders = {'match': match }
+        }
         else
-            opts.extraHeaders = { 'x-token': TOKEN || token }
+            opts.extraHeaders = { 'x-token': TOKEN || token, 'match': match }
 
         const socket = this.socket = io( HOST || host, opts );
         
@@ -245,4 +248,3 @@ export default class DeliverooApi extends EventEmitter {
     }
 
 }
-

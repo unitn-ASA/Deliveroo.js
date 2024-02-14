@@ -1,12 +1,9 @@
 const { Server } = require('socket.io');
-const myGrid = require('./grid');
-const Authentication = require('./deliveroo/Authentication');
-const config = require('../config');
+const Match = require('./deliveroo/Match')
+const AuthenticationUnique = require('./deliveroo/AuthenticationUnique');
 const myClock = require('./deliveroo/Clock');
 
-
-
-const myAuthenticator = new Authentication( myGrid )
+const myAuthenticatorUnique = new AuthenticationUnique; 
 
 const io = new Server( {
     cors: {
@@ -16,18 +13,57 @@ const io = new Server( {
 } );
 
 
+//GAmes di default 
+var options1 = {
+    mappa:'loops',
+    random_mov_agents: 0,
+    random_agent_speed: '10s',
+    parcels_generation_interval: '1s',
+    parcels_max: 'inifinte',
+    parcel_rewar_avg: 300,
+    parcel_reward_variance: 10,
+    parcel_decading_interval: 'infinite',
+    agents_observation_distance: 10,
+    parcels_observation_distance: 10,
+    movement_duration: 400
+}
+var options2 = {
+    mappa:'loops',
+    random_mov_agents: 0,
+    random_agent_speed: '10s',
+    parcels_generation_interval: '1s',
+    parcels_max: 'inifinte',
+    parcel_rewar_avg: 300,
+    parcel_reward_variance: 10,
+    parcel_decading_interval: '1s', 
+    agents_observation_distance: 5,
+    parcels_observation_distance: 5,
+    movement_duration: 50
+}
 
+// match di default
+var game0 = new Match(options1,'0');
+var game1 = new Match(options2,'1');
+console.log("\nLista Matchs: ");
+Match.mapMatch.forEach( match => console.log("\tMatch ", match.id + " with map: ", match.options.mappa));
+
+
+// Gestione connessioni 
 io.on('connection', (socket) => {
+
+    // stampo la rihiesta di connessione     
+    console.log("\nConnessione socket:", socket.id + " al match:", socket.handshake.headers['match'] )
+    if(socket.handshake.headers['x-token']){
+        console.log("con token: ", socket.handshake.headers['x-token'])
+    }else{
+        console.log("senza token")
+    }
+
+    var match = Match.mapMatch.get(socket.handshake.headers['match']);
+    const me = myAuthenticatorUnique.authenticate(match, socket)
     
-
-
-    /**
-     * Authenticate socket on agent
-     */
-    const me = myAuthenticator.authenticate(socket);
     if ( !me ) return;
     socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
-
 
 
     /**
@@ -39,65 +75,13 @@ io.on('connection', (socket) => {
     }
     socket.emit( 'config', me.config )
 
-    
 
     /**
-     * Emit map (tiles)
-     */
-    myGrid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {
-        // console.log( 'emit tile', x, y, delivery, parcelSpawner );
-        if (!blocked)
-            socket.emit( 'tile', x, y, delivery, parcelSpawner );
-        else
-            socket.emit( 'not_tile', x, y );
-    } );
-    let tiles = []
-    for (const {x, y, delivery, blocked, parcelSpawner} of myGrid.getTiles()) {
-        if ( !blocked ) {
-            socket.emit( 'tile', x, y, delivery, parcelSpawner )
-            tiles.push( {x, y, delivery, parcelSpawner} )
-        } else
-            socket.emit( 'not_tile', x, y );
-    }
-    let {width, height} = myGrid.getMapSize()
-    socket.emit( 'map', width, height, tiles )
-    
+     * Game Join
+    */
+    match.join(socket, me)
 
-    
-    /**
-     * Emit me
-     */
-
-    // Emit you
-    me.on( 'agent', ({id, name, x, y, score}) => {
-        // console.log( 'emit you', id, name, x, y, score );
-        socket.emit( 'you', {id, name, x, y, score} );
-    } );
-    // console.log( 'emit you', id, name, x, y, score );
-    socket.emit( 'you', {id, name, x, y, score} = me );
-    
-
-
-    /**
-     * Emit sensing
-     */
-
-    // Parcels
-    me.on( 'parcels sensing', (parcels) => {
-        // console.log('emit parcels sensing', ...parcels);
-        socket.emit('parcels sensing', parcels )
-    } );
-    me.emitParcelSensing();
-
-    // Agents
-    me.on( 'agents sensing', (agents) => {
-        // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
-        socket.emit( 'agents sensing', agents );
-    } );
-    me.emitAgentSensing();
-    
-
-
+      
     /**
      * Actions
      */
@@ -211,48 +195,6 @@ io.on('connection', (socket) => {
 
 
 
-    /**
-     * GOD mod
-     */
-    if ( me.name == 'god' ) {
-
-        socket.on( 'create parcel', async (x, y) => {
-            console.log( 'create parcel', x, y )
-            myGrid.createParcel(x, y)
-        } );
-
-        socket.on( 'dispose parcel', async (x, y) => {
-            console.log( 'dispose parcel', x, y )
-            let parcels = Array.from(myGrid.getParcels()).filter( p => p.x == x && p.y == y );
-            for ( p of parcels)
-                myGrid.deleteParcel( p.id )
-            myGrid.emit( 'parcel' );
-        } );
-
-        socket.on( 'tile', async (x, y) => {
-            console.log( 'create/dispose tile', x, y )
-            let tile = myGrid.getTile(x, y)
-            
-            if ( !tile ) return;
-
-            if ( tile.blocked ) {
-                tile.delivery = false;
-                tile.parcelSpawner = true;
-                tile.unblock();
-            } else if ( tile.parcelSpawner ) {
-                tile.delivery = true;
-                tile.parcelSpawner = false;
-            } else if ( tile.delivery ) {
-                tile.delivery = false;
-                tile.parcelSpawner = false;
-            } else {
-                tile.delivery = false;
-                tile.parcelSpawner = false;
-                tile.block();
-            }
-        } );
-
-    }
 
     socket.on( 'draw', async (bufferPng) => {
         // console.log( 'draw' );
@@ -265,6 +207,8 @@ io.on('connection', (socket) => {
     } );
 
 });
+
+
 
 
 

@@ -3,7 +3,6 @@ const Tile =  require('./Tile')
 const Agent =  require('./Agent')
 const Parcel = require('./Parcel');
 const Xy = require('./Xy');
-const config =  require('../../config');
 
 
 
@@ -17,12 +16,16 @@ class Grid extends Observable {
     #agents;
     /** @type {Map<string, Parcel>} */
     #parcels;
+
+    config ={} //Configuration for agents
     
     /**
      * @constructor Grid
      */
-    constructor ( map = new Array(10).map( c=>new Array(10) ) ) {
+    constructor ( map = new Array(10).map( c=>new Array(10) ), config ) {
         super();
+
+        this.config = config
         
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
@@ -114,10 +117,10 @@ class Grid extends Observable {
     /**
      * @type {function({id:string,name:string}): Agent}
      */
-    createAgent ( options = {} ) {
+    createAgent ( options = {}, config) {
         
         // Instantiate
-        var me = new Agent( this, options );
+        var me = new Agent( this, options, config );
         this.emit( 'agent created', me );
 
         // Register
@@ -126,6 +129,9 @@ class Grid extends Observable {
         // Grid scoped events propagation
         me.on( 'xy', this.emit.bind(this, 'agent xy') );
         me.on( 'score', this.emit.bind(this, 'agent score') );
+        me.on( 'score', () => {
+            this.emit('agente score', me.id, me.team, me.score);
+        });
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );
@@ -182,13 +188,13 @@ class Grid extends Observable {
     /**
      * @type {function(Number, Number): Parcel}
      */
-    createParcel ( x, y ) {
+    createParcel ( x, y, parcel_rewar_avg, parcel_reward_variance, parcel_decading_intervla ) {
         var tile = this.getTile( x, y );
         if ( !tile || tile.blocked )
             return false;
         
         // Instantiate and add to Tile
-        var parcel = new Parcel( x, y );
+        var parcel = new Parcel( x, y, null, parcel_rewar_avg, parcel_reward_variance, parcel_decading_intervla );
         // tile.addParcel( parcel );
         this.#parcels.set( parcel.id, parcel )
 

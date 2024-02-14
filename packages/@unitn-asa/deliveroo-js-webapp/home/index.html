@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="style/home.css">
+    <link rel="stylesheet" href="style/matchForm.css">
+    <link rel="stylesheet" href="style/selectMap.css">
+</head>
+<body>
+    <header>
+        <h1>DELIVEROO</h1>
+    </header>
+    <div class="container">
+        <div class="main-content">
+            
+            <h2>PUBLIC MATCH </h2>
+            <p>List of Public Match</p>
+            <button class="partecipaBtn" match="0">Join Match 0</button>
+            <button class="partecipaBtn" match="1">Join Match 1</button>
+
+            <br><br><br><br>
+
+            <h2>PRIVATE MATCH </h2>
+            <p>Joint a Specific Match</p>
+            <form id="formPrivateMatch">
+                <input type="text" id="matchId" name="matchId" required>
+                <button type="submit" id="submitPrivateMatchButton">Join Match</button>
+            </form>
+
+
+            <br><br><br><br>
+
+            <h2>START NEW MATCH </h2>
+            <button id="createMatchButton">Create New Match</button>
+            <!-- Contenitore per il form pop-up -->
+            <div id="matchFormContainer" class="modal">
+            <div class="modal-content">
+                <div class="close">&times;</div>
+                <!-- Form qui -->
+                <form id="matchForm">
+
+                    <div style="text-align: center;">
+                        <div style="display: inline-block;">
+                            <h1 style="font-weight: bolder; display: inline-block;">NEW MATCH</h1>
+                        </div>
+                    </div>
+                    
+                    <!-- Input per MAP_FILE -->
+                    <label for="mapFile">MAP_FILE:</label>
+                    <input type="text" id="mapFile" name='mapFile' readonly>
+                    <span onclick="openMapList()" class="returnButton">Seleziona</span>
+
+                    <!-- Input per PARCELS_GENERATION -->
+                    <label for="parcelsInterval">PARCELS_GENERATION_INTERVAL:</label>
+                    <select id="parcelsInterval" name="parcelsInterval">
+                        <option value="1s">1 second</option>
+                        <option value="2s" selected>2 second</option>
+                        <option value="5s">5 second</option>
+                        <option value="10s">10 second</option>
+                    </select>
+
+                    <label for="parcelsMax">PARCELS_MAX:</label>
+                    <input type="number" id="parcelsMax" name="parcelsMax" required>
+
+                    <label for="parcelsRewardAvg">PARCEL_REWARD_AVG:</label>
+                    <input type="number" id="parcelsRewardAvg" name="parcelsRewardAvg" required>
+
+                    <label for="parcelsRewardVariance">PARCEL_REWARD_VARIANCE:</label>
+                    <input type="number" id="parcelsRewardVariance" name="parcelsRewardVariance" required>
+
+                    <label for="parcelsDecadingInterval">PARCE_DECADING_INTERVALL:</label>
+                    <select id="parcelsDecadingInterval" name="parcelsDecadingInterval">
+                        <option value="infinite" selected>Costanti</option>
+                        <option value="1s">1 second</option>
+                        <option value="2s">2 second</option>
+                        <option value="5s">5 second</option>
+                        <option value="10s">10 second</option>
+                    </select><br>
+
+                    
+                    <!-- Input per BOT_AGENTS -->
+                    <label for="randomlyMovingAgents">RANDOMLY_MOVING_AGENTS:</label>
+                    <input type="number" id="randomlyMovingAgents" name="randomlyMovingAgents" required>
+
+                    <label for="randomlyAgentSpeed">RANDOM_AGENT_SPEED:</label>
+                    <select id="randomlyAgentSpeed" name="randomlyAgentSpeed">
+                        <option value="1s">1 second</option>
+                        <option value="2s" selected>2 second</option>
+                        <option value="5s">5 second</option>
+                        <option value="10s">10 second</option>
+                    </select><br><br>
+
+                    <!-- Input per OBSERVABLE-->
+                    <div id="inputContainerAgent">
+                        <label for="agentsObservationDistance">AGENTS_OBSERVATION_DISTANCE:</label>
+                        <input type="number" id="agentsObservationDistance" name="agentsObservationDistance" value=5>
+                        <span onclick="setInfinity('Agent')" class="returnButton">Inlimitato</span>
+                    </div>
+                    <div id="textContainerAgent" style="display: none;">
+                        <label for="agentsObservationDistance">AGENTS_OBSERVATION_DISTANCE:</label>
+                        <span>Inlimitato</span>
+                        <span onclick="returnToInput('Agent')">✕</span>
+                    </div>
+
+                    <div id="inputContainerParcels">
+                        <label for="parcelsObservationDistance">PARCELS_OBSERVATION_DISTANCE:</label>
+                        <input type="number" id="parcelsObservationDistance" name="parcelsObservationDistance" value=5>
+                        <span onclick="setInfinity('Parcels')" class="returnButton">Inlimitato</span>
+                    </div>
+                    <div id="textContainerParcels" style="display: none;">
+                        <label for="parcelsObservationDistance">PARCELS_OBSERVATION_DISTANCE:</label>
+                        <span>Inlimitato</span>
+                        <span onclick="returnToInput('Parcels')">✕</span>
+                    </div><br><br>
+                
+                    
+
+                    <!-- Bottone per inviare il form -->
+                    <div style="text-align: center;">
+                        <div style="display: inline-block;">
+                            <input type="submit" value="Submit">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            </div>
+            
+        </div>
+
+        <aside class="sidebar">
+            <!-- Contenuto della colonna destra -->
+            <h2>Genera Token</h2>
+            <p>Inserisci un nome e genera un token da usare nei matchs</p><br><br>
+            <label for="nome">Inserisci il tuo nome:</label>
+            <input type="text" id="nome" name="nome"><br><br>
+            <div class="bottoni">
+                <button id="generateTokenBtn">Genera Token</button>
+                <button id="copyTokenBtn" style="display: none;">Copia Token</button>
+            </div>
+            <div id="tokenBox"> </div> <!-- Elemento per visualizzare il token -->
+            
+        </aside>
+
+
+        <!-- pop-up seleziona mappa -->
+        <div id="mapListModal">
+            <div id="mapListModal-content">
+                <span class="close" onclick="closeMapList()">&times;</span>
+                <h2>Lista Mappe</h2>
+                <div id="map-container"></div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script src="javaScript/generateMapRappresentation.js"></script>
+    <script src="javaScript/gestoreNewMatch.js"></script>
+    <script src="javaScript/gestorePlayMatch.js"></script>
+    <script src="javaScript/gestoreToken.js"></script>
+    <script src="javaScript/gestoreSelectMap.js"></script>
+    
+</body>
+</html>

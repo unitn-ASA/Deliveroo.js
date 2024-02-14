@@ -1,0 +1,164 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: black; 
+    color: white; 
+}
+
+header {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.container {
+    display: flex;
+    flex: 1;
+    background-color: black;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+}
+
+.sidebar {
+    width: 30%;
+    background-color: black; 
+    padding: 20px;
+    height: 100%;
+    border-left: 3px solid darkgray; 
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Allinea il resto dei contenuti a destra */
+    
+}
+
+.bottoni {
+    display: flex;
+    flex-direction: row; /* Posiziona i bottoni in una fila */
+}
+
+#generateTokenBtn {
+    background-color: #4CAF50; 
+    border: 2px solid #f0f0f0;
+    color: white; 
+    padding: 5px 10px;
+    margin-bottom: 10px; 
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px; 
+    cursor: pointer;
+    transition-duration: 0.4s; /* Effetto transizione */
+}
+
+#generateTokenBtn:hover {
+    background-color: #45a049; 
+    color: white; 
+}
+
+/* Stile per il pulsante "Copia Token" */
+#copyTokenBtn {
+    background-color: #e0e0e0; 
+    border: 2px solid #f0f0f0;
+    color: #333; 
+    padding: 5px 10px;
+    margin-bottom: 10px; 
+    margin-left: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+
+#copyTokenBtn:hover {
+    background-color: #d0d0d0; 
+}
+
+#tokenBox {
+    background-color: #f0f0f0;
+    color: black;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 2px solid #f0f0f0;
+    width: 90%; 
+    text-align: center;      
+    overflow: hidden;        /* Nasconde il testo che fuoriesce dal riquadro */
+    white-space: nowrap;     /* Impedisce il wrap del testo */
+    text-overflow: ellipsis; /* Aggiunge ellissi per il testo che fuoriesce */
+
+}
+
+.partecipaBtn {
+    background-color: #e6780e; 
+    border: 2px solid #f0f0f0;
+    color: #f0f0f0; 
+    padding: 5px 10px;
+    margin-bottom: 10px; 
+    margin-right: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+
+.partecipaBtn:hover {
+    background-color: #bc5f02; 
+}
+
+/* Stile per l'animazione di errore */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-10px); }
+    80% { transform: translateX(10px); }
+    100% { transform: translateX(0); }
+}
+.error {
+    animation: shake 0.6s;
+    background-color: crimson;
+}
+
+#submitPrivateMatchButton{
+    background-color: yellow; 
+    border: 2px solid #f0f0f0;
+    color: #000000; 
+    padding: 5px 10px;
+    margin-bottom: 10px; 
+    margin-left: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+
+#submitPrivateMatchButton:hover{
+    background-color: rgb(170, 170, 0);
+}
+
+#matchId{
+    max-width: 100px;
+    min-height: 30px;
+    border: 2px solid yellow;
+}
+
+#matchId:not(:placeholder-shown) {
+    border-color: whitesmoke; /* Cambia il colore del bordo */
+  }
