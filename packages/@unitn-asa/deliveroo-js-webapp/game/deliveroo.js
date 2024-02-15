@@ -676,9 +676,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
     var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
         extraHeaders: {
             'x-token': paramToken,
-            'match': paramMatch,
-            'name': paramName,
-            'team': paramTeam
+            'match': paramMatch
         }, 
     } ); 
 
@@ -780,14 +778,19 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         document.getElementById('agent.id').textContent = `agent.id ${id}`;
         document.getElementById('agent.name').textContent = `agent.name ${name}`;
         document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
+        document.getElementById('agent.team').textContent = `agent.team ${team}`;
         
-        // per l'info agent.team controllo che team non sia "" ( quindi l'agente non è in nessun team )
+        /* per l'info agent.team controllo che team non sia "" ( quindi l'agente non è in nessun team )
         let varTeam = document.getElementById('agent.team');
-        if(team == ""){
-            document.getElementById('info').removeChild(varTeam);       // se team è "" rimuovo l'info agent.team
-        }else{
-            varTeam.textContent = `agent.team ${team}`;
-        }
+        if(varTeam) {
+            if(team == "") {
+                document.getElementById('info').removeChild(varTeam); // Se team è "" rimuovo l'info agent.team
+            } else {
+                varTeam.textContent = `agent.team ${team}`;
+            }
+        } else {
+            console.error("Elemento 'varTeam' non trovato.");
+        }*/
 
         me = getOrCreateAgent(id, name, team, x, y, score);
 

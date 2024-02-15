@@ -63,7 +63,7 @@ class Match extends EventEmitter {
         }
 
         Match.mapMatch.set(this.id,this)
-        console.log("Avviato game numero: ", this.id, " con opzioni: ", this.options);
+        console.log("Started match id: ", this.id, " with options: ", this.options);
 
         this.on('changing in agent info', (id, team, score) => {
             console.log("Agente ", id + " of team:", team + " change score into ", +score)
@@ -82,7 +82,7 @@ class Match extends EventEmitter {
         var newEntry = false
 
         if ( ! entry ) {
-            this.idToAgentAndSockets.set( id, { agent: {score: 0}, sockets: new Set() } );
+            this.idToAgentAndSockets.set( id, { agent: null , sockets: new Set() } );
             entry = this.idToAgentAndSockets.get( id );
             newEntry = true;
         }
@@ -95,30 +95,33 @@ class Match extends EventEmitter {
         var me = this.grid.getAgent( id );
 
         if ( ! me ) {
-            me = this.grid.createAgent( {id: id, name, team}, config );
-            me.score = this.idToAgentAndSockets.get( id ).agent.score;
+            me = this.grid.createAgent(id, name, team, config );
+            // me.score = this.idToAgentAndSockets.get( id ).agent.score;
 
             // Gestione dei team
-            if(team != "" && this.teams.has(team)){            // se il team è gia presente aggiungo l'agente al team
-                this.teams.get(team).addAgent(me)
-                console.log("Update team map: ")
-                this.teams.forEach( team => console.log(team.name + " score: ", team.score + " agents: ", team.agents));
-            }else{                                             // se il team non è tra i team gia presenti nel match ne creo uno nuov
-                let newTeam = new Team(team);
-                newTeam.addAgent(me);
-                this.teams.set(team, newTeam);
+            if(team != null){
+                if(this.teams.has(team)){            // se il team è gia presente aggiungo l'agente al team
+                    this.teams.get(team).addAgent(me)
+                    console.log("Update team map: ")
+                    this.teams.forEach( team => console.log(team.name + " score: ", team.score + " agents: ", team.agents));
+                }else{                                             // se il team non è tra i team gia presenti nel match ne creo uno nuov
+                    let newTeam = new Team(team);
+                    newTeam.addAgent(me);
+                    this.teams.set(team, newTeam);
+    
+                    this.teams.get(team).on('team score', (name, score) =>{
+                        this.emit('changing in team info', name, score)
+                    })
+                    this.emit('changing in team info', team, 0)
+    
+                    console.log("Update team map: ");
+                    this.teams.forEach( team => console.log("\t", team.name + " score: ", team.score + " agents: ", team.agents));
+                }
 
-                this.teams.get(team).on('team score', (name, score) =>{
-                    this.emit('changing in team info', name, score)
-                })
-                this.emit('changing in team info', team, 0)
-
-                console.log("Update team map: ");
-                this.teams.forEach( team => console.log("\t", team.name + " score: ", team.score + " agents: ", team.agents));
             }
+            
 
             this.emit('changing in agent info', name, team, 0);
-            console.log("\n")
         }
 
         if(newEntry){
@@ -246,7 +249,7 @@ class Match extends EventEmitter {
 
         }
 
-        console.log('Socket ', socket.id + ' entrata nel match:', this.id)
+        console.log('Socket ', socket.id + ' joint match:', this.id)
 
     }
 

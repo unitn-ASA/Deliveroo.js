@@ -117,10 +117,10 @@ class Grid extends Observable {
     /**
      * @type {function({id:string,name:string}): Agent}
      */
-    createAgent ( options = {}, config) {
+    createAgent ( id, name, team, config) {
         
         // Instantiate
-        var me = new Agent( this, options, config );
+        var me = new Agent( this, id, name, team, config );
         this.emit( 'agent created', me );
 
         // Register

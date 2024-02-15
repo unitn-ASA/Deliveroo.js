@@ -2,11 +2,7 @@ var redisClient //= require('./src/redisClient');
 const httpServer = require('./src/httpServer.js');
 const ioServer = require('./src/ioServer');
 
-
-
 const PORT = process.env.PORT || 8080;
-
-
 
 async function start () {
 

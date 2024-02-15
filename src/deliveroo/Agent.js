@@ -44,7 +44,7 @@ class Agent extends Xy {
      * @param {Grid} grid
      * @param {{id:number,name:string}} options
      */
-    constructor ( grid, options, config ) {
+    constructor ( grid, id, name, team, config ) {
         
         {
             // let x, y, found=false;
@@ -91,9 +91,9 @@ class Agent extends Xy {
         // this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
 
         this.#grid = grid;
-        this.id = options.id || 'a' + Agent.#lastId++;
-        this.name = options.name || this.id;
-        this.team = options.team || "";
+        this.id = id || 'a' + Agent.#lastId++;
+        this.name = name || this.id;
+        this.team = team || "";
         this.sensing = new Set();
         this.score = 0;
 

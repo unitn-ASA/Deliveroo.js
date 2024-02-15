@@ -9,27 +9,29 @@ class AuthenticationUnique{
     
         var id;
         var name;
+        var team;
         var token = socket.handshake.headers['x-token'];
-        var team = socket.handshake.headers['team'];
+        // var team = socket.handshake.headers['team'];
 
     
         // No token provided, generate new one
         if ( !token || token=="" ) { // no token provided
-            console.log(`Socket ${socket.id} log in failure. Token not provided.`)   
-            // funzione per gestire l'evento 
+            console.log(`Socket ${socket.id} log in failure. Token not provided.`)  
+            return  
         }
         // Token provided
         else {
             try {
                 // Verify and decode payload
                 const decoded = decodeToken(token);
-                if ( decoded.id && decoded.name ) {
+                if ( decoded.id && decoded.name) {
                     id = decoded.id
                     name = decoded.name
+                    team = decoded.team || null
                     console.log( `Socket ${socket.id} connected as ${name}(${id}), team:${team}, to the match ${match.id}. With token: ...${token.slice(-30)}` );
                 }
                 else {
-                    throw `Socket ${socket.id} log in failure. Token is verified but id or name are missing.`
+                    throw `Socket ${socket.id} log in failure. Token is verified but id or name ot team are missing.`
                 }
                 
             } catch(err) {
