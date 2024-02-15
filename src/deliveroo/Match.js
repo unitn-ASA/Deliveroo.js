@@ -52,8 +52,8 @@ class Match extends EventEmitter {
         this.grid = new Grid( map );
 
         // quando il punteggio di un agente cambia solleva l'evento canging in scores
-        this.grid.on('agente score', (id, team, score) => {
-            this.emit('changing in agent info', id, team, score);
+        this.grid.on('agente score', (id, name, team, score) => {
+            this.emit('agent info', id, name, team, score);
         })
 
         parcelsGenerator( this.grid, this.options.parcels_generation_interval, this.options.parcels_max, this.options.parcel_rewar_avg, this.options.parcel_reward_variance,  this.options.parcel_decading_interval);
@@ -65,10 +65,10 @@ class Match extends EventEmitter {
         Match.mapMatch.set(this.id,this)
         console.log("Started match id: ", this.id, " with options: ", this.options);
 
-        this.on('changing in agent info', (id, team, score) => {
-            console.log("Agente ", id + " of team:", team + " change score into ", +score)
+        this.on('agent info', (id, name, team, score) => {
+            console.log("Agente ", id + " ", name + " of team:", team + " change score into ", +score)
         })
-        this.on('changing in team info', (name, score) => {
+        this.on('team info', (name, score) => {
             console.log("Team ", name + " change score into ", +score)
         })
     }
@@ -100,7 +100,7 @@ class Match extends EventEmitter {
 
             // Gestione dei team
             if(team != null){
-                if(this.teams.has(team)){            // se il team è gia presente aggiungo l'agente al team
+                if(this.teams.has(team)){                          // se il team è gia presente aggiungo l'agente al team
                     this.teams.get(team).addAgent(me)
                     console.log("Update team map: ")
                     this.teams.forEach( team => console.log(team.name + " score: ", team.score + " agents: ", team.agents));
@@ -108,20 +108,26 @@ class Match extends EventEmitter {
                     let newTeam = new Team(team);
                     newTeam.addAgent(me);
                     this.teams.set(team, newTeam);
+
+                    this.teams.get(team).on('delete team', (name) =>{
+                        this.teams.get(name).removeAllListeners();      // Rimuovi tutti i listener associati al team
+                        this.teams.delete(name);
+                        this.emit('team deleted', name)
+                    })
     
                     this.teams.get(team).on('team score', (name, score) =>{
-                        this.emit('changing in team info', name, score)
+                        this.emit('team info', name, score)
                     })
-                    this.emit('changing in team info', team, 0)
+                    this.emit('team info', newTeam.name, newTeam.score)
     
                     console.log("Update team map: ");
                     this.teams.forEach( team => console.log("\t", team.name + " score: ", team.score + " agents: ", team.agents));
                 }
 
             }
-            
 
-            this.emit('changing in agent info', name, team, 0);
+            this.emit('agent info', me.id, me.name, me.team, me.score)
+            
         }
 
         if(newEntry){
@@ -168,24 +174,34 @@ class Match extends EventEmitter {
         //console.log("Dati agent: ",idme, nameme, xme, yme, scoreme)
         socket.emit( 'you', {idme, nameme, teamme, xme, yme, scoreme} );
 
-        this.on('changing in agent info', (id, team, score) => {
-            socket.emit("changing in agent info", id, team, score)
+        // passo le informazione dei punteggi di tutti i team ed agent per la leaderboard, anche eventuali delet
+        this.on('agent info', (id, name, team, score) => {
+            socket.emit("agent info", id, name, team, score)
         })
-        this.on('changing in team info', (name, score) => {
-            socket.emit("changing in team info", name, score)
+        this.on('team info', (name, score) => {
+            socket.emit("team info", name, score)
+        })
+        this.grid.on('agent deleted', ( who ) => {
+            // console.log("Agent ", who.name + " deleted")
+            if(who.team && this.teams.has(who.team)){
+                this.teams.get(who.team).removeAgent(who.id)
+            }
+            socket.emit("agent deleted", who.id, who.team)
+        })
+        this.on('team deleted', (name)=>{
+            // console.log("Team ", name + " deleted")
+            socket.emit("team deleted", name)
         })
 
       
         // invio le info iniziali
         for (let team of this.teams.values()) {
-            socket.emit("changing in team info", team.name, team.score)
+            socket.emit("team info", team.name, team.score)
         }
         for (let agentSocket of this.idToAgentAndSockets.values()) {
             let agent = agentSocket.agent;
-            socket.emit("changing in agent info", agent.id, agent.team, agent.score)
-        }
-        
-        
+            socket.emit("agent info", agent.id, agent.name, agent.team, agent.score)
+        }    
         
 
         /**

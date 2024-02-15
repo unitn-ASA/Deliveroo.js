@@ -2,24 +2,37 @@
 <html>
   <head>
     <title>Deliveroo.js</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="allertStyle.css">
+    <link rel="stylesheet" href="indexStyle.css">
   </head>
   
   <body>
-    
-    <div id="info" style="position:absolute; color:white; z-index:1; opacity:0.3;">
-      <span id="socket.id"></span>
-      <br>
-      <span id="agent.id"></span>
-      <br>
-      <span id="agent.name"></span>
-      <br>
-      <span id="agent.team"></span>
-      <br>
-      <span id="agent.xy"></span>
-      <br>
-      <pre id="config"></pre>
-      <img id="canvas" width="200" height="200" style="position: relative; top: 0; left: 0; z-index: 1000;"></img>
+    <div id="dashboard">
+      <div id="info" style="position:absolute; color:white; z-index:1; opacity:0.3;">
+        <span id="socket.id"></span>
+        <br>
+        <span id="agent.id"></span>
+        <br>
+        <span id="agent.name"></span>
+        <br>
+        <span id="agent.team"></span>
+        <br>
+        <span id="agent.xy"></span>
+        <br>
+        <pre id="config"></pre>
+        <img id="canvas" width="200" height="200" style="position: relative; top: 0; left: 0; z-index: 1000;"></img>
+      </div>
+
+      <div id="panel">
+        <div class="folder">
+          <h4>Leaderboard</h4>
+          <div class="leaderboard" id="leaderboard"></div>
+        </div>
+        <div class="folder">
+            <h4>Chat</h4>
+            <div class="chat" id="chat"></div>
+        </div>
+      </div>
     </div>
 
     <!-- <script src="http://localhost:8080/socket.io/socket.io.js"></script> -->
