@@ -13,6 +13,15 @@ const io = new Server( {
 } );
 
 
+
+// // https://socket.io/docs/v4/server-api/#namespace
+// io.of((name, query, next) => {
+//     // the checkToken method must return a boolean, indicating whether the client is able to connect or not.
+//     next(null, checkToken(query.token));
+// }).on("connection", (socket) => { /* ... */ });
+
+
+
 //GAmes di default 
 var options1 = {
     mappa:'loops',
