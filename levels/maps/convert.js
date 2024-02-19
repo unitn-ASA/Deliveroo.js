@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { createCanvas } = require('canvas');
 const DOT_PER_TILE = 10;
+const PADDING = 1;
 
 var fileNames = [
     'challenge_21',
@@ -28,7 +29,7 @@ for ( let fileName of fileNames ) {
         map: file
     }
 
-    fs.writeFile('./'+fileName+'.json', JSON.stringify(file, null, 2), (error) => {
+    fs.writeFile('./'+fileName+'.json', JSON.stringify(output, null, 2), (error) => {
         if (error) {
             console.log('An error has occurred ', error);
             return;
@@ -36,7 +37,10 @@ for ( let fileName of fileNames ) {
         console.log(fileName, 'written successfully to', './'+fileName+'.json');
     });
 
-    var canvas = createMapImage(file[0].lenght, file.lenght, file);
+    var width = file[0].length;
+    var height = file.length;
+
+    var canvas = createMapImage(width, height, file);
 
     // save canvas to png file
     // canvas.createPNGStream().pipe( fs.createWriteStream('./'+fileName+'.png') );
@@ -58,22 +62,33 @@ function createMapImage(width, height, map) {
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
 
+            // get the value of the current cell
             let value = map[x][y];
-            let color;
+            
+            ctx.globalAlpha = 1;
+            // set the color of the rectangle
             if ( value == 0 ) {
-                color = 'black';
+                ctx.fillStyle = 'grey';
+                ctx.globalAlpha = 0.4;
+                // continue;
             } else if ( value == 1 ) {
-                color = 'green';
+                ctx.fillStyle = 'green';
             } else if ( value == 2 ) {
-                color = 'red';
+                ctx.fillStyle = 'red';
             } else if ( value == 3 ){
-                color = 'yellow';
+                ctx.fillStyle = 'yellow';
             } else {
-                color = 'white';
+                ctx.fillStyle = 'purple';
             }
 
-            ctx.fillStyle = color;
-            ctx.fillRect( x * DOT_PER_TILE, (height-1-y) * DOT_PER_TILE, DOT_PER_TILE, DOT_PER_TILE);
+            // calculate the position and size of the rectangle
+            var _left = x * DOT_PER_TILE + PADDING;
+            var _top = (height-1-y) * DOT_PER_TILE + PADDING;
+            var _width = DOT_PER_TILE - 2*PADDING;
+            var _height = DOT_PER_TILE - 2*PADDING;
+
+            // draw the rectangle
+            ctx.fillRect( _left, _top, _width, _height );
 
         }
     }
