@@ -15,13 +15,13 @@ router.post('/', (req, res) => {
   
   var newMatch = new Match(formData)
 
-  const filePath = path.join(mapsDirectory, newMatch.options.mappa);
+  const filePath = path.join(mapsDirectory, newMatch.config.mappa);
   const mapContent = require(filePath);
 
   res.status(200).json({
     message: 'Dati ricevuti con successo!',
     id: newMatch.id,
-    data: newMatch.options,
+    data: newMatch.config,
     mappa: mapContent
   });
 

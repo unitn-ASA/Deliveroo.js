@@ -5,6 +5,7 @@ const randomlyMovingAgent = require('../workers/randomlyMovingAgent');
 const parcelsGenerator = require('../workers/parcelsGenerator');
 const { uid } = require('uid'); 
 const { forEach } = require('../../levels/maps/challenge_21');
+const Config = require('./Config');
 
 class Match extends EventEmitter {
 
@@ -13,22 +14,20 @@ class Match extends EventEmitter {
      */
     static mapMatch = new Map()  //lista di tutti i game attivi 
 
+    /**
+     * @type {string} id
+     */    
     id
-    grid
-    options = {}    // Opzioni per configurare la partita, essi sono:
 
-        /*  mappa: nome della mappa della partita
-            random_mov_agents: numero di boot
-            random_agent_speed: la velocità dei boot
-            parcels_generation_interval: intervallo di tempo tra lo spawn dei pacchi
-            parcels_max: numero massimo di pacchi, 
-            parcel_rewar_avg: media del valore di un pacco
-            parcel_reward_variance: varianza del valore di un pacco dalla media
-            parcel_decading_interval: intervallo di tempo per cui il valore del pacco decrementi di 1
-            agents_observation_distance: la distanza in cui un agente riesce a vedere altri agenti --> usato in registerSocketAndGetAgent e a sua volta in Agents
-            parcels_observation_distance: la distanza in cui un agente riesce a vedere altri pacchi --> usato in registerSocketAndGetAgent e a sua volta in Agents
-            movement_duration: durata di uno singolo spostamento dell'agente --> usato in registerSocketAndGetAgent e a sua volta in Agents
-        */
+    /**
+     * @type {Grid} grid
+     */
+    grid
+
+    /**
+     * @type {Config} config
+     */
+    config
 
     /**
     * @type {Map<string,{agent:Agent,sockets:Set<Socket>}>} idToAgentAndSockets
@@ -40,15 +39,15 @@ class Match extends EventEmitter {
     */
     teams = new Map()
 
-    constructor(options, id=null)  {
+    constructor( config = new Config(), id = null )  {
         super();
 
         if(id == null) { 
             this.id = uid(6) 
         } else { this.id = id }
 
-        this.options = options
-        const map = require( '../../levels/maps/' + this.options.mappa );
+        this.config = config;
+        const map = require( '../../levels/maps/' + this.config.MAP_FILE + '.json' ).map;
         this.grid = new Grid( map );
 
         // quando il punteggio di un agente cambia solleva l'evento canging in scores
@@ -56,14 +55,14 @@ class Match extends EventEmitter {
             this.emit('changing in agent info', id, team, score);
         })
 
-        parcelsGenerator( this.grid, this.options.parcels_generation_interval, this.options.parcels_max, this.options.parcel_rewar_avg, this.options.parcel_reward_variance,  this.options.parcel_decading_interval);
+        parcelsGenerator( this.grid, this.config);
 
-        for (let i = 0; i < this.options.random_mov_agents; i++) {
-            randomlyMovingAgent( this.grid, this.options.random_agent_speed );
+        for (let i = 0; i < this.config.RANDOMLY_MOVING_AGENTS; i++) {
+            randomlyMovingAgent( this.grid, this.config.RANDOM_AGENT_SPEED );
         }
 
         Match.mapMatch.set(this.id,this)
-        console.log("Avviato game numero: ", this.id, " con opzioni: ", this.options);
+        console.log("Avviato game numero: ", this.id, " con opzioni: ", this.config);
 
         this.on('changing in agent info', (id, team, score) => {
             console.log("Agente ", id + " of team:", team + " change score into ", +score)
@@ -91,11 +90,10 @@ class Match extends EventEmitter {
         entry.sockets.add( socket );
 
         // Get or create agent for id
-        var config = { AGENTS_OBSERVATION_DISTANCE: this.options.agents_observation_distance, PARCELS_OBSERVATION_DISTANCE: this.options.parcels_observation_distance, MOVEMENT_DURATION: this.options.movement_duration}
         var me = this.grid.getAgent( id );
 
         if ( ! me ) {
-            me = this.grid.createAgent( {id: id, name, team}, config );
+            me = this.grid.createAgent( {id: id, name, team}, this.config );
             me.score = this.idToAgentAndSockets.get( id ).agent.score;
 
             // Gestione dei team

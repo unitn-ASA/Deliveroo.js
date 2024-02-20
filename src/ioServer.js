@@ -2,6 +2,7 @@ const { Server } = require('socket.io');
 const Match = require('./deliveroo/Match')
 const AuthenticationUnique = require('./deliveroo/AuthenticationUnique');
 const myClock = require('./deliveroo/Clock');
+const Config = require('./deliveroo/Config');
 
 const myAuthenticatorUnique = new AuthenticationUnique; 
 
@@ -22,39 +23,11 @@ const io = new Server( {
 
 
 
-//GAmes di default 
-var options1 = {
-    mappa:'loops',
-    random_mov_agents: 0,
-    random_agent_speed: '10s',
-    parcels_generation_interval: '1s',
-    parcels_max: 'inifinte',
-    parcel_rewar_avg: 300,
-    parcel_reward_variance: 10,
-    parcel_decading_interval: 'infinite',
-    agents_observation_distance: 10,
-    parcels_observation_distance: 10,
-    movement_duration: 400
-}
-var options2 = {
-    mappa:'loops',
-    random_mov_agents: 0,
-    random_agent_speed: '10s',
-    parcels_generation_interval: '1s',
-    parcels_max: 'inifinte',
-    parcel_rewar_avg: 300,
-    parcel_reward_variance: 10,
-    parcel_decading_interval: '1s', 
-    agents_observation_distance: 5,
-    parcels_observation_distance: 5,
-    movement_duration: 50
-}
-
 // match di default
-var game0 = new Match(options1,'0');
-var game1 = new Match(options2,'1');
-console.log("\nLista Matchs: ");
-Match.mapMatch.forEach( match => console.log("\tMatch ", match.id + " with map: ", match.options.mappa));
+var game0 = new Match( new Config(), '0');
+var game1 = new Match( new Config(), '1');
+console.log("\nLista Matches: ");
+Match.mapMatch.forEach( match => console.log("\tMatch ", match.id + " with map: ", match.config.MAP_FILE));
 
 
 // Gestione connessioni 
