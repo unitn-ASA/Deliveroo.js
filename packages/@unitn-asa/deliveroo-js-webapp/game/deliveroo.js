@@ -5,8 +5,12 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { default as EventEmitter } from 'events';
 
+import { leaderboard } from './pannelGestore.js';
+
 
 export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
+
+    document.getElementById('dashboard').style.display = 'block';
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //--------------------------------------------------- GESTIONE SCENA -----------------------------------------------------------------------
@@ -115,6 +119,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
     //--------------------------------------------------- DEFINIZIONE CLASSI -----------------------------------------------------------------------
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /*
     function createPanel() {
 
         const panel = new GUI( { width: 310 } );
@@ -177,6 +182,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
 
     }
     const { updateLeaderboard, processMsg } = createPanel();
+    */
 
     // const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
     // const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
@@ -676,9 +682,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
     var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
         extraHeaders: {
             'x-token': paramToken,
-            'match': paramMatch,
-            'name': paramName,
-            'team': paramTeam
+            'match': paramMatch
         }, 
     } ); 
 
@@ -780,14 +784,19 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         document.getElementById('agent.id').textContent = `agent.id ${id}`;
         document.getElementById('agent.name').textContent = `agent.name ${name}`;
         document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
+        document.getElementById('agent.team').textContent = `agent.team ${team}`;
         
-        // per l'info agent.team controllo che team non sia "" ( quindi l'agente non è in nessun team )
+        /* per l'info agent.team controllo che team non sia "" ( quindi l'agente non è in nessun team )
         let varTeam = document.getElementById('agent.team');
-        if(team == ""){
-            document.getElementById('info').removeChild(varTeam);       // se team è "" rimuovo l'info agent.team
-        }else{
-            varTeam.textContent = `agent.team ${team}`;
-        }
+        if(varTeam) {
+            if(team == "") {
+                document.getElementById('info').removeChild(varTeam); // Se team è "" rimuovo l'info agent.team
+            } else {
+                varTeam.textContent = `agent.team ${team}`;
+            }
+        } else {
+            console.error("Elemento 'varTeam' non trovato.");
+        }*/
 
         me = getOrCreateAgent(id, name, team, x, y, score);
 
@@ -847,7 +856,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
 
             if ( agent.score != score ) {
                 agent.score = score;
-                updateLeaderboard( agent );
+                //updateLeaderboard( agent );
             }
         }
 
@@ -891,16 +900,70 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
 
     });
 
-    socket.on("changing in agent info", (id, team, score) => {
-        console.log("changing in agent " + id +" info");    
-        updateLeaderboard(id, false, team, score);         
+    socket.on("agent info", (id, name, team, score) => {
+        console.log("changing in agent " + id, " " + name, " info"); 
+        let color;
+
+        //verifico se l'agente è gia stato associato un colore, in caso ne associa
+        if(teamsAndColors.has(id)){
+            color = teamsAndColors.get(id);
+        }else{
+            let coloriGiaUsati = Array.from(teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
+            // console.log("Colori: ", teamsAndColors)
+            
+            do{
+                color  = new THREE.Color( 0xffffff );        
+                color.setHex( Math.random() * 0xffffff );
+
+            }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // ripeto la generazione random del colore finchè non è simile a nessun colore gia usato
+            
+            // Aggiorno teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
+            teamsAndColors.set(id,color)
+        }
+
+        let leaderboardElement = document.getElementById('leaderboard');
+        leaderboard.updateAgent(id, name, team, score, leaderboardElement, color);   
+        // updateLeaderboard(id, false, team, score);         
         
     });
 
-    socket.on("changing in team info", (name, score) => {
-        console.log("changing in team " + name +" info");        
-        updateLeaderboard(name, true, null, score);         
+    socket.on("team info", (name, score) => {
+        console.log("changing in team " + name +" info");
+        var color
+
+        //verifico se al team è gia stato associato un colore, in caso ne associa
+        if(teamsAndColors.has(name)){
+            color = teamsAndColors.get(name);
+        }else{
+            let coloriGiaUsati = Array.from(teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
+            // console.log("Colori: ", teamsAndColors)
+            
+            do{
+                color  = new THREE.Color( 0xffffff );        
+                color.setHex( Math.random() * 0xffffff );
+
+            }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // ripeto la generazione random del colore finchè non è simile a nessun colore gia usato
+            
+            // Aggiorno teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
+            teamsAndColors.set(name,color)
+        }
+       
+        let leaderboardElement = document.getElementById('leaderboard');
+        leaderboard.updateTeam(name, score, leaderboardElement, color);  
+        // updateLeaderboard(name, true, null, score);         
     });
+
+    socket.on('agent deleted', (id, team) =>{
+        let leaderboardElement = document.getElementById('leaderboard');
+        //console.log("delete agent " + id +" info");
+        leaderboard.removeAgent(id, team, leaderboardElement)
+    })
+
+    socket.on('team deleted', (name) =>{
+        let leaderboardElement = document.getElementById('leaderboard');
+        console.log("delete team " + name +" info");
+        leaderboard.removeTeam(name, leaderboardElement)
+    })
 
     var action = null;
     async function start_doing ( ) {

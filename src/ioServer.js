@@ -34,11 +34,11 @@ Match.mapMatch.forEach( match => console.log("\tMatch ", match.id + " with map: 
 io.on('connection', (socket) => {
 
     // stampo la rihiesta di connessione     
-    console.log("\nConnessione socket:", socket.id + " al match:", socket.handshake.headers['match'] )
+    console.log("\nConnection socket:", socket.id + " to match:", socket.handshake.headers['match'] )
     if(socket.handshake.headers['x-token']){
-        console.log("con token: ", socket.handshake.headers['x-token'])
+        console.log("with token: ", socket.handshake.headers['x-token'].slice(-30))
     }else{
-        console.log("senza token")
+        console.log("with'out token")
     }
 
     var match = Match.mapMatch.get(socket.handshake.headers['match']);

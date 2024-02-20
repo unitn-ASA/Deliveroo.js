@@ -4,7 +4,7 @@ class Team extends EventEmitter{
     name;
     score;
         
-    // array degli id degli agenti del teams
+    // array degli id degli agenti del teams: key-> id, value-> score
     agents = new Map();
 
     constructor(name){
@@ -27,6 +27,19 @@ class Team extends EventEmitter{
             //console.log("Punteggio team ", this.name + " = ", this.score);
             this.emit('team score', this.name, this.score)
         } )
+    }
+
+    removeAgent(agent){
+        // console.log("Agent in team: ", this.agents)
+        if(this.agents.has(agent)){
+            this.agents.delete(agent);
+            if (this.agents.size === 0){
+                this.emit("delete team", this.name);
+            }else{
+                this.refreshScoreTeam()
+                this.emit('team score', this.name, this.score)
+            }
+        } 
     }
 
     agentInTeam(agentId){

@@ -117,10 +117,10 @@ class Grid extends Observable {
     /**
      * @type {function({id:string,name:string}): Agent}
      */
-    createAgent ( options = {}, config) {
+    createAgent ( id, name, team, config) {
         
         // Instantiate
-        var me = new Agent( this, options, config );
+        var me = new Agent( this, id, name, team, config );
         this.emit( 'agent created', me );
 
         // Register
@@ -129,9 +129,7 @@ class Grid extends Observable {
         // Grid scoped events propagation
         me.on( 'xy', this.emit.bind(this, 'agent xy') );
         me.on( 'score', this.emit.bind(this, 'agent score') );
-        me.on( 'score', () => {
-            this.emit('agente score', me.id, me.team, me.score);
-        });
+        me.on( 'score', () => { this.emit('agente score', me.id, me.name, me.team, me.score); });
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );

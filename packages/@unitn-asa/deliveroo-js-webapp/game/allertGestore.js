@@ -109,7 +109,7 @@ async  function submitName() {
         // se il browser non contiene un token per il nome ne richiede uno
         if(token == ""){
             tokenMessage.innerText = "No existing token for the name entered, here is a new token";
-            token = await richiediToken(input);     // richiedi un nuovo token per nome input
+            token = await richiediToken(input, team);     // richiedi un nuovo token per nome input
                         
         }else{
             tokenMessage.innerText = "Welcome back the browser has this token for you" 
@@ -124,7 +124,7 @@ async  function submitName() {
 
         form.appendChild(resultToken);
 
-        console.log("goToMatch parameters: \n\t match: " + params.get("match") + "\n\t name: " + input + "\n\t token: " + token + "\n\t team: " + team);     
+        console.log("goToMatch parameters: \n\t match: " + params.get("match") + "\n\t name: " + input + "\n\t token: " + token.slice(-30) + "\n\t team: " + team);     
         
         // Aggiungo un nuovo bottone che permette l'effettivo accesso al gioco 
         var newButton = document.createElement('button');
@@ -183,7 +183,7 @@ function checkCookieForToken ( name ) {
     }
 }
 
-function richiediToken(nome, callback) {
+function richiediToken(nome, team, callback) {
     return new Promise((resolve, reject) => {
 
         console.log("Nome fetch: " + nome);
@@ -192,7 +192,8 @@ function richiediToken(nome, callback) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'nome': nome
+                'nome': nome,
+                'team': team
             }
         })
         .then(response => {
@@ -202,7 +203,7 @@ function richiediToken(nome, callback) {
             throw new Error(`Error generating token, Status code: ${response.status}`);
         })
         .then(data => {
-            console.log("token ottenuto: " + data.token);
+            console.log("token ottenuto: " + data.token.slice(-30));
             resolve(data.token);
         })
         .catch(error => {
