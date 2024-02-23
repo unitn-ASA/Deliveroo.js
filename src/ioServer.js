@@ -111,61 +111,6 @@ io.on('connection', (socket) => {
             } catch (error) { console.error(error) }
     });
 
-
-
-    /**
-     * Communication
-     */
-
-    socket.on( 'say', (toId, msg, acknowledgementCallback) => {
-        
-        console.log( me.id, me.name, 'say ', toId, msg );
-
-        for ( let socket of myAuthenticator.getSockets( toId )() ) {
-            
-            // console.log( me.id, me.name, 'emit \'msg\' on socket', socket.id, msg );
-            socket.emit( 'msg', me.id, me.name, msg );
-
-        }
-
-        try {
-            if (acknowledgementCallback) acknowledgementCallback( 'successful' )
-        } catch (error) { console.log( me.id, 'acknowledgement of \'say\' not possible' ) }
-
-    } )
-
-    socket.on( 'ask', (toId, msg, replyCallback) => {
-        console.log( me.id, me.name, 'ask', toId, msg );
-
-        for ( let socket of myAuthenticator.getSockets( toId )() ) {
-            
-            // console.log( me.id, 'socket', socket.id, 'emit msg', ...args );
-            socket.emit( 'msg', me.id, me.name, msg, (reply) => {
-
-                try {
-                    console.log( toId, 'replied', reply );
-                    replyCallback( reply )
-                } catch (error) { console.log( me.id, 'error while trying to acknowledge reply' ) }
-
-            } );
-
-        }
-
-    } )
-
-    socket.on( 'shout', (msg, acknowledgementCallback) => {
-
-        console.log( me.id, me.name, 'shout', msg );
-
-        socket.broadcast.emit( 'msg', me.id, me.name, msg );
-
-        try {
-            if (acknowledgementCallback) acknowledgementCallback( 'successful' )
-        } catch (error) { console.log( me.id, 'acknowledgement of \'shout\' not possible' ) }
-        
-    } )
-
-
     
     /**
      * Path

@@ -1,37 +1,33 @@
 let leaderboard = {
 
-    //key: nome team, value: array degli agenti(id,nome e score) 
+    //key: nome team, value: array of the agents(id,nome e score) 
     teamsAndMembers: new Map(),
     
     addTeam: function(team, score, leaderboardElement, color) {
 
-        // Crea un nuovo elemento div per rappresentare il team
-        let teamElement = document.createElement('div');
-        teamElement.classList.add('team');          // Aggiungi la classe "team" al nuovo elemento div
-        teamElement.id = "team_" + team;
+        let teamElement = document.createElement('div');    // create a new div for the team
+        teamElement.classList.add('team');                  // Add the class "team" to the new div
+        teamElement.id = "team_" + team;                    // Add the id "tea;_name" to the new div
 
-        let teamInfoElement = document.createElement('div');
-        teamInfoElement.classList.add('teamInfo');          // Aggiungi la classe "team" al nuovo elemento div
+        let teamInfoElement = document.createElement('div');    // create a new div for the info of the team: name, type and score
+        teamInfoElement.classList.add('teamInfo');              // Aggiungi la classe "team" al nuovo elemento div
 
-        // Crea un elemento span per il nome del team
-        let nametypeElement = document.createElement('div');
+        let nametypeElement = document.createElement('div');    // create a new div for the name and type of the team
         nametypeElement.classList.add('name_type');  
 
-        let nameElement = document.createElement('span');
-        nameElement.classList.add('name');          // Aggiungi la classe "name" al nome del team
-        nameElement.textContent = team;             // Imposta il testo del nome del team
-        nametypeElement.appendChild(nameElement);   // Aggiungi l'elemento al div del name-type team
+        let nameElement = document.createElement('span');       // create a new span for the name of the team
+        nameElement.classList.add('name');                      // add the class "name" 
+        nameElement.textContent = team;                         // set the name of the team
+        nametypeElement.appendChild(nameElement);              
 
-        let typeElement = document.createElement('span');
-        typeElement.classList.add('type');          // Aggiungi la classe "type" 
-        typeElement.textContent = 'team';           // Imposta il testo
-        nametypeElement.appendChild(typeElement);   // Aggiungi l'elemento al div del name-type team
+        let typeElement = document.createElement('span');   // create a new span for the type of the team
+        typeElement.classList.add('type');                  // add the class "type"     
+        typeElement.textContent = 'team';                   // set the type of the team
+        nametypeElement.appendChild(typeElement);   
 
-
-        // Crea un elemento span per il punteggio del team
-        let scoreElement = document.createElement('span');
-        scoreElement.classList.add('score');        // Aggiungi la classe "score" al punteggio del team
-        scoreElement.textContent = score;           // Imposta il testo del punteggio del team
+        let scoreElement = document.createElement('span');  // create a span for the score
+        scoreElement.classList.add('score');                // add the class "score" 
+        scoreElement.textContent = score;                   // set the score
 
         teamInfoElement.appendChild(nametypeElement);   // Aggiungi l'elemento del nome e tipo del team al div del team
         teamInfoElement.appendChild(scoreElement);      // Aggiungi l'elemento del punteggio del team al div del team
@@ -111,7 +107,7 @@ let leaderboard = {
 
         agentElement.appendChild(nametypeElement);   // Aggiungi l'elemento del nome e tipo del agent al div del agent
         agentElement.appendChild(scoreElement);      // Aggiungi l'elemento del punteggio del agent al div del agent
-
+        
         if(color){
             let colorString = `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`;
             agentElement.style.backgroundColor = colorString;
@@ -197,6 +193,18 @@ let leaderboard = {
         if (teamElement) {
             teamElement.remove()
         }
+    },
+
+    findTeamNameById: function(id) {
+        for (let [teamName, agents] of this.teamsAndMembers) {
+            for (let agent of agents) {
+                if (agent.id === id) {
+                    return teamName;
+                }
+            }
+        }
+        // Se non trovi corrispondenze, ritorna null o gestisci il caso in cui non viene trovato l'ID
+        return null;
     }
 
     

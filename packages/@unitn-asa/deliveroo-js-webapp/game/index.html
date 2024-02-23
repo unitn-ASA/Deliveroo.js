@@ -2,8 +2,8 @@
 <html>
   <head>
     <title>Deliveroo.js</title>
-    <link rel="stylesheet" href="allertStyle.css">
-    <link rel="stylesheet" href="indexStyle.css">
+    <link rel="stylesheet" href="styleAllert.css">
+    <link rel="stylesheet" href="styleIndex.css">
   </head>
   
   <body>
@@ -29,15 +29,16 @@
           <div class="leaderboard" id="leaderboard"></div>
         </div>
         <div class="folder">
-            <h4>Chat</h4>
-            <div class="chat" id="chat"></div>
+            <h4 id="chatTitle">Chat</h4>
+            <div class="chat closed" id="chat"></div>
         </div>
+        <button id="sendMessageButton">Send Message</button>
       </div>
     </div>
 
     <!-- <script src="http://localhost:8080/socket.io/socket.io.js"></script> -->
     <script  src="/socket.io/socket.io.js"></script>
-    <script type="module" src="allertGestore.js"></script>
+    <script type="module" src="gestoreAllert.js"></script>
 
   </body>
 </html>

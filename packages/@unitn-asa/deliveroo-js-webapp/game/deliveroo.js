@@ -5,13 +5,14 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { default as EventEmitter } from 'events';
 
-import { leaderboard } from './pannelGestore.js';
+import { leaderboard } from './gestoreLeaderboard.js';
+import { chat } from './gestoreChat.js';
 
 
 export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
 
     document.getElementById('dashboard').style.display = 'block';
-
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //--------------------------------------------------- GESTIONE SCENA -----------------------------------------------------------------------
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,6 +39,18 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         renderer.setSize(window.innerWidth, window.innerHeight);
         labelRenderer.setSize( window.innerWidth, window.innerHeight );
     } );
+
+    
+    const chatTitle = document.getElementById('chatTitle');
+    const chatDiv = document.getElementById('chat');
+
+    chatTitle.addEventListener('click', function() {     // Add a click listener to open and close the chat
+        if (chatDiv.classList.contains('closed')) {            
+            chatDiv.classList.remove('closed');     
+        } else {            
+            chatDiv.classList.add('closed');        
+        }
+    })
 
     const controls = new OrbitControls( camera, labelRenderer.domElement );
     controls.minDistance = 10;
@@ -531,6 +544,12 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         parcels.delete( id );
     }
 
+    function isColorTooLightOrDark(color) {
+        let hsl = {};
+        color.getHSL(hsl);                      // Convert the color in HSL
+        return hsl.l < 0.2 || hsl.l > 0.8;      // check the light
+    }
+
     
     // funzione per confrontare due colore THREE.Color per evitare colori uguali o troppo simili
     function areColorsSimilar(color1, color2) {
@@ -687,6 +706,22 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
     } ); 
 
 
+    ///////////////////////////////////////////////////////// MESSAGE TESTS ////////////////////////////////////////////////////////
+    function sendMessageSay() {
+        let msgProva = "PROVA di un MSGhhhhhhhhhhhhhhhhhhhhhh"
+        socket.emit('say', 'da19cc0a782', msgProva );
+    }
+    function sendMessageShout() {
+        let msgProva = "PROVA di un MSGhhhhhhhhhhhhhhhhhhhhhh"
+        socket.emit('shout', 'da19cc0a782', msgProva );
+    }
+    function sendMessageAsk() {
+        let msgProva = "PROVA di un MSGhhhhhhhhhhhhhhhhhhhhhh"
+        socket.emit('ask', 'da19cc0a782', msgProva );
+    }
+    document.getElementById('sendMessageButton').addEventListener('click', sendMessageAsk);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     var me = getOrCreateAgent('loading', name, 0, 0, 0);
     // me.mesh.add( camera );
 
@@ -750,10 +785,18 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         WIDTH = width
         HEIGHT = height
     });
-
+    
+    // function that add the message to the chat
     socket.on( "msg", ( id, name, msg, reply ) => {
-        console.log( 'msg', {id, name, msg, reply} )
-        processMsg( id, name, msg )
+        let chatElement = document.getElementById('chat');
+        let color;
+        if(teamsAndColors.has(id)){color = teamsAndColors.get(id);}
+        else{
+            let team = leaderboard.findTeamNameById(id);
+            color = teamsAndColors.get(team);
+        }
+        console.log( 'msg', {name, color, msg, reply} )
+        chat.addMessage( name, color, msg, chatElement )
         if ( msg == 'who are you?' && reply ) reply('I am the web app')
     })
 
@@ -900,6 +943,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
 
     });
 
+    // function that change the leaderboard based on the agent received
     socket.on("agent info", (id, name, team, score) => {
         console.log("changing in agent " + id, " " + name, " info"); 
         let color;
@@ -908,17 +952,21 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         if(teamsAndColors.has(id)){
             color = teamsAndColors.get(id);
         }else{
-            let coloriGiaUsati = Array.from(teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
-            // console.log("Colori: ", teamsAndColors)
-            
-            do{
-                color  = new THREE.Color( 0xffffff );        
-                color.setHex( Math.random() * 0xffffff );
+            if(!team){
 
-            }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // ripeto la generazione random del colore finchè non è simile a nessun colore gia usato
-            
-            // Aggiorno teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
-            teamsAndColors.set(id,color)
+                let coloriGiaUsati = Array.from(teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
+                // console.log("Colori: ", teamsAndColors)
+                
+                do{
+                    color  = new THREE.Color( 0xffffff );        
+                    color.setHex( Math.random() * 0xffffff );
+    
+                }while(isColorTooLightOrDark(color) & coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // ripeto la generazione random del colore finchè non è simile a nessun colore gia usato
+                
+                // Aggiorno teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
+                teamsAndColors.set(id,color)
+
+            }
         }
 
         let leaderboardElement = document.getElementById('leaderboard');
@@ -927,6 +975,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         
     });
 
+    // function that change the leaderboard based on the team received
     socket.on("team info", (name, score) => {
         console.log("changing in team " + name +" info");
         var color
@@ -953,12 +1002,14 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         // updateLeaderboard(name, true, null, score);         
     });
 
+    // function that remove the agent from the leaderboard 
     socket.on('agent deleted', (id, team) =>{
         let leaderboardElement = document.getElementById('leaderboard');
         //console.log("delete agent " + id +" info");
         leaderboard.removeAgent(id, team, leaderboardElement)
     })
 
+    // function that remove the team from the leaderboard 
     socket.on('team deleted', (name) =>{
         let leaderboardElement = document.getElementById('leaderboard');
         console.log("delete team " + name +" info");
