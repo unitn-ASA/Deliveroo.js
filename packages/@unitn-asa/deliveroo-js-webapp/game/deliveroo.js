@@ -9,7 +9,7 @@ import { leaderboard } from './gestoreLeaderboard.js';
 import { chat } from './gestoreChat.js';
 
 
-export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
+export function goToMatch(paramMatch, paramToken){
 
     document.getElementById('dashboard').style.display = 'block';
     
@@ -131,82 +131,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //--------------------------------------------------- DEFINIZIONE CLASSI -----------------------------------------------------------------------
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /*
-    function createPanel() {
-
-        const panel = new GUI( { width: 310 } );
-        
-        const tokenFolder = panel.addFolder( 'Tokens' );
-        tokenFolder.close();
-
-        const chatFolder = panel.addFolder( 'Chat' );
-        chatFolder.open();
-
-        function processMsg (id, name, msg) {
-            let line = {}; line[id+' '+name] = JSON.stringify(msg)
-            chatFolder.add( line, id+' '+name );
-        }
-
-        const leaderboardFolder = panel.addFolder( 'Leaderboard' );
-        leaderboardFolder.open();
-        
-        const players = {}
-
-        function addAgentToLeaderboard(agent, team) {
-            let player = {};
-            player[agent] = 0;
-            let controller = players[team].teamFolder.add(player, agent, 0, 1000);
-            players[agent] = controller;
-            players[agent].setValue(0);
-        }
-
-        function addTeamToLeaderboard(team) {
-            let player = {};
-            player[team] = 0;
-            let controller = leaderboardFolder.add(player, team, 0, 1000);
-            const teamFolder = leaderboardFolder.addFolder(team);
-
-            players[team] = {controller, teamFolder};
-            players[team].setValue(0);
-        }
-
-
-        function updateLeaderboard ( name, isTeam, team, score ) {
-            console.log("Aggiornamento label ", name);
-            if (players.hasOwnProperty(name)) {
-                console.log(name + " è già presente nel leaderboard.");
-                if(isTeam){players[name].controller.setValue(score);}
-                else{      players[name].setValue(score); }
-                
-            } else {
-                if(isTeam){
-                    console.log(name + " non è presente nel leaderboard. Aggiungo il team al leaderboard.");
-                    addTeamToLeaderboard(name);
-                }else{
-                    console.log("L'agente non è presente nel leaderboard. Aggiungo l'agent al leaderboard.");
-                    addAgentToLeaderboard(name, team);
-                }
-                
-            }
-        }
-
-        return { updateLeaderboard, processMsg }
-
-    }
-    const { updateLeaderboard, processMsg } = createPanel();
-    */
-
-    // const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
-    // const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-    // const my_mesh = new THREE.Mesh( geometry, material );
-    // my_mesh.position.x = 1 * 1.5;
-    // my_mesh.position.y = 0.5;
-    // my_mesh.position.z = 1 * 1.5;
-    // // my_mesh.rotation.x = 90;
-    // scene.add( my_mesh );
-
-
 
     /**
      * Grid axes
@@ -611,29 +535,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
             // per il colore tutti gli agenti appartenti ad un team hanno stesso colore
             var color;
 
-            /*
-            if(team == ""){
-                do{
-                    color = new THREE.Color( 0xffffff );        
-                    color.setHex( Math.random() * 0xffffff );
-                }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))
-
-                coloriGiaUsati.push(color);
-            }else{
-                if(teams.has(team)){
-                    color = teams.get(team).color;
-                }else{
-                    do{
-                        color = new THREE.Color( 0xffffff );        
-                        color.setHex( Math.random() * 0xffffff );
-                    }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))
-    
-                    coloriGiaUsati.push(color);
-
-                    let newTeam = new Team(team, color);
-                }
-            } */
-
             //verifico se l'agente appartiene ad un team e che il team sia già stato inserito nella mappa Teams-Colori
             if(team != "" && teamsAndColors.has(team) ){     
                 color = teamsAndColors.get(team)  // se il team è gia presente assegno all'agente il colore del suo team
@@ -719,7 +620,7 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         let msgProva = "PROVA di un MSGhhhhhhhhhhhhhhhhhhhhhh"
         socket.emit('ask', 'da19cc0a782', msgProva );
     }
-    document.getElementById('sendMessageButton').addEventListener('click', sendMessageAsk);
+    document.getElementById('sendMessageButton').addEventListener('click', sendMessageShout);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     var me = getOrCreateAgent('loading', name, 0, 0, 0);
@@ -742,12 +643,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
     socket.on("connect_error", (reason) => {
         alert( `Reconnecting, press ok to continue.` );
     });
-
-    /*socket.on( "token", (token) => {
-        prompt( `Welcome, ${name}, here is your new token. Use it to connect to your new agent.`, token );
-        setCookie( 'token_'+name, token, 365 );
-        // navigator.clipboard.writeText(token);
-    }); */
 
     socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
         if ( src == 'server' )
@@ -829,18 +724,6 @@ export function goToMatch(paramMatch, paramName, paramToken, paramTeam){
         document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
         document.getElementById('agent.team').textContent = `agent.team ${team}`;
         
-        /* per l'info agent.team controllo che team non sia "" ( quindi l'agente non è in nessun team )
-        let varTeam = document.getElementById('agent.team');
-        if(varTeam) {
-            if(team == "") {
-                document.getElementById('info').removeChild(varTeam); // Se team è "" rimuovo l'info agent.team
-            } else {
-                varTeam.textContent = `agent.team ${team}`;
-            }
-        } else {
-            console.error("Elemento 'varTeam' non trovato.");
-        }*/
-
         me = getOrCreateAgent(id, name, team, x, y, score);
 
         /**

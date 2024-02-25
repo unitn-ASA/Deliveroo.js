@@ -1,4 +1,26 @@
-.allertPopUp{
+body { 
+    margin: 0; 
+    padding-bottom: 0; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+}
+
+div{
+    color: whitesmoke;
+}
+
+div#info:hover {
+    opacity: 1 !important;
+}
+
+.label {
+    color: #FFF;
+    font-family: sans-serif;
+    padding: 2px;
+    background: rgba( 0, 0, 0, .6 );
+    font-size: '12pt';
+}
+
+.allertPopUpScreen{
     display: flex;
     align-items: center;
     justify-content: center;
@@ -14,7 +36,7 @@
     margin-top: 0;
 }
 
-.formAllert {
+.allertPopUp{
     background-color: #000000be;
 
     padding-top: 10px;
@@ -26,111 +48,95 @@
     box-shadow: 0 4px 8px rgba(230, 118, 13, 0.31);
 
     width: 300px;
+    max-height: 600px; 
 }
 
-.labelAllert {
-    display: block;
-    margin-bottom: 10px;
-    color: whitesmoke;
-}
-
-.inputAllert {
-    width: 90%;
-    background-color: whitesmoke;
-    color: black;
-    padding: 5px;
-    border: 2px solid black;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.buttonAllert {
-    background-color: whitesmoke;
-    color: black;
-    padding: 5px;
-    border: 2px solid black;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-div{
-    color: whitesmoke;
-}
-
-#tokenBox {
-    background-color: rgb(221, 164, 111);
-    color: black;
-    padding: 5px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    border: 2px solid #f0f0f0;
-    width: 90%; 
-    text-align: center;      
-    overflow: hidden;        /* Nasconde il testo che fuoriesce dal riquadro */
-    white-space: nowrap;      
-    
-}
-
-body { 
-    margin: 0; 
-    padding-bottom: 0; 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-}
-
-#form { 
+#cookiesContainer { 
     background: rgba(0, 0, 0, 0.15); 
     padding: 0.25rem; 
-    position: fixed; 
+    position: relative; 
     bottom: 0; 
     left: 0; 
     right: 0; 
     display: flex; 
-    height: 3rem; 
+    flex-direction: column; 
+    max-height: 300px; 
+    overflow-y: auto; 
+    scrollbar-width: none;
     box-sizing: border-box; 
     backdrop-filter: blur(10px); 
 }
 
-#input { 
-    border: none; 
-    padding: 0 1rem; 
-    flex-grow: 1; 
-    border-radius: 2rem; 
-    margin: 0.25rem; 
+.cookie-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 5px;
+    break-inside: avoid;
+    margin-bottom: 10px;
 }
 
-#input:focus { 
-    outline: none; 
+.cookie-container .name-team {
+    flex: 1;
+    color: whitesmoke;
 }
 
-#form > button { 
-    background: #333; 
-    border: none; 
-    padding: 0 1rem; 
-    margin: 0.25rem; 
-    border-radius: 3px; 
-    outline: none; 
-    color: #fff;
+.cookie-container .team-span {
+    font-size: small;
+    color: whitesmoke;
+    margin-left: 3px;
 }
 
-#messages { 
-    list-style-type: none; 
-    margin: 0; 
-    padding: 0; 
+.cookie-container button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
 }
 
-#messages > li { padding: 0.5rem 1rem; }
-
-#messages > li:nth-child(odd) { background: #efefef; }
-
-.label {
-    color: #FFF;
-    font-family: sans-serif;
-    padding: 2px;
-    background: rgba( 0, 0, 0, .6 );
-    font-size: '12pt';
+.cookie-container button.delete-button {
+    background-color: red;
+    color: white;
 }
 
-div#info:hover {
-    opacity: 1 !important;
+
+.form-add-agent{
+    display: flex;
+    flex-direction: row; 
+    margin-top: 10px;
 }
 
+#addButton{
+    background-color: #e6780e; 
+    border: 2px solid #f0f0f0;
+    color: white; 
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 5px; 
+    cursor: pointer;
+    margin-left: auto;
+    height: 30px;
+}
+
+#nameInput{
+    margin-right: 10px;
+    max-width: calc(30% - 15px); 
+    background-color: #FFF;
+    height: 25px;
+    text-decoration: none;
+    border-radius: 5px; 
+    border: 2px solid #f0f0f0;
+}
+
+#teamInput{
+    margin-right: 10px;
+    max-width: calc(30% - 15px); 
+    background-color: #FFF;
+    height: 25px;
+    text-decoration: none;
+    border-radius: 5px; 
+    border: 2px solid #f0f0f0;
+}
