@@ -17,7 +17,6 @@ window.addEventListener('click', function(event) {
 
 
 /* Gestione Invio Settaggi */
-
 var agentsObservationDistance =''
 var parcelsObservationDistance =''
 

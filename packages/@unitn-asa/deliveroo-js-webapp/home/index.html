@@ -10,6 +10,20 @@
 <body>
     <header>
         <h1>DELIVEROO</h1>
+        <button class="login-button" id="loginButton">Login</button>
+        <button id="loggedButton">Logged</button>
+        <div id="overlay"></div>
+        <div id="loginFormContainer">
+            <div id="loginHeader">
+                <h2 class="login-title">LOGIN</h2>
+                <button class="close-button">X</button>
+            </div>
+            <form id="loginForm">
+                <input type="text" placeholder="Username" id="username-login">
+                <input type="password" placeholder="Password" id="password-login">
+                <button class="submit" type="submit">Accedi</button>
+            </form>
+        </div>
     </header>
     <div class="container">
         <div class="main-content">
@@ -47,30 +61,30 @@
                     </div>
                     
                     <!-- Input per MAP_FILE -->
-                    <label for="mapFile">MAP_FILE:</label>
-                    <input type="text" id="mapFile" name='mapFile' readonly>
+                    <label for="mapFile" class="lableNewMap">MAP_FILE:</label>
+                    <input type="text" id="mapFile"  class="inputNewMap" name='mapFile' readonly>
                     <span onclick="openMapList()" class="returnButton">Seleziona</span>
 
                     <!-- Input per PARCELS_GENERATION -->
-                    <label for="parcelsInterval">PARCELS_GENERATION_INTERVAL:</label>
-                    <select id="parcelsInterval" name="parcelsInterval">
+                    <label for="parcelsInterval" class="lableNewMap">PARCELS_GENERATION_INTERVAL:</label>
+                    <select id="parcelsInterval" class="inputNewMap" name="parcelsInterval">
                         <option value="1s">1 second</option>
                         <option value="2s" selected>2 second</option>
                         <option value="5s">5 second</option>
                         <option value="10s">10 second</option>
                     </select>
 
-                    <label for="parcelsMax">PARCELS_MAX:</label>
-                    <input type="number" id="parcelsMax" name="parcelsMax" required>
+                    <label for="parcelsMax" class="lableNewMap">PARCELS_MAX:</label>
+                    <input type="number" id="parcelsMax" class="inputNewMap" name="parcelsMax" required>
 
-                    <label for="parcelsRewardAvg">PARCEL_REWARD_AVG:</label>
-                    <input type="number" id="parcelsRewardAvg" name="parcelsRewardAvg" required>
+                    <label for="parcelsRewardAvg" class="lableNewMap">PARCEL_REWARD_AVG:</label>
+                    <input type="number" id="parcelsRewardAvg" class="inputNewMap" name="parcelsRewardAvg" required>
 
-                    <label for="parcelsRewardVariance">PARCEL_REWARD_VARIANCE:</label>
-                    <input type="number" id="parcelsRewardVariance" name="parcelsRewardVariance" required>
+                    <label for="parcelsRewardVariance" class="lableNewMap">PARCEL_REWARD_VARIANCE:</label>
+                    <input type="number" id="parcelsRewardVariance" class="inputNewMap" name="parcelsRewardVariance" required>
 
-                    <label for="parcelsDecadingInterval">PARCE_DECADING_INTERVALL:</label>
-                    <select id="parcelsDecadingInterval" name="parcelsDecadingInterval">
+                    <label for="parcelsDecadingInterval" class="lableNewMap">PARCE_DECADING_INTERVALL:</label>
+                    <select id="parcelsDecadingInterval" class="inputNewMap" name="parcelsDecadingInterval">
                         <option value="infinite" selected>Costanti</option>
                         <option value="1s">1 second</option>
                         <option value="2s">2 second</option>
@@ -80,11 +94,11 @@
 
                     
                     <!-- Input per BOT_AGENTS -->
-                    <label for="randomlyMovingAgents">RANDOMLY_MOVING_AGENTS:</label>
-                    <input type="number" id="randomlyMovingAgents" name="randomlyMovingAgents" required>
+                    <label for="randomlyMovingAgents" class="lableNewMap">RANDOMLY_MOVING_AGENTS:</label>
+                    <input type="number" id="randomlyMovingAgents" class="inputNewMap" name="randomlyMovingAgents" required>
 
-                    <label for="randomlyAgentSpeed">RANDOM_AGENT_SPEED:</label>
-                    <select id="randomlyAgentSpeed" name="randomlyAgentSpeed">
+                    <label for="randomlyAgentSpeed" class="lableNewMap">RANDOM_AGENT_SPEED:</label>
+                    <select id="randomlyAgentSpeed" class="inputNewMap" name="randomlyAgentSpeed">
                         <option value="1s">1 second</option>
                         <option value="2s" selected>2 second</option>
                         <option value="5s">5 second</option>
@@ -93,23 +107,23 @@
 
                     <!-- Input per OBSERVABLE-->
                     <div id="inputContainerAgent">
-                        <label for="agentsObservationDistance">AGENTS_OBSERVATION_DISTANCE:</label>
-                        <input type="number" id="agentsObservationDistance" name="agentsObservationDistance" value=5>
+                        <label for="agentsObservationDistance" class="lableNewMap">AGENTS_OBSERVATION_DISTANCE:</label>
+                        <input type="number" id="agentsObservationDistance" class="inputNewMap" name="agentsObservationDistance" value=5>
                         <span onclick="setInfinity('Agent')" class="returnButton">Inlimitato</span>
                     </div>
                     <div id="textContainerAgent" style="display: none;">
-                        <label for="agentsObservationDistance">AGENTS_OBSERVATION_DISTANCE:</label>
+                        <label for="agentsObservationDistance" class="lableNewMap">AGENTS_OBSERVATION_DISTANCE:</label>
                         <span>Inlimitato</span>
                         <span onclick="returnToInput('Agent')">✕</span>
                     </div>
 
                     <div id="inputContainerParcels">
-                        <label for="parcelsObservationDistance">PARCELS_OBSERVATION_DISTANCE:</label>
-                        <input type="number" id="parcelsObservationDistance" name="parcelsObservationDistance" value=5>
+                        <label for="parcelsObservationDistance" class="lableNewMap">PARCELS_OBSERVATION_DISTANCE:</label>
+                        <input type="number" id="parcelsObservationDistance" class="inputNewMap" name="parcelsObservationDistance" value=5>
                         <span onclick="setInfinity('Parcels')" class="returnButton">Inlimitato</span>
                     </div>
                     <div id="textContainerParcels" style="display: none;">
-                        <label for="parcelsObservationDistance">PARCELS_OBSERVATION_DISTANCE:</label>
+                        <label for="parcelsObservationDistance" class="lableNewMap">PARCELS_OBSERVATION_DISTANCE:</label>
                         <span>Inlimitato</span>
                         <span onclick="returnToInput('Parcels')">✕</span>
                     </div><br><br>
@@ -119,7 +133,7 @@
                     <!-- Bottone per inviare il form -->
                     <div style="text-align: center;">
                         <div style="display: inline-block;">
-                            <input type="submit" value="Submit">
+                            <input type="submit" class="submitNewMap" value="Submit">
                         </div>
                     </div>
                 </form>
@@ -156,6 +170,7 @@
     </div>
 
     <script src="javaScript/generateMapRappresentation.js"></script>
+    <script src="javaScript/gestoreLogin.js"></script>
     <script src="javaScript/gestoreNewMatch.js"></script>
     <script src="javaScript/gestorePlayMatch.js"></script>
     <script src="javaScript/gestoreToken.js"></script>

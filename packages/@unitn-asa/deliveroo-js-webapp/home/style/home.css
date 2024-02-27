@@ -10,10 +10,155 @@ body {
 }
 
 header {
+    position: relative;
     text-align: center;
-    padding: 20px 0;
 }
 
+
+/* CSS for the login button */
+.login-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #0077be;
+    border: 2px solid #f0f0f0;
+    color: #f0f0f0; 
+    padding: 5px 10px;
+    margin-bottom: 10px; 
+    margin-right: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+
+.login-button:hover {
+    opacity: 0.8;
+}
+
+#loggedButton{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: black;
+    border: 2px solid #0077be;
+    color: #0077be; 
+    padding: 5px 10px;
+    margin-bottom: 10px; 
+    margin-right: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition-duration: 0.4s;
+}
+
+
+
+/* CSS for the login form */
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 1);
+    z-index: 998;
+}
+
+#loginFormContainer {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+}
+
+#loginHeader {
+    display: flex;
+    justify-content: space-between; /* Distribuisce gli elementi uniformemente lungo il contenitore */
+    align-items: center; /* Allinea verticalmente gli elementi al centro */
+}
+
+#loginHeader h2 {
+    color: #0077be; 
+    text-align: center;
+    margin-bottom: 20px; 
+}
+
+#loginHeader button.close-button {    
+    width: 26px;
+    height: 26px;
+
+    border: 2px solid white;
+    background-color: red;
+    color: white;
+
+    border: 2px solid white;
+    border-radius: 50%;
+
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#loginHeader button.close-button:hover {
+    opacity: 0.8;
+}
+
+#loginForm {
+    background-color: #0077be;     
+    border: 2px solid white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 119, 190, 0.5);
+    text-align: center;
+    margin: 0 auto;
+    padding-top: 10px;
+    width: 250px; 
+}
+
+#loginForm input[type="text"],
+#loginForm input[type="password"]{
+    width: 75%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+#loginForm button.submit {
+    width: 50%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+}
+
+#loginForm button.submit {
+    background-color: white;
+    color: #0077be;
+    cursor: pointer;
+}
+
+#loginForm button.submit:hover {
+    opacity: 0.8;
+}
+
+
+/* CSS for the main structure */
 .container {
     display: flex;
     flex: 1;
@@ -25,6 +170,8 @@ header {
     padding: 20px;
 }
 
+
+/* CSS for the side bar */
 .sidebar {
     width: 30%;
     background-color: black; 
@@ -34,13 +181,13 @@ header {
 
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* Allinea il resto dei contenuti a destra */
+    align-items: flex-start; 
     
 }
 
 .bottoni {
     display: flex;
-    flex-direction: row; /* Posiziona i bottoni in una fila */
+    flex-direction: row; 
 }
 
 #generateTokenBtn {
@@ -55,7 +202,7 @@ header {
     font-size: 16px;
     border-radius: 5px; 
     cursor: pointer;
-    transition-duration: 0.4s; /* Effetto transizione */
+    transition-duration: 0.4s; 
 }
 
 #generateTokenBtn:hover {
@@ -63,7 +210,6 @@ header {
     color: white; 
 }
 
-/* Stile per il pulsante "Copia Token" */
 #copyTokenBtn {
     background-color: #e0e0e0; 
     border: 2px solid #f0f0f0;
@@ -93,12 +239,14 @@ header {
     border: 2px solid #f0f0f0;
     width: 90%; 
     text-align: center;      
-    overflow: hidden;        /* Nasconde il testo che fuoriesce dal riquadro */
-    white-space: nowrap;     /* Impedisce il wrap del testo */
-    text-overflow: ellipsis; /* Aggiunge ellissi per il testo che fuoriesce */
+    overflow: hidden;        
+    white-space: nowrap;     
+    text-overflow: ellipsis; 
 
 }
 
+
+/* CSS for the main part */
 .partecipaBtn {
     background-color: #e6780e; 
     border: 2px solid #f0f0f0;
@@ -119,7 +267,6 @@ header {
     background-color: #bc5f02; 
 }
 
-/* Stile per l'animazione di errore */
 @keyframes shake {
     0% { transform: translateX(0); }
     20% { transform: translateX(-10px); }
@@ -128,6 +275,7 @@ header {
     80% { transform: translateX(10px); }
     100% { transform: translateX(0); }
 }
+
 .error {
     animation: shake 0.6s;
     background-color: crimson;
@@ -160,5 +308,5 @@ header {
 }
 
 #matchId:not(:placeholder-shown) {
-    border-color: whitesmoke; /* Cambia il colore del bordo */
-  }
+    border-color: whitesmoke; 
+}

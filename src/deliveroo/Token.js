@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { uid } = require('uid'); 
 
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
+const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
 
 function generateToken(gname, gteam){
 
@@ -13,8 +14,17 @@ function generateToken(gname, gteam){
 
 }
 
+function generateTokenAdmin(){
+
+    token = jwt.sign({user:'admin'}, SUPER_SECRET_ADMIN );
+
+    console.log( 'Generate new toke: ', token.slice(-30));
+    return token
+
+}
+
 function decodeToken(token){
     return jwt.verify( token, SUPER_SECRET );
 }
 
-module.exports = { generateToken, decodeToken } 
+module.exports = { generateToken, generateTokenAdmin, decodeToken} 

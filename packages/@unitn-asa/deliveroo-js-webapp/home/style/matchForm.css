@@ -46,7 +46,7 @@
     text-align: left;
 }
 
-label {
+.lableNewMap{
     display: inline-block;
     width: 40%; 
     margin-right: 12px;
@@ -70,9 +70,7 @@ label {
 }
 
 /* Stili per gli input */
-input[type="text"],
-input[type="number"],
-select {
+.inputNewMap{
     width: 40%;
     padding: 2px;
     border: 1px solid black;
@@ -81,7 +79,7 @@ select {
     font-size: 12px;
 }
 
-input[type="submit"]{
+.submitNewMap{
     display: inline-block;
     padding: 4px 8px;
     border: 2px solid white;
