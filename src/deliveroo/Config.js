@@ -88,8 +88,8 @@ class Config {
     /** @type {number} default is 50 (=20frame/s) */
     CLOCK = process.env.CLOCK || 50;
     
-
-    constructor ( levelPath ) {
+    /** @param {Config} config */
+    constructor ( config = {} ) {
 
         // 1. default values
         
@@ -123,24 +123,30 @@ class Config {
                 console.error( 'Error loading from args.LEVEL', args.LEVEL );
             }
         }
-                
+        
         // 6. Overwriting with values specified as args
         Object.keys( args ).forEach( key => {
             if ( args[key] != null && key != 'LEVEL' )
                 this[key] = args[key];
         });
 
-        // 7. Overwriting with values specified from levelPath
-        if ( levelPath ) {
+        // 7. Overwriting with values specified from config.LEVEL
+        if ( config.LEVEL ) {
             try {
-                const json = loadFromJson( levelPath );
+                const json = loadFromJson( config.LEVEL );
                 Object.assign( this, json );
-                this.LEVEL = levelPath;
-                // console.log( 'Loaded custom level', levelPath );
+                this.LEVEL = config.LEVEL;
+                // console.log( 'Loaded custom level', config.LEVEL );
             } catch (err) {
-                console.error( 'Error loading from custom', levelPath );
+                console.error( 'Error loading from custom', config.LEVEL );
             }    
         }
+                
+        // 8. Overwriting with values specified as config
+        Object.keys( config ).forEach( key => {
+            if ( config[key] != null && key != 'LEVEL' )
+                this[key] = config[key];
+        });
         
     }
 
@@ -166,7 +172,7 @@ function loadFromJson ( path ) {
 }
 
 
-var defaultConfig = new Config();
-console.log( 'Default config is:', defaultConfig );
+// var defaultConfig = new Config();
+// console.log( 'Default config is:', defaultConfig );
 
 module.exports = Config

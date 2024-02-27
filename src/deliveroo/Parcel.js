@@ -1,6 +1,7 @@
-const Observable =  require('./Observable')
-const Xy =  require('./Xy')
-const myClock =  require('./Clock')
+const Observable =  require('./Observable');
+const Xy =  require('./Xy');
+const myClock =  require('./Clock');
+const Config = require('./Config');
 
 
 class Parcel extends Xy {
@@ -8,15 +9,22 @@ class Parcel extends Xy {
     static #lastId = 0;
     
     // #grid;
+    #config;
     id;
     reward;
     carriedBy;
     
     /**
      * @constructor Parcel
+     * @param {number} x
+     * @param {number} y
+     * @param {Agent} carriedBy
+     * @param {Config} options
      */
-    constructor (x, y, carriedBy = null, parcel_rewar_avg, parcel_reward_variance, parcel_decading_interval ) {
+    constructor ( x, y, carriedBy = null, config ) {
         super(x, y);
+        this.#config = config;
+        const { PARCEL_REWARD_AVG, PARCEL_REWARD_VARIANCE, PARCEL_DECADING_INTERVAL } = config;
 
         this.carriedBy = carriedBy;
         this.interceptValueSet('carriedBy');
@@ -38,16 +46,16 @@ class Parcel extends Xy {
         this.id = 'p' + Parcel.#lastId++;
 
         this.interceptValueSet('reward');
-        this.reward = Math.floor( Math.random()*parcel_reward_variance*2 + parcel_rewar_avg-parcel_reward_variance );
+        this.reward = Math.floor( Math.random()*PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
 
         const decay = () => {
             this.reward = Math.floor( this.reward - 1 );
             if ( this.reward <= 0) {
                 this.emitOnePerTick( 'expired', this );
-                myClock.off( parcel_decading_interval, decay );
+                myClock.off( PARCEL_DECADING_INTERVAL, decay );
             }
         };
-        myClock.on( parcel_decading_interval, decay );
+        myClock.on( PARCEL_DECADING_INTERVAL, decay );
         
     }
 

@@ -1,9 +1,12 @@
-let leaderboard = {
+
+
+
+class Leaderboard {
 
     //key: nome team, value: array degli agenti(id,nome e score) 
-    teamsAndMembers: new Map(),
+    teamsAndMembers = new Map();
     
-    addTeam: function(team, score, leaderboardElement, color) {
+    addTeam (team, score, leaderboardElement, color) {
 
         // Crea un nuovo elemento div per rappresentare il team
         let teamElement = document.createElement('div');
@@ -65,9 +68,9 @@ let leaderboard = {
         // Aggiungi il div del team al leaderboard
         leaderboardElement.appendChild(teamElement);
         
-    },
+    }
 
-    updateTeam: function(team, score, leaderboardElement, color) {
+    updateTeam (team, score, leaderboardElement, color) {
         // Ottieni il riferimento all'elemento del team dal leaderboard
         let teamElement = leaderboardElement.querySelector(`#team_${team}`);
 
@@ -80,9 +83,9 @@ let leaderboard = {
 
         let scoreElement = teamElement.querySelector('.score');     // Trova l'elemento del punteggio del team
         scoreElement.textContent = score;                           // Aggiorna il punteggio del team con il nuovo punteggio
-    },  
+    }
 
-    addAgent: function(id, name, team, score, leaderboardElement, color) {
+    addAgent (id, name, team, score, leaderboardElement, color) {
 
         // Crea un nuovo elemento div per rappresentare l'agente
         let agentElement = document.createElement('div');
@@ -119,9 +122,9 @@ let leaderboard = {
         
         // Aggiungi il div del team al leaderboard
         leaderboardElement.appendChild(agentElement);
-    },
+    }
 
-    updateAgent: function(id, name, team, score, leaderboardElement, color) {
+    updateAgent (id, name, team, score, leaderboardElement, color) {
         // Ottieni il riferimento all'elemento del team dal leaderboard
         // console.log(`L'agent ${id}, ${name}, ${team}, ${score}  .`);
 
@@ -163,9 +166,9 @@ let leaderboard = {
             }
         }
         
-    },
+    }
 
-    removeAgent: function(id, team, leaderboardElement) {
+    removeAgent (id, team, leaderboardElement) {
         if(!team){
             let agentElement = leaderboardElement.querySelector(`#agent_${id}`);
             if (agentElement) {
@@ -188,11 +191,10 @@ let leaderboard = {
             }
             const clickEvent = new Event('click');
             teamElement.dispatchEvent(clickEvent);
-            teamElement.dispatchEvent(clickEvent);
         }
-    },
+    }
 
-    removeTeam: function(team, leaderboardElement){
+    removeTeam (team, leaderboardElement){
         let teamElement = leaderboardElement.querySelector(`#team_${team}`);
         if (teamElement) {
             teamElement.remove()
@@ -251,7 +253,7 @@ function addAgentInTeam(id, name, team, score, list) {
 }
 
 
-export { leaderboard };
+export { Leaderboard };
 
 
 

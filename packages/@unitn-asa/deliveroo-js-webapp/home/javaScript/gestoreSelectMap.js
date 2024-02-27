@@ -23,9 +23,9 @@ function openMapList() {
         // Genera la rappresentazione grafica delle mappe
         data.forEach((map) => {
             mapListDiv.innerHTML += '<div><div class="map-title">' +
-                `<h3>${map.mapId}</h3>` +
-                `<span class="returnButton" onclick="selectMap(\'${map.mapId}\')">Select</span>` +
-                '</div>' + generateMapRepresentation(map.matrix) + '</div>'; // Supponendo che la chiave matrix contenga la matrice della mappa
+                `<h3>${map.name}</h3>` +
+                `<span class="returnButton" onclick="selectMap(\'${map.name}\')">Select</span>` +
+                '</div>' + generateMapRepresentation(map.map) + '</div>'; // Supponendo che la chiave matrix contenga la matrice della mappa
         });
     })
     .catch(error => {

@@ -89,6 +89,8 @@ async  function submitName() {
     inputTeam.readOnly = true;
     inputName.readOnly = true;
     
+    const match = params.get("match") || window.location.pathname.split('/').pop();
+
     //controllo se l'input inserito è un token o un nome 
     if(verificaTokenOrNome(input)=='Nome'){
 
@@ -123,13 +125,13 @@ async  function submitName() {
         resultToken.appendChild(tokenDiv);
 
         form.appendChild(resultToken);
-
-        console.log("goToMatch parameters: \n\t match: " + params.get("match") + "\n\t name: " + input + "\n\t token: " + token.slice(-30) + "\n\t team: " + team);     
+        
+        console.log("goToMatch parameters: \n\t match: " + match + "\n\t name: " + input + "\n\t token: " + token.slice(-30) + "\n\t team: " + team);     
         
         // Aggiungo un nuovo bottone che permette l'effettivo accesso al gioco 
         var newButton = document.createElement('button');
         newButton.textContent = 'Join Match';
-        newButton.onclick = function() { goToMatchWrap(params.get("match"), input, token, team); }
+        newButton.onclick = function() { goToMatchWrap(match, input, token, team); }
         newButton.classList="buttonAllert";
 
         form.appendChild(newButton)
@@ -137,7 +139,7 @@ async  function submitName() {
     }else{
 
         verificaTokenOrNome(input)=='Token';
-        goToMatchWrap(params.get("match"), "NaN", input, team)
+        goToMatchWrap(match, "NaN", input, team)
     }
     
 }

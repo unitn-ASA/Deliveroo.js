@@ -73,7 +73,7 @@ document.getElementById('matchForm').addEventListener('submit', function(event) 
     };
   
     // Effettua la richiesta POST utilizzando fetch ---------------------------
-    fetch('/matchs', {
+    fetch('/matches', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

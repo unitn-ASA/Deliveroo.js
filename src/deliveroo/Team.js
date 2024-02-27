@@ -7,19 +7,19 @@ class Team extends EventEmitter{
     // array degli id degli agenti del teams: key-> id, value-> score
     agents = new Map();
 
-    constructor(name){
+    constructor(name) {
         super();
         this.name = name;
         this.score = 0;
     }
 
-    refreshScoreTeam(){
+    refreshScoreTeam() {
         let newScore = 0;
         this.agents.forEach((score, id) => { newScore += score });
         this.score = newScore;
     }
 
-    addAgent(agent){
+    addAgent(agent) {
         this.agents.set(agent.id, agent.score);
         agent.on('score', (agent) => { 
             this.agents.set(agent.id, agent.score);     // aggiorno lo score dell'agente 
@@ -29,7 +29,7 @@ class Team extends EventEmitter{
         } )
     }
 
-    removeAgent(agent){
+    removeAgent(agent) {
         // console.log("Agent in team: ", this.agents)
         if(this.agents.has(agent)){
             this.agents.delete(agent);
@@ -42,7 +42,7 @@ class Team extends EventEmitter{
         } 
     }
 
-    agentInTeam(agentId){
+    agentInTeam(agentId) {
         return !(this.agents.has(agentId));
     }
 

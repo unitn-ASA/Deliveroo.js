@@ -1,21 +1,42 @@
 const Grid = require('../deliveroo/Grid');
-const Tile =  require('../deliveroo/Tile');
 const myClock =  require('../deliveroo/Clock');
-
-
-
-//const PARCELS_MAX = process.env.PARCELS_MAX || config.PARCELS_MAX || 'infinite';
+/**
+ * @typedef {import('../deliveroo/Config')} Config
+ */
 
 
 
 /**
- * 
+ * @param {Config} config
  * @param {Grid} grid 
  */
-module.exports = function (grid, parcels_generation_interval, parcels_max, parcel_rewar_avg, parcel_reward_variance, parcel_decading_interval) {
-    
-    var listener = () => {
-        if ( grid.getParcelsQuantity() >= parcels_max ) {
+class parcelsGenerator {
+
+    /** @type {Config} */
+    #config;
+
+    /** @type {Grid} */
+    #grid;
+
+    constructor( config, grid ) {
+
+        this.#config = config;
+        this.#grid = grid;   
+
+        myClock.on( config.PARCELS_GENERATION_INTERVAL, this.listener.bind(this) );
+    }
+
+    destroy () {
+        myClock.off( config.PARCELS_GENERATION_INTERVAL, this.listener );
+    }
+
+
+    listener () {
+
+        const PARCELS_MAX = this.#config.PARCELS_MAX;
+        const grid = this.#grid;
+
+        if ( grid.getParcelsQuantity() >= PARCELS_MAX ) {
             return;
         }
         let tiles_with_no_parcels =
@@ -34,13 +55,12 @@ module.exports = function (grid, parcels_generation_interval, parcels_max, parce
         if ( tiles_with_no_parcels.length > 0 ) {
             let i = Math.floor( Math.random() * tiles_with_no_parcels.length - 1 )
             let tile = tiles_with_no_parcels.at( i )
-            let parcel = grid.createParcel( tile.x, tile.y,parcel_rewar_avg, parcel_reward_variance, parcel_decading_interval );
+            let parcel = grid.createParcel( tile.x, tile.y );
         }
         
-    } 
+    }
 
-    myClock.on( parcels_generation_interval, listener );
-
-    return listener;
 
 }
+
+module.exports = parcelsGenerator;
