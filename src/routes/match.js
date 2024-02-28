@@ -27,6 +27,7 @@ router.post('/', (req, res) => {
 
 });
 
+
 // Endpoint per eliminare un gioco
 router.delete('/:id', (req, res) => {
   const matchId = req.params.id;
@@ -40,6 +41,7 @@ router.delete('/:id', (req, res) => {
   });
 });
 
+
 // Endpoint per ottenere la lista dei match attivi
 router.get('/', (req, res) => {
   const matchs = Array.from(Match.mapMatch.keys())
@@ -48,5 +50,6 @@ router.get('/', (req, res) => {
     data: matchs
   });
 });
+
 
 module.exports = router;

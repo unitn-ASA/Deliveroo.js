@@ -14,8 +14,8 @@ app.use(express.json());
 app.use('/', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 app.use('/game', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp','dist/game') ));
 
-app.use('/matchs', matchsRoutes);
-app.use('/maps', mapsRoutes);
+app.use('/api/matchs', matchsRoutes);
+app.use('/api/maps', mapsRoutes);
 
 app.get('/token', (req, res) => {
     const token = generateToken(req.headers['nome'], req.headers['team']); 
@@ -28,7 +28,7 @@ app.post('/login', (req, res) => {
     if (username === 'admin' && password === ADMIN_PASSWORD) {
         console.log("LOGIN ADMIN")
         const token = generateTokenAdmin();
-        res.json({ success: true, token: token });
+        res.json({ success: true, token: token});
     } else {
         res.status(401).json({ success: false, message: 'Credenzialias not valid' });
     }

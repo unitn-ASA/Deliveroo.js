@@ -1,22 +1,3 @@
-//check if the user is already logged like admin, in that case dinenable and change the loggin botton
-checkLogged()
-function checkLogged(){
-    let cookie = getCookie()
-    if(cookie !== 'false'){
-        let loginButton = document.getElementById('loginButton');
-        if (loginButton) { loginButton.style.display = 'none'; }
-        
-        let loggedButton = document.getElementById('loggedButton');
-        if (loggedButton) { loggedButton.style.display = 'block'; }
-    }else{
-        let loginButton = document.getElementById('loginButton');
-        if (loginButton) { loginButton.style.display = 'block'; }
-        
-        let loggedButton = document.getElementById('loggedButton');
-        if (loggedButton) { loggedButton.style.display = 'none'; }
-    }
-}
-
 // open the login form at the press of the login button
 document.getElementById('loginButton').addEventListener('click', function() {
     let loginFormContainer = document.getElementById('loginFormContainer');
@@ -56,7 +37,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
 
     if (data.success) {
         console.log("LOGIN ADMIN SUCSESS")
-        setCookie(data.token)
+        setAdminCookie(data.token)
         location.reload();
     } else {
         console.log("LOGIN ADMIN ERROR")
@@ -67,14 +48,14 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
 
 
 // Function to menage the cookie
-function setCookie(token) {
+function setAdminCookie(token) {
     const d = new Date();
     d.setTime(d.getTime() + (1 * 24 * 60 * 60 * 1000));
     let expires = "expires="+d.toUTCString();
     document.cookie = "admin_token" + "=" + token + ";" + expires + ";path=/";
 }
 
-function getCookie() {
+function getAdminCookie() {
     let name = "admin_token="
     let ca = document.cookie.split(';');
     for(let i = 0; i < ca.length; i++) {
@@ -88,3 +69,5 @@ function getCookie() {
     }
     return "false";
 }
+
+

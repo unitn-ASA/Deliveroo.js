@@ -153,7 +153,12 @@ function getAllCookies() {
             let parts = cookie.split('=');
             let name = parts[0].trim();
             let token = parts[1];
-            cookiesObject[name] = token;
+
+            // check if the cookie starts with "token_"
+            if (name.startsWith('token_')) {
+                cookiesObject[name] = token;
+            }
+           
         });
     }
     

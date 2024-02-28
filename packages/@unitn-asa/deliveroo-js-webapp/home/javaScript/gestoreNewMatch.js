@@ -72,7 +72,7 @@ document.getElementById('matchForm').addEventListener('submit', function(event) 
     };
   
     // Effettua la richiesta POST utilizzando fetch ---------------------------
-    fetch('/matchs', {
+    fetch('/api/matchs', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -120,7 +120,7 @@ function returnToInput(Oss) {
 }
 
 
-// Funzione per configurare il pop-up di conferma creazione nuovo match
+// confermation pop-up of the new match
 function showConfirmationPopup(id, options, mappa) {
 
   // Creazione degli elementi DOM per il pop-up ----------------------------

@@ -170,6 +170,10 @@ header {
     padding: 20px;
 }
 
+#admin-part{
+    display: none;
+}
+
 
 /* CSS for the side bar */
 .sidebar {
@@ -247,6 +251,11 @@ header {
 
 
 /* CSS for the main part */
+#match-container {
+    height: 200px;
+    overflow: auto;
+}
+
 .partecipaBtn {
     background-color: #e6780e; 
     border: 2px solid #f0f0f0;
@@ -254,13 +263,16 @@ header {
     padding: 5px 10px;
     margin-bottom: 10px; 
     margin-right: 20px;
+    height: 40px;
+    width: 100px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
+    font-size: 14px;
     border-radius: 5px;
     cursor: pointer;
     transition-duration: 0.4s;
+    overflow: hidden;
 }
 
 .partecipaBtn:hover {

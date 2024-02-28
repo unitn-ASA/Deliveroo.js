@@ -1,5 +1,3 @@
-const partecipaBtn = document.getElementsByClassName('partecipaBtn');
-
 document.getElementById('formPrivateMatch').addEventListener('submit', function(event) {
     event.preventDefault();                                     // Evita il comportamento di default del form: refresh della pagina
 
@@ -9,15 +7,3 @@ document.getElementById('formPrivateMatch').addEventListener('submit', function(
     sendRequestJoinMatch(event)
 });
 
-Array.from(partecipaBtn).forEach(bottone => {
-    bottone.addEventListener('click', sendRequestJoinMatch);
-});
-
-
-function sendRequestJoinMatch(event){
-
-    var url = 'game';
-    url += '?match=' + encodeURIComponent(event.target.getAttribute('match')); 
-
-    window.location.href = url; 
-}
