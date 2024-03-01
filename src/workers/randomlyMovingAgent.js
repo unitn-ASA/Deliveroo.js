@@ -26,7 +26,7 @@ module.exports = function ( myGrid, random_agent_speed, name ) {
         }
     }
 
-    var myAgent = myGrid.createAgent( {name} );
+    var myAgent = myGrid.createAgent();
     randomlyMove (myAgent)
 
 }

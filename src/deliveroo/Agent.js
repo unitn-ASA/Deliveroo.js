@@ -74,7 +74,7 @@ class Agent extends Xy {
             super(x, y);
         }
 
-        Object.assign( this.config, config );
+        if(config)Object.assign( this.config, config );
         
         Object.defineProperty (this, 'carrying', {
             get: () => Array.from(this.#carryingParcels).map( ({id, reward}) => { return {id, reward}; } ), // Recursion on carriedBy->agent->carrying->carriedBy ... 
@@ -91,7 +91,7 @@ class Agent extends Xy {
         // this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
 
         this.#grid = grid;
-        this.id = id || 'a' + Agent.#lastId++;
+        this.id = id || ('a' + Agent.#lastId++);
         this.name = name || this.id;
         this.team = team || "";
         this.sensing = new Set();

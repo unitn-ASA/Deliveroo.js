@@ -293,6 +293,57 @@ header {
     background-color: crimson;
 }
 
+
+#match-container-admin {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: left;
+    border-radius: 5px;
+    break-inside: avoid;
+    margin-bottom: 10px;
+}
+
+#match-container-admin .div-match{
+    height: 20px;
+    display: flex;
+    margin-bottom: 10px;
+    padding: 2px;
+}
+
+#match-container-admin .div-match .id-match{
+    width: 100px;
+    color: whitesmoke;
+}
+
+#match-container-admin .div-match .description-match {
+    flex: 1;
+    width: 200px;
+    font-size: small;
+    color: whitesmoke;
+    margin-left: 3px;
+}
+
+#match-container-admin .div-match button {
+    margin-left: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    text-align: center;
+}
+
+#match-container-admin .div-match .delete-button {
+    background-color: red;
+    color: white;
+    text-align: center;
+}
+
+
+
+
 #submitPrivateMatchButton{
     background-color: yellow; 
     border: 2px solid #f0f0f0;

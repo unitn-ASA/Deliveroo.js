@@ -14,6 +14,8 @@ function checkLogged(){
 
         let user = document.getElementById('user-part');
         user.style.display = 'none'; 
+
+        defineContainerMatch(true);
     }else{
         let loginButton = document.getElementById('loginButton');
         if (loginButton) { loginButton.style.display = 'block'; }
@@ -26,6 +28,8 @@ function checkLogged(){
 
         let user = document.getElementById('user-part');
         user.style.display = 'block'; 
+
+        defineContainerMatch(false);
     }
 }
 

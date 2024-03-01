@@ -759,10 +759,9 @@ export function goToMatch(paramMatch, paramToken){
 
 
     socket.on("agents sensing", (sensed) => {
-
-        // console.log("agents sensing", ...sensed)//, sensed.length)
-
+       
         var sensed = Array.from(sensed)
+        console.log("agents sensing", sensed)//, sensed.length)
         
         var sensed_ids = sensed.map( ({id}) => id )
         for ( const [id, agent] of agents.entries() ) {
