@@ -3,15 +3,41 @@ const router = express.Router();
 const Match = require('../deliveroo/Match')
 const fs = require('fs');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
-// Directory contenente i file delle mappe
+// Chiave segreta o chiave pubblica per la verifica della firma
+const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
+
+// Directory that contain maps file
 const mapsDirectory = path.join(__dirname, '..','..','levels','maps')
 
-// Endpoint per la creazione di un nuovo gioco
-router.post('/', (req, res) => {
-  // Ricevi i dati inviati dal client
-  const formData = req.body;
-  console.log("\nRichiesta nuovo Match")
+// Middleware to check admin token
+function verifyToken(req, res, next) {
+  
+  const token = req.headers.authorization;
+  if (!token) {
+    return res.status(403).send({ auth: false, message: 'Token not find.' });
+  }
+
+  // Check and decode the token
+  jwt.verify(token, SUPER_SECRET_ADMIN, (err, decoded) => {
+    if (err) {
+      return res.status(500).send({ auth: false, message: 'Autenticatione feiled.' });
+    }
+
+    if(decoded.user != 'admin' || decoded.password != 'god1234'){
+      return res.status(500).send({ auth: false, message: 'Autenticatione feiled.' });
+    }
+
+    next();
+  });
+}
+
+// Endpoint for the cration of a new match
+router.post('/', verifyToken, (req, res) => {
+
+  const formData = req.body;              // data coming from the client
+  console.log("\nAsk for a new Match")
   
   var newMatch = new Match(formData)
 
@@ -19,7 +45,7 @@ router.post('/', (req, res) => {
   const mapContent = require(filePath);
 
   res.status(200).json({
-    message: 'Dati ricevuti con successo!',
+    message: 'Data received sucsessfully',
     id: newMatch.id,
     data: newMatch.options,
     mappa: mapContent
@@ -27,9 +53,21 @@ router.post('/', (req, res) => {
 
 });
 
+router.post('/:id', verifyToken, (req, res) => {
+  const matchId = req.params.id;      // get id of the match
+  const newStatus = req.body.status;  // get the new state of the match
+
+  
+  let match = Match.mapMatch.get(matchId);
+  match.status = newStatus;
+  console.log(`Stato del match ${matchId} aggiornato a ${newStatus}.`)
+
+  res.status(200).json({ message: `Stato del match ${matchId} aggiornato a ${newStatus}.` });
+});
+
 
 // Endpoint per eliminare un gioco
-router.delete('/:id', (req, res) => {
+router.delete('/:id', verifyToken, (req, res) => {
   const matchId = req.params.id;
   console.log("\nRichiesta eliminazione Match: ", matchId)
   Match.mapMatch.delete(matchId)

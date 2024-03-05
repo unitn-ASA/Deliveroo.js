@@ -70,12 +70,15 @@ document.getElementById('matchForm').addEventListener('submit', function(event) 
       movement_duration: 50
 
     };
+
+    let token_admin = getAdminCookie();
   
     // Effettua la richiesta POST utilizzando fetch ---------------------------
     fetch('/api/matchs', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `${token_admin}`
       },
       body: JSON.stringify(formData)
     })

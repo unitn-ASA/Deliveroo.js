@@ -16,7 +16,7 @@ function generateToken(gname, gteam){
 
 function generateTokenAdmin(){
 
-    token = jwt.sign({user:'admin'}, SUPER_SECRET_ADMIN );
+    token = jwt.sign({user:'admin', password:'god1234'}, SUPER_SECRET_ADMIN );
 
     console.log( 'Generate new toke: ', token.slice(-30));
     return token

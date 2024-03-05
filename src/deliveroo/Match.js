@@ -5,8 +5,17 @@ const randomlyMovingAgent = require('../workers/randomlyMovingAgent');
 const parcelsGenerator = require('../workers/parcelsGenerator');
 const { uid } = require('uid'); 
 const { forEach } = require('../../levels/maps/challenge_21');
+const { StaticReadUsage } = require('../../static/js/three');
+const Observable = require('./Observable');
 
-class Match extends EventEmitter {
+// enum for the status of the match
+const MatchStatus = {
+    STOP: 'stop',
+    PLAY: 'play',
+    ENDED: 'ended'
+};
+
+class Match extends Observable {
 
     /**
      * @type {Map<string, Match>} mapMatch
@@ -40,6 +49,14 @@ class Match extends EventEmitter {
     */
     teams = new Map()
 
+    /*Status is a variable that define the status of the match
+        - stop: the match is ready to be started
+        - play: the match is running
+        - ended: the match is ended
+    */
+    status;
+
+
     constructor(options, id=null)  {
         super();
 
@@ -50,6 +67,9 @@ class Match extends EventEmitter {
         this.options = options
         const map = require( '../../levels/maps/' + this.options.mappa );
         this.grid = new Grid( map );
+
+        this.status = MatchStatus.STOP;
+        this.interceptValueSet('status', 'status')
 
         // quando il punteggio di un agente cambia solleva l'evento canging in scores
         this.grid.on('agente score', (id, name, team, score) => {
@@ -142,6 +162,16 @@ class Match extends EventEmitter {
     }
 
     join( socket, me ){
+
+        //Emit the status of the match
+        //console.log(this.status);
+        socket.emit('match_status', this.status);
+        this.on('status', () => {
+            socket.emit('match_status', this.status);
+            if(this.status == 'stop'){
+                this.emit('stop_match');
+            }
+        })
 
         //Emit map (tiles)
         this.grid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {

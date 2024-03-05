@@ -7,6 +7,7 @@ import { default as EventEmitter } from 'events';
 
 import { leaderboard } from './gestoreLeaderboard.js';
 import { chat } from './gestoreChat.js';
+import { stat } from 'fs';
 
 
 export function goToMatch(paramMatch, paramToken){
@@ -663,6 +664,13 @@ export function goToMatch(paramMatch, paramToken){
         document.getElementById('canvas').src = buffer;
         
     } );
+
+    // check the status of the match
+    var status_match;
+    socket.on('match_status', (status) => {
+        console.log("STATUS MATCH: ", status);
+        status_match = status;
+    });
     
     socket.on( 'not_tile', (x, y) => {
         getTile(x, y).blocked = true;
@@ -761,7 +769,7 @@ export function goToMatch(paramMatch, paramToken){
     socket.on("agents sensing", (sensed) => {
        
         var sensed = Array.from(sensed)
-        console.log("agents sensing", sensed)//, sensed.length)
+        //console.log("agents sensing", sensed)//, sensed.length)
         
         var sensed_ids = sensed.map( ({id}) => id )
         for ( const [id, agent] of agents.entries() ) {
@@ -912,86 +920,92 @@ export function goToMatch(paramMatch, paramToken){
         action = null;
     }
     document.onkeydown = function(evt) {
-        if ( action == null) {
-            // do the rest of this function and then call start_doing
-            setTimeout( start_doing );
+        // the agend can play only if the match is in play satus
+        console.log(status_match)
+        if(status_match == 'play'){ 
+
+            if ( action == null) {
+                // do the rest of this function and then call start_doing
+                setTimeout( start_doing );
+            }
+            switch (evt.code) {
+                case 'KeyQ':// Q pickup
+                    action = () => {
+                        return new Promise( (res) => {
+                            // console.log('emit pickup');
+                            socket.emit('pickup', (picked) => {
+                                // console.log( 'pickup', picked, 'parcels' );
+                                // for ( let p of picked ) {
+                                //     parcels.get( p.id ).pickup(me);
+                                // }
+                                res(picked.length>0);
+                            } );
+                        } );
+                    };
+                    break;
+                case 'KeyE':// E putdown
+                    action = () => {
+                        return new Promise( (res) => {
+                            // console.log('emit putdown');
+                            socket.emit('putdown', null, (dropped) => {
+                                // console.log( 'putdown', dropped, 'parcels' );
+                                // for ( let p of dropped ) {
+                                //     parcels.get( p.id ).putdown();
+                                // }
+                                res(dropped.length>0);
+                            } );
+                        } );
+                    };
+                    break;
+                case 'KeyW':// W up
+                    action = () => {
+                        return new Promise( (res, rej) => {
+                            // console.log('emit move up');
+                            socket.emit('move', 'up', (status) => {
+                                // console.log( (status ? 'move up done' : 'move up failed') );
+                                res(status);
+                            } );
+                        } );
+                    };
+                    break;
+                case 'KeyA':// A left
+                    action = () => {
+                        return new Promise( (res, rej) => {
+                            // console.log('emit move left');
+                            socket.emit('move', 'left', (status) => {
+                                // console.log( (status ? 'move left done' : 'move left failed') );
+                                res(status);
+                            } );
+                        } );
+                    };
+                    break;
+                case 'KeyS':// S down 
+                    action = () => {
+                        return new Promise( (res, rej) => {
+                            // console.log('emit move down');
+                            socket.emit('move', 'down', (status) => {
+                                // console.log( (status ? 'move down done' : 'move down failed') );
+                                res(status);
+                            } );
+                        } );
+                    };
+                    break;
+                case 'KeyD':// D right
+                    action = () => {
+                        return new Promise( (res, rej) => {
+                            // console.log('emit move right');
+                            socket.emit('move', 'right', (status) => {
+                                // console.log( (status ? 'move right done' : 'move right failed') );
+                                res(status);
+                            } );
+                        } );
+                    };
+                    break;
+                default:
+                    break;
+            }
         }
-        switch (evt.code) {
-            case 'KeyQ':// Q pickup
-                action = () => {
-                    return new Promise( (res) => {
-                        // console.log('emit pickup');
-                        socket.emit('pickup', (picked) => {
-                            // console.log( 'pickup', picked, 'parcels' );
-                            // for ( let p of picked ) {
-                            //     parcels.get( p.id ).pickup(me);
-                            // }
-                            res(picked.length>0);
-                        } );
-                    } );
-                };
-                break;
-            case 'KeyE':// E putdown
-                action = () => {
-                    return new Promise( (res) => {
-                        // console.log('emit putdown');
-                        socket.emit('putdown', null, (dropped) => {
-                            // console.log( 'putdown', dropped, 'parcels' );
-                            // for ( let p of dropped ) {
-                            //     parcels.get( p.id ).putdown();
-                            // }
-                            res(dropped.length>0);
-                        } );
-                    } );
-                };
-                break;
-            case 'KeyW':// W up
-                action = () => {
-                    return new Promise( (res, rej) => {
-                        // console.log('emit move up');
-                        socket.emit('move', 'up', (status) => {
-                            // console.log( (status ? 'move up done' : 'move up failed') );
-                            res(status);
-                        } );
-                    } );
-                };
-                break;
-            case 'KeyA':// A left
-                action = () => {
-                    return new Promise( (res, rej) => {
-                        // console.log('emit move left');
-                        socket.emit('move', 'left', (status) => {
-                            // console.log( (status ? 'move left done' : 'move left failed') );
-                            res(status);
-                        } );
-                    } );
-                };
-                break;
-            case 'KeyS':// S down 
-                action = () => {
-                    return new Promise( (res, rej) => {
-                        // console.log('emit move down');
-                        socket.emit('move', 'down', (status) => {
-                            // console.log( (status ? 'move down done' : 'move down failed') );
-                            res(status);
-                        } );
-                    } );
-                };
-                break;
-            case 'KeyD':// D right
-                action = () => {
-                    return new Promise( (res, rej) => {
-                        // console.log('emit move right');
-                        socket.emit('move', 'right', (status) => {
-                            // console.log( (status ? 'move right done' : 'move right failed') );
-                            res(status);
-                        } );
-                    } );
-                };
-                break;
-            default:
-                break;
-        }
+        
     };
 
 

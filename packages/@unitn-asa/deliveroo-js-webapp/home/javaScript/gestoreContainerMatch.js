@@ -51,8 +51,8 @@ async function defineContainerMatch(admin){
                 
                 let playButton = document.createElement('button');
                 playButton.setAttribute('match', match);
-                playButton.textContent = `Play`;
-                playButton.addEventListener('click',sendRequestJoinMatch)
+                playButton.textContent = `play`;
+                playButton.addEventListener('click',sendPlayStopMatch)
                 
                 divMatch.appendChild(idMatch);
                 divMatch.appendChild(descriptionMatch);
@@ -90,6 +90,47 @@ function sendRequestJoinMatch(event){
     console.log("go to match: ", event.target.getAttribute('match'))
 
     window.location.href = url; 
+}
+
+function sendPlayStopMatch(event){
+    
+    const token_admin = getAdminCookie();
+    const matchId = event.currentTarget.getAttribute('match');
+
+    if(event.currentTarget.textContent == 'play'){
+        event.currentTarget.textContent = 'stop'
+    }else if(event.currentTarget.textContent == 'stop'){
+        event.currentTarget.textContent = 'play'
+    }else{
+        // if the match is not in stop play status there is some error, so we remove the click event and end the function
+        event.currentTarget.removeEventListener('click', sendPlayStopMatch);
+        return
+    }
+
+    let newStatus = event.currentTarget.textContent;
+
+    fetch(`/api/matchs/${matchId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token_admin}`
+        },
+        body: JSON.stringify({ id: matchId, status: newStatus }) // Invia l'ID del match e il nuovo stato
+      })
+      .then(response => {
+        if (response.ok) {
+          return response.json(); 
+        } else {
+          throw new Error('Error during data sending');
+        }
+      })
+      .then(data => {
+        console.log('Correct: ', data.message)
+      })
+      .catch(error => {
+        console.error('An error occurred:', error.message);
+      });
+    
 }
 
 
