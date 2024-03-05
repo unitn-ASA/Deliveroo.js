@@ -3,6 +3,7 @@ const Tile =  require('./Tile')
 const Agent =  require('./Agent')
 const Parcel = require('./Parcel');
 const Xy = require('./Xy');
+const Config = require('./Config');
 
 
 
@@ -10,22 +11,23 @@ const Xy = require('./Xy');
  * @class Grid
  */
 class Grid extends Observable {
+
+    /** @type {Config} */
+    #config;
     /** @type {Array<Tile>} */
     #tiles;
     /** @type {Map<string, Agent>} */
     #agents;
     /** @type {Map<string, Parcel>} */
     #parcels;
-
-    config ={} //Configuration for agents
     
     /**
      * @constructor Grid
      */
-    constructor ( map = new Array(10).map( c=>new Array(10) ), config ) {
+    constructor ( config = new Config(), map = new Array(10).map( c=>new Array(10) ) ) {
         super();
 
-        this.config = config
+        this.#config = config;
         
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
@@ -115,12 +117,13 @@ class Grid extends Observable {
     }
 
     /**
-     * @type {function({id:string,name:string}): Agent}
+     * @param {{ id: string, name: string, team: string }} options
+     * @returns {Agent}
      */
-    createAgent ( id, name, team, config) {
+    createAgent ( {id, name, team} ) {
         
         // Instantiate
-        var me = new Agent( this, id, name, team, config );
+        var me = new Agent( this, {id, name, team}, this.#config );
         this.emit( 'agent created', me );
 
         // Register
@@ -133,6 +136,7 @@ class Grid extends Observable {
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );
+        me.on( 'rewarded', this.emit.bind(this, 'agent rewarded') );
 
         // On mine or others movement emit SensendAgents
         this.on( 'agent xy', ( who ) => {
@@ -186,13 +190,13 @@ class Grid extends Observable {
     /**
      * @type {function(Number, Number): Parcel}
      */
-    createParcel ( x, y, parcel_rewar_avg, parcel_reward_variance, parcel_decading_intervla ) {
+    createParcel ( x, y ) {
         var tile = this.getTile( x, y );
         if ( !tile || tile.blocked )
             return false;
         
         // Instantiate and add to Tile
-        var parcel = new Parcel( x, y, null, parcel_rewar_avg, parcel_reward_variance, parcel_decading_intervla );
+        var parcel = new Parcel( x, y, null, this.#config );
         // tile.addParcel( parcel );
         this.#parcels.set( parcel.id, parcel )
 

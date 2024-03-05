@@ -7,8 +7,6 @@ const Postponer = require('./Postponer');
 const myClock = require('./Clock');
 
 
-const MOVEMENT_STEPS = 1;
-
 
 /**
  * @class Agent
@@ -37,14 +35,15 @@ class Agent extends Xy {
     //     return Array.from(this.#carryingParcels);
     // }
 
-    config = {};
+    /** @type {Config} */
+    config;
 
     /**
      * @constructor Agent
      * @param {Grid} grid
      * @param {{id:number,name:string}} options
      */
-    constructor ( grid, id, name, team, config ) {
+    constructor ( grid, {id, name, team}, config ) {
         
         {
             // let x, y, found=false;
@@ -74,7 +73,7 @@ class Agent extends Xy {
             super(x, y);
         }
 
-        if(config)Object.assign( this.config, config );
+        this.config = config;
         
         Object.defineProperty (this, 'carrying', {
             get: () => Array.from(this.#carryingParcels).map( ({id, reward}) => { return {id, reward}; } ), // Recursion on carriedBy->agent->carrying->carriedBy ... 
@@ -161,19 +160,19 @@ class Agent extends Xy {
     async stepByStep ( incr_x, incr_y ) {
         var init_x = this.x
         var init_y = this.y
-        if ( MOVEMENT_STEPS ) {
+        if ( this.config.MOVEMENT_STEPS ) {
             // Immediate offset by 0.6*step
-            this.x = ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS * 12/20 ) / 100;
-            this.y = ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS * 12/20 ) / 100;
+            this.x = ( 100 * this.x + 100 * incr_x / this.config.MOVEMENT_STEPS * 12/20 ) / 100;
+            this.y = ( 100 * this.y + 100 * incr_y / this.config.MOVEMENT_STEPS * 12/20 ) / 100;
         }
-        for ( let i = 0; i < MOVEMENT_STEPS; i++ ) {
-            // Wait for next step timeout = this.config.MOVEMENT_DURATION / MOVEMENT_STEPS
-            // await new Promise( res => setTimeout(res, this.config.MOVEMENT_DURATION / MOVEMENT_STEPS ) )
-            await myClock.synch( this.config.MOVEMENT_DURATION / MOVEMENT_STEPS );
-            if ( i < MOVEMENT_STEPS - 1 ) {
-                // Move by one step = 1 / MOVEMENT_STEPS
-                this.x = ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS ) / 100;
-                this.y = ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS ) / 100;
+        for ( let i = 0; i < this.config.MOVEMENT_STEPS; i++ ) {
+            // Wait for next step timeout = this.config.MOVEMENT_DURATION / this.#config.MOVEMENT_STEPS
+            // await new Promise( res => setTimeout(res, this.config.MOVEMENT_DURATION / this.#config.MOVEMENT_STEPS ) )
+            await myClock.synch( this.config.MOVEMENT_DURATION / this.config.MOVEMENT_STEPS );
+            if ( i < this.config.MOVEMENT_STEPS - 1 ) {
+                // Move by one step = 1 / this.#config.MOVEMENT_STEPS
+                this.x = ( 100 * this.x + 100 * incr_x / this.config.MOVEMENT_STEPS ) / 100;
+                this.y = ( 100 * this.y + 100 * incr_y / this.config.MOVEMENT_STEPS ) / 100;
             }
         }
         // Finally at exact destination
@@ -268,7 +267,7 @@ class Agent extends Xy {
         var toPutDown = Array.from( this.#carryingParcels );    // put down all parcels
         if ( ids && ids.length && ids.length > 0 )              // put down specified parcels
             toPutDown = toPutDown.filter( p => ids.includes( p.id ) );
-        for ( const parcel of this.#carryingParcels ) {
+        for ( const /** @type {Parcel} */ parcel of this.#carryingParcels ) {
             this.#carryingParcels.delete(parcel);
             parcel.carriedBy = null;
             // parcel.x = this.x;
@@ -280,13 +279,14 @@ class Agent extends Xy {
             }
         }
         this.score += sc;
-        if ( sc > 0 ) {
-            console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti -> ${this.score} pti)` );
-            console.log( Array.from(this.#grid.getAgents()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
-        }
+        this.emitOnePerTick( 'rewarded', this, sc );
+        // if ( sc > 0 ) {
+            // console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti -> ${this.score} pti)` );
+            // console.log( Array.from(this.#grid.getAgents()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
+        // }
         if ( dropped.length > 0 )
             this.emitOnePerTick( 'putdown', this, dropped );
-        return dropped;
+        return {dropped, reward: sc};
     }
 }
 

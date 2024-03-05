@@ -1,24 +1,32 @@
 const express = require('express');
+const cors = require('cors');
 const Path = require('path');
 const app = express();
 const {generateToken, generateTokenAdmin, decodeToken} = require('./deliveroo/Token');
 
-const matchsRoutes = require('./routes/match');
+const matchesRoutes = require('./routes/matches');
 const mapsRoutes = require('./routes/maps');
+const leaderboardRoutes = require('./routes/leaderboard');
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 // Middleware per gestire i dati JSON e form-urlencoded
 app.use(express.json());
+// Middleware per chiamate cors
+app.use(cors());
 
 app.use('/', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 app.use('/game', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp','dist/game') ));
 
-app.use('/api/matchs', matchsRoutes);
+app.use('/api/matchs', matchesRoutes);
 app.use('/api/maps', mapsRoutes);
+app.use('/leaderboard', leaderboardRoutes);
 
 app.get('/token', (req, res) => {
-    const token = generateToken(req.headers['nome'], req.headers['team']); 
+    const token = generateToken(
+        req.headers['name'] || req.query.name,
+        req.headers['team'] || req.query.team
+    );
     res.json({ token: token });
 })
 

@@ -4,13 +4,13 @@ const { uid } = require('uid');
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
 const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
 
-function generateToken(gname, gteam){
+function generateToken(name, team) {
 
-    gid = uid();
-    token = jwt.sign( {id:gid, name:gname, team:gteam}, SUPER_SECRET );
+    id = uid();
+    token = jwt.sign( {id, name, team}, SUPER_SECRET );
 
-    console.log( 'Generate new toke: ', token.slice(-30));
-    return token
+    console.log( 'Generated new token:', token.slice(-30));
+    return token;
 
 }
 

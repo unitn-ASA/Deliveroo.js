@@ -1,0 +1,138 @@
+.allertPopUp{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+    background-color:rgb(0, 0, 0);
+    padding: 0;
+    z-index: 10;
+}
+
+.h2Allert{
+    color: rgb(230, 118, 13);
+    margin-top: 0;
+}
+
+.formAllert {
+    background-color: #000000be;
+
+    padding-top: 10px;
+    padding-right: 20px;
+    padding-left: 20px;
+    padding-bottom: 20px;
+
+    border: 2px solid rgb(230, 118, 13);
+    box-shadow: 0 4px 8px rgba(230, 118, 13, 0.31);
+
+    width: 300px;
+}
+
+.labelAllert {
+    display: block;
+    margin-bottom: 10px;
+    color: whitesmoke;
+}
+
+.inputAllert {
+    width: 90%;
+    background-color: whitesmoke;
+    color: black;
+    padding: 5px;
+    border: 2px solid black;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.buttonAllert {
+    background-color: whitesmoke;
+    color: black;
+    padding: 5px;
+    border: 2px solid black;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+div{
+    color: whitesmoke;
+}
+
+#tokenBox {
+    background-color: rgb(221, 164, 111);
+    color: black;
+    padding: 5px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 2px solid #f0f0f0;
+    width: 90%; 
+    text-align: center;      
+    overflow: hidden;        /* Nasconde il testo che fuoriesce dal riquadro */
+    white-space: nowrap;      
+    
+}
+
+body { 
+    margin: 0; 
+    padding-bottom: 0; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+}
+
+#form { 
+    background: rgba(0, 0, 0, 0.15); 
+    padding: 0.25rem; 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    display: flex; 
+    height: 3rem; 
+    box-sizing: border-box; 
+    backdrop-filter: blur(10px); 
+}
+
+#input { 
+    border: none; 
+    padding: 0 1rem; 
+    flex-grow: 1; 
+    border-radius: 2rem; 
+    margin: 0.25rem; 
+}
+
+#input:focus { 
+    outline: none; 
+}
+
+#form > button { 
+    background: #333; 
+    border: none; 
+    padding: 0 1rem; 
+    margin: 0.25rem; 
+    border-radius: 3px; 
+    outline: none; 
+    color: #fff;
+}
+
+#messages { 
+    list-style-type: none; 
+    margin: 0; 
+    padding: 0; 
+}
+
+#messages > li { padding: 0.5rem 1rem; }
+
+#messages > li:nth-child(odd) { background: #efefef; }
+
+.label {
+    color: #FFF;
+    font-family: sans-serif;
+    padding: 2px;
+    background: rgba( 0, 0, 0, .6 );
+    font-size: '12pt';
+}
+
+div#info:hover {
+    opacity: 1 !important;
+}
+

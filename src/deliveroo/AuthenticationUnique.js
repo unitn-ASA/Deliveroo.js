@@ -11,7 +11,7 @@ class AuthenticationUnique{
         var name;
         var team;
         var token = socket.handshake.headers['x-token'];
-        // var team = socket.handshake.headers['team'];
+        var team = socket.handshake.headers['team'];
 
     
         // No token provided, generate new one

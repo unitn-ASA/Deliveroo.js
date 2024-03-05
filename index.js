@@ -1,43 +1,39 @@
-var redisClient //= require('./src/redisClient');
-const httpServer = require('./src/httpServer.js');
-const ioServer = require('./src/ioServer');
+const app = require('./src/app.js');
+const { createServer } = require('http');
+const ioServer = require('./src/ioServer.js');
+const mongoose = require('mongoose');
+
 
 const PORT = process.env.PORT || 8080;
 
-async function start () {
+async function start () {    
 
     /**
-     *  Start Redis
+     * Connect to MongoDB
      */
-    
-    if ( redisClient ) {
-
-        await redisClient.connect();
-        console.log("Connected to Redis");
+    // mongoose.Promise = global.Promise;
+    try {
+        // const connection = mongoose.createConnection(process.env.DB_URL);
+        // app.locals.db = await connection.asPromise();
+        // console.log("Connected to MongoDB at", connection.host, connection.port, connection.name);
         
-    } else {
-
-        console.log('Redis disabled');
-
+        app.locals.db = await mongoose.connect(process.env.DB_URL, {});
+    } catch (error) {
+        console.log("Not connected to MongoDB", error);
     }
 
     /**
      *  Start http server
      */
+    const httpServer = createServer(app);
+
+    new ioServer( httpServer );
 
     httpServer.listen( PORT, () => {
         
         console.log(`Server listening on port ${PORT}`);
     
     } );
-
-    /**
-     * Start io server
-     */
-
-    ioServer.listen( httpServer );
-
-
     
 }
 
