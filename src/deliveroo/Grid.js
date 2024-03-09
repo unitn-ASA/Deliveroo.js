@@ -6,12 +6,12 @@ const Xy = require('./Xy');
 const Config = require('./Config');
 
 
-
 /**
  * @class Grid
  */
 class Grid extends Observable {
 
+    matchId;
     /** @type {Config} */
     #config;
     /** @type {Array<Tile>} */
@@ -24,10 +24,11 @@ class Grid extends Observable {
     /**
      * @constructor Grid
      */
-    constructor ( config = new Config(), map = new Array(10).map( c=>new Array(10) ) ) {
+    constructor ( matchId, config = new Config(), map = new Array(10).map( c=>new Array(10) ) ) {
         super();
 
         this.#config = config;
+        this.matchId = matchId;
         
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
@@ -40,29 +41,11 @@ class Grid extends Observable {
                 value == 1  // parcelSpawner
             ) )
         } );
-        // console.log( this.#tiles.map( c=>c.map( t=>t.x+' '+t.y+' ' ) ) )
         
-        // this.#tiles = [];
-        // for (let x = 0; x < 10; x++) {
-        //     let column = [];
-        //     for (var y = 0; y < 10; y++) {
-        //         column.push(new Tile(this, x, y))
-        //     }
-        //     this.#tiles.push(column);
-        // }
 
         this.#agents = new Map();
         this.#parcels = new Map();
-        
-        // for (let x = 0; x < map.length; x++) {
-        //     const column = map[x];
-        //     for (let y = 0; y < column.length; y++) {
-        //         const value = column[y];
-        //         if ( value > 2 )
-        //             this.createParcel( x, y, null, value );
-        //     }
-            
-        // }
+       
 
     }
 
@@ -131,8 +114,11 @@ class Grid extends Observable {
 
         // Grid scoped events propagation
         me.on( 'xy', this.emit.bind(this, 'agent xy') );
-        me.on( 'score', this.emit.bind(this, 'agent score') );
-        me.on( 'score', () => { this.emit('agente score', me.id, me.name, me.team, me.score); });
+        //me.on( 'score', this.emit.bind(this, 'agent score') );
+        me.on( 'score', () => { 
+           // console.log('agente score:', me.id, me.name, me.team, me.score);
+            this.emit('agente score', me.id, me.name, me.team, me.score); 
+        });
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );
@@ -152,7 +138,7 @@ class Grid extends Observable {
             }
         } )
 
-        // On others score emit SensendAgents
+        // On others score emit agentSensing
         this.on( 'agent score', ( who ) => {
             if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                 me.emitAgentSensing()

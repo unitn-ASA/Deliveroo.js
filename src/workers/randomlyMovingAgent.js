@@ -7,7 +7,7 @@ const Config = require('../deliveroo/Config');
  * @param {Config} config
  * @param {Grid} myGrid 
  */
-module.exports = function ( config, myGrid, name ) {
+module.exports = function ( config, myGrid) {
 
     async function randomlyMove ( agent ) {
             
@@ -28,7 +28,7 @@ module.exports = function ( config, myGrid, name ) {
         }
     }
 
-    var myAgent = myGrid.createAgent();
+    var myAgent = myGrid.createAgent({});
     randomlyMove (myAgent)
 
 }

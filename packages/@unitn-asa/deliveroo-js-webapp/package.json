@@ -14,8 +14,8 @@
   },
   "bin": {},
   "scripts": {
-    "prepare": "npm run build && cp -r home/* dist/",
-    "prepareWindows": "npm run build && xcopy /s home\\* dist\\",
+    "prepareLinux": "npm run build && cp -r home/* dist/",
+    "prepare": "npm run build && xcopy /s home\\* dist\\",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"

@@ -118,8 +118,7 @@ function areColorsSimilar(color1, color2) {
     const deltaB = Math.abs(color1.b - color2.b);
     
     //console.log("Return: ", deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance);
-    return deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance;
-    
+    return deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance;    
 }
 
 export { Agent };

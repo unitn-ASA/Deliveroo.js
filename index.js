@@ -18,10 +18,12 @@ async function start () {
         // console.log("Connected to MongoDB at", connection.host, connection.port, connection.name);
         
         app.locals.db = await mongoose.connect(process.env.DB_URL, {});
+        console.log("Connected to MongoDB");
     } catch (error) {
+        // Gestione degli errori in caso di fallimento della connessione
         console.log("Not connected to MongoDB", error);
     }
-
+    
     /**
      *  Start http server
      */

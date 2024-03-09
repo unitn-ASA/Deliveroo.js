@@ -6,7 +6,7 @@ import { Controller } from './Controller.js';
 import { Leaderboard } from './Leaderboard.js';
 import { Tile } from './Tile.js';
 
-
+import * as THREE from 'three';
 
 class Game {
     
@@ -97,17 +97,44 @@ class Game {
 
         // const me = this.me = this.getOrCreateAgent( options.id, options.name, options.team, 0, 0, 0 );
         
-        this.gui = new Gui( );
+        this.gui = new Gui();
 
         // me.mesh.add( scene.camera );
         // this.gui.setTarget( me.mesh );
 
-        this.leaderboard = new Leaderboard( this );
+        this.leaderboard = new Leaderboard( this, options.match );
 
     }
 
+    newColor(id){
+        let coloriGiaUsati = Array.from(this.teamsAndColors.values());   // get an array with all the already used colors    
+        //console.log("Colori: ", this.teamsAndColors)
+        
+        let color;
+        do{
+            color = new THREE.Color( 0xffffff );        
+            color.setHex( Math.random() * 0xffffff );
+
+        }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // repaet the color generation until it is not similar with other already used colors 
+        
+        // update teamsAndColors adding tha net record
+        this.teamsAndColors.set(id,color); 
+    }
 }
 
+ 
 
+
+// funzione per confrontare due colore THREE.Color per evitare colori uguali o troppo simili
+function areColorsSimilar(color1, color2) {
+    //console.log("Colore 1:", color1 + " colore 2: ", color2);
+    let tolerance = 0.1
+    const deltaR = Math.abs(color1.r - color2.r);
+    const deltaG = Math.abs(color1.g - color2.g);
+    const deltaB = Math.abs(color1.b - color2.b);
+    
+    //console.log("Return: ", deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance);
+    return deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance;    
+}
 
 export { Game };

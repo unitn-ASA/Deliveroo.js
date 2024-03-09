@@ -20,14 +20,17 @@ app.use('/game', express.static( Path.join(__dirname, '..', 'packages', '\@unitn
 
 app.use('/api/matchs', matchesRoutes);
 app.use('/api/maps', mapsRoutes);
-app.use('/leaderboard', leaderboardRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
+
 
 app.get('/token', (req, res) => {
+
+    //console.log(req.headers);
     const token = generateToken(
         req.headers['name'] || req.query.name,
         req.headers['team'] || req.query.team
     );
-    res.json({ token: token });
+    res.json({ token: token }); 
 })
 
 app.post('/login', (req, res) => {

@@ -6,6 +6,7 @@ module.exports = mongoose.model('Reward', new Schema({
 	matchId: String,
 	teamId: String,
 	agentId: String,
+	agentName: String,
 	score: Number,
 	time: Date
 }), 'rewards' );

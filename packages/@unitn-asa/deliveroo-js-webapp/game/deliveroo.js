@@ -3,9 +3,21 @@ import { Client } from './Client.js';
 
 
 
-function goToMatch( match, name, token, team ) {
+function goToMatch( match, token ) {
+    document.getElementById('panel').style.display = 'block';               // Show the laterla pannel
 
-    const game = new Game( { token, name, match, team } ); 
+    document.getElementById('chatTitle').addEventListener('click',() =>{    //Sistem to open and close the caht
+        const chatElement = document.getElementById('chat');
+        console.log(chatElement.classList)
+        if(chatElement.classList.contains('closed')) {
+            chatElement.classList.remove('closed');  
+        } else {
+            chatElement.classList.add('closed');
+        }
+    })
+
+    
+    const game = new Game( { token, match } ); 
 
 }
 

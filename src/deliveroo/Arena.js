@@ -23,12 +23,20 @@ class Arena {
      * @returns 
      */
     static getOrCreateMatch ( { id = uid(4), config = new Config() } ) {
-        while ( Arena.matches.has(id) )
-            id = uid(4);
-        let match = Arena.matches.get(id);
-        if ( !match ){
-            match = new Match( config, id );
+        
+        id = id.toString();                         // Convert all id to string
+        //console.log(Arena.matches);
+        
+        let match = Arena.matches.get(id);          // Try to get the match seraching the id in the id-match map                      
+        if ( !match ){                              // If there are found none create a new one     
+
+            while ( Arena.matches.has(id) ){        // Find a not already used id
+                id = uid(4);
+            } 
+
+            match = new Match( config, id );        // Create a new Match and add it to the id-match map
             Arena.matches.set(id, match);
+            console.log('NEW MATCH')
         }
         return match;
     }

@@ -24,6 +24,7 @@ class AuthenticationUnique{
             try {
                 // Verify and decode payload
                 const decoded = decodeToken(token);
+                console.log(decoded)
                 if ( decoded.id && decoded.name) {
                     id = decoded.id
                     name = decoded.name

@@ -1,4 +1,3 @@
-import { forEach } from '../../../../levels/maps/challenge_21.js';
 import { goToMatch } from './deliveroo.js';
 var params = new URLSearchParams(window.location.search);
 
@@ -30,7 +29,7 @@ function allertAskName() {
     var cookiesContainer = document.createElement('div'); 
     cookiesContainer.setAttribute('id','cookiesContainer')
 
-    console.log(cookies);
+    //console.log(cookies);
     for(let cookie in cookies){
         //console.log(cookie)
         let cookieDiv = createCookieDiv(cookie, cookies[cookie], false)
@@ -206,11 +205,11 @@ function createCookieDiv(cookieName, cookieToken, onlyToken) {
 
     cookieDiv.appendChild(nameTeam);
 
-    var copyButton = document.createElement('button');    // Create a button to eliminate the cookie 
+    var copyButton = document.createElement('button');    // Create a button to copy the cookie 
     copyButton.textContent = 'Copy';
     copyButton.classList.add('copy-button');
     copyButton.addEventListener('click', function() {
-        console.log("COPY")
+        console.log("COPY: ",cookieToken)
         copyToClipboard(cookieToken);
     });
     cookieDiv.appendChild(copyButton);
@@ -255,13 +254,13 @@ function checkCookieForToken ( name, team ) {
 function richiediToken(nome, team, callback) {
     return new Promise((resolve, reject) => {
 
-        console.log("Nome fetch: " + nome);
+        console.log("Nome fetch: ", nome + " team fetch: ", team);
 
         fetch('/token', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'nome': nome,
+                'name': nome,
                 'team': team
             }
         })

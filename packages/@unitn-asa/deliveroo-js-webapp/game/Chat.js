@@ -1,4 +1,4 @@
-let chat = {
+let Chat = {
 
     addMessage: function(name, color, msg, chatElement) {
         // Truncate name if it exceeds 10 characters
@@ -23,10 +23,10 @@ let chat = {
         chatElement.appendChild(messageElement);
 
         chatElement.scrollTop = chatElement.scrollHeight;
-    }
+    },
 
 }
 
 
 
-export { chat };
+export { Chat };

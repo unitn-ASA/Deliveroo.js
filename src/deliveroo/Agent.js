@@ -4,6 +4,7 @@ const Grid =  require('./Grid')
 const Tile =  require('./Tile');
 const Parcel =  require('./Parcel');
 const Postponer = require('./Postponer');
+const Leaderboard = require('./Leaderboard');
 const myClock = require('./Clock');
 
 
@@ -45,16 +46,7 @@ class Agent extends Xy {
      */
     constructor ( grid, {id, name, team}, config ) {
         
-        {
-            // let x, y, found=false;
-            // for (x=0; x<10 && !found; x++)
-            //     for (y=0; y<10 && !found; y++) {
-            //         found = ( grid.getTile(x, y).blocked ? false : grid.getTile(x, y).lock() );
-            //         // console.log( x, y, (found?'found':'occupied') )
-            //     }
-            // if ( !found )
-            //     throw new Error('No unlocked tiles available on the grid')
-            
+        {           
             let tiles_unlocked =
                 Array.from( grid.getTiles() )
                 // not locked
@@ -89,6 +81,7 @@ class Agent extends Xy {
         // this.on('pickup', this.emitOnePerTick.bind(this, 'agent') );
         // this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
 
+
         this.#grid = grid;
         this.id = id || ('a' + Agent.#lastId++);
         this.name = name || this.id;
@@ -96,13 +89,24 @@ class Agent extends Xy {
         this.sensing = new Set();
         this.score = 0;
 
+        loadScore(this.#grid.matchId, this.id )
+        .then(loadedScore => {
+            console.log("loadscore", loadedScore);
+            this.score = loadedScore;
+        })
+        .catch(error => {
+            console.error('An error occurred:', error);
+            this.score = 0;
+        });
+        
+
         this.emitOnePerTick( 'xy', this ); // emit agent when spawning
         
         // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
         this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
     }
 
-
+    
 
     /**
      * Agents sensend on the grid
@@ -288,6 +292,17 @@ class Agent extends Xy {
             this.emitOnePerTick( 'putdown', this, dropped );
         return {dropped, reward: sc};
     }
+}
+
+async function loadScore(matchId, agentId){
+    try {
+        let record = await Leaderboard.get({ matchId, agentId });
+        let score = record[0].score
+        return score
+    } catch (error) {
+        console.error('An error occurred:');
+        return 0;
+    }   
 }
 
 

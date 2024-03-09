@@ -49,7 +49,7 @@ class Match {
 
         // Load map
         let map = require( '../../levels/maps/' + this.#config.MAP_FILE + '.json' );
-        this.grid = new Grid( config, map.map );
+        this.grid = new Grid( this.#id, config, map.map );
 
         // Parcels generator
         this.#parcelsGenerator = new parcelsGenerator( this.#config, this.grid );
@@ -59,62 +59,15 @@ class Match {
         for (let i = 0; i < this.#config.RANDOMLY_MOVING_AGENTS; i++) {
             this.#randomlyMovingAgents.push( new randomlyMovingAgent( this.#config, this.grid ) );
         }
-
-        /**
-         * Communication
-         */
-
-        socket.on( 'say', (toId, msg, acknowledgementCallback) => {            
-            console.log( me.id, me.name, 'say ', toId, msg );
-
-            if(this.idToAgentAndSockets.has( toId )){
-                for ( let socket of this.idToAgentAndSockets.get( toId ).sockets ) {
-                    // console.log( me.id, me.name, 'emit \'msg\' on socket', socket.id, msg );
-                    socket.emit( 'msg', me.id, me.name, msg );
-                }
-            }            
-
-            try {
-                if (acknowledgementCallback) acknowledgementCallback( 'successful' )
-            } catch (error) { console.log( me.id, 'acknowledgement of \'say\' not possible' ) }
-
-        } )
-
-        socket.on( 'ask', (toId, msg, replyCallback) => {
-            console.log( me.id, me.name, 'ask', toId, msg );
-            if(this.idToAgentAndSockets.has( toId )){
-                for ( let socket of this.idToAgentAndSockets.get( toId ).sockets ) {
-                    
-                    // console.log( me.id, 'socket', socket.id, 'emit msg', ...args );
-                    socket.emit( 'msg', me.id, me.name, msg, (reply) => {
-
-                        try {
-                            console.log( toId, 'replied', reply );
-                            replyCallback( reply )
-                        } catch (error) { console.log( me.id, 'error while trying to acknowledge reply' ) }
-
-                    } );
-                }
-            }
-        } )
-
-        socket.on( 'shout', (msg, acknowledgementCallback) => {
-            console.log( me.id, me.name, 'shout', msg );    
-            socket.broadcast.emit( 'msg', me.id, me.name, msg );
-            socket.emit( 'msg', me.id, me.name, msg );
     
-            try {
-                if (acknowledgementCallback) acknowledgementCallback( 'successful' )
-            } catch (error) { console.log( me.id, 'acknowledgement of \'shout\' not possible' ) }
-            
-        } )
-    
-    
-
-        console.log('Socket ', socket.id + ' joint match:', this.id)
         // Connect match to leaderboard
         this.grid.on( 'agent rewarded', (agent, reward) => {
-            Leaderboard.addReward( this.#id, agent.team, agent.id, reward );
+            Leaderboard.addReward( this.#id, agent.team, agent.id, agent.name, reward );
+        } );
+
+        this.grid.on( 'agent created', (agent) => {
+            console.log("AGENT CREATED")
+            Leaderboard.addReward( this.#id, agent.team, agent.id,agent.name, 0 );
         } );
 
         // // quando il punteggio di un agente cambia solleva l'evento agent info
@@ -123,7 +76,7 @@ class Match {
         // });
 
         // Logs
-        console.log("Started match /"+this.#id, "with config:", this.#config);
+        console.log("Started match /"+this.#id);
 
         // this.on('agent info', (id, name, team, score) => {
         //     console.log("Agente ", id + " ", name + " of team:", team + " change score into ", +score)
@@ -145,9 +98,10 @@ class Match {
         
         // Agent
         var me = this.grid.getAgent( id );
-        if ( ! me )
+        if ( ! me ){
             me = this.grid.createAgent( {id, name, team} );
-
+        }
+            
         // Team
         var teamMates = this.#teamsAgents.get( team );
         if ( ! teamMates ) {

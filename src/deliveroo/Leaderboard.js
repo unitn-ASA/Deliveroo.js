@@ -164,6 +164,7 @@ class Leaderboard {
         if ( groupByKeys.includes('matchId') ) groupExpression.matchId = { $first: '$matchId' };
         if ( groupByKeys.includes('teamId') ) groupExpression.teamId = { $first: '$teamId' };
         if ( groupByKeys.includes('agentId') ) groupExpression.agentId = { $first: '$agentId' };
+        groupExpression.agentName = { $first: '$agentName' };
         groupExpression.score = { $sum: '$score' };
         groupExpression.history = { $push: { score: '$score', time: '$time' } };
 
@@ -185,16 +186,18 @@ class Leaderboard {
         return queried;
     }
 
+
+
     /**
      * @param {string} matchId
      * @param {string} teamId
      * @param {string} agentId
      * @param {number} score
      */
-    static async addReward ( matchId, teamId, agentId, score ) {
+    static async addReward ( matchId, teamId, agentId, agentName, score ) {
         // const reward = new Reward( matchId, teamId, agentId, score, Date.now() );
         // this.#rewards.push( reward );
-        const reward = new RewardModel( {matchId, teamId, agentId, score, time: Date.now()} );
+        const reward = new RewardModel( {matchId, teamId, agentId, agentName, score, time: Date.now()} );
         return await reward.save();
     }
 

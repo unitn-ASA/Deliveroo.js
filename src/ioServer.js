@@ -63,12 +63,13 @@ class ioServer {
             
             const socketId = req.id;
             jwt.verify(token, SUPER_SECRET, (err, decoded) => {
+                console.log(decoded);
                 if (err) {
                     console.log( `Socket ${socketId} log in failure. Invalid token provided.` );
                 } else if ( decoded.id && decoded.name ) {
                     const id = decoded.id
                     const name = decoded.name
-                    const team = decoded.team
+                    const team = decoded.team || null;
                     req.user = { id, name, team, token };
                     // console.log( `Socket ${socketId} connecting as ${name}(${id}). With token: ...${token.slice(-30)}` );
                     next();
@@ -98,7 +99,7 @@ class ioServer {
             await socket.join("team:"+team);
             await socket.join("agent:"+id);
 
-            // console.log( `Socket ${socket.id} connecting as ${name}(${id})(${team}) to match ${matchTitle}, with token: ...${token.slice(-30)}` );
+            console.log( `Socket ${socket.id} connecting as ${name}(${id})(${team}) to match ${matchTitle}, with token: ...${token.slice(-30)}` );
 
             const matchNamespace = socket.nsp;
             const teamRoom = matchNamespace.in("team:"+team);

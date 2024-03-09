@@ -7,9 +7,14 @@ const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_toke
 function generateToken(name, team) {
 
     id = uid();
+
+    console.log('name: ', name + ' team: ', team);
     token = jwt.sign( {id, name, team}, SUPER_SECRET );
 
+    let decode = decodeToken(token)
+
     console.log( 'Generated new token:', token.slice(-30));
+    console.log( 'New token decoded:',decode);
     return token;
 
 }

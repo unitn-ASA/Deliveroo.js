@@ -3,6 +3,7 @@ import { Agent } from './Agent.js';
 import { Parcel } from './Parcel.js';
 import { Tile } from './Tile.js';
 import { Game } from './Game.js';
+import { Chat } from './Chat.js';
 
 
 
@@ -35,7 +36,7 @@ class Client {
      * Socket constructor
      * @param {Game,{token: string, name: string, match: string}} options
      */
-    constructor ( game, { token, name, match } ) {
+    constructor ( game, { token, match } ) {
 
         this.game = game;
         
@@ -53,7 +54,6 @@ class Client {
         } );
 
         this.socket.on( "connect", () => {
-            console.log( "connect", this.socket.id, token ); 
             document.getElementById('socket.id').textContent = `socket.id ${this.socket.id}`
         } );
 
@@ -114,7 +114,19 @@ class Client {
 
         this.socket.on( "msg", ( id, name, msg, reply ) => {
             console.log( 'msg', {id, name, msg, reply} )
-            processMsg( id, name, msg )
+
+            let color
+            if(this.game.teamsAndColors.has(id)){color = this.game.teamsAndColors.get(id);}
+            else{
+                let team = this.game.leaderboard.findTeamNameById(id);
+                console.log(team)
+                color = this.game.teamsAndColors.get(team);
+            }
+
+            let chat = document.getElementById('chat');
+
+            Chat.addMessage(name, color, msg, chat);
+            
             if ( msg == 'who are you?' && reply ) reply('I am the web app')
         })
 
@@ -323,6 +335,27 @@ class Client {
             console.log("delete team " + name +" info");
             this.game.leaderboard.removeTeam(name, leaderboardElement)
         })
+
+        ///////////////////////////////////////////////////////// MESSAGE TESTS ////////////////////////////////////////////////////////
+        const sendMessageSay = () => {
+            let msgProva = "PROVA di un MSGhhhhhhhhhhhhhhhhhhhhhh";
+            this.socket.emit('say', 'ba53c084f81', msgProva);
+        };
+        
+        const sendMessageShout = () => {
+            let msgProva = "PROVA di un MSGhhhhhhhhhhhhhhhhhhhhhh";
+            this.socket.emit('shout', msgProva);
+        };
+        
+        const sendMessageAsk = () => {
+            let msgProva = "PROVA di un MSGhhhhhhhhhhhhhhhhhhhhhh";
+            this.socket.emit('ask', 'ba53c084f81', msgProva);
+        };
+
+        document.getElementById('sendMessageButton').addEventListener('click', sendMessageShout);
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
     }
