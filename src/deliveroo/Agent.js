@@ -89,13 +89,14 @@ class Agent extends Xy {
         this.sensing = new Set();
         this.score = 0;
 
+        console.log('Costructio in Match ', this.#grid.matchId +' of new Agent: id=', this.id + ' name=', this.name, ' team=', this.team)
+
         loadScore(this.#grid.matchId, this.id )
         .then(loadedScore => {
-            console.log("loadscore", loadedScore);
             this.score = loadedScore;
         })
         .catch(error => {
-            console.error('An error occurred:', error);
+            console.error('Error in loading the score');
             this.score = 0;
         });
         
@@ -298,9 +299,10 @@ async function loadScore(matchId, agentId){
     try {
         let record = await Leaderboard.get({ matchId, agentId });
         let score = record[0].score
+        console.log("Loaded score", loadedScore);
         return score
     } catch (error) {
-        console.error('An error occurred:');
+        console.error('Unable to load a pass score');
         return 0;
     }   
 }

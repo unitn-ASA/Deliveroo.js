@@ -54,20 +54,20 @@ document.getElementById('matchForm').addEventListener('submit', function(event) 
     // Crea un oggetto con i dati del form
     const formData = {
     
-      mappa: mapFile,
+      MAP_FILE: mapFile,
 
-      parcels_generation_interval: parcelsInterval,
-      parcels_max: parseInt(parcelsMax),
-      parcel_rewar_avg: parseInt(parcelsRewardAvg),
-      parcel_reward_variance: parseInt(parcelsRewardVariance),
-      parcel_decading_interval: parcelsDecadingInterval,
+      PARCELS_GENERATION_INTERVAL: parcelsInterval,
+      PARCELS_MAX: parseInt(parcelsMax),
+      PARCEL_REWARD_AVG: parseInt(parcelsRewardAvg),
+      PARCEL_REWARD_VARIANCE: parseInt(parcelsRewardVariance),
+      PARCEL_DECADING_INTERVAL: parcelsDecadingInterval,
 
-      random_mov_agents: parseInt(randomlyMovingAgents),
-      random_agent_speed: randomlyAgentSpeed,
+      RANDOMLY_MOVING_AGENTS: parseInt(randomlyMovingAgents),
+      RANDOM_AGENT_SPEED: randomlyAgentSpeed,
 
-      agents_observation_distance: agentsObservationDistance,
-      parcels_observation_distance: parcelsObservationDistance,
-      movement_duration: 50
+      AGENTS_OBSERVATION_DISTANCE: agentsObservationDistance,
+      PARCELS_OBSERVATION_DISTANCE: parcelsObservationDistance,
+      MOVEMENT_DURATION: 50
 
     };
 
@@ -92,9 +92,9 @@ document.getElementById('matchForm').addEventListener('submit', function(event) 
     .then(data => {
       /* Gestione dei dati ricevuti: chiudo il pop-up di new game e apro uno di conferma 
       creazione che ritorna i dati del game creato -----------------------------------*/
-      console.log('Dati inviati con successo al server: ', data.data, data.mappa);
+      console.log('Dati sucsessfully sended to server: ');
       document.getElementById('matchFormContainer').style.display = 'none';
-      showConfirmationPopup(data.id, data.data, data.mappa); 
+      showConfirmationPopup(data.id, data.config, data.map); 
     })
     .catch(error => {
       // Gestione degli errori

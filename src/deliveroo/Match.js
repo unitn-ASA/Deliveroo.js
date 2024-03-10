@@ -7,6 +7,7 @@ const { SensorInterface } = require('./InterfaceController');
 const Agent = require('./Agent');
 const Leaderboard = require('./Leaderboard');
 
+
 // enum for the status of the match
 const MatchStatus = {
     STOP: 'stop',
@@ -17,7 +18,7 @@ const MatchStatus = {
 class Match {
 
     /** @type {Config} config */
-    #config;
+    config;
 
     /** @type {string} #id */    
     #id;
@@ -44,20 +45,20 @@ class Match {
      */
     constructor ( config = new Config(), id = uid(4) )  {
 
-        this.#config = config;
+        this.config = config;
         this.#id = id;
 
         // Load map
-        let map = require( '../../levels/maps/' + this.#config.MAP_FILE + '.json' );
+        let map = require( '../../levels/maps/' + this.config.MAP_FILE + '.json' );
         this.grid = new Grid( this.#id, config, map.map );
 
         // Parcels generator
-        this.#parcelsGenerator = new parcelsGenerator( this.#config, this.grid );
+        this.#parcelsGenerator = new parcelsGenerator( this.config, this.grid );
         
         // Randomly moving agents
         this.#randomlyMovingAgents = [];
-        for (let i = 0; i < this.#config.RANDOMLY_MOVING_AGENTS; i++) {
-            this.#randomlyMovingAgents.push( new randomlyMovingAgent( this.#config, this.grid ) );
+        for (let i = 0; i < this.config.RANDOMLY_MOVING_AGENTS; i++) {
+            this.#randomlyMovingAgents.push( new randomlyMovingAgent( this.config, this.grid ) );
         }
     
         // Connect match to leaderboard

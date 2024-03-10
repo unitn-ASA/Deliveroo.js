@@ -36,22 +36,32 @@ function verifyToken(req, res, next) {
 }
 
 // Endpoint for the cration of a new match
-router.post('/', verifyToken, (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
 
-  const formData = req.body;              // data coming from the client
   console.log("\nAsk for a new Match")
   
   var config = new Config( req.body );
-  console.log("\nCreazione nuovo Match");
+  var newMatch = Arena.getOrCreateMatch({config});
+  console.log("Creation of the new Match: ", newMatch.config);
 
-  var newMatch = new Match( config );
+  let mapPath = mapsDirectory + '/' + config.MAP_FILE +'.json';
 
-  res.status(200).json({
-    message: 'Data received sucsessfully',
-    id: newMatch.id,
-    config: config,
-    map: newMatch.map
-  });
+  fs.promises.readFile(mapPath, 'utf8')
+    .then(data => {
+      const dataJson = JSON.parse(data);
+      const map = dataJson.map;
+
+      res.status(200).json({
+        message: 'Data received successfully',
+        id: newMatch.matchId,
+        config: newMatch.config,
+        map: map
+      });
+    })
+    .catch(error => {
+      console.error('Error in the reading of the map file:', error);
+      res.status(500).json({ error: 'Error in the reading of the map file:' });
+    });
 
 });
 
@@ -85,6 +95,7 @@ router.delete('/:id', verifyToken, (req, res) => {
 // Endpoint per ottenere la lista dei match attivi
 router.get('/', (req, res) => {
   const matchs = Array.from( Arena.matches.keys() )
+  console.log(matchs);
   res.status(200).json({
     message: 'Lista match attivi',
     data: matchs

@@ -1,7 +1,7 @@
 const { uid } = require('uid'); 
 const Config = require('./Config');
 const Leaderboard = require('./Leaderboard');
-const Match = require('./Match.js');
+const Match = require('./Match');
 
 class Arena {
 
