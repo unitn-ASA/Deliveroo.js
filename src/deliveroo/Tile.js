@@ -30,6 +30,12 @@ const Grid =  require('./Grid')
         this.#delivery = delivery;
         this.#parcelSpawner = parcelSpawner;
     }
+
+    destroy(){
+        this.#grid = null;      // Set the reference to the Grid object to null
+        this.#parcels.clear()
+        this.#parcels = null;
+    }
     
     get blocked() {
         return this.#blocked;
@@ -84,6 +90,8 @@ const Grid =  require('./Grid')
         this.#parcelSpawner = value?true:false;
         this.#grid.emitOnePerTick( 'tile', this )
     }
+
+    
     
     // /**
     //  * @type {function(Parcel): void}

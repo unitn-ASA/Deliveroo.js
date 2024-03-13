@@ -220,6 +220,14 @@ class ioServer {
             // }
             socket.emit("agent deleted", who.id, who.team)
         })
+
+        grid.on('timer update', (time) => {
+            socket.emit("timer update", time)
+        })
+
+        grid.on('match ended', () => {
+            socket.emit("match ended")
+        })
         // this.on('team deleted', (name)=>{
         //     // console.log("Team ", name + " deleted")
         //     socket.emit("team deleted", name)
@@ -316,12 +324,17 @@ class ioServer {
          */
         
         socket.on('move', async (direction, acknowledgementCallback) => {
-            let matchId = matchNamespace.name
-            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }            // Rimuove the first '/' 
-            let match = Arena.getOrCreateMatch( { id: matchId } ); 
 
-            if(match.status == 'stop'){
+            // Before move the agent check if the match is n stop status or play one.
+            let matchId = matchNamespace.name
+            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }  // Remove the first '/' 
+            let match = Arena.getMatch( matchId ); 
+            if(match == false) { console.log('ricevuta richiesta move a un match non esistente: ', matchId); return};
+
+
+            if(match.status == 'stop'){  
                 console.log('Motion disable becouse the Match ', matchId + ' status is stop')
+                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
                 return;
             }
 
@@ -334,12 +347,16 @@ class ioServer {
         });
 
         socket.on('pickup', async (acknowledgementCallback) => {
-            let matchId = matchNamespace.name
-            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }            // Rimuove the first '/' 
-            let match = Arena.getOrCreateMatch( { id: matchId } ); 
 
-            if(match.status == 'stop'){
+             // Before move the agent check if the match is n stop status or play one.
+            let matchId = matchNamespace.name
+            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }   // Remove the first '/' 
+            let match = Arena.getMatch( matchId ); 
+            if(match == false) { console.log('ricevuta richiesta move a un match non esistente: ', matchId); return};
+
+            if(match.status == 'stop'){  
                 console.log('PickUp disable becouse the Match ', matchId + ' status is stop')
+                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
                 return;
             }
 
@@ -354,12 +371,16 @@ class ioServer {
         });
 
         socket.on('putdown', async (selected, acknowledgementCallback) => {
-            let matchId = matchNamespace.name
-            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }            // Rimuove the first '/' 
-            let match = Arena.getOrCreateMatch( { id: matchId } ); 
 
-            if(match.status == 'stop'){
+             // Before move the agent check if the match is n stop status or play one.
+            let matchId = matchNamespace.name
+            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }   // Remove the first '/' 
+            let match = Arena.getMatch( matchId );
+            if(match == false) { console.log('ricevuta richiesta move a un match non esistente: ', matchId); return};
+
+            if(match.status == 'stop'){  
                 console.log('PutDown disable becouse the Match ', matchId + ' status is stop')
+                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
                 return;
             }
 

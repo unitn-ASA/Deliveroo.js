@@ -41,7 +41,6 @@ async function defineContainerMatch(admin){
     
                 let descriptionMatch = document.createElement('div');          
                 descriptionMatch.classList = 'description-match';
-                descriptionMatch.textContent = 'description';
                 
                 let deleteButton = document.createElement('button');
                 deleteButton.classList.add('delete-button');
@@ -51,7 +50,8 @@ async function defineContainerMatch(admin){
                 
                 let playButton = document.createElement('button');
                 playButton.setAttribute('match', match);
-                playButton.textContent = data.status[index];
+                playButton.textContent = getStatusButtonText(data.status[index]);
+                descriptionMatch.textContent = getStatusText(playButton.textContent);
                 playButton.addEventListener('click',sendPlayStopMatch)
                 
                 divMatch.appendChild(idMatch);
@@ -92,23 +92,27 @@ function sendRequestJoinMatch(event){
     window.location.href = url; 
 }
 
+
+function getStatusText(status) {
+    if (status === 'play') return 'Match in pause';
+    if (status === 'stop') return 'Match is active';
+    return 'Undefined status';
+}
+
+function getStatusButtonText(status) {
+    if (status === 'stop') return 'play';
+    if (status === 'play') return 'stop';
+    return 'Undefined';
+}
+
+
 function sendPlayStopMatch(event){
     
     const token_admin = getAdminCookie();
-    const matchId = event.currentTarget.getAttribute('match');
+    const matchId = event.target.getAttribute('match');
+    //console.log(event)
 
-    if(event.currentTarget.textContent == 'play'){
-        event.currentTarget.textContent = 'stop'
-    }else if(event.currentTarget.textContent == 'stop'){
-        event.currentTarget.textContent = 'play'
-    }else{
-        // if the match is not in stop play status there is some error, so we remove the click event and end the function
-        event.currentTarget.removeEventListener('click', sendPlayStopMatch);
-        return
-    }
-
-    let newStatus = event.currentTarget.textContent;
-    console.log('Cange staus match ', matchId + ' to ', newStatus);
+    console.log('Cange staus match ', matchId + ' to ', event.currentTarget.textContent);
 
     fetch(`/api/matchs/${matchId}`, {
         method: 'POST',
@@ -116,7 +120,7 @@ function sendPlayStopMatch(event){
           'Content-Type': 'application/json',
           'Authorization': `${token_admin}`
         },
-        body: JSON.stringify({ id: matchId, status: newStatus }) // Invia l'ID del match e il nuovo stato
+        body: JSON.stringify({ id: matchId}) // Invia l'ID del match e il nuovo stato
       })
       .then(response => {
         if (response.ok) {
@@ -127,6 +131,14 @@ function sendPlayStopMatch(event){
       })
       .then(data => {
         console.log('Correct: ', data.message)
+
+        // Update the botton
+        event.target.textContent = getStatusButtonText(event.target.textContent)
+
+        // Update the description
+        const descriptionElement = event.target.parentElement.querySelector('.description-match')
+        descriptionElement.textContent = getStatusText(event.target.textContent);
+
       })
       .catch(error => {
         console.error('An error occurred:', error.message);

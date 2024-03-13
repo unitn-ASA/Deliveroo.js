@@ -59,6 +59,14 @@ class Parcel extends Xy {
         
     }
 
+    async destroy() {
+        this.removeAllListeners();          // Remove all event listeners
+        this.#config = null;                // Set the reference to the Config object to null
+        this.carriedBy = null;              // Set the reference to the Agent object to null
+
+        //console.log('Parcel destroyed:', this.id); // Log a message indicating that the Parcel object has been destroyed
+    }
+
 }
 
 

@@ -3,33 +3,49 @@ const myClock =  require('../deliveroo/Clock');
 const Config = require('../deliveroo/Config');
 
 
-/**
- * @param {Config} config
- * @param {Grid} myGrid 
- */
-module.exports = function ( config, myGrid) {
-
-    async function randomlyMove ( agent ) {
-            
-        const actions = [ 'up', 'right', 'down', 'left' ];
-        let index =  Math.floor( Math.random()*4 );
-
-        while ( true ) {
-            
-            const moved = await agent[ actions[index] ](); // try moving
-            if (moved)
-                await new Promise( res => myClock.once( config.RANDOM_AGENT_SPEED, res ) ); // wait before continue
-            else
-                await new Promise( res => setImmediate( res ) ); // if agent is stucked, this avoid blocking the whole program
-
-            index += [0,1,3][ Math.floor(Math.random()*3) ]; // straigth or turn left or right, not going back
-            index %= 4; // normalize 0-3
-
-        }
+class RandomlyMoveAgent {
+    /**
+     * @param {Config} config
+     * @param {Grid} myGrid 
+     */
+    constructor(config, myGrid) {
+        
+        var myAgent = myGrid.createAgent({});
+        this.randomlyMove (myAgent, config)
     }
 
-    var myAgent = myGrid.createAgent({});
-    randomlyMove (myAgent)
+    /**
+     * Metodo per avviare il movimento casuale dell'agente
+     * @param {Agent} agent L'agente da muovere casualmente
+     */
+    async randomlyMove(agent, config) {
+        const actions = ['up', 'right', 'down', 'left'];
+        let index = Math.floor(Math.random() * 4);
 
+        while (!this.stopMoving) {
+            const action = actions[index];
+            const moved = await agent[action]();
+
+            if (moved) {
+                await new Promise(res => myClock.once(config.RANDOM_AGENT_SPEED, res));
+            } else {
+                await new Promise(res => setImmediate(res));
+            }
+
+            index += [0, 1, 3][Math.floor(Math.random() * 3)];
+            index %= 4;
+        }
+
+        console.log('\tStop Randomly Move Agent for ', agent.id)
+        return;
+    }
+
+    /**
+     * Metodo per fermare il movimento casuale dell'agente
+     */
+    async stopAgentMovement() {
+        this.stopMoving = true;
+    }
 }
 
+module.exports = RandomlyMoveAgent;

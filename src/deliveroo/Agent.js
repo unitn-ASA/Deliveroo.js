@@ -293,6 +293,19 @@ class Agent extends Xy {
             this.emitOnePerTick( 'putdown', this, dropped );
         return {dropped, reward: sc};
     }
+
+    async destroy() {
+        
+        this.moving = false;            // Stop action 
+        this.#carryingParcels.clear();  // Cleare the Parcel transported 
+
+        this.removeAllListeners();      // Remove all the listeners 
+        
+        this.#grid = null;              // Set the reference to the Grid object to null
+        this.config = null;             // Set the reference to the Config object to null
+
+        console.log('\tAgent destroyed:', this.id);
+    }
 }
 
 async function loadScore(matchId, agentId){

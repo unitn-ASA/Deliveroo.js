@@ -97,8 +97,9 @@ class Game {
 
             this.client = new Client(this, options);
             this.controller = new Controller(this.client);
-            this.gui = new Gui();
             this.leaderboard = new Leaderboard(this, options.matchId);
+            this.gui = new Gui();
+           
     
             // menage the chat 
             document.getElementById('panel').style.display = 'block'; // Show the lateral panel

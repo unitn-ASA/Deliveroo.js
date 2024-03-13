@@ -2,6 +2,7 @@ const { uid } = require('uid');
 const Config = require('./Config');
 const Leaderboard = require('./Leaderboard');
 const Match = require('./Match');
+const Timer = require('./Timer');
 
 class Arena {
 
@@ -15,7 +16,8 @@ class Arena {
      * @returns {Match}
      */
     static getMatch ( name ) {
-        return Arena.matches.get(name);
+        if(Arena.matches.has(name)){ return Arena.matches.get(name);}
+        return false
     }
 
     /**
@@ -39,16 +41,26 @@ class Arena {
             Arena.matches.set(id, match);
             
         }
+
+        match.grid.on('match ended', async () =>{
+            console.log('MATC FINITO')
+            
+        })
+
+        
+
         return match;
     }
 
     /**
      * @param {string} name 
      */
-    static deleteMatch (name) {
+    static async deleteMatch (name) {
+        if(!Arena.matches.has(name)) return false;
         let match = Arena.matches.get(name);
-        match.destroy();
+        await match.destroy();
         Arena.matches.delete(name);
+        return true;
     }
     
     

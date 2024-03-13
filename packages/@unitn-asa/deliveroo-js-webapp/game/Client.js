@@ -336,6 +336,15 @@ class Client {
             this.game.leaderboard.removeTeam(name, leaderboardElement)
         })
 
+        var timerSpan = document.getElementById('timer-span')
+        this.socket.on("timer update", (time) => {
+            timerSpan.textContent = time
+        })
+
+        this.socket.on('match ended', () => {
+            console.log('Match Ended');
+        })
+
         ///////////////////////////////////////////////////////// MESSAGE TESTS ////////////////////////////////////////////////////////
         const sendMessageSay = () => {
             let msgProva = "PROVA di un MSGhhhhhhhhhhhhhhhhhhhhhh";

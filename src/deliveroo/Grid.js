@@ -157,7 +157,8 @@ class Grid extends Observable {
      * 
      * @param {Agent} agent 
      */
-    deleteAgent ( agent ) {
+    async deleteAgent ( agent ) {
+
         if ( agent.tile )
             agent.tile.unlock();
         agent.putDown();
@@ -169,6 +170,7 @@ class Grid extends Observable {
         agent.removeAllListeners('agents sensing');
         agent.removeAllListeners('parcels sensing');
         this.#agents.delete( agent.id );
+        
         this.emit( 'agent deleted', agent );
     }
 
@@ -219,6 +221,56 @@ class Grid extends Observable {
      */
     deleteParcel ( id ) {
         return this.#parcels.delete( id );
+    }
+
+    async destroy() {
+        
+        
+        // Destroy all the agent of the grid
+        for (let agent of this.#agents.values()) {
+            //console.log(agent)
+            agent.destroy();
+            //console.log(agent)
+            agent = null;
+            //console.log(agent)
+        }
+        //console.log(this.#agents)
+        this.#agents.clear();
+        this.#agents = null
+        //console.log(this.#agents)
+        
+        // Destroy all the parcels of the grid
+        for (let parcel of this.#parcels.values()) {
+            //console.log(parcel)
+            parcel.destroy();
+            //console.log(parcel)
+            parcel = null;
+            //console.log(parcel)
+        }
+        //console.log(this.#parcels)
+        this.#parcels.clear();
+        this.#parcels = null
+        //console.log(this.#parcels)
+        
+        // Destroy all the parcels of the grid
+        for (let row of this.#tiles.values()) {
+            for (let tile of row.values()) {
+                //console.log(tile)
+                tile.destroy();
+                //console.log(tile)
+                tile = null;
+                //console.log(tile)
+            }
+        }
+        //console.log(this.#tiles)
+        this.#tiles = null
+        //console.log(this.#tiles)
+
+        this.removeAllListeners();
+
+        this.#config = null;
+
+        console.log('\tGrid destroyed');
     }
 
 }

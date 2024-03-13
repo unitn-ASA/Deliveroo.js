@@ -23,15 +23,15 @@ class parcelsGenerator {
         this.#config = config;
         this.#grid = grid;   
 
-        myClock.on( config.PARCELS_GENERATION_INTERVAL, this.listener.bind(this) );
+        myClock.on( config.PARCELS_GENERATION_INTERVAL, this.listener );
     }
 
-    destroy () {
-        myClock.off( config.PARCELS_GENERATION_INTERVAL, this.listener );
+    async destroy () {
+        myClock.off( this.#config.PARCELS_GENERATION_INTERVAL, this.listener );
     }
 
 
-    listener () {
+    listener = () =>  {
 
         const PARCELS_MAX = this.#config.PARCELS_MAX;
         const grid = this.#grid;

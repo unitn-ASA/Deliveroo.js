@@ -1,18 +1,18 @@
 const Grid = require('./Grid');
-const randomlyMovingAgent = require('../workers/randomlyMovingAgent');
+const RandomlyMoveAgent = require('../workers/randomlyMovingAgent');
 const parcelsGenerator = require('../workers/parcelsGenerator');
 const { uid } = require('uid');
 const Config = require('./Config');
 const { SensorInterface } = require('./InterfaceController');
 const Agent = require('./Agent');
 const Leaderboard = require('./Leaderboard');
+const Timer = require('./Timer');
 
 
 // enum for the status of the match
 const MatchStatus = {
     STOP: 'stop',
     PLAY: 'play',
-    ENDED: 'ended'
 };
 
 class Match {
@@ -21,7 +21,8 @@ class Match {
     config;
 
      /** @type {MatchStatus} config */
-    status;
+    #status;
+    get status () {  return this.#status; }
 
     /** @type {string} #id */    
     #id;
@@ -42,6 +43,9 @@ class Match {
     /** @type {Map<string,Set<Agent>} agents in each team */
     #teamsAgents = new Map();
 
+    /** @type {Timer} timer of the match */
+    #timer;
+
     /**
      * @param {Config} config 
      * @param {string} id 
@@ -50,9 +54,10 @@ class Match {
 
         this.config = config;
         this.#id = id;
-        this.status = MatchStatus.PLAY
+        this.#status = MatchStatus.STOP
 
-        console.log('Id match: ', this.#id)
+        // Create and start the timer of the match
+        this.#timer = new Timer(config.MATCH_TIMEOUT);
 
         // Load map
         let map = require( '../../levels/maps/' + this.config.MAP_FILE + '.json' );
@@ -64,8 +69,28 @@ class Match {
         // Randomly moving agents
         this.#randomlyMovingAgents = [];
         for (let i = 0; i < this.config.RANDOMLY_MOVING_AGENTS; i++) {
-            this.#randomlyMovingAgents.push( new randomlyMovingAgent( this.config, this.grid ) );
+            let randomlyMoveAgent = new RandomlyMoveAgent( this.config, this.grid );
+            this.#randomlyMovingAgents.push( randomlyMoveAgent );
         }
+
+        // listeners to the event of the timer
+        this.#timer.on('timer update', (remainingTime) => { 
+            console.log(remainingTime) /* print for debug */
+            this.grid.emit('timer update',remainingTime);  
+        })
+        this.#timer.on('timer started', () => { console.log('timer started') /* print for debug */ })
+        this.#timer.on('timer stopped', () => { console.log('timer stopped') /* print for debug */ })
+        this.#timer.on('timer ended', () => {
+            console.log('timer of match ', this.#id +' ended')
+            this.#status = MatchStatus.STOP
+            this.grid.emit('match ended');
+            this.destroy();
+        })
+        
+
+        console.log('Id match: ', this.#id + ' timeot: ', config.MATCH_TIMEOUT)
+
+        
     
         // Connect match to leaderboard
         this.grid.on( 'agent rewarded', (agent, reward) => {
@@ -94,11 +119,18 @@ class Match {
         
     }
 
-    destroy () {
-        this.#parcelsGenerator.destroy();
-        this.#randomlyMovingAgents.forEach( a => a.destroy() );
-        this.grid.removeAllListeners( 'agent rewarded' );
-        // this.grid.destroy();
+    // PROBLEMA NON VIENE ESEGUITA IN MODOD SINCRONO 
+    async destroy() {
+        // Stoppa il movimento degli agenti
+        await Promise.all(this.#randomlyMovingAgents.map(a => a.stopAgentMovement()));
+    
+        // Distruggi il myClock
+        await this.#parcelsGenerator.destroy();
+    
+        // Distruggi la griglia
+        await this.grid.destroy();
+    
+        // Altri codici di distruzione...
     }
 
     getOrCreateAgent ( id, name, team = uid(4) ) {
@@ -129,8 +161,13 @@ class Match {
         return me;
     }
 
-}
+    strtStopMatch(){
+        if(this.#status == MatchStatus.PLAY){ this.#status = MatchStatus.STOP; this.#timer.stop();  return; }
+        if(this.#status == MatchStatus.STOP){ this.#status = MatchStatus.PLAY; this.#timer.start(); return; }
+    }
 
+
+}
 
 
 module.exports = Match;
