@@ -288,9 +288,10 @@ function closePopup() {
     }
 }
 
-function goToMatchWrap(match,token){
-    closePopup()                           // chiudi il pop-up di allert
-    goToMatch(match,token)       // fai partire il gioco
+function goToMatchWrap(matchId, token){
+    closePopup()                                 // chiudi il pop-up di allert
+    console.log('Allert matchId:', matchId)
+    goToMatch(matchId, token)       // fai partire il gioco
 }
 
 

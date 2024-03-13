@@ -38,12 +38,15 @@ router.get('/', async (req, res) => {
     // Log
     console.log('GET leaderboard'+req.url, `RewardModel.aggregate().match(`, filter ,`).group(`, aggregate, `)` );
 
-    // getting aggregated leaderboard
-    let results = await Leaderboard.get( filter, aggregate ).catch( console.error );
-    //console.log(results)
-
-    // return results
-    res.status(200).json( results );
+    try {
+        let results = await Leaderboard.get(filter, aggregate).catch(console.error);
+        //console.log(results)
+        res.status(200).json(results); // return results
+    } catch (error) {
+        console.error(error);     // Log any errors occurred during the process
+        res.status(500).json({ error: 'Internal Server Error' }); // Return a generic error response
+    }
+    
 });
 
 module.exports = router;

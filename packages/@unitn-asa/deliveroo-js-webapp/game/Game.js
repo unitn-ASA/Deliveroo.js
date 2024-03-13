@@ -91,19 +91,28 @@ class Game {
      */
     constructor ( options ) {
 
-        this.client = new Client( this, options );
         
-        this.controller = new Controller( this.client );
+        (async () => {
+            console.log('Game options:', options)
 
-        // const me = this.me = this.getOrCreateAgent( options.id, options.name, options.team, 0, 0, 0 );
-        
-        this.gui = new Gui();
-
-        // me.mesh.add( scene.camera );
-        // this.gui.setTarget( me.mesh );
-
-        this.leaderboard = new Leaderboard( this, options.match );
-
+            this.client = new Client(this, options);
+            this.controller = new Controller(this.client);
+            this.gui = new Gui();
+            this.leaderboard = new Leaderboard(this, options.matchId);
+    
+            // menage the chat 
+            document.getElementById('panel').style.display = 'block'; // Show the lateral panel
+    
+            document.getElementById('chatTitle').addEventListener('click', () => { //Sistem to open and close the chat
+                const chatElement = document.getElementById('chat');
+                if (chatElement.classList.contains('closed')) {
+                    chatElement.classList.remove('closed');
+                } else {
+                    chatElement.classList.add('closed');
+                }
+            });
+        })();
+      
     }
 
     newColor(id){

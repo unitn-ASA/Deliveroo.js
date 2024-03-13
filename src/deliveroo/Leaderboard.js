@@ -171,7 +171,8 @@ class Leaderboard {
         // console.log( 'Leaderboard.get()', 'matchExpression:', matchExpression, 'groupExpression:', groupExpression );
         
         // query mongoose with aggregation api
-        let queried = await RewardModel        
+        try{
+            var queried = await RewardModel        
             // aggregate results
             .aggregate()
             // filter results
@@ -181,7 +182,12 @@ class Leaderboard {
             // hide _id
             // .project( '-_id matchId teamId agentId score history' )
             .exec();
-
+        }catch (error) {
+            console.log('Error 2')
+            console.error(error); // Log any errors occurred during the process
+            return error;
+        }
+        
         // return results
         return queried;
     }
@@ -197,7 +203,15 @@ class Leaderboard {
     static async addReward ( matchId, teamId, agentId, agentName, score ) {
         // const reward = new Reward( matchId, teamId, agentId, score, Date.now() );
         // this.#rewards.push( reward );
-        const reward = new RewardModel( {matchId, teamId, agentId, agentName, score, time: Date.now()} );
+        console.log('Add Reward: ', matchId);
+        try{
+            var reward = new RewardModel( {matchId, teamId, agentId, agentName, score, time: Date.now()} );
+        }catch (error) {
+            console.log('Error 1')
+            console.error(error); // Log any errors occurred during the process
+            return;
+        }
+        
         return await reward.save();
     }
 

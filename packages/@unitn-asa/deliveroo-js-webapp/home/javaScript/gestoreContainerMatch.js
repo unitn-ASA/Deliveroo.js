@@ -29,7 +29,7 @@ async function defineContainerMatch(admin){
         
         if(admin){
             let container = document.getElementById('match-container-admin')
-            data.data.forEach((match) => {
+            data.matches.forEach((match, index) => {
                 // for each element add a id, description, delete button and play button
                 
                 let divMatch = document.createElement('div'); 
@@ -51,7 +51,7 @@ async function defineContainerMatch(admin){
                 
                 let playButton = document.createElement('button');
                 playButton.setAttribute('match', match);
-                playButton.textContent = `play`;
+                playButton.textContent = data.status[index];
                 playButton.addEventListener('click',sendPlayStopMatch)
                 
                 divMatch.appendChild(idMatch);
@@ -64,7 +64,7 @@ async function defineContainerMatch(admin){
     
         }else{
             let container = document.getElementById('match-container')
-            data.data.forEach((match) => {                    // for each element add a button
+            data.matches.forEach((match) => {                    // for each element add a button
                 let button = document.createElement('button');
                 button.classList.add('partecipaBtn');
                 button.setAttribute('match', match);
@@ -108,6 +108,7 @@ function sendPlayStopMatch(event){
     }
 
     let newStatus = event.currentTarget.textContent;
+    console.log('Cange staus match ', matchId + ' to ', newStatus);
 
     fetch(`/api/matchs/${matchId}`, {
         method: 'POST',

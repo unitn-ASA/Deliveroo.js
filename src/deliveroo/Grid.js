@@ -18,6 +18,7 @@ class Grid extends Observable {
     #tiles;
     /** @type {Map<string, Agent>} */
     #agents;
+    getAgents() { return this.#agents; }
     /** @type {Map<string, Parcel>} */
     #parcels;
     

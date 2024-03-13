@@ -1,5 +1,6 @@
 //check if the user is already logged like admin, in that case dinenable and change the loggin botton
 checkLogged()
+
 function checkLogged(){
     let cookie = getAdminCookie()
     if(cookie !== 'false'){

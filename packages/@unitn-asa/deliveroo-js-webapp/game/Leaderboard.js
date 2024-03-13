@@ -10,7 +10,7 @@ class Leaderboard {
 
     constructor(game, matchId){
         
-        console.log('INIT LEADERBOARD');
+        console.log('INIT LEADERBOARD', matchId);
         let leaderboard = document.getElementById("leaderboard");       // Find the leaderboard div
         if(!leaderboard) console.log('Div Leaderboard not find')
        
@@ -60,7 +60,7 @@ class Leaderboard {
 
         // Now for each team we request the agent members
         for (let team of this.teamsAndMembers.keys()) {
-        
+            console.log('TAKING DATA OF TEAM ', team)
             await fetch('/api/leaderboard', {
                 method: 'GET',
                 headers: {
@@ -77,11 +77,13 @@ class Leaderboard {
                 throw new Error(`Error, Status code: ${response.status}`);
             })
             .then(data => {
+                console.log('AGENT DATA: ', data)
                 data.forEach(element => {
                     this.agents.set(element.agentId, {name: element.agentName, score: element.score});
  
                     if(element.teamId != ''){
-                        this.teamsAndMembers.get(element.teamId).push(element.agentId)
+                        if(!this.teamsAndMembers.get(element.teamId).includes(element.agentId)){
+                        this.teamsAndMembers.get(element.teamId).push(element.agentId)}
                     }else{
                         console.log("ADING ALONE AGENT", element.agentId)
                         // If the alone agent have no yet assosieted a color, it associete one and save it in the game.teamsAndColors map.

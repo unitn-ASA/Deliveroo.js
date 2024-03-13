@@ -299,10 +299,10 @@ async function loadScore(matchId, agentId){
     try {
         let record = await Leaderboard.get({ matchId, agentId });
         let score = record[0].score
-        console.log("Loaded score", loadedScore);
+        console.log("Loaded score for", agentId, " -> ", score);
         return score
     } catch (error) {
-        console.error('Unable to load a pass score');
+        console.error('Unable to load a pass score for', agentId);
         return 0;
     }   
 }

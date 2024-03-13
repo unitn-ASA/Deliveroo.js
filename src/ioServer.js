@@ -316,6 +316,15 @@ class ioServer {
          */
         
         socket.on('move', async (direction, acknowledgementCallback) => {
+            let matchId = matchNamespace.name
+            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }            // Rimuove the first '/' 
+            let match = Arena.getOrCreateMatch( { id: matchId } ); 
+
+            if(match.status == 'stop'){
+                console.log('Motion disable becouse the Match ', matchId + ' status is stop')
+                return;
+            }
+
             console.log( `${matchNamespace.name}/${me.name}-${me.team}-${me.id}`, me.x, me.y, direction );
             try {
                 const moving = me[direction]();
@@ -325,6 +334,15 @@ class ioServer {
         });
 
         socket.on('pickup', async (acknowledgementCallback) => {
+            let matchId = matchNamespace.name
+            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }            // Rimuove the first '/' 
+            let match = Arena.getOrCreateMatch( { id: matchId } ); 
+
+            if(match.status == 'stop'){
+                console.log('PickUp disable becouse the Match ', matchId + ' status is stop')
+                return;
+            }
+
             const picked = await me.pickUp()
             
             console.log( `${matchNamespace.name}/${me.name}-${me.team}-${me.id} pickup ${picked.length} parcels` );
@@ -336,6 +354,15 @@ class ioServer {
         });
 
         socket.on('putdown', async (selected, acknowledgementCallback) => {
+            let matchId = matchNamespace.name
+            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }            // Rimuove the first '/' 
+            let match = Arena.getOrCreateMatch( { id: matchId } ); 
+
+            if(match.status == 'stop'){
+                console.log('PutDown disable becouse the Match ', matchId + ' status is stop')
+                return;
+            }
+
             const {dropped, reward} = await me.putDown( selected );
 
             console.log( `${matchNamespace.name}/${me.name}-${me.team}-${me.id} putdown ${dropped.length} parcels (+ ${reward} pti -> ${me.score} pti)` );

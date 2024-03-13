@@ -70,7 +70,7 @@ router.post('/:id', verifyToken, (req, res) => {
   const newStatus = req.body.status;  // get the new state of the match
 
   
-  let match = Match.mapMatch.get(matchId);
+  let match = Arena.matches.get(matchId);
   match.status = newStatus;
   console.log(`Stato del match ${matchId} aggiornato a ${newStatus}.`)
 
@@ -94,11 +94,16 @@ router.delete('/:id', verifyToken, (req, res) => {
 
 // Endpoint per ottenere la lista dei match attivi
 router.get('/', (req, res) => {
-  const matchs = Array.from( Arena.matches.keys() )
-  console.log(matchs);
+  const matchs = Array.from(Arena.matches.keys());
+  const status = Array.from(Arena.matches.values()).map(match => match.status);
+
+  console.log(matchs);  
+  console.log(status);
+
   res.status(200).json({
     message: 'Lista match attivi',
-    data: matchs
+    matches: matchs,
+    status: status
   });
 });
 

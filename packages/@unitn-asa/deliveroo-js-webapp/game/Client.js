@@ -36,13 +36,13 @@ class Client {
      * Socket constructor
      * @param {Game,{token: string, name: string, match: string}} options
      */
-    constructor ( game, { token, match } ) {
+    constructor ( game, { token, matchId } ) {
 
         this.game = game;
-        
-        console.log( "connecting to", HOST+'/'+match, "with token:", token.slice(-30), match );
+                
+        console.log( "connecting to", HOST+'/'+matchId, "with token:", token.slice(-30), matchId );
 
-        this.socket = io( HOST+'/'+match, {
+        this.socket = io( HOST+'/'+matchId, {
             withCredentials: true,
             extraHeaders: {
                 'x-token': token

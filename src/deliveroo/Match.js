@@ -20,6 +20,9 @@ class Match {
     /** @type {Config} config */
     config;
 
+     /** @type {MatchStatus} config */
+    status;
+
     /** @type {string} #id */    
     #id;
     get id () { return this.#id; }
@@ -47,6 +50,9 @@ class Match {
 
         this.config = config;
         this.#id = id;
+        this.status = MatchStatus.PLAY
+
+        console.log('Id match: ', this.#id)
 
         // Load map
         let map = require( '../../levels/maps/' + this.config.MAP_FILE + '.json' );
@@ -77,7 +83,7 @@ class Match {
         // });
 
         // Logs
-        console.log("Started match /"+this.#id);
+        console.log("Started match "+this.#id);
 
         // this.on('agent info', (id, name, team, score) => {
         //     console.log("Agente ", id + " ", name + " of team:", team + " change score into ", +score)
@@ -98,6 +104,7 @@ class Match {
     getOrCreateAgent ( id, name, team = uid(4) ) {
         
         // Agent
+        //console.log(this.grid.getAgents())
         var me = this.grid.getAgent( id );
         if ( ! me ){
             me = this.grid.createAgent( {id, name, team} );
