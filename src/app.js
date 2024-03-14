@@ -28,7 +28,7 @@ app.get('/token', (req, res) => {
     //console.log(req.headers);
     const token = generateToken(
         req.headers['name'] || req.query.name,
-        req.headers['team'] || req.query.team
+        req.headers['team'] || req.query.teamNameOrToken
     );
     res.json({ token: token }); 
 })

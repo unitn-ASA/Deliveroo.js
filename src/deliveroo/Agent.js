@@ -44,7 +44,7 @@ class Agent extends Xy {
      * @param {Grid} grid
      * @param {{id:number,name:string}} options
      */
-    constructor ( grid, {id, name, team}, config ) {
+    constructor ( grid, {id, name, teamId, teamName}, config ) {
         
         {           
             let tiles_unlocked =
@@ -85,7 +85,8 @@ class Agent extends Xy {
         this.#grid = grid;
         this.id = id || ('a' + Agent.#lastId++);
         this.name = name || this.id;
-        this.team = team || "";
+        this.teamId = teamId || this.id;
+        this.teamName = teamName || 'no-team';
         this.sensing = new Set();
         this.score = 0;
 

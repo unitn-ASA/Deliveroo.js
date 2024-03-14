@@ -3,13 +3,15 @@ const EventEmitter = require('events');
 class Team extends EventEmitter{
     name;
     score;
+    static #lastId = 0;
         
     // array degli id degli agenti del teams: key-> id, value-> score
     agents = new Map();
 
-    constructor(name) {
+    constructor(id, name) {
         super();
-        this.name = name;
+        this.id = id || ('t' + Team.#lastId++);
+        this.name = name || this.id;
         this.score = 0;
     }
 

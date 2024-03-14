@@ -122,7 +122,7 @@ class Match {
     // PROBLEMA NON VIENE ESEGUITA IN MODOD SINCRONO 
     async destroy() {
         // Stoppa il movimento degli agenti
-        await Promise.all(this.#randomlyMovingAgents.map(a => a.stopAgentMovement()));
+        await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));
     
         // Distruggi il myClock
         await this.#parcelsGenerator.destroy();
@@ -133,20 +133,20 @@ class Match {
         // Altri codici di distruzione...
     }
 
-    getOrCreateAgent ( id, name, team = uid(4) ) {
+    getOrCreateAgent ( userParam = {id, name, teamId, teamName} ) {
         
         // Agent
         //console.log(this.grid.getAgents())
-        var me = this.grid.getAgent( id );
+        var me = this.grid.getAgent( userParam.id );
         if ( ! me ){
-            me = this.grid.createAgent( {id, name, team} );
+            me = this.grid.createAgent( userParam );
         }
-            
+        
         // Team
-        var teamMates = this.#teamsAgents.get( team );
+        var teamMates = this.#teamsAgents.get( teamId );
         if ( ! teamMates ) {
             teamMates = new Set();
-            this.#teamsAgents.set( team, teamMates );
+            this.#teamsAgents.set( teamId, teamMates );
         }
         if ( ! teamMates.has( me ) ) {
             teamMates.add( me );
