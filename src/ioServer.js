@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const Arena = require('./deliveroo/Arena');
 const Agent = require('./deliveroo/Agent');
 const Grid = require('./deliveroo/Grid');
+const Leaderboard = require('./deliveroo/Leaderboard');
 
 
 
@@ -69,8 +70,9 @@ class ioServer {
                 } else if ( decoded.id && decoded.name ) {
                     const id = decoded.id
                     const name = decoded.name
-                    const team = decoded.team || null;
-                    req.user = { id, name, team, token };
+                    const teamId = decoded.teamId || null;
+                    const teamName = decoded.teamName || null;
+                    req.user = { id, name, teamId, teamName, token };
                     // console.log( `Socket ${socketId} connecting as ${name}(${id}). With token: ...${token.slice(-30)}` );
                     next();
                 }
@@ -92,29 +94,30 @@ class ioServer {
 
             const id = socket.request.user.id;
             const name = socket.request.user.name;
-            const team = socket.request.user.team;
+            const teamId = socket.request.user.teamId;
+            const teamName = socket.request.user.teamName;
             const token = socket.request.user.token;
             const matchTitle = socket.nsp.name.split('/').pop();
-
-            await socket.join("team:"+team);
+            
+            await socket.join("team:"+teamId);
             await socket.join("agent:"+id);
 
-            console.log( `Socket ${socket.id} connecting as ${name}(${id})(${team}) to match ${matchTitle}, with token: ...${token.slice(-30)}` );
+            console.log( `Socket ${socket.id} connecting as ${name}(${id})(${teamId}) to match ${matchTitle}, with token: ...${token.slice(-30)}` );
 
             const matchNamespace = socket.nsp;
-            const teamRoom = matchNamespace.in("team:"+team);
+            const teamRoom = matchNamespace.in("team:"+teamId);
             const agentRoom = matchNamespace.in("agent:"+id);
 
             const match = Arena.getOrCreateMatch( { id: matchTitle } ); // with default config
             // const team = new Team();
-            const me = match.getOrCreateAgent( id, name, team );
+            const me = match.getOrCreateAgent( socket.request.user );
 
             console.log( `/${match.id} socket ${socket.id} connected as ${me.name}-${me.team}-${me.id}` );
             
             // let socketsInAgentRoom = await agentRoom.fetchSockets();
             // console.log( socketsInAgentRoom.length, 'sockets in room', "agent:"+id, "at", matchTitle)
 
-            ioServer.listenToGameEventsAndForwardToSocket( socket, me, match.grid, match );
+            ioServer.listenToGameEventsAndForwardToSocket( socket, me, match.grid, match, matchNamespace );
             ioServer.listenSocketEventsAndForwardToGame( me, socket, agentRoom, teamRoom, matchNamespace );
 
             /**
@@ -164,7 +167,7 @@ class ioServer {
      * @param {Grid} grid
      * @param {Match} match
      */
-    static listenToGameEventsAndForwardToSocket ( socket, me, grid, match ) {
+    static listenToGameEventsAndForwardToSocket ( socket, me, grid, match, matchNamespace ) {
 
         /**
          * Config
@@ -304,6 +307,11 @@ class ioServer {
             } );
 
         }
+
+        // Leaderboard
+        grid.on( 'agent rewarded', () => {
+            matchNamespace.emit( 'leaderboard', Leaderboard.get({matchId:match.id}) );
+        } );
 
     }
 

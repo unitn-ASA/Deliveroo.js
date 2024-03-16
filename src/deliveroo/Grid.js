@@ -104,10 +104,10 @@ class Grid extends Observable {
      * @param {{ id: string, name: string, team: string }} options
      * @returns {Agent}
      */
-    createAgent ( {id, name, team} ) {
+    createAgent ( userParam = {id, name, teamId, teamName} ) {
         
         // Instantiate
-        var me = new Agent( this, {id, name, team}, this.#config );
+        var me = new Agent( this, userParam, this.#config );
         this.emit( 'agent created', me );
 
         // Register

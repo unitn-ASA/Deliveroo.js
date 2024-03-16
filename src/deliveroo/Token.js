@@ -4,12 +4,24 @@ const { uid } = require('uid');
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
 const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
 
-function generateToken(name, team) {
+function generateToken( name, teamNameOrToken = 'no-team' ) {
+
+    var teamId;
+    var teamName;
+    try {
+        let teamToken = decodeToken(teamNameOrToken);
+        teamId = teamToken.teamId;
+        teamName = teamToken.teamName;
+    } catch (error) {
+        console.log('Team not found, creating new one', error, '-'+teamNameOrToken+'-');
+        teamId = uid();
+        teamName = teamNameOrToken;
+    }
 
     id = uid();
 
-    console.log('name: ', name + ' team: ', team);
-    token = jwt.sign( {id, name, team}, SUPER_SECRET );
+    console.log('name: ', name + ' team: ', teamName);
+    const token = jwt.sign( {id, name, teamId, teamName}, SUPER_SECRET );
 
     let decode = decodeToken(token)
 

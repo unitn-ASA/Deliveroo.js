@@ -4,6 +4,10 @@ const Config = require('../deliveroo/Config');
 
 
 class RandomlyMoveAgent {
+
+    /** @type {Promise} Resolves when agent finally stops */
+    stopped = Promise.resolve();
+
     /**
      * @param {Config} config
      * @param {Grid} myGrid 
@@ -11,17 +15,18 @@ class RandomlyMoveAgent {
     constructor(config, myGrid) {
         
         var myAgent = myGrid.createAgent({});
-        this.randomlyMove (myAgent, config)
+        this.start(myAgent, config);
     }
 
     /**
      * Metodo per avviare il movimento casuale dell'agente
      * @param {Agent} agent L'agente da muovere casualmente
      */
-    async randomlyMove(agent, config) {
+    async _randomlyMove(agent, config) {
         const actions = ['up', 'right', 'down', 'left'];
         let index = Math.floor(Math.random() * 4);
 
+        this.stopMoving = false;
         while (!this.stopMoving) {
             const action = actions[index];
             const moved = await agent[action]();
@@ -41,11 +46,25 @@ class RandomlyMoveAgent {
     }
 
     /**
-     * Metodo per fermare il movimento casuale dell'agente
+     * Metodo per avviare il movimento casuale dell'agente
+     * @param {Agent} agent L'agente da muovere casualmente
+     * @param {Config} config
+     * @returns {Promise} Resolves when agent starts after completing presious stop request
      */
-    async stopAgentMovement() {
-        this.stopMoving = true;
+    async start(agent, config) {
+        await this.stopped;
+        this.stopped = this._randomlyMove(agent, config);
     }
+
+    /**
+     * Metodo per fermare il movimento casuale dell'agente
+     * @returns {Promise} Resolves when agent finally stops
+     */
+    async stop() {
+        this.stopMoving = true;
+        await this.stopped;
+    }
+
 }
 
 module.exports = RandomlyMoveAgent;
