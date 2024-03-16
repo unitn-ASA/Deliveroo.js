@@ -47,7 +47,8 @@ div#info:hover {
     border: 2px solid rgb(230, 118, 13);
     box-shadow: 0 4px 8px rgba(230, 118, 13, 0.31);
 
-    width: 300px;
+    width: 500px;
+    min-width: 500px;
     max-height: 600px; 
 }
 
@@ -69,20 +70,32 @@ div#info:hover {
 
 .cookie-container {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     border-radius: 5px;
     break-inside: avoid;
     margin-bottom: 10px;
 }
 
-.cookie-container .name-team {
-    flex: 1;
-    color: whitesmoke;
+.cookie-container .agent-team {
+    flex-basis: 65%; 
+    max-width: 65%;
+    align-self: stretch; 
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
-.cookie-container .team-span {
-    font-size: small;
+.cookie-container .agent-team div{
+    flex-basis: 50%; 
+    max-width: 50%; 
+}
+
+.cookie-container .buttons{
+    margin-left: auto; 
+}
+
+.cookie-container .id-span {
+    font-size: xx-small;
     color: whitesmoke;
     margin-left: 3px;
 }
@@ -107,6 +120,14 @@ div#info:hover {
     margin-top: 10px;
 }
 
+.form-add-agent .inputs{
+    flex-basis: 65%; 
+    max-width: 65%;
+    margin-right: 10px; 
+    display: flex;
+    flex-direction: row; 
+}
+
 #addButton{
     background-color: #e6780e; 
     border: 2px solid #f0f0f0;
@@ -118,12 +139,14 @@ div#info:hover {
     border-radius: 5px; 
     cursor: pointer;
     margin-left: auto;
+    margin-right: auto;
     height: 30px;
 }
 
 #nameInput{
-    margin-right: 10px;
-    max-width: calc(30% - 15px); 
+    margin-right: 5%;
+    flex-basis: 45%; 
+    max-width: 45%; 
     background-color: #FFF;
     height: 25px;
     text-decoration: none;
@@ -132,8 +155,9 @@ div#info:hover {
 }
 
 #teamInput{
-    margin-right: 10px;
-    max-width: calc(30% - 15px); 
+    margin-right: 5%;
+    flex-basis: 45%; 
+    max-width: 45%;
     background-color: #FFF;
     height: 25px;
     text-decoration: none;

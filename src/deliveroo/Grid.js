@@ -19,6 +19,10 @@ class Grid extends Observable {
     /** @type {Map<string, Agent>} */
     #agents;
     getAgents() { return this.#agents; }
+
+    /** @type {Map<string,Set<Agent>} agents in each team */
+    #teamsAgents = new Map();
+
     /** @type {Map<string, Parcel>} */
     #parcels;
     
@@ -150,6 +154,21 @@ class Grid extends Observable {
         this.on( 'parcel', () => me.emitParcelSensing() );
         me.on( 'xy', () => me.emitParcelSensing() );
 
+        // Team
+        var teamMates = this.#teamsAgents.get( userParam.teamId );
+        if( userParam.teamId != undefined ){
+            if ( ! teamMates ) {
+                teamMates = new Set();
+                this.#teamsAgents.set( userParam.teamId, teamMates );
+                console.log(`/${this.matchId} Addet the team `, userParam.teamName +'(', userParam.teamId + ') ',  )
+            }
+            if ( ! teamMates.has( me ) ) {
+                teamMates.add( me );
+                console.log(`/${this.matchId} Adding agent `, me.id +'(', me.name + ') to team ',  userParam.teamId + ': ', printSet(this.#teamsAgents.get( userParam.teamId)) )
+            }
+        }
+
+
         return me;
     }
 
@@ -274,6 +293,28 @@ class Grid extends Observable {
     }
 
 }
+
+
+// function only for debug print 
+function printSet(set) {
+    let output = "[";
+    let isFirst = true;
+    
+    set.forEach(function(element) {
+      if (!isFirst) {
+        output += ", ";
+      }
+      output += element.id;
+      output += '(';
+      output += element.name;
+      output += ')';
+      isFirst = false;
+    });
+  
+    output += "]";
+    return output;
+}
+
 
 
 module.exports = Grid;

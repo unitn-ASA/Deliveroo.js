@@ -40,9 +40,6 @@ class Match {
     // /** @type {Map<string,{agent:Agent,sockets:Set<Socket>}>} idToAgentAndSockets */
     // #idToAgentAndSockets = new Map();
 
-    /** @type {Map<string,Set<Agent>} agents in each team */
-    #teamsAgents = new Map();
-
     /** @type {Timer} timer of the match */
     #timer;
 
@@ -94,13 +91,9 @@ class Match {
     
         // Connect match to leaderboard
         this.grid.on( 'agent rewarded', (agent, reward) => {
-            Leaderboard.addReward( this.#id, agent.team, agent.id, agent.name, reward );
+            Leaderboard.addReward( this.#id, agent.teamId, agent.teamName, agent.id, agent.name, reward );
         } );
 
-        this.grid.on( 'agent created', (agent) => {
-            console.log("AGENT CREATED")
-            Leaderboard.addReward( this.#id, agent.team, agent.id,agent.name, 0 );
-        } );
 
         // // quando il punteggio di un agente cambia solleva l'evento agent info
         // this.#grid.on('agente score', (id, name, team, score) => {
@@ -142,15 +135,6 @@ class Match {
             me = this.grid.createAgent( userParam );
         }
         
-        // Team
-        var teamMates = this.#teamsAgents.get( teamId );
-        if ( ! teamMates ) {
-            teamMates = new Set();
-            this.#teamsAgents.set( teamId, teamMates );
-        }
-        if ( ! teamMates.has( me ) ) {
-            teamMates.add( me );
-        }
         
         // this.#teamsAgents.forEach( (agents,team) => {
         //     let teamScore = Array.from(agents).reduce( (sum,a) => a.sccore );
@@ -168,6 +152,7 @@ class Match {
 
 
 }
+
 
 
 module.exports = Match;

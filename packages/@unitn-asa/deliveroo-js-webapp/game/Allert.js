@@ -1,3 +1,4 @@
+import { Color } from 'three';
 import { goToMatch } from './deliveroo.js';
 var params = new URLSearchParams(window.location.search);
 
@@ -5,7 +6,7 @@ allertAskName();
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//--------------------------------------------------- FUNZIONI -----------------------------------------------------------------------
+//--------------------------------------------------- FUNCTIONS -----------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // menage the allert 
@@ -22,7 +23,7 @@ function allertAskName() {
     title.innerText = 'Agent Login';
     title.classList = 'h2Allert';
 
-    // Aggiungi gli elementi al form
+    // Add all the element to the form
     popupDiv.appendChild(title);
     
     let cookies = getAllCookies();
@@ -32,8 +33,8 @@ function allertAskName() {
     //console.log(cookies);
     for(let cookie in cookies){
         //console.log(cookie)
-        let cookieDiv = createCookieDiv(cookie, cookies[cookie], false)
-        cookiesContainer.appendChild(cookieDiv);
+        let cookieDiv = createCookieDiv(cookie, cookies[cookie])        // call the function that create the html element for the cookie 
+        if(cookieDiv) { cookiesContainer.appendChild(cookieDiv); }      // if the creation of the html go right we add it to the cookiesContainer element
     }
     // Aggiungi il form al popupDiv
     popupDiv.appendChild(cookiesContainer);
@@ -41,6 +42,9 @@ function allertAskName() {
     // form new agent
     var form = document.createElement('form');
     form.classList = 'form-add-agent';
+
+    var inputDiv = document.createElement('div');
+    inputDiv.classList = 'inputs';
 
     var nameInput = document.createElement('input');    // input name
     nameInput.setAttribute('id', 'nameInput');
@@ -56,13 +60,14 @@ function allertAskName() {
     teamInput.placeholder = 'Team';
     teamInput.style.marginRight = '10px'; 
 
+    inputDiv.appendChild(nameInput);        inputDiv.appendChild(teamInput);
+
     var submitButton = document.createElement('button'); // create button
     submitButton.setAttribute('id', 'addButton');
     submitButton.type = 'submit';
     submitButton.textContent = 'Submit';
 
-    form.appendChild(nameInput);
-    form.appendChild(teamInput);
+    form.appendChild(inputDiv);
     form.appendChild(submitButton);
 
     // Menage the submit action
@@ -77,7 +82,7 @@ function allertAskName() {
 }
 
 
-async  function addAgent() {
+async function addAgent() {
 
     let inputTeam = document.getElementById('teamInput');
     let inputName = document.getElementById('nameInput');
@@ -86,50 +91,43 @@ async  function addAgent() {
     let team = inputTeam.value;
 
     let cookiesContainer = document.getElementById('cookiesContainer')
-        
-    //check if the name is a name or a token 
-    if(verificaTokenOrNome(name, team)=='Nome'){
-        let token = checkCookieForToken(name, team )    //chek if the browser has already a token associeted with the name
 
-        // se il browser non contiene un token per il nome ne richiede uno
-        if(token == ""){
-            console.log("No existing token for the name entered, here is a new token");
-            token = await richiediToken(name, team);     // ask a new token  
-            
-            // add a new cookie for the now token
-            setCookie( 'token_'+name+'_'+team, token, 365 );
-            let cookieDiv = createCookieDiv('token_'+name+'_'+team, token)
-            cookiesContainer.appendChild(cookieDiv);                         
-        }else{
-            console.log("Welcome back the browser has this token for you");
-        }
-        
-    }else{
-        let cookieDiv = createCookieDiv('', name, true)
+    let response = await richiediToken(name, team);     // ask a new token  
+    //console.log(response);
+    
+    // try to save the new token in the cookie, in case add the div element
+    let cookieName = setCookie( response, 365 );
+    if(cookieName){  
+        let cookieDiv = createCookieDiv(cookieName, response.token)
         cookiesContainer.appendChild(cookieDiv);
     }
-    
-}
-
-function verificaTokenOrNome(input) {
-    if (input.length >= 20 ) {
-        return 'Token';
-    }else{
-        return 'Nome';
-    }
 
 }
 
-function setCookie(cname, cvalue, exdays) {
+//////////////////////////////////////////////////
+/* -- Function for the menage of the cookies -- */
+//////////////////////////////////////////////////
+function setCookie(response, exdays) {
+
+    // define the name of the cookie
+    let cname = 'token_' + response.id + '_'+ response.name + '_' + response.teamId + '_' +response.teamName
+
+    // first verify that the browser don't have already the cookie 
+    let alreadyPresentToken = getCookie( cname );
+    if ( alreadyPresentToken ) { console.log('cookie already saved in the browser'); return false }
+
     const d = new Date();
     d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
     let expires = "expires="+d.toUTCString();
-    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    
+    document.cookie = cname + "=" + response.token + ";" + expires + ";path=/";
+    return cname;
 }
 
 function getCookie(cname) {
+
     let name = cname + "=";
-    console.log(name);
+    
     let ca = document.cookie.split(';');
     for(let i = 0; i < ca.length; i++) {
         let c = ca[i];
@@ -140,7 +138,8 @@ function getCookie(cname) {
             return c.substring(name.length, c.length);
         }
     }
-    return "";
+
+    return false;
 }
 
 function getAllCookies() {
@@ -164,55 +163,78 @@ function getAllCookies() {
     return cookiesObject;
 }
 
-// Funzione per eliminare un cookie
 function deleteCookie(name) {
     document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 }
 
-function createCookieDiv(cookieName, cookieToken, onlyToken) {
+function createCookieDiv(cookieName, cookieToken) {
 
     let cookieDiv = document.createElement('div');          // Create a new div to visualize the cookie
     cookieDiv.classList.add('cookie-container');
 
-    let nameTeam = document.createElement('div');
-    nameTeam.classList.add('name-team');
+    // the full name is the union of the agent id, name and team id, name of the cookie
+    let AgentTeam = document.createElement('div');
+    AgentTeam.classList.add('agent-team');
 
-    let nameSpan = document.createElement('span');          // Add the name of the cookie
-    let teamSpan = document.createElement('span');          // Add the team of the cookie
-    nameSpan.classList.add('name-span');
-    teamSpan.classList.add('team-span');
+    let agentDiv = document.createElement('div');        // Add agent info of the cookie
+    let teamDiv = document.createElement('div');         // Add team info of the cookie
+    agentDiv.classList.add('info-div');
+    teamDiv.classList.add('info-div');
+
+
+    let idSpan = document.createElement('span');          // Add the agent id of the cookie
+    let nameSpan = document.createElement('span');        // Add the agent name of the cookie
+    let teamIdSpan = document.createElement('span');      // Add the team id of the cookie
+    let teamNameSpan = document.createElement('span');    // Add the team name of the cookie
     
-    if(onlyToken){
-        let sliceToken = cookieToken.substring(0, 10);
-        nameSpan.textContent = sliceToken+'...';
-    }else{
-        let displayName = cookieName.replace('token_', '');     // Extract the name without 'token_'
-        let parts = displayName.split('_');
-        let name = parts[0].trim();
-        let team = parts[1];
+    nameSpan.classList.add('name-span');
+    teamNameSpan.classList.add('name-span')
+    idSpan.classList.add('id-span');
+    teamIdSpan.classList.add('id-span');
+    
+    // divide the cookie name in parts splitting it at '_'; that from the part define the texts for the d
+    let parts = cookieName.split('_');
 
-        if(name.length >= 10){name = name.substring(0, 10)+'...'};
-        if(team.length >= 10){team = team.substring(0, 10)+'...'};
+    // check that the part are 5, if not the name of the cookie has a wronk structure, so we are not enable to show it 
+    if(parts.length != 5){ console.log(cookieName + ' ha a wrong structure, unable to show'); return false; }
 
-        team = '(' + team + ')';
+    let idSpanText = parts[1].trim();              
+    let nameSpanText = parts[2].trim();             if(nameSpanText.length > 10){nameSpanText = nameSpanText.substring(0, 10)+'...'};
+    let teamIdSpanText = parts[3].trim();           
+    let teamNameSpanText = parts[4].trim();         if(teamNameSpanText.length > 10){teamNameSpanText = teamNameSpanText.substring(0, 10)+'...'};
 
-        nameSpan.textContent = name;  
-        teamSpan.textContent = team;
+    // put the id element inside () for extetic scope
+    idSpanText = '(' + idSpanText + ')';            teamIdSpanText = '(' + teamIdSpanText + ')';
+
+    // check if the teamName is false; so the agent has no team; in this case the html element change a little
+    if(teamNameSpanText === 'false'){
+        teamNameSpanText = 'no team';
+        teamIdSpanText = ''
+        teamNameSpan.style.color = 'red';
     }
 
-    nameTeam.appendChild(nameSpan);
-    nameTeam.appendChild(teamSpan);
+    // put the extracted text inside the html elements
+    idSpan.textContent = idSpanText;                nameSpan.textContent = nameSpanText;   
+    teamIdSpan.textContent = teamIdSpanText;        teamNameSpan.textContent = teamNameSpanText; 
 
-    cookieDiv.appendChild(nameTeam);
+    // include all the element in the corrispondending father elements
+    agentDiv.appendChild(nameSpan);                 agentDiv.appendChild(idSpan);   
+    teamDiv.appendChild(teamNameSpan);              teamDiv.appendChild(teamIdSpan);
+    AgentTeam.appendChild(agentDiv);                AgentTeam.appendChild(teamDiv);
+    cookieDiv.appendChild(AgentTeam);
+
+    // Now define the buttons
+    let buttonsDiv = document.createElement('div');
+    buttonsDiv.classList.add('buttons');
 
     var copyButton = document.createElement('button');    // Create a button to copy the cookie 
     copyButton.textContent = 'Copy';
     copyButton.classList.add('copy-button');
     copyButton.addEventListener('click', function() {
-        console.log("COPY: ",cookieToken)
+        //console.log("COPY: ",cookieToken)
         copyToClipboard(cookieToken);
     });
-    cookieDiv.appendChild(copyButton);
+    buttonsDiv.appendChild(copyButton);
     
     let deleteButton = document.createElement('button');    // Create a button to eliminate the cookie 
     deleteButton.textContent = 'X';
@@ -221,14 +243,16 @@ function createCookieDiv(cookieName, cookieToken, onlyToken) {
         deleteCookie(cookieName);                             // Call the function to eliminate the cookie
         cookieDiv.parentNode.removeChild(cookieDiv);          // Rimuve the cookie div
     });
-    cookieDiv.appendChild(deleteButton);
+    buttonsDiv.appendChild(deleteButton);
 
-    let joinButton = document.createElement('button');    // Create a button to eliminate the cookie 
+    let joinButton = document.createElement('button');    // Create a button to join the match with the token of the cookie 
     joinButton.textContent = 'Join';
     joinButton.addEventListener('click', function() {
         goToMatchWrap(params.get("match"), cookieToken);
     });
-    cookieDiv.appendChild(joinButton);
+    buttonsDiv.appendChild(joinButton);
+
+    cookieDiv.appendChild(buttonsDiv);
       
     return cookieDiv;
 }
@@ -242,21 +266,14 @@ function copyToClipboard(text) {
     document.body.removeChild(tempInput);
 }
 
-function checkCookieForToken ( name, team ) {
-    let token = getCookie( 'token_'+name+'_'+team );
-    if ( token == "" || token == null ) {
-        return ""
-    } else {
-        return token
-    }
-}
+
 
 function richiediToken(nome, team, callback) {
     return new Promise((resolve, reject) => {
 
         console.log("Nome fetch: ", nome + " team fetch: ", team);
 
-        fetch('/token', {
+        fetch('/api/token', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -272,7 +289,7 @@ function richiediToken(nome, team, callback) {
         })
         .then(data => {
             console.log("token ottenuto: " + data.token.slice(-30));
-            resolve(data.token);
+            resolve(data);
         })
         .catch(error => {
             console.error('An error occurred:', error);
@@ -289,8 +306,7 @@ function closePopup() {
 }
 
 function goToMatchWrap(matchId, token){
-    closePopup()                                 // chiudi il pop-up di allert
-    console.log('Allert matchId:', matchId)
+    closePopup()                    // chiudi il pop-up di allert
     goToMatch(matchId, token)       // fai partire il gioco
 }
 

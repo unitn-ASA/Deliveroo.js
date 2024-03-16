@@ -167,6 +167,7 @@ class Leaderboard {
         groupExpression.agentName = { $first: '$agentName' };
         groupExpression.score = { $sum: '$score' };
         groupExpression.history = { $push: { score: '$score', time: '$time' } };
+        groupExpression.teamName = { $first: '$teamName' };
 
         // console.log( 'Leaderboard.get()', 'matchExpression:', matchExpression, 'groupExpression:', groupExpression );
         
@@ -200,12 +201,12 @@ class Leaderboard {
      * @param {string} agentId
      * @param {number} score
      */
-    static async addReward ( matchId, teamId, agentId, agentName, score ) {
+    static async addReward ( matchId, teamId, teamName, agentId, agentName, score ) {
         // const reward = new Reward( matchId, teamId, agentId, score, Date.now() );
         // this.#rewards.push( reward );
-        console.log('Add Reward: ', matchId);
+        console.log(`/${matchId}/${agentId} add reward: `, score);
         try{
-            var reward = new RewardModel( {matchId, teamId, agentId, agentName, score, time: Date.now()} );
+            var reward = new RewardModel( {matchId, teamId, teamName, agentId, agentName, score, time: Date.now()} );
         }catch (error) {
             console.log('Error 1')
             console.error(error); // Log any errors occurred during the process

@@ -1,9 +1,5 @@
 class Leaderboard {
 
-    //key: id team, value: score 
-    teams = new Map();
-    //key: id agent, value: score 
-    agents = new Map();
     //key: nome team, value: array degli agenti(id,nome e score) 
     teamsAndMembers = new Map();
 
@@ -23,6 +19,7 @@ class Leaderboard {
 
         // request all the information of the match score to the server
         // start with the request of all the teams:
+        console.log('Request all team of the match')
         await fetch('/api/leaderboard', {
             method: 'GET',
             headers: {
@@ -40,17 +37,22 @@ class Leaderboard {
             throw new Error(`Error, Status code: ${response.status}`);
         })
         .then(data => {
+            console.log('leaderboard: Teams in the match: ')
             console.log(data)
             data.forEach(element => {
-                this.teamsAndMembers.set(element.teamId, []);       // add a record for the team where it id is associeted with a empty array 
-                if(element.teamId != ''){
-                    console.log("ADING TEAM ", element.teamId)
-                    this.teams.set(element.teamId, element.score);
+                if(element.teamName !== 'no-team'){
+                    console.log("leaderboard: Adding team ", element.teamName, ' id ', element.teamId);
+                    this.teamsAndMembers.set(element.teamId, []);       // add a record for the team where its id is associeted with a empty array 
                     // If the team have no yet assosieted a color, it associete one and save it in the game.teamsAndColors map.
                     if(!game.teamsAndColors.get(element.teamId)){ game.newColor(element.teamId) }
                     // Then we add the div of the team in the leaderboard 
-                    this.addTeam(element.teamId, element.score, leaderboard, game.teamsAndColors.get(element.teamId) )
-
+                    this.addTeam(element.teamId, element.teamName, element.score, leaderboard, game.teamsAndColors.get(element.teamId) )
+                }else{
+                    console.log("leaderboard: Adding agent " + element._id + " without a team")
+                    // If the alone agent have no yet assosieted a color, it associete one and save it in the game.teamsAndColors map.
+                    if(!game.teamsAndColors.get(element.agentId)){ game.newColor(element._id) }
+                    // Then we add the div of the alone agent in the leaderboard 
+                    this.addAgent(element.agentName, element._id, element.score, leaderboard, game.teamsAndColors.get(element._id) )
                 }
             });
         })
@@ -58,9 +60,10 @@ class Leaderboard {
             console.error('An error occurred:', error);
         });
 
+        console.log('finita fatch team')
+       
         // Now for each team we request the agent members
         for (let team of this.teamsAndMembers.keys()) {
-            console.log('TAKING DATA OF TEAM ', team)
             await fetch('/api/leaderboard', {
                 method: 'GET',
                 headers: {
@@ -77,22 +80,12 @@ class Leaderboard {
                 throw new Error(`Error, Status code: ${response.status}`);
             })
             .then(data => {
-                console.log('AGENT DATA: ', data)
-                data.forEach(element => {
-                    this.agents.set(element.agentId, {name: element.agentName, score: element.score});
- 
-                    if(element.teamId != ''){
-                        if(!this.teamsAndMembers.get(element.teamId).includes(element.agentId)){
-                        this.teamsAndMembers.get(element.teamId).push(element.agentId)}
-                    }else{
-                        console.log("ADING ALONE AGENT", element.agentId)
-                        // If the alone agent have no yet assosieted a color, it associete one and save it in the game.teamsAndColors map.
-                        if(!game.teamsAndColors.get(element.agentId)){ game.newColor(element.agentId) }
-                        // Then we add the div of the alone agent in the leaderboard 
-                        this.addAgent(element.agentName, element.agentId, element.score, leaderboard, game.teamsAndColors.get(element.agentId) )
-                    }
-                     
-
+                console.log(`leaderborad/${team}: Request to database it's memebers: `)
+                console.log(data)
+                data.forEach(element => { 
+          
+                    this.teamsAndMembers.get(element.teamId).push({id: element.agentId, name: element.agentName, score: element.score})
+                    
                 });
                 
             })
@@ -101,16 +94,15 @@ class Leaderboard {
             });
       
         }
-        //console.log( this.teamsAndMembers)
-        //console.log( this.agents)
+       
         
     }
 
-    addTeam (team, score, leaderboardElement, color) {
+    addTeam (teamId, teamName, score, leaderboardElement, color) {
 
         let teamElement = document.createElement('div');    // create a new div for the team
         teamElement.classList.add('team');                  // Add the class "team" to the new div
-        teamElement.id = "team_" + team;                    // Add the id "tea;_name" to the new div
+        teamElement.id = "team_" + teamId;                    // Add the id "tea;_name" to the new div
     
         let teamInfoElement = document.createElement('div');    // create a new div for the info of the team: name, type and score
         teamInfoElement.classList.add('teamInfo');              // Aggiungi la classe "team" al nuovo elemento div
@@ -120,7 +112,7 @@ class Leaderboard {
     
         let nameElement = document.createElement('span');       // create a new span for the name of the team
         nameElement.classList.add('name');                      // add the class "name" 
-        nameElement.textContent = team;                         // set the name of the team
+        nameElement.textContent = teamName;                         // set the name of the team
         nametypeElement.appendChild(nameElement);              
     
         let typeElement = document.createElement('span');   // create a new span for the type of the team
@@ -154,8 +146,8 @@ class Leaderboard {
                 agents.remove();
                 open=false;
             }else{
-                console.log(this.teamsAndMembers.get(team));
-                agents = this.showAgentsOfTeam(self.teamsAndMembers.get(team))
+                //console.log(`leaderborad/${teamId}: memebrs: `, this.teamsAndMembers.get(teamId));
+                agents = this.showAgentsOfTeam(this.teamsAndMembers.get(teamId))
                 teamElement.appendChild(agents);
                 open=true;
             }
@@ -215,12 +207,9 @@ class Leaderboard {
     showAgentsOfTeam(agents){
         var agentsList = document.createElement('div');
         agentsList.classList.add('agentsList');
-
-        console.log(this.agents)
         
-        for (let agentId of agents) {
-            let agent = this.agents.get(agentId)
-            addAgentInTeam(agentId, agent.name, agent.score, agentsList);
+        for (let agent of agents) {
+            addAgentInTeam(agent.id, agent.name, agent.score, agentsList);
         }
     
         return agentsList;

@@ -5,6 +5,7 @@ var Schema = mongoose.Schema;
 module.exports = mongoose.model('Reward', new Schema({ 
 	matchId: String,
 	teamId: String,
+	teamName: String,
 	agentId: String,
 	agentName: String,
 	score: Number,

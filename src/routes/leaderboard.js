@@ -27,7 +27,6 @@ router.get('/', async (req, res) => {
     
     // get query parameters for aggregation by: team agent or match
     const aggregate = [];
-    console.log(aggregateBy)
     // if req.query has matchId as empty string '', then add to 'matchId' aggregateBy
     if ( matchId === '' && aggregateBy === 'true' ) aggregate.push('matchId');
     // if req.query has teamId as empty string '', then add to 'teamId' aggregateBy
@@ -36,7 +35,7 @@ router.get('/', async (req, res) => {
     if ( agentId === '' && aggregateBy === 'true' ) aggregate.push('agentId');
 
     // Log
-    console.log('GET leaderboard'+req.url, `RewardModel.aggregate().match(`, filter ,`).group(`, aggregate, `)` );
+    console.log('GET leaderboard:'+ `RewardModel.aggregate().match(`, filter ,`).group(`, aggregate, `)` );
 
     try {
         let results = await Leaderboard.get(filter, aggregate).catch(console.error);
