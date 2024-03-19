@@ -112,7 +112,7 @@ class ioServer {
             // const team = new Team();
             const me = match.getOrCreateAgent( socket.request.user );
 
-            console.log( `/${match.id} socket ${socket.id} connected as ${me.name}-${me.team}-${me.id}` );
+            console.log( `/${match.id} socket ${socket.id} connected as ${me.name}-${me.id}-${me.teamName}` );
             
             // let socketsInAgentRoom = await agentRoom.fetchSockets();
             // console.log( socketsInAgentRoom.length, 'sockets in room', "agent:"+id, "at", matchTitle)
@@ -126,19 +126,19 @@ class ioServer {
             socket.on( 'disconnect', async () => {
 
                 let socketsLeft = (await agentRoom.fetchSockets()).length;
-                console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Socket disconnected.`,
+                console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} Socket disconnected.`,
                     socketsLeft ?
                     `Other ${socketsLeft} connections to the agent.` :
                     `No other connections, agent will be removed in ${this.#config.AGENT_TIMEOUT/1000} seconds.`
                 );
                 if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
                     
-                    // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${this.#config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
+                    // console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} No connection left. In ${this.#config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
                     await new Promise( res => setTimeout(res, this.#config.AGENT_TIMEOUT) );
                     
                     let socketsLeft = (await agentRoom.fetchSockets()).length;
                     if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
-                        console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Agent deleted after ${this.#config.AGENT_TIMEOUT/1000} seconds of no connections` );
+                        console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} Agent deleted after ${this.#config.AGENT_TIMEOUT/1000} seconds of no connections` );
                         match.grid.deleteAgent ( me );
                     };
                     
@@ -346,7 +346,7 @@ class ioServer {
                 return;
             }
 
-            console.log( `${matchNamespace.name}/${me.name}-${me.team}-${me.id}`, me.x, me.y, direction );
+            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, me.x, me.y, direction );
             try {
                 const moving = me[direction]();
                 if ( acknowledgementCallback )
@@ -370,7 +370,7 @@ class ioServer {
 
             const picked = await me.pickUp()
             
-            console.log( `${matchNamespace.name}/${me.name}-${me.team}-${me.id} pickup ${picked.length} parcels` );
+            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName} pickup ${picked.length} parcels` );
             
             if ( acknowledgementCallback )
                 try {
@@ -394,7 +394,7 @@ class ioServer {
 
             const {dropped, reward} = await me.putDown( selected );
 
-            console.log( `${matchNamespace.name}/${me.name}-${me.team}-${me.id} putdown ${dropped.length} parcels (+ ${reward} pti -> ${me.score} pti)` );
+            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName} putdown ${dropped.length} parcels (+ ${reward} pti -> ${me.score} pti)` );
             
             if ( acknowledgementCallback )
                 try {

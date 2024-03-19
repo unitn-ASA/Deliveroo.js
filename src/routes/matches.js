@@ -69,7 +69,7 @@ router.post('/:id', verifyToken, (req, res) => {
   const matchId = req.params.id;      // get id of the match
   
   let match = Arena.matches.get(matchId);
-  match.strtStopMatch();
+  match.startStop();
   console.log(`Stato del match ${matchId} aggiornato a ${match.status}.`)
 
   res.status(200).json({ message: `Stato del match ${matchId} aggiornato a ${match.status}.` });

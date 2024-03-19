@@ -90,7 +90,7 @@ class Agent extends Xy {
         this.sensing = new Set();
         this.score = 0;
 
-        console.log('Costructio in Match ', this.#grid.matchId +' of new Agent: id=', this.id + ' name=', this.name, ' team=', this.team)
+        // console.log('Agent constructor: matchId='+this.#grid.matchId, 'agenId='+this.id, 'name='+this.name, 'teamId='+this.teamId, 'teamName='+this.teamName)
 
         loadScore(this.#grid.matchId, this.id )
         .then(loadedScore => {

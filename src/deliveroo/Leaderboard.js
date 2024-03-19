@@ -200,7 +200,7 @@ class Leaderboard {
      * @param {string} agentId
      * @param {number} score
      */
-    static async addReward ( matchId, teamId, agentId, agentName, score ) {
+    static async addReward ( matchId, teamId, agentId, teamName, agentName, score ) {
         // const reward = new Reward( matchId, teamId, agentId, score, Date.now() );
         // this.#rewards.push( reward );
         console.log('Add Reward: ', matchId);

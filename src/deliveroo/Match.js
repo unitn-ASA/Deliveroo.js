@@ -54,7 +54,7 @@ class Match {
 
         this.config = config;
         this.#id = id;
-        this.#status = MatchStatus.STOP
+        this.#status = MatchStatus.START;
 
         // Create and start the timer of the match
         this.#timer = new Timer(config.MATCH_TIMEOUT);
@@ -94,12 +94,11 @@ class Match {
     
         // Connect match to leaderboard
         this.grid.on( 'agent rewarded', (agent, reward) => {
-            Leaderboard.addReward( this.#id, agent.team, agent.id, agent.name, reward );
+            Leaderboard.addReward( this.#id, agent.teamId, agent.id, agent.teamName, agent.name, reward );
         } );
 
         this.grid.on( 'agent created', (agent) => {
-            console.log("AGENT CREATED")
-            Leaderboard.addReward( this.#id, agent.team, agent.id,agent.name, 0 );
+            Leaderboard.addReward( this.#id, agent.teamId, agent.id, agent.teamName, agent.name, 0 );
         } );
 
         // // quando il punteggio di un agente cambia solleva l'evento agent info
@@ -143,10 +142,10 @@ class Match {
         }
         
         // Team
-        var teamMates = this.#teamsAgents.get( teamId );
+        var teamMates = this.#teamsAgents.get( userParam.teamId );
         if ( ! teamMates ) {
             teamMates = new Set();
-            this.#teamsAgents.set( teamId, teamMates );
+            this.#teamsAgents.set( userParam.teamId, teamMates );
         }
         if ( ! teamMates.has( me ) ) {
             teamMates.add( me );
@@ -161,9 +160,9 @@ class Match {
         return me;
     }
 
-    strtStopMatch(){
-        if(this.#status == MatchStatus.PLAY){ this.#status = MatchStatus.STOP; this.#timer.stop();  return; }
-        if(this.#status == MatchStatus.STOP){ this.#status = MatchStatus.PLAY; this.#timer.start(); return; }
+    startStop () {
+        if (this.#status == MatchStatus.PLAY) { this.#status = MatchStatus.STOP; this.#timer.stop(); return; }
+        if (this.#status == MatchStatus.STOP) { this.#status = MatchStatus.PLAY; this.#timer.start(); return; }
     }
 
 
