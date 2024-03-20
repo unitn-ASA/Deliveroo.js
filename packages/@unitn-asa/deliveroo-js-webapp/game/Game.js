@@ -96,10 +96,30 @@ class Game {
         (async () => {
             console.log('Game options:', options)
 
-            this.client = new Client(this, options);
-            this.controller = new Controller(this.client);
-            this.leaderboard = new Leaderboard(this, options.matchId);
-            this.gui = new Gui();
+            // Creation of all the object in asincronus way 
+            const clientPromise = new Promise((resolve, reject) => {
+                this.client = new Client(this, options);
+                resolve();
+            });
+            await clientPromise
+
+            const controllerPromise = new Promise((resolve, reject) => {
+                this.controller = new Controller(this.client);
+                resolve();
+            });
+            await controllerPromise
+
+            const leaderboardPromise = new Promise((resolve, reject) => {
+                this.leaderboard = new Leaderboard(this, options.matchId);
+                resolve();
+            });
+            await leaderboardPromise
+
+            const guiPromise = new Promise((resolve, reject) => {
+                this.gui = new Gui();
+                resolve();
+            });
+            await guiPromise
            
     
             // menage the chat 

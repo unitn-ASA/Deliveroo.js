@@ -4,6 +4,7 @@ const Path = require('path');
 const app = express();
 const jwt = require('jsonwebtoken');
 
+const configRoutes = require('./routes/config')
 const matchesRoutes = require('./routes/matches');
 const mapsRoutes = require('./routes/maps');
 const leaderboardRoutes = require('./routes/leaderboard');
@@ -17,9 +18,16 @@ app.use(express.json());
 // Middleware per chiamate cors
 app.use(cors());
 
-app.use('/', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
+app.use('/', (req, res, next) => {
+    if (req.originalUrl === '/') { 
+        req.url += 'game'; 
+    }
+    next() 
+});
 app.use('/game', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp','dist/game') ));
+app.use('/home', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 
+app.use('/api/config', configRoutes);
 app.use('/api/matchs', matchesRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);

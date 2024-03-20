@@ -36,30 +36,37 @@ class Arena {
                 id = uid(4);
             } 
 
-            console.log('NEW MATCH ', id)
+            //console.log('NEW MATCH ', id)
             match = new Match( config, id );        // Create a new Match and add it to the id-match map
+
+            match.grid.on('match ended', async (matchId) =>{
+                //console.log(match.grid.listenerCount('match ended'))
+                await this.deleteMatch(matchId)
+            })
+
             Arena.matches.set(id, match);
             
         }
 
-        match.grid.on('match ended', async () =>{
-            console.log('MATCH FINITO')
-            
-        })
-
         
-
         return match;
     }
 
     /**
      * @param {string} name 
      */
-    static async deleteMatch (name) {
-        if(!Arena.matches.has(name)) return false;
-        let match = Arena.matches.get(name);
+    static async deleteMatch (matchId) {
+        if(!Arena.matches.has(matchId)){
+            console.log(`/${matchId}: not find in the matches`)
+            return false;
+        }
+
+        let match = Arena.matches.get(matchId);
         await match.destroy();
-        Arena.matches.delete(name);
+        match = null;
+
+        Arena.matches.delete(matchId);
+        console.log(`/${matchId}: destroied`)
         return true;
     }
     

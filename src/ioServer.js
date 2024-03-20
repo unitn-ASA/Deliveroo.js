@@ -29,6 +29,7 @@ class ioServer {
     constructor( httpServer ) {
         
         const defaultMatch = Arena.getOrCreateMatch( { id: 0 } ); // with default config
+        defaultMatch.strtStopMatch();
         
         /**
          * Server Socket.IO
@@ -98,6 +99,13 @@ class ioServer {
             const teamName = socket.request.user.teamName;
             const token = socket.request.user.token;
             const matchTitle = socket.nsp.name.split('/').pop();
+
+            // if the socket try to cennect to a match that not exist we block the connection 
+            if(!Arena.getMatch( matchTitle )){
+                //console.log( `socket ${socket.id} try to connected to match ${matchTitle} that not exist` );
+                socket.disconnect();
+                return;
+            }
             
             await socket.join("team:"+teamId);
             await socket.join("agent:"+id);
@@ -123,27 +131,34 @@ class ioServer {
             /**
              * on Disconnect
              */
-            socket.on( 'disconnect', async () => {
+            socket.on( 'disconnect', async (cause) => {
 
-                let socketsLeft = (await agentRoom.fetchSockets()).length;
-                console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Socket disconnected.`,
-                    socketsLeft ?
-                    `Other ${socketsLeft} connections to the agent.` :
-                    `No other connections, agent will be removed in ${this.#config.AGENT_TIMEOUT/1000} seconds.`
-                );
-                if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
-                    
-                    // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${this.#config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
-                    await new Promise( res => setTimeout(res, this.#config.AGENT_TIMEOUT) );
-                    
+                // if the disconection is occured becouse the match is ended we don't have to make all the check
+                //console.log('cause : ', cause)
+                if(cause === 'server namespace disconnect'){ console.log('\t\tsocket ', socket.id + ' disconected'); return}
+
+                try{
                     let socketsLeft = (await agentRoom.fetchSockets()).length;
+                    console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Socket disconnected.`,
+                        socketsLeft ?
+                        `Other ${socketsLeft} connections to the agent.` :
+                        `No other connections, agent will be removed in ${this.#config.AGENT_TIMEOUT/1000} seconds.`
+                    );
                     if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
-                        console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Agent deleted after ${this.#config.AGENT_TIMEOUT/1000} seconds of no connections` );
-                        match.grid.deleteAgent ( me );
-                    };
-                    
+                        
+                        // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${this.#config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
+                        await new Promise( res => setTimeout(res, this.#config.AGENT_TIMEOUT) );
+                        
+                        let socketsLeft = (await agentRoom.fetchSockets()).length;
+                        if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
+                            console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Agent deleted after ${this.#config.AGENT_TIMEOUT/1000} seconds of no connections` );
+                            match.grid.deleteAgent ( me );
+                        };
+                    }
+                }catch(error){
+                    console.log('Error in the disconection of socket ', socket.id, ' -> ', error)
                 }
-
+                
             });
             
         });
@@ -223,13 +238,20 @@ class ioServer {
             socket.emit("agent deleted", who.id, who.team)
         })
 
+        socket.emit("timer update", match.timer.remainingTime)
         grid.on('timer update', (time) => {
             socket.emit("timer update", time)
         })
 
-        grid.on('match ended', () => {
+        grid.on('match ended', async () => {
             socket.emit("match ended")
         })
+
+        grid.on('disconect socket', async (disconnectionPromise) =>{
+            await socket.disconnect();
+            disconnectionPromise; 
+        })
+       
         // this.on('team deleted', (name)=>{
         //     // console.log("Team ", name + " deleted")
         //     socket.emit("team deleted", name)

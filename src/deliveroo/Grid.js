@@ -130,7 +130,7 @@ class Grid extends Observable {
         // me.on( 'agent', this.emit.bind(this, 'agent') );
         me.on( 'rewarded', async (agent,sc) => {
             //console.log('REWARD')
-            console.log(this.listenerCount('agent rewarded'))
+            //console.log(this.listenerCount('agent rewarded'))
             await Leaderboard.addReward( this.matchId, agent.teamId, agent.teamName, agent.id, agent.name, sc );
             this.emitOnePerTick('agent rewarded', agent)
         });
@@ -250,12 +250,17 @@ class Grid extends Observable {
 
     async destroy() {
         
-        
+        console.log(`\tDisconect all socket`);
+        const disconnectionPromise = new Promise((resolve) => {resolve()});
+        this.emit('disconect socket', disconnectionPromise);
+
+        await disconnectionPromise;
+
         // Destroy all the agent of the grid
         for (let agent of this.#agents.values()) {
             //console.log(agent)
             agent.destroy();
-            //console.log(agent)
+            //console.log('delete agent ', agent.id, ' -> ', agent.listenerCount())
             agent = null;
             //console.log(agent)
         }
@@ -268,7 +273,7 @@ class Grid extends Observable {
         for (let parcel of this.#parcels.values()) {
             //console.log(parcel)
             parcel.destroy();
-            //console.log(parcel)
+            //console.log('delete parcel ', parcel.id, ' -> ', parcel.listenerCount())
             parcel = null;
             //console.log(parcel)
         }
@@ -295,7 +300,7 @@ class Grid extends Observable {
 
         this.#config = null;
 
-        console.log('\tGrid destroyed');
+        console.log(`\tGrid destroyed`);
     }
 
 }

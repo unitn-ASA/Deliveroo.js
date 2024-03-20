@@ -42,6 +42,7 @@ class Match {
 
     /** @type {Timer} timer of the match */
     #timer;
+    get timer () { return this.#timer; }
 
     /**
      * @param {Config} config 
@@ -72,21 +73,16 @@ class Match {
 
         // listeners to the event of the timer
         this.#timer.on('timer update', (remainingTime) => { 
-            console.log(remainingTime) /* print for debug */
+            //console.log(remainingTime) /* print for debug */
             this.grid.emit('timer update',remainingTime);  
         })
-        this.#timer.on('timer started', () => { console.log('timer started') /* print for debug */ })
-        this.#timer.on('timer stopped', () => { console.log('timer stopped') /* print for debug */ })
+        this.#timer.on('timer started', () => {  console.log(`/${this.#id } timer started`)  /* print for debug */ })
+        this.#timer.on('timer stopped', () => { console.log(`/${this.#id } timer stopped`)   /* print for debug */ })
         this.#timer.on('timer ended', () => {
-            console.log('timer of match ', this.#id +' ended')
+            console.log(`/${this.#id } timer ended`)
             this.#status = MatchStatus.STOP
-            this.grid.emit('match ended');
-            this.destroy();
+            this.grid.emit('match ended', this.#id);
         })
-        
-
-        console.log('Id match: ', this.#id + ' timeot: ', config.MATCH_TIMEOUT)
-
         
     
         /* Connect match to leaderboard
@@ -101,7 +97,7 @@ class Match {
         // });
 
         // Logs
-        console.log("Started match "+this.#id);
+        console.log(`/${this.#id } created`);
 
         // this.on('agent info', (id, name, team, score) => {
         //     console.log("Agente ", id + " ", name + " of team:", team + " change score into ", +score)
@@ -112,18 +108,17 @@ class Match {
         
     }
 
-    // PROBLEMA NON VIENE ESEGUITA IN MODOD SINCRONO 
+   
     async destroy() {
-        // Stoppa il movimento degli agenti
+        // Stoppa the motion of the agent
         await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));
     
-        // Distruggi il myClock
+        // Destroy the generator of parcels
         await this.#parcelsGenerator.destroy();
     
-        // Distruggi la griglia
+        // Destroy the grid
         await this.grid.destroy();
     
-        // Altri codici di distruzione...
     }
 
     getOrCreateAgent ( userParam = {id, name, teamId, teamName} ) {

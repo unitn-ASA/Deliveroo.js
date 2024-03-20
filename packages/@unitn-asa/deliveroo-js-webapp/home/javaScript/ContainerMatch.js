@@ -41,6 +41,12 @@ async function defineContainerMatch(admin){
     
                 let descriptionMatch = document.createElement('div');          
                 descriptionMatch.classList = 'description-match';
+
+                let joinButton = document.createElement('button');
+                joinButton.classList.add('join-button');
+                joinButton.setAttribute('match', match);
+                joinButton.textContent = `join`;
+                joinButton.addEventListener('click',sendRequestJoinMatch)
                 
                 let deleteButton = document.createElement('button');
                 deleteButton.classList.add('delete-button');
@@ -49,6 +55,7 @@ async function defineContainerMatch(admin){
                 deleteButton.addEventListener('click',deleteMatch)
                 
                 let playButton = document.createElement('button');
+                deleteButton.classList.add('play-stop-button');
                 playButton.setAttribute('match', match);
                 playButton.textContent = getStatusButtonText(data.status[index]);
                 descriptionMatch.textContent = getStatusText(playButton.textContent);
@@ -56,6 +63,7 @@ async function defineContainerMatch(admin){
                 
                 divMatch.appendChild(idMatch);
                 divMatch.appendChild(descriptionMatch);
+                divMatch.appendChild(joinButton);
                 divMatch.appendChild(deleteButton);
                 divMatch.appendChild(playButton);
 
@@ -84,7 +92,7 @@ async function defineContainerMatch(admin){
 
 function sendRequestJoinMatch(event){
     
-    var url = 'game';
+    var url = '/game';
     url += '?match=' + encodeURIComponent(event.target.getAttribute('match')); 
 
     console.log("go to match: ", event.target.getAttribute('match'))
@@ -148,5 +156,30 @@ function sendPlayStopMatch(event){
 
 
 function deleteMatch(event){
-    console.log('delete match');
+
+    const token_admin = getAdminCookie();
+    const matchId = event.target.getAttribute('match');
+
+    fetch(`/api/matchs/${matchId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token_admin}`
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json(); 
+        } else {
+            throw new Error('Error during data sending', response.json().message);
+        }
+    })
+    .then(data => {
+        console.log('Correct: ', data.message)
+        location.reload();
+    })
+    .catch(error => {
+        console.error('An error occurred:', error.message);
+    });
+    
 }

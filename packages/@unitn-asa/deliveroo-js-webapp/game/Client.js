@@ -61,8 +61,8 @@ class Client {
         this.socket.on( "disconnect", (reason) => {
             if (reason === "io server disconnect") {
                 // the disconnection was initiated by the server, you need to reconnect manually
-                alert( `Token is invalid!` );
-                this.socket.connect();
+                alert( `socket disconected` );
+                window.location.href = '/home';
             }
             console.error( `Socket.io connection error` );
         } );
@@ -277,7 +277,10 @@ class Client {
 
         var timerSpan = document.getElementById('timer-span')
         this.socket.on("timer update", (time) => {
-            timerSpan.textContent = time
+            const minutes = Math.floor(time / 60);
+            const seconds = time % 60;
+            const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds; // Add a zero if the seconds are less than 10 
+            timerSpan.textContent = `${minutes}:${formattedSeconds}`
         })
 
         this.socket.on('match ended', () => {

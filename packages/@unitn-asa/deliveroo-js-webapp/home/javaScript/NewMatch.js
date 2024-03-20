@@ -1,5 +1,40 @@
 document.getElementById('createMatchButton').addEventListener('click', function() {
+  fetch('/api/config', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.json(); 
+    } else {
+      throw new Error('Error in the request of config data');
+    }
+  })
+  .then(data => {
+    console.log(data);
+    // Put the input to the default value
+    document.getElementById('mapFile').value = data.MAP_FILE;
+    document.getElementById('matchTimeout').value = data.MATCH_TIMEOUT;
+    document.getElementById('parcelsInterval').value = data.PARCELS_GENERATION_INTERVAL;
+    document.getElementById('parcelsMax').value = data.PARCELS_MAX;
+    document.getElementById('parcelsRewardAvg').value = data.PARCEL_REWARD_AVG;
+    document.getElementById('parcelsRewardVariance').value = data.PARCEL_REWARD_VARIANCE;
+    document.getElementById('parcelsDecadingInterval').value = data.PARCEL_DECADING_INTERVAL;
+
+    document.getElementById('randomlyMovingAgents').value = data.RANDOMLY_MOVING_AGENTS;
+    document.getElementById('randomlyAgentSpeed').value = data.RANDOM_AGENT_SPEED;
+
+    document.getElementById('agentsObservationDistance').value = data.AGENTS_OBSERVATION_DISTANCE;
+    document.getElementById('parcelsObservationDistance').value = data.PARCELS_OBSERVATION_DISTANCE;
+    
+
     document.getElementById('matchFormContainer').style.display = 'block';
+  })
+  .catch(error => {
+    console.error('It occures an error:', error);
+  });
 });
   
 document.getElementsByClassName('close')[0].addEventListener('click', function() {
@@ -25,7 +60,7 @@ document.getElementById('matchForm').addEventListener('submit', function(event) 
     
     // Ottieni i valori dai campi del form
     const mapFile = document.getElementById('mapFile').value;
-
+    const matchTimeout = document.getElementById('matchTimeout').value
     const parcelsInterval = document.getElementById('parcelsInterval').value;
     const parcelsMax = document.getElementById('parcelsMax').value;
     const parcelsRewardAvg = document.getElementById('parcelsRewardAvg').value;
@@ -55,7 +90,7 @@ document.getElementById('matchForm').addEventListener('submit', function(event) 
     const formData = {
     
       MAP_FILE: mapFile,
-
+      MATCH_TIMEOUT: matchTimeout,
       PARCELS_GENERATION_INTERVAL: parcelsInterval,
       PARCELS_MAX: parseInt(parcelsMax),
       PARCEL_REWARD_AVG: parseInt(parcelsRewardAvg),
@@ -175,6 +210,7 @@ function showConfirmationPopup(id, options, mappa) {
   close.classList.add('close');
   close.addEventListener('click', function() {
     popup_window.style.display = 'none';
+    location.reload();
   });
 
   
