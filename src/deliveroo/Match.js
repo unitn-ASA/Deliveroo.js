@@ -89,10 +89,10 @@ class Match {
 
         
     
-        // Connect match to leaderboard
+        /* Connect match to leaderboard
         this.grid.on( 'agent rewarded', (agent, reward) => {
             Leaderboard.addReward( this.#id, agent.teamId, agent.teamName, agent.id, agent.name, reward );
-        } );
+        } );*/
 
 
         // // quando il punteggio di un agente cambia solleva l'evento agent info

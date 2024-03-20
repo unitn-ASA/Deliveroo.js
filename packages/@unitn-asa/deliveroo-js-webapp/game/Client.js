@@ -7,6 +7,7 @@ import { Chat } from './Chat.js';
 
 
 
+
 var WIDTH;
 var HEIGHT;
 
@@ -112,17 +113,12 @@ class Client {
             HEIGHT = height
         });
 
-        this.socket.on( "msg", ( id, name, msg, reply ) => {
-            console.log( 'msg', {id, name, msg, reply} )
+        this.socket.on( "msg", ( id, name, teamId, msg, reply ) => {
+            console.log( 'msg', {id, name, teamId, msg, reply} )
 
             let color
-            if(this.game.teamsAndColors.has(id)){color = this.game.teamsAndColors.get(id);}
-            else{
-                let team = this.game.leaderboard.findTeamNameById(id);
-                console.log(team)
-                color = this.game.teamsAndColors.get(team);
-            }
-
+            if(this.game.teamsAndColors.has(teamId)){color = this.game.teamsAndColors.get(teamId);}
+            
             let chat = document.getElementById('chat');
 
             Chat.addMessage(name, color, msg, chat);
@@ -146,15 +142,14 @@ class Client {
             CONFIG = config;
         } )
 
-        this.socket.on( "you", ( {idme, nameme, teamme, xme, yme, scoreme} ) => {
+        this.socket.on( "you", ( id, name, teamId, teamName, x, y, score ) => {
 
-            let id = idme; let name = nameme; var team = teamme; let x = xme; let y = yme; let score = scoreme;
-            console.log( "you", {id, name, team, x, y, score} )
+            console.log( "you", id, name, teamId, teamName, x, y, score )
 
             document.getElementById('agent.id').textContent = `agent.id ${id}`;
             document.getElementById('agent.name').textContent = `agent.name ${name}`;
             document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
-            document.getElementById('agent.team').textContent = `agent.team ${team}`;
+            document.getElementById('agent.team').textContent = `agent.team ${teamName}`;
             
             /* per l'info agent.team controllo che team non sia "" ( quindi l'agente non è in nessun team )
             let varTeam = document.getElementById('agent.team');
@@ -168,7 +163,7 @@ class Client {
                 console.error("Elemento 'varTeam' non trovato.");
             }*/
 
-            this.game.me = this.game.getOrCreateAgent( id, name, team, x, y, score );
+            this.game.me = this.game.getOrCreateAgent( id, name, teamId, teamName, x, y, score );
             this.game.gui.setTarget( this.game.me.mesh );
 
             /**
@@ -205,7 +200,7 @@ class Client {
 
         this.socket.on("agents sensing", (sensed) => {
 
-            // console.log("agents sensing", ...sensed)//, sensed.length)
+            //console.log("agents sensing", ...sensed)//, sensed.length)
 
             var sensed = Array.from(sensed)
             
@@ -217,13 +212,14 @@ class Client {
             }
 
             for ( const sensed_p of sensed ) {
-                const {id, name, team, x, y, score} = sensed_p;
-                var agent = this.game.getOrCreateAgent(id, name, team, x, y, score)
+                const {id, name, teamId, teamName, x, y, score} = sensed_p;
+                var agent = this.game.getOrCreateAgent(id, name, teamId, teamName, x, y, score)
                 agent.name = name;
                 agent.opacity = 1;
                 agent.x = x;
                 agent.y = y;
-                agent.team = team;
+                agent.teamId = teamId
+                agent.teamName = teamName;
 
                 if ( agent.score != score ) {
                     agent.score = score;
@@ -271,69 +267,12 @@ class Client {
 
         });
 
-        // this.socket.on("agent info", (id, name, team, score) => {
-        //     console.log("changing in agent " + id, " " + name, " info"); 
-        //     let color;
-
-        //     //verifico se l'agente è gia stato associato un colore, in caso ne associa
-        //     if(this.game.teamsAndColors.has(id)){
-        //         color = this.game.teamsAndColors.get(id);
-        //     }else{
-        //         let coloriGiaUsati = Array.from(this.game.teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
-        //         // console.log("Colori: ", this.game.teamsAndColors)
-                
-        //         do{
-        //             color  = new THREE.Color( 0xffffff );        
-        //             color.setHex( Math.random() * 0xffffff );
-
-        //         }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // ripeto la generazione random del colore finchè non è simile a nessun colore gia usato
-                
-        //         // Aggiorno this.game.teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
-        //         this.game.teamsAndColors.set(id,color)
-        //     }
-
-        //     let leaderboardElement = document.getElementById('leaderboard');
-        //     this.game.leaderboard.updateAgent(id, name, team, score, leaderboardElement, color);   
-        //     // updateLeaderboard(id, false, team, score);         
+        this.socket.on('leaderboard', (dataAgent, dataTeam, socketId) => {
+            console.log('Leaderboard: ',socketId, dataAgent, dataTeam)
+            let teamScore;
+            if(dataTeam){teamScore = dataTeam.score}
             
-        // });
-
-        this.socket.on("team info", (name, score) => {
-            console.log("changing in team " + name +" info");
-            var color
-
-            //verifico se al team è gia stato associato un colore, in caso ne associa
-            if(this.game.teamsAndColors.has(name)){
-                color = this.game.teamsAndColors.get(name);
-            }else{
-                let coloriGiaUsati = Array.from(this.game.teamsAndColors.values());   // ritorno un array con tutti i colori gia usati per gli altri team    
-                // console.log("Colori: ", this.game.teamsAndColors)
-                
-                do{
-                    color  = new THREE.Color( 0xffffff );        
-                    color.setHex( Math.random() * 0xffffff );
-
-                }while(coloriGiaUsati.some(usedColor => areColorsSimilar(usedColor, color)))    // ripeto la generazione random del colore finchè non è simile a nessun colore gia usato
-                
-                // Aggiorno this.game.teamsAndColors, gli agenti senza team avranno colori diversi da altri team e agenti singoli
-                this.game.teamsAndColors.set(name,color)
-            }
-        
-            let leaderboardElement = document.getElementById('leaderboard');
-            this.game.leaderboard.updateTeam(name, score, leaderboardElement, color);  
-            // updateLeaderboard(name, true, null, score);         
-        });
-
-        this.socket.on('agent deleted', (id, team) =>{
-            let leaderboardElement = document.getElementById('leaderboard');
-            //console.log("delete agent " + id +" info");
-            this.game.leaderboard.removeAgent(id, team, leaderboardElement)
-        })
-
-        this.socket.on('team deleted', (name) =>{
-            let leaderboardElement = document.getElementById('leaderboard');
-            console.log("delete team " + name +" info");
-            this.game.leaderboard.removeTeam(name, leaderboardElement)
+            this.game.leaderboard.updateLeaderbord(dataAgent.agentId, dataAgent.agentName, dataAgent.score, dataAgent.teamId, dataAgent.teamName, teamScore)  
         })
 
         var timerSpan = document.getElementById('timer-span')

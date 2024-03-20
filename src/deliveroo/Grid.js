@@ -4,6 +4,7 @@ const Agent =  require('./Agent')
 const Parcel = require('./Parcel');
 const Xy = require('./Xy');
 const Config = require('./Config');
+const Leaderboard = require('./Leaderboard')
 
 
 /**
@@ -127,7 +128,12 @@ class Grid extends Observable {
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );
-        me.on( 'rewarded', this.emit.bind(this, 'agent rewarded') );
+        me.on( 'rewarded', async (agent,sc) => {
+            //console.log('REWARD')
+            console.log(this.listenerCount('agent rewarded'))
+            await Leaderboard.addReward( this.matchId, agent.teamId, agent.teamName, agent.id, agent.name, sc );
+            this.emitOnePerTick('agent rewarded', agent)
+        });
 
         // On mine or others movement emit SensendAgents
         this.on( 'agent xy', ( who ) => {

@@ -64,7 +64,7 @@ class ioServer {
             
             const socketId = req.id;
             jwt.verify(token, SUPER_SECRET, (err, decoded) => {
-                console.log(decoded);
+                //console.log(decoded);
                 if (err) {
                     console.log( `Socket ${socketId} log in failure. Invalid token provided.` );
                 } else if ( decoded.id && decoded.name ) {
@@ -102,7 +102,7 @@ class ioServer {
             await socket.join("team:"+teamId);
             await socket.join("agent:"+id);
 
-            console.log( `Socket ${socket.id} connecting as ${name}(${id})(${teamId}) to match ${matchTitle}, with token: ...${token.slice(-30)}` );
+            console.log( `Socket ${socket.id} connecting as ${name}(${id})(${teamName}) to match ${matchTitle}, with token: ...${token.slice(-30)}` );
 
             const matchNamespace = socket.nsp;
             const teamRoom = matchNamespace.in("team:"+teamId);
@@ -112,7 +112,7 @@ class ioServer {
             // const team = new Team();
             const me = match.getOrCreateAgent( socket.request.user );
 
-            console.log( `/${match.id} socket ${socket.id} connected as ${me.name}-${me.team}-${me.id}` );
+            console.log( `/${match.id} socket ${socket.id} connected as ${me.name}-${me.teamName}-${me.id}` );
             
             // let socketsInAgentRoom = await agentRoom.fetchSockets();
             // console.log( socketsInAgentRoom.length, 'sockets in room', "agent:"+id, "at", matchTitle)
@@ -200,14 +200,13 @@ class ioServer {
 
 
         //Emit you
-        me.on( 'agent', ({id, name, team, x, y, score}) => {
-            let idme = me.id; let nameme = me.name; let teamme = team; let xme = me.x; let yme = me.y; let scoreme = me.score;
-            //console.log("Dati agent: ",idme, nameme, xme, yme, scoreme)
-            socket.emit( 'you', {idme, nameme, teamme, xme, yme, scoreme} );
+        me.on( 'agent', ({id, name, teamId, teamName, x, y, score}) => {       
+            //console.log("Dati agent 1: ", id, name, teamId, teamName, x, y, score)
+            socket.emit( 'you', id, name, teamId, teamName, x, y, score );
         } );
-        let idme = me.id; let nameme = me.name; let teamme = me.team; let xme = me.x; let yme = me.y; let scoreme = me.score;
-        //console.log("Dati agent: ",idme, nameme, xme, yme, scoreme)
-        socket.emit( 'you', {idme, nameme, teamme, xme, yme, scoreme} );
+        
+        //console.log("Dati agent 2: ", me.id, me.name, me.teamId, me.teamName, me.x, me.y, me.score)
+        socket.emit( 'you', me.id, me.name, me.teamId, me.teamName, me.x, me.y, me.score );
 
         // passo le informazione dei punteggi di tutti i team ed agent per la leaderboard, anche eventuali delet
         // this.on('agent info', (id, name, team, score) => {
@@ -236,16 +235,7 @@ class ioServer {
         //     socket.emit("team deleted", name)
         // })
 
-      
-        // invio le info iniziali
-        // for (let team of this.#teamsAgents.values()) {
-        //     socket.emit("team info", team.name, team.score)
-        // }
-        for (let agent of grid.getAgents()) {
-            socket.emit("agent info", agent.id, agent.name, agent.team, agent.score)
-        }
-
-        
+              
 
         /**
          * Emit sensing
@@ -309,9 +299,25 @@ class ioServer {
         }
 
         // Leaderboard
-        grid.on( 'agent rewarded', () => {
-            matchNamespace.emit( 'leaderboard', Leaderboard.get({matchId:match.id}) );
-        } );
+        grid.on( 'agent rewarded', async (agent, reward) => {
+            //console.log('CHIAMATA REWARD')
+            let matchId = match.id
+            let agentId = agent.id
+            let dataAgent = await Leaderboard.get({matchId, agentId})
+            let dataTeam;
+
+            if(agent.teamName != 'no-team'){
+                //console.log('team:' , agent.teamName)
+                let teamId = agent.teamId
+                dataTeam = await Leaderboard.get({matchId, teamId},['teamId']);
+                dataTeam = dataTeam[0]
+            }
+
+            //console.log('agent reWard, agent id: ', agent.id + " -> ", dataAgent[0])
+            //console.log('team reWard:' , dataTeam)
+
+            socket.emit( 'leaderboard', dataAgent[0], dataTeam);
+        });
 
     }
 
@@ -410,11 +416,11 @@ class ioServer {
 
         socket.on( 'say', (toId, msg, acknowledgementCallback) => {
             
-            console.log( me.id, me.name, 'say ', toId, msg );
+            console.log( me.id, me.name, me.teamId, 'say ', toId, msg );
 
             matchNamespace
             .in("agent:"+toId)
-            .emit( 'msg', me.id, me.name, msg );
+            .emit( 'msg', me.id, me.name, me.teamId, msg );
 
             try {
                 if (acknowledgementCallback) acknowledgementCallback( 'successful' )
@@ -423,11 +429,11 @@ class ioServer {
         } )
 
         socket.on( 'ask', (toId, msg, replyCallback) => {
-            console.log( me.id, me.name, 'ask', toId, msg );
+            console.log( me.id, me.name, me.teamId, 'ask', toId, msg );
 
             matchNamespace
             .in("agent:"+toId)
-            .emit( 'msg', me.id, me.name, msg, (reply) => {
+            .emit( 'msg', me.id, me.name, me.teamId, msg, (reply) => {
                 try {
                     console.log( toId, 'replied', reply );
                     replyCallback( reply )
@@ -438,10 +444,10 @@ class ioServer {
 
         socket.on( 'shout', (msg, acknowledgementCallback) => {
 
-            console.log( me.id, me.name, 'shout', msg );
+            console.log( me.id, me.name, me.teamId, 'shout', msg );
 
             matchNamespace
-            .emit( 'msg', me.id, me.name, msg );
+            .emit( 'msg', me.id, me.name, me.teamId, msg );
 
             try {
                 if (acknowledgementCallback) acknowledgementCallback( 'successful' )

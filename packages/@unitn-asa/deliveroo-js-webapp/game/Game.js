@@ -37,14 +37,15 @@ class Game {
      * @param {number} score 
      * @returns {Agent}
      */
-    getOrCreateAgent ( id, name='unknown', team='', x=-1, y=-1, score=-1 ) {
+    getOrCreateAgent ( id, name='unknown', teamId, teamName, x=-1, y=-1, score=-1 ) {
         var agent = this.agents.get(id);
         if ( !agent ) {
             
-            agent = new Agent( this, id, name, team, x, y, score );
+            agent = new Agent( this, id, name, teamId, teamName, x, y, score );
             this.gui.clickables.push( agent.mesh );
 
             this.agents.set( id, agent );
+            console.log('new agent added: ', agent.id, agent.name)
         }
         return agent;
     }

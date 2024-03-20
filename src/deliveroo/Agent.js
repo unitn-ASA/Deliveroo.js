@@ -92,6 +92,7 @@ class Agent extends Xy {
         this.sensing = new Set();
         this.score = 0;
 
+
         loadScore(this.#grid.matchId, this.id )
         .then(loadedScore => {
             console.log(`/${this.#grid.matchId} costructed new Agent: id=`, this.id + ' name=', this.name + ' team name=', this.teamName + ' team id=', this.teamId)
@@ -104,7 +105,7 @@ class Agent extends Xy {
             }else{
                 this.score = 0;
                 console.log(`/${this.#grid.matchId}/${this.id} unable to load a pass score ` );
-                this.emit( 'rewarded', this, 0); // used to push in the database a first record 
+                this.emitOnePerTick( 'rewarded', this, 0 ); 
             }
         })
         .catch(error => {

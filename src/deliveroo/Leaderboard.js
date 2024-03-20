@@ -156,6 +156,7 @@ class Leaderboard {
         if ( matchId ) matchExpression.matchId = { $eq: matchId };
         if ( teamId ) matchExpression.teamId = { $eq: teamId };
         if ( agentId ) matchExpression.agentId = { $eq: agentId };
+        
 
         // group expression
         if ( groupByKeys.length == 0 ) groupByKeys = ['matchId', 'teamId', 'agentId'];
@@ -165,9 +166,11 @@ class Leaderboard {
         if ( groupByKeys.includes('teamId') ) groupExpression.teamId = { $first: '$teamId' };
         if ( groupByKeys.includes('agentId') ) groupExpression.agentId = { $first: '$agentId' };
         groupExpression.agentName = { $first: '$agentName' };
+        groupExpression.agentId = { $first: '$agentId' };
+        groupExpression.teamName = { $first: '$teamName' };
         groupExpression.score = { $sum: '$score' };
         groupExpression.history = { $push: { score: '$score', time: '$time' } };
-        groupExpression.teamName = { $first: '$teamName' };
+        
 
         // console.log( 'Leaderboard.get()', 'matchExpression:', matchExpression, 'groupExpression:', groupExpression );
         
