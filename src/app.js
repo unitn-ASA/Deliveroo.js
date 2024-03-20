@@ -8,7 +8,7 @@ const matchesRoutes = require('./routes/matches');
 const mapsRoutes = require('./routes/maps');
 const leaderboardRoutes = require('./routes/leaderboard');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 
 // Middleware per gestire i dati JSON e form-urlencoded
 app.use(express.json());
@@ -30,6 +30,8 @@ app.get('/token', (req, res) => {
         req.headers['name'] || req.query.name,
         req.headers['team'] || req.query.teamNameOrToken
     );
+
+    console.log( 'GET /token', '...'+token.slice(-30), decodeToken(token) );
     res.json({ token: token }); 
 })
 
@@ -41,7 +43,7 @@ app.post('/login', (req, res) => {
         const token = generateTokenAdmin();
         res.json({ success: true, token: token});
     } else {
-        res.status(401).json({ success: false, message: 'Credenzialias not valid' });
+        res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 });
 

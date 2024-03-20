@@ -316,7 +316,7 @@ async function loadScore(matchId, agentId){
         console.log("Loaded score for", agentId, " -> ", score);
         return score
     } catch (error) {
-        console.error('Unable to load a pass score for', agentId);
+        // console.error('/'+matchId, 'Unable to load a past score for', agentId);
         return 0;
     }   
 }

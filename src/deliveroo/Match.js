@@ -87,10 +87,6 @@ class Match {
             this.destroy();
         })
         
-
-        console.log('Id match: ', this.#id + ' timeot: ', config.MATCH_TIMEOUT)
-
-        
     
         // Connect match to leaderboard
         this.grid.on( 'agent rewarded', (agent, reward) => {
@@ -107,7 +103,7 @@ class Match {
         // });
 
         // Logs
-        console.log("Started match "+this.#id);
+        console.log("Started match "+this.#id+" with timeout "+this.config.MATCH_TIMEOUT);
 
         // this.on('agent info', (id, name, team, score) => {
         //     console.log("Agente ", id + " ", name + " of team:", team + " change score into ", +score)

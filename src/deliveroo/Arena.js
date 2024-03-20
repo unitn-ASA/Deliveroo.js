@@ -36,14 +36,13 @@ class Arena {
                 id = uid(4);
             } 
 
-            console.log('NEW MATCH')
             match = new Match( config, id );        // Create a new Match and add it to the id-match map
             Arena.matches.set(id, match);
             
         }
 
         match.grid.on('match ended', async () =>{
-            console.log('MATC FINITO')
+            console.log('Arena /'+id, 'match ended')
             
         })
 

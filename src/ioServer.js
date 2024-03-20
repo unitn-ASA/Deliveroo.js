@@ -346,7 +346,7 @@ class ioServer {
                 return;
             }
 
-            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, me.x, me.y, direction );
+            // console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, me.x, me.y, direction );
             try {
                 const moving = me[direction]();
                 if ( acknowledgementCallback )
@@ -410,7 +410,7 @@ class ioServer {
 
         socket.on( 'say', (toId, msg, acknowledgementCallback) => {
             
-            console.log( me.id, me.name, 'say ', toId, msg );
+            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, 'say ', toId, msg );
 
             matchNamespace
             .in("agent:"+toId)
@@ -423,7 +423,7 @@ class ioServer {
         } )
 
         socket.on( 'ask', (toId, msg, replyCallback) => {
-            console.log( me.id, me.name, 'ask', toId, msg );
+            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, 'ask', toId, msg );
 
             matchNamespace
             .in("agent:"+toId)
@@ -438,7 +438,7 @@ class ioServer {
 
         socket.on( 'shout', (msg, acknowledgementCallback) => {
 
-            console.log( me.id, me.name, 'shout', msg );
+            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, 'shout', msg );
 
             matchNamespace
             .emit( 'msg', me.id, me.name, msg );
