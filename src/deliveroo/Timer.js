@@ -2,11 +2,17 @@ const EventEmitter = require('events');
 
 class Timer extends EventEmitter {
   
+  /**
+   * Private property to store the time of the timer
+   * @type {integer}
+   */
+  #remainingTime
+  get remainingTime () { return this.#remainingTime; }
+
   constructor(time) {
     super();
-    this.time = time;               // Initial time of the timer
-    this.remainingTime = time;      // Remaining time of the timer
-    this.intervalId = null;         // Interval ID for the timer
+    this.initTime = time;           // Initial time of the timer
+    this.#remainingTime = time;     // Current time of the timer
     this.running = false;           // Indicates if the timer is currently running
   }
 
@@ -19,7 +25,7 @@ class Timer extends EventEmitter {
         
       // Create an interval that decrements the remaining time of the timer evry 1 second
       this.intervalId = setInterval(() => {
-        this.remainingTime -= 1; // Decrease the remaining time by 1 second
+        this.#remainingTime -= 1; // Decrease the remaining time by 1 second
         this.emit('timer update', this.remainingTime);
         
         // Check if the remaining time has expired

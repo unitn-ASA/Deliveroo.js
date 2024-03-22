@@ -18,7 +18,7 @@ app.use(cors());
 app.use('/', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 app.use('/game', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp','dist/game') ));
 
-app.use('/api/matchs', matchesRoutes);
+app.use('/api/matches', matchesRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 

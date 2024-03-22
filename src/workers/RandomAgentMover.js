@@ -5,6 +5,12 @@ const Config = require('../deliveroo/Config');
 
 class RandomlyMoveAgent {
 
+    /** @type {Config} */
+    #config;
+
+    /** @type {Grid} */
+    #myGrid;
+
     /** @type {Promise} Resolves when agent finally stops */
     stopped = Promise.resolve();
 
@@ -13,6 +19,9 @@ class RandomlyMoveAgent {
      * @param {Grid} myGrid 
      */
     constructor(config, myGrid) {
+
+        this.#config = config;
+        this.#myGrid = myGrid;
         
         var myAgent = myGrid.createAgent({});
         this.start(myAgent, config);

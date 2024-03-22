@@ -88,7 +88,7 @@ class ioServer {
          * https://socket.io/docs/v4/server-api/#namespace
          */
         const parentNamespace = io.of( (name, auth, next) => {
-            console.log( `Check match namespace ${name}` ); // name includes the '/'
+            // console.log( `Check match namespace ${name}` ); // name includes the '/'. Can be accessed through socket.nsp.name.
             next(null, true); // or false, when the creation is denied
         }).on('connection', async (socket) => {
 
@@ -97,28 +97,24 @@ class ioServer {
             const teamId = socket.request.user.teamId;
             const teamName = socket.request.user.teamName;
             const token = socket.request.user.token;
-            const matchTitle = socket.nsp.name.split('/').pop();
+            const matchTitle = ( socket.nsp.name != '/null' && socket.nsp.name != '/' ? socket.nsp.name.split('/').pop() : 0 );
+
+            console.log( `/${matchTitle}/${name}-${id}-${teamName} connecting from socket ${socket.id}, with token ...${token.slice(-30)}` );
             
             await socket.join("team:"+teamId);
             await socket.join("agent:"+id);
-
-            console.log( `Socket ${socket.id} connecting as ${name}(${id})(${teamId}) to match ${matchTitle}, with token: ...${token.slice(-30)}` );
-
-            const matchNamespace = socket.nsp;
-            const teamRoom = matchNamespace.in("team:"+teamId);
-            const agentRoom = matchNamespace.in("agent:"+id);
+            const matchRoom = socket.nsp.in("match:"+matchTitle);
+            const teamRoom = socket.nsp.in("team:"+teamId);
+            const agentRoom = socket.nsp.in("agent:"+id);
 
             const match = Arena.getOrCreateMatch( { id: matchTitle } ); // with default config
-            // const team = new Team();
             const me = match.getOrCreateAgent( socket.request.user );
 
-            console.log( `/${match.id} socket ${socket.id} connected as ${me.name}-${me.id}-${me.teamName}` );
-            
             // let socketsInAgentRoom = await agentRoom.fetchSockets();
             // console.log( socketsInAgentRoom.length, 'sockets in room', "agent:"+id, "at", matchTitle)
 
-            ioServer.listenToGameEventsAndForwardToSocket( socket, me, match.grid, match, matchNamespace );
-            ioServer.listenSocketEventsAndForwardToGame( me, socket, agentRoom, teamRoom, matchNamespace );
+            ioServer.listenToGameEventsAndForwardToSocket( me, match, socket, agentRoom, teamRoom, matchRoom );
+            ioServer.listenSocketEventsAndForwardToGame( me, match, socket, agentRoom, teamRoom, matchRoom );
 
             /**
              * on Disconnect
@@ -162,12 +158,17 @@ class ioServer {
 
 
     /**
-     * @param {Socket} socket 
-     * @param {Agent} me 
-     * @param {Grid} grid
+     * @function listenToGameEventsAndForwardToSocket
+     * @param {Agent} me
      * @param {Match} match
+     * @param {Socket} socket
+     * @param {BroadcastOperator} agentRoom
+     * @param {BroadcastOperator} teamRoom
+     * @param {BroadcastOperator} matchRoom
      */
-    static listenToGameEventsAndForwardToSocket ( socket, me, grid, match, matchNamespace ) {
+    static listenToGameEventsAndForwardToSocket ( me, match, socket, agentRoom, teamRoom, matchRoom ) {
+
+        const grid = match.grid;
 
         /**
          * Config
@@ -310,7 +311,7 @@ class ioServer {
 
         // Leaderboard
         grid.on( 'agent rewarded', () => {
-            matchNamespace.emit( 'leaderboard', Leaderboard.get({matchId:match.id}) );
+            matchRoom.emit( 'leaderboard', Leaderboard.get({matchId:match.id}) );
         } );
 
     }
@@ -318,13 +319,15 @@ class ioServer {
 
 
     /**
+     * @function listenSocketEventsAndForwardToGame
      * @param {Agent} me
+     * @param {Match} match
      * @param {Socket} socket
      * @param {BroadcastOperator} agentRoom
      * @param {BroadcastOperator} teamRoom
-     * @param {Namespace} matchNamespace
+     * @param {BroadcastOperator} matchRoom
      */
-    static listenSocketEventsAndForwardToGame ( me, socket, agentRoom, teamRoom, matchNamespace ) {
+    static listenSocketEventsAndForwardToGame ( me, match, socket, agentRoom, teamRoom, matchRoom ) {
         
         
         /**
@@ -333,20 +336,15 @@ class ioServer {
         
         socket.on('move', async (direction, acknowledgementCallback) => {
 
-            // Before move the agent check if the match is n stop status or play one.
-            let matchId = matchNamespace.name
-            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }  // Remove the first '/' 
-            let match = Arena.getMatch( matchId ); 
-            if(match == false) { console.log('ricevuta richiesta move a un match non esistente: ', matchId); return};
-
-
-            if(match.status == 'stop'){  
-                console.log('Motion disable becouse the Match ', matchId + ' status is stop')
-                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
+            // Check if the match is STOP status
+            if( match.status == Match.Status.STOP ) {
+                console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} Cannot move, match is in STOP` );
+                if ( acknowledgementCallback )
+                    acknowledgementCallback( 'Match is in STOP' );
                 return;
-            }
+            };
 
-            // console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, me.x, me.y, direction );
+            // console.log( `${match.id}/${me.name}-${me.id}-${me.teamName}`, me.x, me.y, direction );
             try {
                 const moving = me[direction]();
                 if ( acknowledgementCallback )
@@ -356,21 +354,17 @@ class ioServer {
 
         socket.on('pickup', async (acknowledgementCallback) => {
 
-             // Before move the agent check if the match is n stop status or play one.
-            let matchId = matchNamespace.name
-            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }   // Remove the first '/' 
-            let match = Arena.getMatch( matchId ); 
-            if(match == false) { console.log('ricevuta richiesta move a un match non esistente: ', matchId); return};
-
-            if(match.status == 'stop'){  
-                console.log('PickUp disable becouse the Match ', matchId + ' status is stop')
-                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
+            // Check if the match is STOP status
+            if( match.status == Match.Status.STOP ) {
+                console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} Cannot pickup, match is in STOP` );
+                if ( acknowledgementCallback )
+                    acknowledgementCallback( 'Match is in STOP' );
                 return;
-            }
+            };
 
             const picked = await me.pickUp()
             
-            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName} pickup ${picked.length} parcels` );
+            console.log( `${matchRoom.name}/${me.name}-${me.id}-${me.teamName} pickup ${picked.length} parcels` );
             
             if ( acknowledgementCallback )
                 try {
@@ -380,21 +374,17 @@ class ioServer {
 
         socket.on('putdown', async (selected, acknowledgementCallback) => {
 
-             // Before move the agent check if the match is n stop status or play one.
-            let matchId = matchNamespace.name
-            if (matchId.startsWith("/")) { matchId = matchId.slice(1); }   // Remove the first '/' 
-            let match = Arena.getMatch( matchId );
-            if(match == false) { console.log('ricevuta richiesta move a un match non esistente: ', matchId); return};
-
-            if(match.status == 'stop'){  
-                console.log('PutDown disable becouse the Match ', matchId + ' status is stop')
-                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
+            // Check if the match is STOP status
+            if( match.status == Match.Status.STOP ) {
+                console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} Cannot putdown, match is in STOP` );
+                if ( acknowledgementCallback )
+                    acknowledgementCallback( 'Match is in STOP' );
                 return;
-            }
+            };
 
             const {dropped, reward} = await me.putDown( selected );
 
-            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName} putdown ${dropped.length} parcels (+ ${reward} pti -> ${me.score} pti)` );
+            console.log( `${matchRoom.name}/${me.name}-${me.id}-${me.teamName} putdown ${dropped.length} parcels (+ ${reward} pti -> ${me.score} pti)` );
             
             if ( acknowledgementCallback )
                 try {
@@ -410,9 +400,9 @@ class ioServer {
 
         socket.on( 'say', (toId, msg, acknowledgementCallback) => {
             
-            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, 'say ', toId, msg );
+            console.log( `${matchRoom.name}/${me.name}-${me.id}-${me.teamName}`, 'say ', toId, msg );
 
-            matchNamespace
+            matchRoom
             .in("agent:"+toId)
             .emit( 'msg', me.id, me.name, msg );
 
@@ -423,9 +413,9 @@ class ioServer {
         } )
 
         socket.on( 'ask', (toId, msg, replyCallback) => {
-            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, 'ask', toId, msg );
+            console.log( `${matchRoom.name}/${me.name}-${me.id}-${me.teamName}`, 'ask', toId, msg );
 
-            matchNamespace
+            matchRoom
             .in("agent:"+toId)
             .emit( 'msg', me.id, me.name, msg, (reply) => {
                 try {
@@ -438,9 +428,9 @@ class ioServer {
 
         socket.on( 'shout', (msg, acknowledgementCallback) => {
 
-            console.log( `${matchNamespace.name}/${me.name}-${me.id}-${me.teamName}`, 'shout', msg );
+            console.log( `${matchRoom.name}/${me.name}-${me.id}-${me.teamName}`, 'shout', msg );
 
-            matchNamespace
+            matchRoom
             .emit( 'msg', me.id, me.name, msg );
 
             try {
@@ -465,7 +455,7 @@ class ioServer {
          * Bradcast client log
          */
         socket.on( 'log', ( ...message ) => {
-            matchNamespace.emit( 'log', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, ...message )
+            matchRoom.emit( 'log', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, ...message )
         } )
 
 
@@ -474,7 +464,7 @@ class ioServer {
         socket.on( 'draw', async (bufferPng) => {
             // console.log( 'draw' );
             
-            matchNamespace
+            matchRoom
             .in("agent:"+toId)
             .emit( 'draw', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, bufferPng );
             

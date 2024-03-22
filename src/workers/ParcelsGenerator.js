@@ -10,7 +10,7 @@ const myClock =  require('../deliveroo/Clock');
  * @param {Config} config
  * @param {Grid} grid 
  */
-class parcelsGenerator {
+class ParcelsGenerator {
 
     /** @type {Config} */
     #config;
@@ -63,4 +63,4 @@ class parcelsGenerator {
 
 }
 
-module.exports = parcelsGenerator;
+module.exports = ParcelsGenerator;

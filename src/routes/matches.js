@@ -18,19 +18,14 @@ function verifyToken(req, res, next) {
   
   const token = req.headers.authorization;
   if (!token) {
-    return res.status(403).send({ auth: false, message: 'Token not find.' });
+    return res.status(403).send({ auth: false, message: 'No Token in headers.authorization.' });
   }
 
   // Check and decode the token
   jwt.verify(token, SUPER_SECRET_ADMIN, (err, decoded) => {
-    if (err) {
-      return res.status(500).send({ auth: false, message: 'Autenticatione feiled.' });
+    if ( err || decoded.user != 'admin' || decoded.password != 'god1234' ) {
+      return res.status(500).send({ auth: false, message: 'Autenticatione failed.' });
     }
-
-    if(decoded.user != 'admin' || decoded.password != 'god1234'){
-      return res.status(500).send({ auth: false, message: 'Autenticatione feiled.' });
-    }
-
     next();
   });
 }
@@ -76,7 +71,7 @@ router.post('/:id', verifyToken, (req, res) => {
 });
 
 
-// Endpoint per eliminare un gioco
+
 router.delete('/:id', verifyToken, (req, res) => {
   const matchId = req.params.id;
   console.log("\nRichiesta eliminazione Match: ", matchId)
@@ -84,26 +79,43 @@ router.delete('/:id', verifyToken, (req, res) => {
   //TODO: eliminare anche i socket associati al match
   //TODO: eliminare anche i listener associati al match (workers, ...)
   res.status(200).json({
-    message: 'Match eliminato con successo!',
+    message: 'Match deleted succesfully!',
     id: matchId
   });
 });
 
 
-// Endpoint per ottenere la lista dei match attivi
+
 router.get('/', (req, res) => {
-  const matchs = Array.from(Arena.matches.keys());
-  const status = Array.from(Arena.matches.values()).map(match => match.status);
-
-  console.log(matchs);  
-  console.log(status);
-
-  res.status(200).json({
-    message: 'Lista match attivi',
-    matches: matchs,
-    status: status
-  });
+    const matches = Array.from(Arena.matches.values()).map( match => {
+        return {
+            id: match.id,
+            remainingTime: match.timer.remainingTime,
+            status: match.status,
+            config: match.config
+        }
+    } );
+    res.status(200).json( matches );
 });
+
+
+
+router.get('/:id', (req, res) => {
+    const matchId = req.params.id;
+    const match = Arena.getMatch(matchId);
+    if ( ! match ) {
+        res.status(404).json({ message: `Match with id ${matchId} not found` });
+        return;
+    }
+    const json = {
+        id: match.id,
+        remainingTime: match.timer.remainingTime,
+        status: match.status,
+        config: match.config
+    }
+    res.status(200).json( json );
+});
+
 
 
 module.exports = router;

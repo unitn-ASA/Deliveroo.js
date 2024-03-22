@@ -4,13 +4,14 @@ const { ArgumentParser } = require('argparse');
 
 
 const parser = new ArgumentParser({
-    description: 'Usage of Deliveroo.js.'
+    description: 'Usage of Deliveroo.js. Use double -- to separate args to be sent to the script, e.g. npm run dev -- -p=80',
+    add_help: true
 });
 
 parser.add_argument('-p', '--port', { dest:'PORT', help: 'Specify a port for the server' });
 
-parser.add_argument('-l', '--level', { dest:'LEVEL', help: 'Specify a level file path. Find them in ./levels folder' });
-parser.add_argument('-m', '--map', { dest:'MAP_FILE', help: 'Specify a map file path. Find them in ./levels/maps folder' });
+parser.add_argument('-l', '--level', { dest:'LEVEL', help: 'Specify path to a level.json file. Examples are in ./levels folder' });
+parser.add_argument('-m', '--map', { dest:'MAP_FILE', help: 'Specify name of map file (without .json) from those in ./levels/maps folder' });
 
 parser.add_argument('-i', '--parcels-interval', { dest:'PARCELS_GENERATION_INTERVAL', help: "Specify the interval for parcels generation, options are '1s', '2s', '5s', '10s', default is '2s'" });
 parser.add_argument('-x', '--parcels-max', { dest:'PARCELS_MAX', help: "Specify the max number of parcels on the grid, default is 5" });
