@@ -56,16 +56,21 @@ class Arena {
      * @param {string} name 
      */
     static async deleteMatch (matchId) {
-        if(!Arena.matches.has(matchId)){
+        let match = Arena.matches.get(matchId);
+
+        if(!match){
             console.log(`/${matchId}: not find in the matches`)
+            return false;
+        } 
+
+        if(match.status == 'end'){
+            console.log(`/${matchId}: already ended`)
             return false;
         }
 
-        let match = Arena.matches.get(matchId);
         await match.destroy();
-        match = null;
 
-        Arena.matches.delete(matchId);
+        //Arena.matches.delete(matchId);
         console.log(`/${matchId}: destroied`)
         return true;
     }

@@ -270,7 +270,7 @@ class Leaderboard {
             if (!teamElement) {
                 console.log(`The team ${teamId} is not present in the leaderboard.`);
                 this.addTeam(teamId, teamName, teamScore);
-                return;
+                teamElement = document.getElementById("team_" + teamId)
             }
             let scoreElement = teamElement.querySelector('.score');     // Find the score element of the team
             scoreElement.textContent = teamScore;                       // Update the score element 

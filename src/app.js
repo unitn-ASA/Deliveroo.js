@@ -24,7 +24,7 @@ app.use('/', (req, res, next) => {
     }
     next() 
 });
-app.use('/game', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp','dist/game') ));
+app.use('/game', express.static(Path.join(__dirname, '..', 'packages', '@unitn-asa', 'deliveroo-js-webapp', 'dist', 'game')));
 app.use('/home', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 
 app.use('/api/config', configRoutes);
@@ -48,7 +48,6 @@ app.post('/login', (req, res) => {
 function generateTokenAdmin(){
 
     token = jwt.sign({user:'admin', password:'god1234'}, SUPER_SECRET_ADMIN );
-
     console.log( 'Generate new toke: ', token.slice(-30));
     return token
 

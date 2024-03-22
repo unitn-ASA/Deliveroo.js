@@ -13,6 +13,7 @@ const Timer = require('./Timer');
 const MatchStatus = {
     STOP: 'stop',
     PLAY: 'play',
+    END: 'end'
 };
 
 class Match {
@@ -23,6 +24,7 @@ class Match {
      /** @type {MatchStatus} config */
     #status;
     get status () {  return this.#status; }
+    set status (newStatus) {  this.#status = newStatus; }
 
     /** @type {string} #id */    
     #id;
@@ -80,7 +82,7 @@ class Match {
         this.#timer.on('timer stopped', () => { console.log(`/${this.#id } timer stopped`)   /* print for debug */ })
         this.#timer.on('timer ended', () => {
             console.log(`/${this.#id } timer ended`)
-            this.#status = MatchStatus.STOP
+            this.#status = MatchStatus.END
             this.grid.emit('match ended', this.#id);
         })
         
@@ -110,6 +112,11 @@ class Match {
 
    
     async destroy() {
+
+        this.#timer.stop()
+        this.#timer.destroy()
+        this.#timer = null; 
+
         // Stoppa the motion of the agent
         await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));
     
@@ -118,6 +125,8 @@ class Match {
     
         // Destroy the grid
         await this.grid.destroy();
+
+        this.status = MatchStatus.END
     
     }
 

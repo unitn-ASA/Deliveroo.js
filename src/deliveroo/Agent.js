@@ -316,8 +316,6 @@ class Agent extends Xy {
         
         this.#grid = null;              // Set the reference to the Grid object to null
         this.config = null;             // Set the reference to the Config object to null
-
-        console.log('\tAgent destroyed:', this.id);
     }
 }
 

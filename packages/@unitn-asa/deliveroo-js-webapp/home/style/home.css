@@ -257,7 +257,16 @@ header {
     cursor: pointer;
 }
 
-#match-container-admin .div-match .play-stop- {
+#match-container-admin .div-match .play-stop-button {
+    background-color: #f0f0f0;
+    color: black; 
+    border: 2px solid #f0f0f0;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+}
+
+#match-container-admin .div-match .view-result-button{
     background-color: #f0f0f0;
     color: black; 
     border: 2px solid #f0f0f0;

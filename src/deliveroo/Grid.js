@@ -245,7 +245,12 @@ class Grid extends Observable {
      * @type {function(String):boolean}
      */
     deleteParcel ( id ) {
-        return this.#parcels.delete( id );
+        if(this.#parcels){
+            return this.#parcels.delete( id );
+        }else{
+            return
+        }
+        
     }
 
     async destroy() {
@@ -257,10 +262,11 @@ class Grid extends Observable {
         await disconnectionPromise;
 
         // Destroy all the agent of the grid
+        console.log(`\tDelete Agents`);
         for (let agent of this.#agents.values()) {
             //console.log(agent)
             agent.destroy();
-            //console.log('delete agent ', agent.id, ' -> ', agent.listenerCount())
+            console.log('\t\tdelete agent ', agent.id, ' -> ', agent.listenerCount())
             agent = null;
             //console.log(agent)
         }
@@ -270,10 +276,11 @@ class Grid extends Observable {
         //console.log(this.#agents)
         
         // Destroy all the parcels of the grid
+        console.log(`\tDelete PArcels`);
         for (let parcel of this.#parcels.values()) {
             //console.log(parcel)
             parcel.destroy();
-            //console.log('delete parcel ', parcel.id, ' -> ', parcel.listenerCount())
+            console.log('\t\tdelete parcel ', parcel.id, ' -> ', parcel.listenerCount())
             parcel = null;
             //console.log(parcel)
         }

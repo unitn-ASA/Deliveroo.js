@@ -74,6 +74,12 @@ router.post('/:id', verifyToken, (req, res) => {
     res.status(400).json({ message: `Match ${matchId} not found` });
     return
   }
+
+  if(match.status == 'end'){
+    console.log('POST match: match', matchId, ' requested invalid becouse match is already ended')
+    res.status(400).json({ message: `Match ${matchId} already ended` });
+    return
+  }
   
   match.strtStopMatch();
   console.log(`POST match: match ${matchId} status update to ${match.status}.`)
@@ -85,6 +91,7 @@ router.post('/:id', verifyToken, (req, res) => {
 // Endpoint per eliminare un gioco
 router.delete('/:id', verifyToken, async (req, res) => {
   const matchId = req.params.id;
+  
   if( await Arena.deleteMatch(matchId) ){
     console.log("DELETE match:  match: ", matchId, " deleted")
     res.status(200).json({
@@ -114,6 +121,8 @@ router.get('/', (req, res) => {
     status: status
   });
 });
+
+
 
 // Endpoint per ottenere la lista dei match attivi
 router.get('/:id/status', (req, res) => {

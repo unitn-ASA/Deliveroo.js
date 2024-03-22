@@ -102,7 +102,14 @@ class ioServer {
 
             // if the socket try to cennect to a match that not exist we block the connection 
             if(!Arena.getMatch( matchTitle )){
-                //console.log( `socket ${socket.id} try to connected to match ${matchTitle} that not exist` );
+                console.log( `socket ${socket.id} try to connected to match ${matchTitle} that not exist` );
+                socket.disconnect();
+                return;
+            }
+
+            // if the socket try to cennect to a match that not exist we block the connection 
+            if(Arena.getMatch( matchTitle ).status == 'end'){
+                console.log( `socket ${socket.id} try to connected to match ${matchTitle} that is ended` );
                 socket.disconnect();
                 return;
             }
@@ -149,6 +156,9 @@ class ioServer {
                         // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${this.#config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
                         await new Promise( res => setTimeout(res, this.#config.AGENT_TIMEOUT) );
                         
+                        // if in this 10 seconds the match end we stop the action
+                        if(match.status == 'end'){/*console.log('interrupt action, match ended')*/; return}
+
                         let socketsLeft = (await agentRoom.fetchSockets()).length;
                         if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
                             console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Agent deleted after ${this.#config.AGENT_TIMEOUT/1000} seconds of no connections` );
@@ -366,6 +376,7 @@ class ioServer {
             if (matchId.startsWith("/")) { matchId = matchId.slice(1); }  // Remove the first '/' 
             let match = Arena.getMatch( matchId ); 
             if(match == false) { console.log('ricevuta richiesta move a un match non esistente: ', matchId); return};
+            if(match.status == 'end') { console.log('ricevuta richiesta move a un match finito: ', matchId); return};
 
 
             if(match.status == 'stop'){  

@@ -76,7 +76,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
         console.log("LOGIN ADMIN SUCSESS")
         setAdminCookie(data.token)
         openORcloseLoginForm(); 
-        checkLogged();
+        location.reload();
     } else {
         console.log("LOGIN ADMIN ERROR")
         document.getElementById('username-login').classList.add('error');

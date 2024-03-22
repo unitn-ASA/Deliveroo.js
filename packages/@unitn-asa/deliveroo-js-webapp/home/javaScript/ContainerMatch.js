@@ -41,31 +41,42 @@ async function defineContainerMatch(admin){
     
                 let descriptionMatch = document.createElement('div');          
                 descriptionMatch.classList = 'description-match';
+                descriptionMatch.textContent = getStatusText(data.status[index]);
 
-                let joinButton = document.createElement('button');
-                joinButton.classList.add('join-button');
-                joinButton.setAttribute('match', match);
-                joinButton.textContent = `join`;
-                joinButton.addEventListener('click',sendRequestJoinMatch)
-                
-                let deleteButton = document.createElement('button');
-                deleteButton.classList.add('delete-button');
-                deleteButton.setAttribute('match', match);
-                deleteButton.textContent = `X`;
-                deleteButton.addEventListener('click',deleteMatch)
-                
-                let playButton = document.createElement('button');
-                deleteButton.classList.add('play-stop-button');
-                playButton.setAttribute('match', match);
-                playButton.textContent = getStatusButtonText(data.status[index]);
-                descriptionMatch.textContent = getStatusText(playButton.textContent);
-                playButton.addEventListener('click',sendPlayStopMatch)
-                
                 divMatch.appendChild(idMatch);
                 divMatch.appendChild(descriptionMatch);
-                divMatch.appendChild(joinButton);
-                divMatch.appendChild(deleteButton);
-                divMatch.appendChild(playButton);
+
+                if(data.status[index] != 'end'){
+                    let joinButton = document.createElement('button');
+                    joinButton.classList.add('join-button');
+                    joinButton.setAttribute('match', match);
+                    joinButton.textContent = `join`;
+                    joinButton.addEventListener('click',sendRequestJoinMatch)
+                    
+                    let deleteButton = document.createElement('button');
+                    deleteButton.classList.add('delete-button');
+                    deleteButton.setAttribute('match', match);
+                    deleteButton.textContent = `X`;
+                    deleteButton.addEventListener('click',deleteMatch)
+                    
+                    let playButton = document.createElement('button');
+                    playButton.classList.add('play-stop-button');
+                    playButton.setAttribute('match', match);
+                    playButton.textContent = getStatusButtonText(data.status[index]);
+                    playButton.addEventListener('click',sendPlayStopMatch)
+
+                    divMatch.appendChild(joinButton);
+                    divMatch.appendChild(deleteButton);
+                    divMatch.appendChild(playButton);
+                }else{
+                    let viewResultButton = document.createElement('button');
+                    viewResultButton.classList.add('view-result-button');
+                    viewResultButton.setAttribute('match', match);
+                    viewResultButton.textContent = 'view result';
+                    viewResultButton.addEventListener('click',sendRequestJoinMatch)
+
+                    divMatch.appendChild(viewResultButton);
+                }                
 
                 container.appendChild(divMatch);
             });
@@ -102,8 +113,9 @@ function sendRequestJoinMatch(event){
 
 
 function getStatusText(status) {
-    if (status === 'play') return 'Match in pause';
-    if (status === 'stop') return 'Match is active';
+    if (status === 'play') return 'Match in active';
+    if (status === 'stop') return 'Match is pause';
+    if (status === 'end') return 'Match is end';
     return 'Undefined status';
 }
 
@@ -140,12 +152,12 @@ function sendPlayStopMatch(event){
       .then(data => {
         console.log('Correct: ', data.message)
 
-        // Update the botton
-        event.target.textContent = getStatusButtonText(event.target.textContent)
-
         // Update the description
         const descriptionElement = event.target.parentElement.querySelector('.description-match')
         descriptionElement.textContent = getStatusText(event.target.textContent);
+
+        // Update the botton
+        event.target.textContent = getStatusButtonText(event.target.textContent)
 
       })
       .catch(error => {

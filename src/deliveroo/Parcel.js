@@ -13,6 +13,7 @@ class Parcel extends Xy {
     id;
     reward;
     carriedBy;
+    decay
     
     /**
      * @constructor Parcel
@@ -48,18 +49,20 @@ class Parcel extends Xy {
         this.interceptValueSet('reward');
         this.reward = Math.floor( Math.random()*PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
 
-        const decay = () => {
+        this.decay = () => {
             this.reward = Math.floor( this.reward - 1 );
             if ( this.reward <= 0) {
                 this.emitOnePerTick( 'expired', this );
-                myClock.off( PARCEL_DECADING_INTERVAL, decay );
+                myClock.off( PARCEL_DECADING_INTERVAL, this.decay );
             }
         };
-        myClock.on( PARCEL_DECADING_INTERVAL, decay );
+
+        myClock.on( PARCEL_DECADING_INTERVAL, this.decay );
         
     }
 
     async destroy() {
+        myClock.off( this.#config.PARCEL_DECADING_INTERVAL, this.decay )
         this.removeAllListeners();          // Remove all event listeners
         this.#config = null;                // Set the reference to the Config object to null
         this.carriedBy = null;              // Set the reference to the Agent object to null

@@ -203,12 +203,29 @@
 
 #admin-div .home-button {
     flex-basis: 20%; 
+    min-height:30px;
+    min-height: 30px;
     background-color: orangered;
     color: white;
     text-align: center;
     border: 2px solid #f0f0f0; 
     display: inline-block;
     font-size: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.home-button-end-match{
+    background-color: orangered;
+    color: white;
+    text-align: center;
+    border: 2px solid #f0f0f0; 
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 14px;
+    height:30px;
+    width: 30px;
     border-radius: 50%;
     cursor: pointer;
 }

@@ -32,7 +32,8 @@ const Grid =  require('./Grid')
     }
 
     destroy(){
-        this.#grid = null;      // Set the reference to the Grid object to null
+        this.removeAllListeners();          // Remove all event listeners
+        this.#grid = null;                  // Set the reference to the Grid object to null
         this.#parcels.clear()
         this.#parcels = null;
     }

@@ -267,8 +267,8 @@ class Client {
 
         });
 
-        this.socket.on('leaderboard', (dataAgent, dataTeam, socketId) => {
-            console.log('Leaderboard: ',socketId, dataAgent, dataTeam)
+        this.socket.on('leaderboard', (dataAgent, dataTeam) => {
+            console.log('Leaderboard: ', dataAgent, dataTeam)
             let teamScore;
             if(dataTeam){teamScore = dataTeam.score}
             

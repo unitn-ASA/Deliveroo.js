@@ -1,5 +1,4 @@
 let params = new URLSearchParams(window.location.search);
-
 console.log(params)
 if (!params.has('match')) {
     params.append('match', '0');
