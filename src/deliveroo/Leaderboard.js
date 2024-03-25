@@ -156,6 +156,7 @@ class Leaderboard {
         if ( matchId ) matchExpression.matchId = { $eq: matchId };
         if ( teamId ) matchExpression.teamId = { $eq: teamId };
         if ( agentId ) matchExpression.agentId = { $eq: agentId };
+        
 
         // group expression
         if ( groupByKeys.length == 0 ) groupByKeys = ['matchId', 'teamId', 'agentId'];
@@ -165,8 +166,12 @@ class Leaderboard {
         if ( groupByKeys.includes('teamId') ) groupExpression.teamId = { $first: '$teamId' };
         if ( groupByKeys.includes('agentId') ) groupExpression.agentId = { $first: '$agentId' };
         groupExpression.agentName = { $first: '$agentName' };
+        groupExpression.agentId = { $first: '$agentId' };
+        groupExpression.teamName = { $first: '$teamName' };
+        groupExpression.teamId = { $first: '$teamId' };
         groupExpression.score = { $sum: '$score' };
-        groupExpression.history = { $push: { score: '$score', time: '$time' } };
+        // groupExpression.history = { $push: { score: '$score', time: '$time' } };
+        
 
         // console.log( 'Leaderboard.get()', 'matchExpression:', matchExpression, 'groupExpression:', groupExpression );
         
@@ -198,11 +203,11 @@ class Leaderboard {
      * @param {string} agentId
      * @param {number} score
      */
-    static async addReward ( matchId, teamId, agentId, teamName, agentName, score ) {
+    static async addReward ( matchId, {teamId, teamName, agentId, agentName}, score ) {
         // const reward = new Reward( matchId, teamId, agentId, score, Date.now() );
         // this.#rewards.push( reward );
         try {
-            var reward = new RewardModel( {matchId, teamId, agentId, agentName, score, time: Date.now()} );
+            var reward = new RewardModel( {matchId, teamId, teamName, agentId, agentName, score, time: Date.now()} );
             return await reward.save();
         } catch (error) {
             // console.log('Cannot persist reward to Leaderboard on mongoDb');

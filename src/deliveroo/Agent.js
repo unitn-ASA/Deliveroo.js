@@ -24,8 +24,10 @@ class Agent extends Xy {
     id;
     /** @type {string} name */
     name;
-    /** @type {string} team */
-    team;
+    /** @type {string} team id */
+    teamId;
+     /** @type {string} team name */
+    teamName;
     /** @type {Set<Agent>} sensing agents in the sensed area */
     sensing;
     /** @type {Number} score */
@@ -94,10 +96,21 @@ class Agent extends Xy {
 
         loadScore(this.#grid.matchId, this.id )
         .then(loadedScore => {
-            this.score = loadedScore;
+            console.log(`/${this.#grid.matchId} costructed new Agent: id=`, this.id + ' name=', this.name + ' team name=', this.teamName + ' team id=', this.teamId)
+            return loadedScore
+        })
+        .then(loadedScore => {
+            if(loadedScore !== false){
+                this.score = loadedScore;
+                console.log(`/${this.#grid.matchId}/${this.id} loaded score `, this.score );
+            }else{
+                this.score = 0;
+                console.log(`/${this.#grid.matchId}/${this.id} unable to load a pass score ` );
+                this.emitOnePerTick( 'rewarded', this, 0 ); 
+            }
         })
         .catch(error => {
-            console.error('Error in loading the score');
+            console.error(`/${this.#grid.matchId}/${this.id} error in loading the score`, error);
             this.score = 0;
         });
         
@@ -119,8 +132,8 @@ class Agent extends Xy {
         var agents = [];
         for ( let agent of this.#grid.getAgents() ) {
             if ( agent != this && !( Xy.distance(agent, this) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                const {id, name, team, x, y, score} = agent
-                agents.push( {id, name, team, x, y, score} )
+                const {id, name, teamId, teamName, x, y, score} = agent
+                agents.push( {id, name, teamId, teamName, x, y, score} )
             }
         }
         this.emitOnePerTick( 'agents sensing', agents )
@@ -313,7 +326,6 @@ async function loadScore(matchId, agentId){
     try {
         let record = await Leaderboard.get({ matchId, agentId });
         let score = record[0].score
-        console.log("Loaded score for", agentId, " -> ", score);
         return score
     } catch (error) {
         // console.error('/'+matchId, 'Unable to load a past score for', agentId);

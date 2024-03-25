@@ -2,38 +2,36 @@ const express = require('express');
 const cors = require('cors');
 const Path = require('path');
 const app = express();
-const {generateToken, generateTokenAdmin, decodeToken} = require('./deliveroo/Token');
+const jwt = require('jsonwebtoken');
 
+const configRoutes = require('./routes/config')
 const matchesRoutes = require('./routes/matches');
 const mapsRoutes = require('./routes/maps');
 const leaderboardRoutes = require('./routes/leaderboard');
+const tokenRoutes = require('./routes/token');
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
 
 // Middleware per gestire i dati JSON e form-urlencoded
 app.use(express.json());
 // Middleware per chiamate cors
 app.use(cors());
 
-app.use('/', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
+app.use('/', (req, res, next) => {
+    if (req.originalUrl === '/') { 
+        req.url += 'game'; 
+    }
+    next() 
+});
 app.use('/game', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp','dist/game') ));
+app.use('/home', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 
+app.use('/api/config', configRoutes);
 app.use('/api/matches', matchesRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
-
-
-app.get('/token', (req, res) => {
-
-    //console.log(req.headers);
-    const token = generateToken(
-        req.headers['name'] || req.query.name,
-        req.headers['team'] || req.query.teamNameOrToken
-    );
-
-    console.log( 'GET /token', '...'+token.slice(-30), decodeToken(token) );
-    res.json({ token: token }); 
-})
+app.use('/api/token', tokenRoutes);
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -46,6 +44,15 @@ app.post('/login', (req, res) => {
         res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 });
+
+function generateTokenAdmin(){
+
+    token = jwt.sign({user:'admin', password:'god1234'}, SUPER_SECRET_ADMIN );
+
+    console.log( 'Generate new toke: ', token.slice(-30));
+    return token
+
+}
 
 
 module.exports = app;

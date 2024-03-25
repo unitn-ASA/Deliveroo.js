@@ -32,12 +32,11 @@ function verifyToken(req, res, next) {
 
 // Endpoint for the cration of a new match
 router.post('/', verifyToken, async (req, res) => {
-
-  console.log("\nAsk for a new Match")
   
   var config = new Config( req.body );
+  console.log("POST match: creation of the new Match: ", config)
   var newMatch = Arena.getOrCreateMatch({config});
-  console.log("Creation of the new Match: ", newMatch.config);
+
 
   let mapPath = mapsDirectory + '/' + config.MAP_FILE +'.json';
 
@@ -48,13 +47,13 @@ router.post('/', verifyToken, async (req, res) => {
 
       res.status(200).json({
         message: 'Data received successfully',
-        id: newMatch.matchId,
+        id: newMatch.id,
         config: newMatch.config,
         map: map
       });
     })
     .catch(error => {
-      console.error('Error in the reading of the map file:', error);
+      console.error('POST match: error in the reading of the map file:', error);
       res.status(500).json({ error: 'Error in the reading of the map file:' });
     });
 
@@ -64,24 +63,35 @@ router.post('/:id', verifyToken, (req, res) => {
   const matchId = req.params.id;      // get id of the match
   
   let match = Arena.matches.get(matchId);
+
+  if(!match){
+    console.log('POST match: match', matchId, ' requested not found')
+    res.status(400).json({ message: `Match ${matchId} not found` });
+    return
+  }
+  
   match.startStop();
-  console.log(`Stato del match ${matchId} aggiornato a ${match.status}.`)
+  console.log(`POST match: match ${matchId} status update to ${match.status}.`)
 
   res.status(200).json({ message: `Stato del match ${matchId} aggiornato a ${match.status}.` });
 });
 
 
-
-router.delete('/:id', verifyToken, (req, res) => {
+// Endpoint per eliminare un gioco
+router.delete('/:id', verifyToken, async (req, res) => {
   const matchId = req.params.id;
-  console.log("\nRichiesta eliminazione Match: ", matchId)
-  Arena.delete(matchId)
-  //TODO: eliminare anche i socket associati al match
-  //TODO: eliminare anche i listener associati al match (workers, ...)
-  res.status(200).json({
-    message: 'Match deleted succesfully!',
-    id: matchId
-  });
+  if( await Arena.deleteMatch(matchId) ){
+    console.log("DELETE match:  match: ", matchId, " deleted")
+    res.status(200).json({
+      message: 'Match eliminato con successo!',
+      id: matchId
+    });
+  }else{
+    console.log("DELETE match: error, match: ", matchId, " not found")
+    res.status(500).json({ message: 'Error during the elimination of the match' });
+  }
+  
+  
 });
 
 
@@ -96,6 +106,26 @@ router.get('/', (req, res) => {
         }
     } );
     res.status(200).json( matches );
+});
+
+// Endpoint per ottenere la lista dei match attivi
+router.get('/:id/status', (req, res) => {
+  const matchId = req.params.id;
+  const match = Arena.getMatch(matchId);
+  let status
+   
+  if(match){
+    //console.log(match, match.status);
+    status = match.status
+  }else{
+    //console.log('Match ', matchId + ' not find')
+    res.status(400).send('Match not find')
+    return
+  }
+ 
+  res.status(200).json({
+    status: status
+  });
 });
 
 

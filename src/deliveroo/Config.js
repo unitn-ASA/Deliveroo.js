@@ -91,8 +91,8 @@ class Config {
     /** @type {number} default is 50 (=20frame/s) */
     CLOCK = process.env.CLOCK || 50;
 
-    /** @type {number} default is 50 (=20frame/s) */
-    MATCH_TIMEOUT = process.env.MATCH_TIMEOUT || 10;
+    /** @type {number} default is 600, 10 minutes*/
+    MATCH_TIMEOUT = process.env.MATCH_TIMEOUT || 600;
     
     /** @param {Config} config */
     constructor ( config = {} ) {

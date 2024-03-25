@@ -29,6 +29,7 @@ class ioServer {
     constructor( httpServer ) {
         
         const defaultMatch = Arena.getOrCreateMatch( { id: 0 } ); // with default config
+        defaultMatch.startStop();
         
         /**
          * Server Socket.IO
@@ -64,7 +65,7 @@ class ioServer {
             
             const socketId = req.id;
             jwt.verify(token, SUPER_SECRET, (err, decoded) => {
-                console.log(decoded);
+                //console.log(decoded);
                 if (err) {
                     console.log( `Socket ${socketId} log in failure. Invalid token provided.` );
                 } else if ( decoded.id && decoded.name ) {
@@ -99,6 +100,13 @@ class ioServer {
             const token = socket.request.user.token;
             const matchTitle = ( socket.nsp.name != '/null' && socket.nsp.name != '/' ? socket.nsp.name.split('/').pop() : 0 );
 
+            // if the socket try to connect to a match that does not exist, we block the connection 
+            if (!Arena.getMatch( matchTitle )) {
+                console.log( `/${matchTitle}/${name}-${id}-${teamName} connection refused, match does not exist.` );
+                socket.disconnect();
+                return;
+            }
+
             console.log( `/${matchTitle}/${name}-${id}-${teamName} connecting from socket ${socket.id}, with token ...${token.slice(-30)}` );
             
             await socket.join("team:"+teamId);
@@ -119,27 +127,41 @@ class ioServer {
             /**
              * on Disconnect
              */
-            socket.on( 'disconnect', async () => {
-
-                let socketsLeft = (await agentRoom.fetchSockets()).length;
-                console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} Socket disconnected.`,
-                    socketsLeft ?
-                    `Other ${socketsLeft} connections to the agent.` :
-                    `No other connections, agent will be removed in ${this.#config.AGENT_TIMEOUT/1000} seconds.`
-                );
-                if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
-                    
-                    // console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} No connection left. In ${this.#config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
-                    await new Promise( res => setTimeout(res, this.#config.AGENT_TIMEOUT) );
-                    
-                    let socketsLeft = (await agentRoom.fetchSockets()).length;
-                    if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
-                        console.log( `/${match.id}/${me.name}-${me.id}-${me.teamName} Agent deleted after ${this.#config.AGENT_TIMEOUT/1000} seconds of no connections` );
-                        match.grid.deleteAgent ( me );
-                    };
-                    
+            socket.on( 'disconnect', async (cause) => {
+                
+                // if the disconection is occured becouse the match is ended
+                if (cause === 'server namespace disconnect') {
+                    console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Socket disconnected. Match ended.` );
+                    return;
                 }
 
+                try{
+
+                    let socketsLeft = (await agentRoom.fetchSockets()).length;
+                    console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Socket disconnected.`,
+                        socketsLeft ?
+                        `Other ${socketsLeft} connections to the agent.` :
+                        `No other connections, agent will be removed in ${this.#config.AGENT_TIMEOUT/1000} seconds.`
+                    );
+                    if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
+                        
+                        // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${this.#config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
+                        await new Promise( res => setTimeout(res, this.#config.AGENT_TIMEOUT) );
+                        
+                        // if in this 10 seconds the match end we stop the action
+                        if(match.status == 'end'){/*console.log('interrupt action, match ended')*/; return}
+
+                        let socketsLeft = (await agentRoom.fetchSockets()).length;
+                        if ( socketsLeft == 0 && match.grid.getAgent(me.id) ) {
+                            console.log( `/${match.id}/${me.name}-${me.team}-${me.id} Agent deleted after ${this.#config.AGENT_TIMEOUT/1000} seconds of no connections` );
+                            match.grid.deleteAgent ( me );
+                        };
+                    }
+
+                } catch (error) {
+                    console.log('Error in the disconection of socket ', socket.id, ' -> ', error);
+                }
+                
             });
             
         });
@@ -201,14 +223,13 @@ class ioServer {
 
 
         //Emit you
-        me.on( 'agent', ({id, name, team, x, y, score}) => {
-            let idme = me.id; let nameme = me.name; let teamme = team; let xme = me.x; let yme = me.y; let scoreme = me.score;
-            //console.log("Dati agent: ",idme, nameme, xme, yme, scoreme)
-            socket.emit( 'you', {idme, nameme, teamme, xme, yme, scoreme} );
+        me.on( 'agent', ({id, name, teamId, teamName, x, y, score}) => {       
+            //console.log("Dati agent 1: ", id, name, teamId, teamName, x, y, score)
+            socket.emit( 'you', id, name, teamId, teamName, x, y, score );
         } );
-        let idme = me.id; let nameme = me.name; let teamme = me.team; let xme = me.x; let yme = me.y; let scoreme = me.score;
-        //console.log("Dati agent: ",idme, nameme, xme, yme, scoreme)
-        socket.emit( 'you', {idme, nameme, teamme, xme, yme, scoreme} );
+        
+        //console.log("Dati agent 2: ", me.id, me.name, me.teamId, me.teamName, me.x, me.y, me.score)
+        socket.emit( 'you', me.id, me.name, me.teamId, me.teamName, me.x, me.y, me.score );
 
         // passo le informazione dei punteggi di tutti i team ed agent per la leaderboard, anche eventuali delet
         // this.on('agent info', (id, name, team, score) => {
@@ -225,28 +246,26 @@ class ioServer {
             socket.emit("agent deleted", who.id, who.team)
         })
 
+        socket.emit("timer update", match.timer.remainingTime)
         grid.on('timer update', (time) => {
             socket.emit("timer update", time)
         })
 
-        grid.on('match ended', () => {
+        grid.on('match ended', async () => {
             socket.emit("match ended")
         })
+
+        grid.on('disconect socket', async (disconnectionPromise) =>{
+            await socket.disconnect();
+            disconnectionPromise; 
+        })
+       
         // this.on('team deleted', (name)=>{
         //     // console.log("Team ", name + " deleted")
         //     socket.emit("team deleted", name)
         // })
 
-      
-        // invio le info iniziali
-        // for (let team of this.#teamsAgents.values()) {
-        //     socket.emit("team info", team.name, team.score)
-        // }
-        for (let agent of grid.getAgents()) {
-            socket.emit("agent info", agent.id, agent.name, agent.team, agent.score)
-        }
-
-        
+              
 
         /**
          * Emit sensing
@@ -310,9 +329,24 @@ class ioServer {
         }
 
         // Leaderboard
-        grid.on( 'agent rewarded', () => {
-            matchRoom.emit( 'leaderboard', Leaderboard.get({matchId:match.id}) );
-        } );
+        grid.on( 'agent rewarded', async (agent, reward) => {
+            //console.log('CHIAMATA REWARD')
+            let matchId = match.id
+            let agentId = agent.id
+            let dataAgent = ( await Leaderboard.get({matchId, agentId}, ['agentId']) )[0]
+            let dataTeam;
+
+            if(agent.teamName != 'no-team'){
+                //console.log('team:' , agent.teamName)
+                let teamId = agent.teamId
+                dataTeam = ( await Leaderboard.get({matchId, teamId}, ['teamId']) )[0];
+            }
+
+            //console.log('agent reWard, agent id: ', agent.id + " -> ", dataAgent[0])
+            //console.log('team reWard:' , dataTeam)
+
+            socket.emit( 'leaderboard', dataAgent, dataTeam );
+        });
 
     }
 
@@ -404,7 +438,7 @@ class ioServer {
 
             matchRoom
             .in("agent:"+toId)
-            .emit( 'msg', me.id, me.name, msg );
+            .emit( 'msg', me.id, me.name, me.teamId, msg );
 
             try {
                 if (acknowledgementCallback) acknowledgementCallback( 'successful' )
@@ -417,7 +451,7 @@ class ioServer {
 
             matchRoom
             .in("agent:"+toId)
-            .emit( 'msg', me.id, me.name, msg, (reply) => {
+            .emit( 'msg', me.id, me.name, me.teamId, msg, (reply) => {
                 try {
                     console.log( toId, 'replied', reply );
                     replyCallback( reply )

@@ -4,6 +4,7 @@ const Agent =  require('./Agent')
 const Parcel = require('./Parcel');
 const Xy = require('./Xy');
 const Config = require('./Config');
+const Leaderboard = require('./Leaderboard')
 
 
 /**
@@ -19,6 +20,10 @@ class Grid extends Observable {
     /** @type {Map<string, Agent>} */
     #agents;
     getAgents() { return this.#agents; }
+
+    /** @type {Map<string,Set<Agent>} agents in each team */
+    #teamsAgents = new Map();
+
     /** @type {Map<string, Parcel>} */
     #parcels;
     
@@ -123,7 +128,17 @@ class Grid extends Observable {
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );
-        me.on( 'rewarded', this.emit.bind(this, 'agent rewarded') );
+        me.on( 'rewarded', async (agent,sc) => {
+            //console.log('REWARD')
+            //console.log(this.listenerCount('agent rewarded'))
+            await Leaderboard.addReward( this.matchId, {
+                teamId: agent.teamId,
+                teamName: agent.teamName,
+                agentId: agent.id,
+                agentName: agent.name
+            }, sc );
+            this.emitOnePerTick('agent rewarded', agent)
+        });
 
         // On mine or others movement emit SensendAgents
         this.on( 'agent xy', ( who ) => {
@@ -149,6 +164,21 @@ class Grid extends Observable {
         // On parcel and my movements emit parcels sensing
         this.on( 'parcel', () => me.emitParcelSensing() );
         me.on( 'xy', () => me.emitParcelSensing() );
+
+        // Team
+        var teamMates = this.#teamsAgents.get( userParam.teamId );
+        if( userParam.teamId != undefined ){
+            if ( ! teamMates ) {
+                teamMates = new Set();
+                this.#teamsAgents.set( userParam.teamId, teamMates );
+                console.log(`/${this.matchId} Addet the team `, userParam.teamName +'(', userParam.teamId + ') ',  )
+            }
+            if ( ! teamMates.has( me ) ) {
+                teamMates.add( me );
+                console.log(`/${this.matchId} Adding agent `, me.id +'(', me.name + ') to team ',  userParam.teamId + ': ', printSet(this.#teamsAgents.get( userParam.teamId)) )
+            }
+        }
+
 
         return me;
     }
@@ -225,12 +255,17 @@ class Grid extends Observable {
 
     async destroy() {
         
-        
+        console.log(`\tDisconect all socket`);
+        const disconnectionPromise = new Promise((resolve) => {resolve()});
+        this.emit('disconect socket', disconnectionPromise);
+
+        await disconnectionPromise;
+
         // Destroy all the agent of the grid
         for (let agent of this.#agents.values()) {
             //console.log(agent)
             agent.destroy();
-            //console.log(agent)
+            //console.log('delete agent ', agent.id, ' -> ', agent.listenerCount())
             agent = null;
             //console.log(agent)
         }
@@ -243,7 +278,7 @@ class Grid extends Observable {
         for (let parcel of this.#parcels.values()) {
             //console.log(parcel)
             parcel.destroy();
-            //console.log(parcel)
+            //console.log('delete parcel ', parcel.id, ' -> ', parcel.listenerCount())
             parcel = null;
             //console.log(parcel)
         }
@@ -270,10 +305,32 @@ class Grid extends Observable {
 
         this.#config = null;
 
-        console.log('\tGrid destroyed');
+        console.log(`\tGrid destroyed`);
     }
 
 }
+
+
+// function only for debug print 
+function printSet(set) {
+    let output = "[";
+    let isFirst = true;
+    
+    set.forEach(function(element) {
+      if (!isFirst) {
+        output += ", ";
+      }
+      output += element.id;
+      output += '(';
+      output += element.name;
+      output += ')';
+      isFirst = false;
+    });
+  
+    output += "]";
+    return output;
+}
+
 
 
 module.exports = Grid;

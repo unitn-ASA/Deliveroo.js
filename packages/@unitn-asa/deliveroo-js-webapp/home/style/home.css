@@ -1,7 +1,5 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -39,25 +37,11 @@ header {
     opacity: 0.8;
 }
 
-#loggedButton{
-    position: absolute;
-    top: 10px;
-    right: 10px;
+.logged{
     background-color: black;
     border: 2px solid #0077be;
     color: #0077be; 
-    padding: 5px 10px;
-    margin-bottom: 10px; 
-    margin-right: 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition-duration: 0.4s;
 }
-
 
 
 /* CSS for the login form */
@@ -165,88 +149,8 @@ header {
     background-color: black;
 }
 
-.main-content {
-    flex: 1;
-    padding: 20px;
-}
-
 #admin-part{
     display: none;
-}
-
-
-/* CSS for the side bar */
-.sidebar {
-    width: 30%;
-    background-color: black; 
-    padding: 20px;
-    height: 100%;
-    border-left: 3px solid darkgray; 
-
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start; 
-    
-}
-
-.bottoni {
-    display: flex;
-    flex-direction: row; 
-}
-
-#generateTokenBtn {
-    background-color: #4CAF50; 
-    border: 2px solid #f0f0f0;
-    color: white; 
-    padding: 5px 10px;
-    margin-bottom: 10px; 
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    border-radius: 5px; 
-    cursor: pointer;
-    transition-duration: 0.4s; 
-}
-
-#generateTokenBtn:hover {
-    background-color: #45a049; 
-    color: white; 
-}
-
-#copyTokenBtn {
-    background-color: #e0e0e0; 
-    border: 2px solid #f0f0f0;
-    color: #333; 
-    padding: 5px 10px;
-    margin-bottom: 10px; 
-    margin-left: 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition-duration: 0.4s;
-}
-
-#copyTokenBtn:hover {
-    background-color: #d0d0d0; 
-}
-
-#tokenBox {
-    background-color: #f0f0f0;
-    color: black;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    border: 2px solid #f0f0f0;
-    width: 90%; 
-    text-align: center;      
-    overflow: hidden;        
-    white-space: nowrap;     
-    text-overflow: ellipsis; 
-
 }
 
 
@@ -337,10 +241,30 @@ header {
 
 #match-container-admin .div-match .delete-button {
     background-color: red;
-    color: white;
+    color: #f0f0f0; 
+    border: 2px solid #f0f0f0;
+    border-radius: 5px;
     text-align: center;
+    cursor: pointer;
 }
 
+#match-container-admin .div-match .join-button{
+    background-color: #e6780e;
+    color: #f0f0f0; 
+    border: 2px solid #f0f0f0;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+}
+
+#match-container-admin .div-match .play-stop- {
+    background-color: #f0f0f0;
+    color: black; 
+    border: 2px solid #f0f0f0;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+}
 
 
 

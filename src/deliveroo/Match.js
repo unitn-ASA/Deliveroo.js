@@ -16,6 +16,7 @@ class Match {
     static Status = {
         STOP: 'stop',
         PLAY: 'play',
+        END: 'end'
     };
 
     /** @type {Config} config */
@@ -38,11 +39,11 @@ class Match {
     /** @type {RandomAgentMover[]} */
     #randomAgentMover;
 
+    /** @type {Map<string,Set<Agent>>} agents in each team */
+    #teamsAgents = new Map();
+
     // /** @type {Map<string,{agent:Agent,sockets:Set<Socket>}>} idToAgentAndSockets */
     // #idToAgentAndSockets = new Map();
-
-    /** @type {Map<string,Set<Agent>} agents in each team */
-    #teamsAgents = new Map();
 
     /** @type {Timer} timer of the match */
     #timer;
@@ -78,27 +79,27 @@ class Match {
 
         // listeners to the event of the timer
         this.#timer.on('timer update', (remainingTime) => { 
-            console.log(remainingTime) /* print for debug */
+            //console.log(remainingTime) /* print for debug */
             this.grid.emit('timer update',remainingTime);  
         })
-        this.#timer.on('timer started', () => { console.log('timer started') /* print for debug */ })
-        this.#timer.on('timer stopped', () => { console.log('timer stopped') /* print for debug */ })
+        this.#timer.on('timer started', () => {  console.log(`/${this.#id } timer started`)  /* print for debug */ })
+        this.#timer.on('timer stopped', () => { console.log(`/${this.#id } timer stopped`)   /* print for debug */ })
         this.#timer.on('timer ended', () => {
-            console.log('timer of match ', this.#id +' ended')
-            this.#status = Match.Status.STOP
-            this.grid.emit('match ended');
+            console.log(`/${this.#id } timer ended`)
+            this.#status = Match.Status.END;
+            this.grid.emit('match ended', this.#id);
             this.destroy();
         })
         
     
-        // Connect match to leaderboard
-        this.grid.on( 'agent rewarded', (agent, reward) => {
-            Leaderboard.addReward( this.#id, agent.teamId, agent.id, agent.teamName, agent.name, reward );
-        } );
+        // // Connect match to leaderboard
+        // this.grid.on( 'agent rewarded', (agent, reward) => {
+        //     Leaderboard.addReward( this.#id, agent.teamId, agent.id, agent.teamName, agent.name, reward );
+        // } );
 
-        this.grid.on( 'agent created', (agent) => {
-            Leaderboard.addReward( this.#id, agent.teamId, agent.id, agent.teamName, agent.name, 0 );
-        } );
+        // this.grid.on( 'agent created', (agent) => {
+        //     Leaderboard.addReward( this.#id, agent.teamId, agent.id, agent.teamName, agent.name, 0 );
+        // } );
 
         // // quando il punteggio di un agente cambia solleva l'evento agent info
         // this.#grid.on('agente score', (id, name, team, score) => {
@@ -106,7 +107,7 @@ class Match {
         // });
 
         // Logs
-        console.log( "Started match " + this.#id, "with config:", this.config );
+        console.log( `/${this.#id } match created with config:`, this.config );
 
         // this.on('agent info', (id, name, team, score) => {
         //     console.log("Agente ", id + " ", name + " of team:", team + " change score into ", +score)
@@ -126,14 +127,14 @@ class Match {
         let agentsStop = Promise.all(this.#randomAgentMover.map(a => a.stop()));
 
         // Destroy parcelGenerators
-        let clockDestroy = this.#parcelsGenerator.destroy();
+        let parcelsDestroy = this.#parcelsGenerator.destroy();
     
         // Distruggi il myClock
     
         // Distruggi la griglia
         let gridDestroy = this.grid.destroy();
 
-        return Promise.all( [agentsStop, clockDestroy, gridDestroy] )
+        return Promise.all( [agentsStop, parcelsDestroy, gridDestroy] );
     }
 
     getOrCreateAgent ( userParam = {id, name, teamId, teamName} ) {
@@ -171,6 +172,7 @@ class Match {
 
 
 }
+
 
 
 module.exports = Match;

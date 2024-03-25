@@ -1,7 +1,7 @@
 async function requestMatch(){
-    // Ask the list of the matchs
+    // Ask the list of the matches
     try {
-        const response = await fetch('/api/matchs', {
+        const response = await fetch('/api/matches', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -29,7 +29,7 @@ async function defineContainerMatch(admin){
         
         if(admin){
             let container = document.getElementById('match-container-admin')
-            data.matches.forEach((match, index) => {
+            data.forEach((match, index) => {
                 // for each element add a id, description, delete button and play button
                 
                 let divMatch = document.createElement('div'); 
@@ -37,25 +37,33 @@ async function defineContainerMatch(admin){
 
                 let idMatch = document.createElement('div');          
                 idMatch.classList = 'id-match';
-                idMatch.textContent = match;
+                idMatch.textContent = match.id;
     
                 let descriptionMatch = document.createElement('div');          
                 descriptionMatch.classList = 'description-match';
+
+                let joinButton = document.createElement('button');
+                joinButton.classList.add('join-button');
+                joinButton.setAttribute('match', match.id);
+                joinButton.textContent = `join`;
+                joinButton.addEventListener('click',sendRequestJoinMatch)
                 
                 let deleteButton = document.createElement('button');
                 deleteButton.classList.add('delete-button');
-                deleteButton.setAttribute('match', match);
+                deleteButton.setAttribute('match', match.id);
                 deleteButton.textContent = `X`;
                 deleteButton.addEventListener('click',deleteMatch)
                 
                 let playButton = document.createElement('button');
-                playButton.setAttribute('match', match);
-                playButton.textContent = getStatusButtonText(data.status[index]);
+                deleteButton.classList.add('play-stop-button');
+                playButton.setAttribute('match', match.id);
+                playButton.textContent = getStatusButtonText(match.status);
                 descriptionMatch.textContent = getStatusText(playButton.textContent);
                 playButton.addEventListener('click',sendPlayStopMatch)
                 
                 divMatch.appendChild(idMatch);
                 divMatch.appendChild(descriptionMatch);
+                divMatch.appendChild(joinButton);
                 divMatch.appendChild(deleteButton);
                 divMatch.appendChild(playButton);
 
@@ -64,11 +72,11 @@ async function defineContainerMatch(admin){
     
         }else{
             let container = document.getElementById('match-container')
-            data.matches.forEach((match) => {                    // for each element add a button
+            data.forEach((match) => {                    // for each element add a button
                 let button = document.createElement('button');
                 button.classList.add('partecipaBtn');
-                button.setAttribute('match', match);
-                button.textContent = `Join Match ${match}`;
+                button.setAttribute('match', match.id);
+                button.textContent = `Join Match ${match.id}`;
                 button.addEventListener('click',sendRequestJoinMatch)
                 
                 container.appendChild(button);
@@ -84,7 +92,7 @@ async function defineContainerMatch(admin){
 
 function sendRequestJoinMatch(event){
     
-    var url = 'game';
+    var url = '/game';
     url += '?match=' + encodeURIComponent(event.target.getAttribute('match')); 
 
     console.log("go to match: ", event.target.getAttribute('match'))
@@ -114,7 +122,7 @@ function sendPlayStopMatch(event){
 
     console.log('Cange staus match ', matchId + ' to ', event.currentTarget.textContent);
 
-    fetch(`/api/matchs/${matchId}`, {
+    fetch(`/api/matches/${matchId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,5 +156,30 @@ function sendPlayStopMatch(event){
 
 
 function deleteMatch(event){
-    console.log('delete match');
+
+    const token_admin = getAdminCookie();
+    const matchId = event.target.getAttribute('match');
+
+    fetch(`/api/matches/${matchId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token_admin}`
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json(); 
+        } else {
+            throw new Error('Error during data sending', response.json().message);
+        }
+    })
+    .then(data => {
+        console.log('Correct: ', data.message)
+        location.reload();
+    })
+    .catch(error => {
+        console.error('An error occurred:', error.message);
+    });
+    
 }
