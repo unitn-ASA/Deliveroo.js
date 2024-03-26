@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-webapp",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",

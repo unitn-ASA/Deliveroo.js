@@ -1,6 +1,6 @@
 {
   "name": "deliveroo.js",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Deliveroo.js Development Kit - Autonomous Software Agents - 2023",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "license": "ISC",
@@ -34,7 +34,7 @@
     "lerna": "^6.6.1"
   },
   "dependencies": {
-    "@unitn-asa/deliveroo-js-webapp": "^1.0.0",
+    "@unitn-asa/deliveroo-js-webapp": "^1.6.1",
     "express": "^4.17.3",
     "jsonwebtoken": "^9.0.0",
     "redis": "^4.6.4",
