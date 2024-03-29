@@ -6,8 +6,6 @@ import { Game } from './Game.js';
 import { Chat } from './Chat.js';
 
 
-
-
 var WIDTH;
 var HEIGHT;
 
@@ -37,13 +35,13 @@ class Client {
      * Socket constructor
      * @param {Game,{token: string, name: string, match: string}} options
      */
-    constructor ( game, { token, matchId } ) {
+    constructor ( game, { token, roomId } ) {
 
         this.game = game;
                 
-        console.log( "connecting to", HOST+'/'+matchId, "with token:", token.slice(-30), matchId );
+        console.log( "connecting to", HOST+'/'+roomId, "with token:", token.slice(-30) );
 
-        this.socket = io( HOST+'/'+matchId, {
+        this.socket = io( HOST+'/'+roomId, {
             withCredentials: true,
             extraHeaders: {
                 'x-token': token
@@ -285,6 +283,7 @@ class Client {
 
         this.socket.on('match ended', () => {
             console.log('Match Ended');
+            location.reload();
         })
 
         ///////////////////////////////////////////////////////// MESSAGE TESTS ////////////////////////////////////////////////////////

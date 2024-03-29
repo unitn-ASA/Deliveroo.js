@@ -94,16 +94,12 @@ class Agent extends onGrid {
         // per il colore tutti gli agenti appartenti ad un team hanno stesso colore
         var color;
 
-        //check if the agent is in the team and if the team has already a color associeted 
+        //check if the agent is in the team and if the team has already a color associeted
+        console.log(this.#game.teamsAndColors) 
         if(this.#game.teamsAndColors.has(teamId) ){ color = this.#game.teamsAndColors.get(teamId) }
         else {
-            if(teamName != "no-team"){
-                this.#game.newColor(teamId);
-                color = this.#game.teamsAndColors.get(teamId) 
-            }else{
-                this.#game.newColor(id);
-                color = this.#game.teamsAndColors.get(id)
-            }                                                                          
+            this.#game.newColor(teamId);
+            color = this.#game.teamsAndColors.get(teamId)                                                                       
         }
         
         this.color = color.getHex();

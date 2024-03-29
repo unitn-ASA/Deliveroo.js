@@ -3,10 +3,10 @@ import { Client } from './Client.js';
 
 
 
-function goToMatch( matchId, token ) {
+function goToMatch( roomId, token ) {
     
-    console.log('deliveroo matchId: ', matchId)
-    const game = new Game( { token, matchId } ); 
+    console.log('deliveroo room id: ', roomId)
+    const game = new Game( { token, roomId } ); 
 
 }
 

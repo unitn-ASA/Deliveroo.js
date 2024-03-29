@@ -3,8 +3,8 @@ import { goToMatch } from './deliveroo.js';
 var params = new URLSearchParams(window.location.search);
 
 console.log(params)
-if (!params.has('match')) {
-    params.append('match', '0');
+if (!params.has('room')) {
+    params.append('room', '0');
 }
 console.log(params)
 
@@ -254,7 +254,7 @@ function createCookieDiv(cookieName, cookieToken) {
     let joinButton = document.createElement('button');    // Create a button to join the match with the token of the cookie 
     joinButton.textContent = 'Join';
     joinButton.addEventListener('click', function() {
-        goToMatchWrap(params.get("match"), cookieToken);
+        goToMatchWrap(params.get("room"), cookieToken);
     });
     buttonsDiv.appendChild(joinButton);
 
@@ -311,9 +311,9 @@ function closePopup() {
     }
 }
 
-function goToMatchWrap(matchId, token){
+function goToMatchWrap(roomId, token){
     closePopup()                    // chiudi il pop-up di allert
-    goToMatch(matchId, token)       // fai partire il gioco
+    goToMatch(roomId, token)       // fai partire il gioco
 }
 
 

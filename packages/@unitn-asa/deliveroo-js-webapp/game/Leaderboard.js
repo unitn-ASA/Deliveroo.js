@@ -6,9 +6,9 @@ class Leaderboard {
     leaderboardElement;
 
 
-    constructor(game, matchId){
+    constructor(game, roomId){
         
-        console.log('INIT LEADERBOARD', matchId);
+        console.log('INIT LEADERBOARD', roomId);
 
         this.game = game
 
@@ -16,24 +16,23 @@ class Leaderboard {
         if(!leaderboard) console.log('Div Leaderboard not find')
         this.leaderboardElement = leaderboard;
        
-        this.init(matchId);
+        this.init(roomId);
      
     }
 
     // The definition and use of the function init is becouse the constructor can not define as async
-    async init(matchId){
+    async init(roomId){
 
         // request all the information of the match score to the server
         // start with the request of all the teams:
-        console.log('Request all team of the match')
+        console.log('Request all team of the room', roomId)
         await fetch('/api/leaderboard', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'matchid': matchId,
+                'roomId': roomId,
                 'teamId': '',
                 'aggregateby': 'true'
-
             }
         })
         .then(response => {
@@ -69,7 +68,7 @@ class Leaderboard {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'matchid': matchId,
+                    'roomId': roomId,
                     'teamId': team,  
                     'aggregateby': false
                 }
@@ -344,8 +343,6 @@ function removeTeam (team, leaderboardElement){
         teamElement.remove()
     }
 }
-
-
 
 function addAgentInTeam(id, name, score, list) {
 

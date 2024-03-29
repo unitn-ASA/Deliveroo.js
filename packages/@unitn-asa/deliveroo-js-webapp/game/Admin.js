@@ -1,11 +1,11 @@
 let params = new URLSearchParams(window.location.search);
 console.log(params)
-if (!params.has('match')) {
-    params.append('match', '0');
+if (!params.has('room')) {
+    params.append('room', '0');
 }
 console.log(params)
 
-let matchId = params.get("match");
+let roomId = params.get("room");
 checkLogged()
 
 function checkLogged(){
@@ -22,7 +22,7 @@ function checkLogged(){
         divButtons.id ='div-buttons'
 
         // request the status of the match to the server
-        fetch(`/api/matchs/${matchId}/status`, {
+        fetch(`/api/rooms/${roomId}/status`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -37,15 +37,15 @@ function checkLogged(){
 
             let deleteButton = document.createElement('button');
             deleteButton.classList.add('delete-button');
-            deleteButton.setAttribute('match', matchId);
+            deleteButton.setAttribute('room', roomId);
             deleteButton.textContent = `X`;
-            deleteButton.addEventListener('click',deleteMatch)
+            deleteButton.addEventListener('click',deleteRoom)
                     
             let playButton = document.createElement('button');
             playButton.classList.add('play-stop-button');
-            playButton.setAttribute('match', matchId);
+            playButton.setAttribute('room', roomId);
             playButton.textContent = invertPlayStop(data.status);
-            playButton.addEventListener('click',sendPlayStopMatch)
+            playButton.addEventListener('click',sendPlayStopRoom)
 
             divButtons.appendChild(deleteButton);
             divButtons.appendChild(playButton);
@@ -162,20 +162,20 @@ function deleteAdminCookie() {
 }
 
 
-function sendPlayStopMatch(event){
+function sendPlayStopRoom(event){
     
     const token_admin = getAdminCookie();
-    const matchId = event.target.getAttribute('match');
+    const roomId = event.target.getAttribute('room');
     //console.log(event)
     //console.log('Cange staus match ', matchId + ' to ', event.currentTarget.textContent);
 
-    fetch(`/api/matchs/${matchId}`, {
-        method: 'POST',
+    fetch(`/api/rooms/${roomId}/match/status`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `${token_admin}`
         },
-        body: JSON.stringify({ id: matchId}) // Invia l'ID del match e il nuovo stato
+        body: JSON.stringify({ id: roomId}) // Invia l'ID del match e il nuovo stato
       })
       .then(response => {
         if (response.ok) {
@@ -187,7 +187,7 @@ function sendPlayStopMatch(event){
       .then(data => {
         console.log('Correct: ', data.message)
         // Update the botton
-        event.target.textContent = invertPlayStop(event.target.textContent)
+        event.target.textContent = invertPlayStop(data.status)
       })
       .catch(error => {
         console.error('An error occurred:', error.message);
@@ -201,12 +201,12 @@ function invertPlayStop(status){
 }
 
 
-function deleteMatch(event){
+function deleteRoom(event){
 
     const token_admin = getAdminCookie();
-    const matchId = event.target.getAttribute('match');
+    const roomId = event.target.getAttribute('room');
 
-    fetch(`/api/matchs/${matchId}`, {
+    fetch(`/api/rooms/${roomId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

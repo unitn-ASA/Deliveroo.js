@@ -5,7 +5,7 @@ const app = express();
 const jwt = require('jsonwebtoken');
 
 const configRoutes = require('./routes/config')
-const matchesRoutes = require('./routes/matches');
+const matchesRoutes = require('./routes/rooms');
 const mapsRoutes = require('./routes/maps');
 const leaderboardRoutes = require('./routes/leaderboard');
 const tokenRoutes = require('./routes/token');
@@ -28,7 +28,7 @@ app.use('/game', express.static(Path.join(__dirname, '..', 'packages', '@unitn-a
 app.use('/home', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 
 app.use('/api/config', configRoutes);
-app.use('/api/matchs', matchesRoutes);
+app.use('/api/rooms', matchesRoutes);
 app.use('/api/maps', mapsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/token', tokenRoutes);

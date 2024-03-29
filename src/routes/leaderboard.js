@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Leaderboard = require('../deliveroo/Leaderboard');
+const Arena = require('../deliveroo/Arena')
 
 // Detailed leaderboard of current Arena
 router.get('/', async (req, res) => {
@@ -12,11 +13,25 @@ router.get('/', async (req, res) => {
     const aggregateBy = req.query.aggregateBy; */
 
     // get query parameters for filtering given: team agent or match
-    const matchId = req.headers['matchid'];
+    const roomId = req.headers['roomid'];
+    let matchId = req.headers['matchid'];
     const teamId = req.headers['teamid'];
     const agentId = req.headers['agentid'];
     const agentName = req.headers['agentname'];
     const aggregateBy = req.headers['aggregateby'];
+
+    // find the last game of the match 
+    if(roomId){
+        let room = await Arena.getRoom(roomId);
+        if(!room){ 
+            console.log('GET leaderbord: request for a non existing room, id:', roomId) 
+            res.status(400).json({ error: 'Room non existing' })
+            return
+        }
+        matchId = room.match.id
+    }
+    
+    //console.log('MATCH ID: ', matchId)
 
     // filter
     const filter = {};
@@ -39,7 +54,6 @@ router.get('/', async (req, res) => {
 
     try {
         let results = await Leaderboard.get(filter, aggregate).catch(console.error);
-        //console.log(results)
         res.status(200).json(results); // return results
     } catch (error) {
         console.error(error);     // Log any errors occurred during the process

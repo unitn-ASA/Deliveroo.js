@@ -110,7 +110,7 @@ class Game {
             await controllerPromise
 
             const leaderboardPromise = new Promise((resolve, reject) => {
-                this.leaderboard = new Leaderboard(this, options.matchId);
+                this.leaderboard = new Leaderboard(this, options.roomId);
                 resolve();
             });
             await leaderboardPromise

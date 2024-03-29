@@ -1,22 +1,19 @@
-const { uid } = require('uid'); 
 const Config = require('./Config');
-const Leaderboard = require('./Leaderboard');
-const Match = require('./Match');
-const Timer = require('./Timer');
+const Room = require('./Room');
 
 class Arena {
 
     /**
      * @type {Map<string, Match>}
      */
-    static matches = new Map();
+    static rooms = new Map();
 
     /** 
      * @param {string} name
      * @returns {Match}
      */
-    static getMatch ( name ) {
-        if(Arena.matches.has(name)){ return Arena.matches.get(name);}
+    static getRoom ( id ) {
+        if(Arena.rooms.has(id)){ return Arena.rooms.get(id);}
         return false
     }
 
@@ -24,54 +21,35 @@ class Arena {
      * @param {{name:string, config:Config}} options
      * @returns 
      */
-    static getOrCreateMatch ( { id = uid(4), config = new Config() } ) {
+    static createRoom (config = new Config()) {
         
-        id = id.toString();                         // Convert all id to string
-        //console.log(Arena.matches);
+        //console.log('NEW MATCH ', id)
+        let room = new Room(config);        // Create a new Match and add it to the id-match map
+        Arena.rooms.set(room.id, room);
         
-        let match = Arena.matches.get(id);          // Try to get the match seraching the id in the id-match map                      
-        if ( !match ){                              // If there are found none create a new one     
-
-            while ( Arena.matches.has(id) ){        // Find a not already used id
-                id = uid(4);
-            } 
-
-            //console.log('NEW MATCH ', id)
-            match = new Match( config, id );        // Create a new Match and add it to the id-match map
-
-            match.grid.on('match ended', async (matchId) =>{
-                //console.log(match.grid.listenerCount('match ended'))
-                await this.deleteMatch(matchId)
-            })
-
-            Arena.matches.set(id, match);
-            
-        }
-
-        
-        return match;
+        return room;
     }
 
     /**
      * @param {string} name 
      */
-    static async deleteMatch (matchId) {
-        let match = Arena.matches.get(matchId);
+    static async deleteRoom (id) {
+        let room = Arena.rooms.get(id);
 
-        if(!match){
-            console.log(`/${matchId}: not find in the matches`)
+        if(!room){
+            console.log(`/${id}: not find in the rooms`)
             return false;
         } 
 
-        if(match.status == 'end'){
+        /* if(match.status == 'end'){
             console.log(`/${matchId}: already ended`)
             return false;
-        }
+        } */ 
 
-        await match.destroy();
+        await room.destroy();
 
         //Arena.matches.delete(matchId);
-        console.log(`/${matchId}: destroied`)
+        console.log(`/${id} room destroied`)
         return true;
     }
     

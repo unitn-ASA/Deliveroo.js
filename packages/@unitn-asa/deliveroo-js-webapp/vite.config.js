@@ -16,5 +16,6 @@ export default defineConfig({
         emptyOutDir: true,
       },
     base: '/game/',
+
     
 })

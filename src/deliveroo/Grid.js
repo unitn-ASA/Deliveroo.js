@@ -12,7 +12,8 @@ const Leaderboard = require('./Leaderboard')
  */
 class Grid extends Observable {
 
-    matchId;
+    roomId;    // Id of the room
+    matchId;     // Id of the match
     /** @type {Config} */
     #config;
     /** @type {Array<Tile>} */
@@ -30,11 +31,12 @@ class Grid extends Observable {
     /**
      * @constructor Grid
      */
-    constructor ( matchId, config = new Config(), map = new Array(10).map( c=>new Array(10) ) ) {
+    constructor ( roomId, matchId, config = new Config(), map = new Array(10).map( c=>new Array(10) ) ) {
         super();
 
         this.#config = config;
         this.matchId = matchId;
+        this.roomId = roomId;
         
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
@@ -131,7 +133,7 @@ class Grid extends Observable {
         me.on( 'rewarded', async (agent,sc) => {
             //console.log('REWARD')
             //console.log(this.listenerCount('agent rewarded'))
-            await Leaderboard.addReward( this.matchId, agent.teamId, agent.teamName, agent.id, agent.name, sc );
+            await Leaderboard.addReward( this.roomId, this.matchId, agent.teamId, agent.teamName, agent.id, agent.name, sc );
             this.emitOnePerTick('agent rewarded', agent)
         });
 
@@ -166,11 +168,11 @@ class Grid extends Observable {
             if ( ! teamMates ) {
                 teamMates = new Set();
                 this.#teamsAgents.set( userParam.teamId, teamMates );
-                console.log(`/${this.matchId} Addet the team `, userParam.teamName +'(', userParam.teamId + ') ',  )
+                console.log(`/${this.roomId} Addet the team `, userParam.teamName +'(', userParam.teamId + ') ',  )
             }
             if ( ! teamMates.has( me ) ) {
                 teamMates.add( me );
-                console.log(`/${this.matchId} Adding agent `, me.id +'(', me.name + ') to team ',  userParam.teamId + ': ', printSet(this.#teamsAgents.get( userParam.teamId)) )
+                console.log(`/${this.roomId} Adding agent `, me.id +'(', me.name + ') to team ',  userParam.teamId + ': ', printSet(this.#teamsAgents.get( userParam.teamId)) )
             }
         }
 
@@ -255,12 +257,6 @@ class Grid extends Observable {
 
     async destroy() {
         
-        console.log(`\tDisconect all socket`);
-        const disconnectionPromise = new Promise((resolve) => {resolve()});
-        this.emit('disconect socket', disconnectionPromise);
-
-        await disconnectionPromise;
-
         // Destroy all the agent of the grid
         console.log(`\tDelete Agents`);
         for (let agent of this.#agents.values()) {

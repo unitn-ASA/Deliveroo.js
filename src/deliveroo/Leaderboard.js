@@ -150,7 +150,8 @@ class Leaderboard {
      * @returns { [RewardModel] }
      **/
     // get rewards () { return this.#rewards; }
-    static async get ( {matchId, teamId, agentId} = {}, groupByKeys = [] ) {
+    static async get ( {matchId, teamId, agentId} = {}, groupByKeys = [] ) {     
+
         // match expression
         let matchExpression = {};
         if ( matchId ) matchExpression.matchId = { $eq: matchId };
@@ -197,19 +198,41 @@ class Leaderboard {
     }
 
 
+    static async getMatches(roomId) {
+        try {
+            const matches = await RewardModel.aggregate([
+                { $match: { roomId: roomId } },
+                { $group: { 
+                        _id: "$matchId",
+                        firstTime: { $min: "$time" } 
+                    } 
+                }
+            ]);
+    
+            const matchInfo = matches.map(match => ({ matchId: match._id, firstTime: match.firstTime }));
+            return matchInfo;
+
+        } catch (error) {
+            console.error('Error occurred while fetching matches:', error);
+            throw error;
+        }
+    }
+
+
 
     /**
      * @param {string} matchId
+     * @param {string} roomId
      * @param {string} teamId
      * @param {string} agentId
      * @param {number} score
      */
-    static async addReward ( matchId, teamId, teamName, agentId, agentName, score ) {
+    static async addReward ( roomId, matchId, teamId, teamName, agentId, agentName, score ) {
         // const reward = new Reward( matchId, teamId, agentId, score, Date.now() );
         // this.#rewards.push( reward );
-        console.log(`/${matchId}/${agentId} add reward: `, score);
+        console.log(`/${roomId}/${agentName}-${teamName}-${agentId} add reward: `, score);
         try{
-            var reward = new RewardModel( {matchId, teamId, teamName, agentId, agentName, score, time: Date.now()} );
+            var reward = new RewardModel( {roomId, matchId, teamId, teamName, agentId, agentName, score, time: Date.now()} );
         }catch (error) {
             console.log('Error 1')
             console.error(error); // Log any errors occurred during the process

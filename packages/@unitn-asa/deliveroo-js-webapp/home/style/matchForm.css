@@ -1,4 +1,4 @@
-#createMatchButton{
+#createRoomButton{
     background-color: #8a6bbe; 
     border: 2px solid #f0f0f0;
     color: #f0f0f0; 
@@ -14,7 +14,7 @@
     transition-duration: 0.4s;
 }
 
-#createMatchButton:hover {
+#createRoomButton:hover {
     background-color: #40256f; 
 }
 

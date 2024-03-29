@@ -1,7 +1,6 @@
 const Observable =  require('./Observable')
 const Xy =  require('./Xy')
 const Grid =  require('./Grid')
-const Tile =  require('./Tile');
 const Parcel =  require('./Parcel');
 const Postponer = require('./Postponer');
 const Leaderboard = require('./Leaderboard');
@@ -95,16 +94,16 @@ class Agent extends Xy {
 
         loadScore(this.#grid.matchId, this.id )
         .then(loadedScore => {
-            console.log(`/${this.#grid.matchId} costructed new Agent: id=`, this.id + ' name=', this.name + ' team name=', this.teamName + ' team id=', this.teamId)
+            console.log(`/${this.#grid.roomId} costructed new Agent: id=`, this.id + ' name=', this.name + ' team name=', this.teamName + ' team id=', this.teamId)
             return loadedScore
         })
         .then(loadedScore => {
             if(loadedScore !== false){
                 this.score = loadedScore;
-                console.log(`/${this.#grid.matchId}/${this.id} loaded score `, this.score );
+                console.log(`/${this.#grid.roomId}/${this.name}-${this.teamName}-${this.id} loaded score `, this.score );
             }else{
                 this.score = 0;
-                console.log(`/${this.#grid.matchId}/${this.id} unable to load a pass score ` );
+                console.log(`/${this.#grid.roomId}/${this.name}-${this.teamName}-${this.id} unable to load a pass score ` );
                 this.emitOnePerTick( 'rewarded', this, 0 ); 
             }
         })
@@ -297,7 +296,7 @@ class Agent extends Xy {
             }
         }
         this.score += sc;
-        this.emitOnePerTick( 'rewarded', this, sc );
+        if(sc != 0){this.emitOnePerTick( 'rewarded', this, sc )};
         // if ( sc > 0 ) {
             // console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti -> ${this.score} pti)` );
             // console.log( Array.from(this.#grid.getAgents()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
