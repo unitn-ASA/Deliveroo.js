@@ -41,15 +41,9 @@ class Arena {
             return false;
         } 
 
-        /* if(match.status == 'end'){
-            console.log(`/${matchId}: already ended`)
-            return false;
-        } */ 
-
-        await room.destroy();
-
-        //Arena.matches.delete(matchId);
-        console.log(`/${id} room destroied`)
+        try { await room.destroy(); console.log(`/${id} room destroied`)} 
+        catch (error) { console.error('An error occurred while destroying the room:', error); }
+        
         return true;
     }
     

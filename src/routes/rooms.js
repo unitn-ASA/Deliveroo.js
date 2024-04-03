@@ -87,7 +87,6 @@ router.put('/:id/match', verifyToken, async (req, res) => {
   }
 
   //check if the room has already a non ended match, in the case terminate it
-  console.log(room.match.status)
   if(room.match.status != 'end'){
     console.log('PUT room: ending the already existing match ', room.match.id)
     await room.match.destroy();
@@ -167,25 +166,52 @@ router.delete('/:id', verifyToken, async (req, res) => {
   
 });
 
+router.delete('/:id/match', verifyToken, async (req, res) => {
+  const roomId = req.params.id;
+  let room = Arena.rooms.get(roomId);
+
+  if(!room){
+    console.log('DELETE room: room', roomId, 'requested not found')
+    res.status(400).json({ message: `Room ${roomId} not found` });
+    return
+  }
+
+  if(room.match.status == 'end'){
+    console.log('DELETE room: match in room ', roomId, ' is already ended, request invalid ')
+    res.status(400).json({ message: `Match in room ${roomId} already ended` });
+    return
+  }
+  
+  await room.match.destroy();
+  console.log(`DELETE room: match ${room.match.id} in room ${roomId} deleted.`)
+
+  res.status(200).json({ 
+    message: `match ${room.match.id} in room ${roomId} deleted`,
+  });
+  
+  
+});
+
 
 /********************************************* */
 /*                     GET                     */
 /********************************************* */
 // Endpoint per ottenere la lista dei rooms
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const rooms = Array.from(Arena.rooms.keys());
   const matches = Array.from(Arena.rooms.values()).map(room => room.match.id);
   const status = Array.from(Arena.rooms.values()).map(room => room.match.status);
 
-  //console.log(rooms)
-  //console.log(matches);  
-  //console.log(status);
+  // get all the promise for request the dates, then we wait that all the promise are resolved 
+  const datesPromises = Array.from(Arena.rooms.values()).map(room => Leaderboard.getMatcheFirst(room.match.id));       
+  const dates = await Promise.all(datesPromises);
 
   res.status(200).json({
     message: 'List active rooms',
     rooms: rooms,
     matches: matches,
-    status: status
+    status: status,
+    dates: dates
   });
 });
 

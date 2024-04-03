@@ -4,6 +4,7 @@ import { Parcel } from './Parcel.js';
 import { Tile } from './Tile.js';
 import { Game } from './Game.js';
 import { Chat } from './Chat.js';
+import { showEndMatchScreen } from './EndMatchScreen.js';
 
 
 var WIDTH;
@@ -281,10 +282,12 @@ class Client {
             timerSpan.textContent = `${minutes}:${formattedSeconds}`
         })
 
-        this.socket.on('match ended', () => {
-            console.log('Match Ended');
-            location.reload();
+        // event emit when the match ended
+        this.socket.on('match ended', (matchId) => {
+            //console.log('Match Ended: ', matchId);
+            showEndMatchScreen(matchId);
         })
+
 
         ///////////////////////////////////////////////////////// MESSAGE TESTS ////////////////////////////////////////////////////////
         const sendMessageSay = () => {

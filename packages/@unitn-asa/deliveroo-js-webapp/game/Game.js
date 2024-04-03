@@ -5,8 +5,14 @@ import { Client } from './Client.js';
 import { Controller } from './Controller.js';
 import { Leaderboard } from './Leaderboard.js';
 import { Tile } from './Tile.js';
+import { Admin } from './Admin.js'
 
 import * as THREE from 'three';
+
+let params = new URLSearchParams(window.location.search);
+
+if (!params.has('room')) {params.append('room', '0');}
+let roomId = params.get("room");
 
 class Game {
     
@@ -92,6 +98,8 @@ class Game {
      */
     constructor ( options ) {
 
+        let admin = new Admin(roomId);
+        admin.checkLogged();
         
         (async () => {
             console.log('Game options:', options)
@@ -167,5 +175,6 @@ function areColorsSimilar(color1, color2) {
     //console.log("Return: ", deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance);
     return deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance;    
 }
+
 
 export { Game };

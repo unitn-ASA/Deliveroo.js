@@ -14,6 +14,9 @@ function requestNewMatch(roomId, token_admin){
     const randomlyMovingAgents = document.getElementById('randomlyMovingAgents').value;
     const randomlyAgentSpeed = document.getElementById('randomlyAgentSpeed').value;
 
+    const agentsObservationDistance = document.getElementById('agentsObservationDistance').value;
+    const parcelsObservationDistance = document.getElementById('parcelsObservationDistance').value;
+
     // check if the map input is empty
     if (mapFile === '') { document.getElementById('mapFile').classList.add('error'); return;}
     else{ document.getElementById('mapFile').classList.remove('error'); }

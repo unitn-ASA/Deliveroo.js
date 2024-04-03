@@ -15,8 +15,6 @@ const myClock = require('./Clock');
  */
 class Agent extends Xy {
 
-    static #lastId = 0;
-    
     /** @type {Grid} #grid */
     #grid;
     /** @type {string} id */
@@ -84,7 +82,7 @@ class Agent extends Xy {
 
 
         this.#grid = grid;
-        this.id = id || ('a' + Agent.#lastId++);
+        this.id = id || ('a' + grid.lastId++);
         this.name = name || this.id;
         this.teamId = teamId || this.id;
         this.teamName = teamName || 'no-team';

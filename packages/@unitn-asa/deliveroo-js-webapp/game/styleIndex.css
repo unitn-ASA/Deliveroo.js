@@ -137,6 +137,17 @@
 }
 
 /* CSS for the admin part */
+#admin-div{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#home-login-buttons{
+    display: flex;
+    flex-direction: row;
+}
+
 .login-button { 
     flex-basis: 80%; 
     background-color: #0077be;
@@ -158,21 +169,14 @@
 }
 
 .logged{
-    flex-basis: 40%;
+    flex-basis: 80%;
     background-color: black;
     border: 2px solid #0077be;
     color: #0077be; 
 }
 
-#admin-div{
-    display: flex;
-    flex-direction: row;
-}
-
 #admin-div #div-buttons{
-    flex-basis: 40%; 
-    max-width: 40%;
-    padding-left: 10px;
+    margin-top: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -180,6 +184,7 @@
 }
 
 #admin-div .delete-button {
+    flex-grow: 1;
     background-color: red;
     color: white;
     text-align: center;
@@ -191,7 +196,20 @@
 }
 
 #admin-div .play-stop-button {
+    flex-grow: 1;
     background-color: white;
+    color: black;
+    text-align: center;
+    border: 2px solid #f0f0f0; 
+    display: inline-block;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#admin-div .restart-button {
+    flex-grow: 1;
+    background-color: #8a6bbe;
     color: black;
     text-align: center;
     border: 2px solid #f0f0f0; 
@@ -203,8 +221,7 @@
 
 #admin-div .home-button {
     flex-basis: 20%; 
-    min-height:30px;
-    min-height: 30px;
+    aspect-ratio: 1/1;
     background-color: orangered;
     color: white;
     text-align: center;

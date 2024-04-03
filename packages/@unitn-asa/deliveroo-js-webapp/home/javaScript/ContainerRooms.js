@@ -12,7 +12,6 @@ async function defineContainerRooms(admin){
             let container = document.getElementById('rooms-container-admin')
             data.rooms.forEach((room, index) => {
                 // for each element add a id, description, delete button and play button
-                
                 let divRoom = document.createElement('div'); 
                 divRoom.classList = 'div-room';
 
@@ -24,16 +23,24 @@ async function defineContainerRooms(admin){
                 descriptionMatch.classList = 'description-match';
                 descriptionMatch.textContent = 'Match ' + data.matches[index] +' status is ' + getStatusText(data.status[index]);
 
+                let dateMatch = document.createElement('div')
+                dateMatch.classList = 'date-match';
+                dateMatch.textContent =  data.dates[index]
+
                 divRoom.appendChild(idRoom);
                 divRoom.appendChild(descriptionMatch);
+                divRoom.appendChild(dateMatch);
 
-                let joinButton = document.createElement('button');
-                joinButton.classList.add('join-button');
-                joinButton.setAttribute('room', room);
-                joinButton.textContent = `join`;
-                joinButton.addEventListener('click',requestJoinMatch)
+                let buttonsRoom = document.createElement('div')
+                buttonsRoom.classList.add('buttons-room')
 
                 if(data.status[index] != 'end'){
+
+                    let joinButton = document.createElement('button');
+                    joinButton.classList.add('join-button');
+                    joinButton.setAttribute('room', room);
+                    joinButton.textContent = `join`;
+                    joinButton.addEventListener('click',requestJoinMatch)
                                         
                     let playButton = document.createElement('button');
                     playButton.classList.add('standard-button');
@@ -41,12 +48,16 @@ async function defineContainerRooms(admin){
                     playButton.textContent = getStatusButtonText(data.status[index]);
                     playButton.addEventListener('click',sendPlayStopMatch)
 
-                    divRoom.appendChild(joinButton);
-                    divRoom.appendChild(playButton);
+                    buttonsRoom.appendChild(joinButton);
+                    buttonsRoom.appendChild(playButton);
                 }else{
-                    joinButton.textContent = `result`;
+                    let resultButton = document.createElement('button');
+                    resultButton.classList.add('join-button');
+                    resultButton.setAttribute('matchId', data.matches[index]);
+                    resultButton.textContent = `result`;
+                    resultButton.addEventListener('click',showResultMatch)
             
-                    divRoom.appendChild(joinButton);
+                    buttonsRoom.appendChild(resultButton);
                 }
 
                 let matchesButton = document.createElement('button');
@@ -55,7 +66,7 @@ async function defineContainerRooms(admin){
                 matchesButton.textContent = `matches`;
                 matchesButton.addEventListener('click',reqMatches)
 
-                divRoom.appendChild(matchesButton);
+                buttonsRoom.appendChild(matchesButton);
 
                 let restartButton = document.createElement('button');
                 restartButton.classList.add('restart-button');
@@ -69,26 +80,37 @@ async function defineContainerRooms(admin){
                 deleteButton.textContent = `X`;
                 deleteButton.addEventListener('click',deleteRoom)
 
-                divRoom.appendChild(restartButton);
-                divRoom.appendChild(deleteButton);
+                buttonsRoom.appendChild(restartButton);
+                buttonsRoom.appendChild(deleteButton);
+
+                divRoom.appendChild(buttonsRoom)
 
                 container.appendChild(divRoom);
             });
-    
         }else{
             let container = document.getElementById('rooms-container')
-            data.rooms.forEach((room) => {                    // for each element add a button
+            data.rooms.forEach((room, index) => {                    // for each element add a button
+
                 let button = document.createElement('button');
                 button.classList.add('partecipaBtn');
                 button.setAttribute('room', room);
-                button.textContent = `Join Room ${room}`;
-                button.addEventListener('click',requestJoinMatch)
-                
+
+                // if the match in the room is ended it has a different color and on the click show the final leaderbord, else it send the client to the match 
+                if(data.status[index] == 'end'){
+                    button.style.backgroundColor = 'grey'
+                    button.textContent = `Result Room ${room}`;
+                    button.setAttribute('matchId', data.matches[index]);
+                    button.addEventListener('click', showResultMatch)
+                }else{
+                    button.textContent = `Join Room ${room}`;
+                    button.addEventListener('click',requestJoinMatch)
+                }
+                 
                 container.appendChild(button);
             });
         }
 
-    } catch (error) {
+    }catch (error) {
         console.error('Error:', error);
     }
     
@@ -129,6 +151,18 @@ function requestJoinMatch(event){
     console.log("go to room: ", event.target.getAttribute('room'))
 
     window.location.href = url; 
+}
+
+/* the function show the end leaderbord of the last match of a room */
+function showResultMatch(event){
+    
+    let matchId = event.target.getAttribute('matchId') 
+    console.log('MaTCHID:', matchId)
+    document.body.innerHTML ='';            // clear the body
+    //change the style of the body
+    document.body.style.display = 'flex';
+    document.body.style.alignItems = 'center';
+    showLeaderbord(matchId, document.body)  // add the leaderbord
 }
 
 /* the function define the the status part of the match descriptio based on the match status*/
@@ -194,8 +228,12 @@ async function restartMatch(event){
         document.getElementById('randomlyMovingAgents').value = data.RANDOMLY_MOVING_AGENTS;
         document.getElementById('randomlyAgentSpeed').value = data.RANDOM_AGENT_SPEED;
     
-        document.getElementById('agentsObservationDistance').value = data.AGENTS_OBSERVATION_DISTANCE;
-        document.getElementById('parcelsObservationDistance').value = data.PARCELS_OBSERVATION_DISTANCE;
+        if(isNaN(data.AGENTS_OBSERVATION_DISTANCE)){document.getElementById('agentsObservationDistance').value = 'infinite'}
+        else { document.getElementById('agentsObservationDistance').value = data.AGENTS_OBSERVATION_DISTANCE; }
+
+        if(isNaN(data.PARCELS_OBSERVATION_DISTANCE)){document.getElementById('parcelsObservationDistance').value = 'infinite'}
+        else{ document.getElementById('parcelsObservationDistance').value = data.PARCELS_OBSERVATION_DISTANCE; }
+
 
     })
     .catch(error => {
@@ -365,20 +403,9 @@ function displayMatches(matches) {
 }
 
 /* the function init the right part of the window that is dedicated to show the leaderborad of the selected match */
-function handleLeaderboardButtonClick(matchId,leaderbord) {
+function handleLeaderboardButtonClick(matchId, leaderbord) {
     leaderbord.innerHTML = ''; 
-
-    const leaderbordTitle = document.createElement("h2")
-    leaderbordTitle.innerText = `Leadebord Match ${matchId}`
-    leaderbord.appendChild(leaderbordTitle)
-
-    const leaderbordDiv = document.createElement("div")
-    leaderbordDiv.classList ='leaderbordDiv'
-    leaderbordDiv.innerText = ``
-
-    showLeaderbord(matchId, leaderbordDiv)
-
-    leaderbord.appendChild(leaderbordDiv)
+    showLeaderbord(matchId, leaderbord)
 }
 
 

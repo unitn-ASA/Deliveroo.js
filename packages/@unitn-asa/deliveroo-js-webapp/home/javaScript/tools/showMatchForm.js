@@ -77,10 +77,10 @@ function showMatchForm() {
 
     
     <label for="agentsObservationDistance" class="lableNewMap">AGENTS_OBSERVATION_DISTANCE:</label>
-    <input type="number" id="agentsObservationDistance" class="inputNewMap" name="agentsObservationDistance" value=5>
+    <input type="text" id="agentsObservationDistance" class="inputNewMap" name="agentsObservationDistance" value=5>
     
     <label for="parcelsObservationDistance" class="lableNewMap">PARCELS_OBSERVATION_DISTANCE:</label>
-    <input type="number" id="parcelsObservationDistance" class="inputNewMap" name="parcelsObservationDistance" value=5>
+    <input type="text" id="parcelsObservationDistance" class="inputNewMap" name="parcelsObservationDistance" value=5>
     <br><br>
 
     <div style="text-align: center;">

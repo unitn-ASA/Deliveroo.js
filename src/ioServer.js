@@ -110,7 +110,7 @@ class ioServer {
             // if the socket try to cennect to a match that not exist we block the connection 
             if(Arena.getRoom( roomTitle ).match.status == 'end'){
                 console.log( `socket ${socket.id} try to connected to a room ${roomTitle} that contain an ended match with and ended match` );
-                socket.disconnect();
+                socket.emit('match ended',  Arena.getRoom( roomTitle ).match.id)
                 return;
             }
             
@@ -140,9 +140,8 @@ class ioServer {
              */
             socket.on( 'disconnect', async (cause) => {
 
-                // if the disconection is occured becouse the match is ended we don't have to make all the check
-                //console.log('cause : ', cause)
-                if(cause === 'server namespace disconnect'){ console.log('\t\tsocket ', socket.id + ' disconected'); return}
+                // if the disconection is occured after the match ended we dont have to execute the rest of the code 
+                if(room.match.status == 'end'){ console.log('socket ', socket.id + ' disconected'); return}
 
                 try{
                     let socketsLeft = (await agentRoom.fetchSockets()).length;
@@ -194,6 +193,14 @@ class ioServer {
      */
     static listenToGameEventsAndForwardToSocket ( socket, me, grid, room, roomNamespace ) {
 
+        // if the socket connect during the destroy of the match can happen error 
+        try{
+            socket.emit('timer update',  room.match.timer.remainingTime)
+        }catch(error){
+            console.log("ERROR TIMER : ", error)
+        }
+        
+
         /**
          * Config
          */
@@ -241,9 +248,18 @@ class ioServer {
             socket.emit("agent deleted", who.id, who.team)
         })
 
-        socket.emit("timer update", room.match.timer.remainingTime)
+    
         grid.on('timer update', (time) => { socket.emit("timer update", time) })
-        grid.on('match ended', async (matchId) => { socket.emit("match ended") })
+        grid.on('match ended', async (matchId) => { 
+            // console.log('MATCH ENDED', matchId); 
+            socket.emit("match ended", matchId) 
+        })
+
+        //when a match in a room is restarted, the grid emit a reload signal to notice the client of the reload of the match
+        grid.on('reload', () => { 
+            console.log('RELOAD'); 
+            setTimeout(() => {socket.emit("reload");}, 2000);
+        })
 
               
         /**
@@ -380,7 +396,7 @@ class ioServer {
 
 
             if(room.match.status == 'stop'){  
-                console.log('PickUp disable becouse the game in Match ', matchId + ' status is stop')
+                console.log('PickUp disable becouse the match in room ', roomId + ' status is stop')
                 if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
                 return;
             }

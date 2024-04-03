@@ -165,7 +165,7 @@ header {
     margin-bottom: 10px; 
     margin-right: 20px;
     height: 40px;
-    width: 100px;
+    width: 150px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -174,10 +174,6 @@ header {
     cursor: pointer;
     transition-duration: 0.4s;
     overflow: hidden;
-}
-
-.partecipaBtn:hover {
-    background-color: #bc5f02; 
 }
 
 
@@ -220,62 +216,59 @@ header {
 }
 
 #rooms-container-admin .div-room .description-match {
-    flex-basis: 50%;
+    width: 200px;
     font-size: small;
     color: whitesmoke;
     margin-left: 3px;
 }
 
-#rooms-container-admin .div-room button {
+#rooms-container-admin .div-room .date-match{
+    flex-grow: 2;
+    font-size: small;
+    color: whitesmoke;
+    margin-left: 3px;
+}
+
+#rooms-container-admin .div-room .buttons-room{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+#rooms-container-admin .div-room .buttons-room button{
+    flex: 0 0 auto;
     width: 75px;
     margin-left: 10px;
     padding-left: 10px;
     padding-right: 10px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    text-align: center;
-}
-
-#rooms-container-admin .div-room .restart-button{
-    background-color: #40256f;
-    color: #f0f0f0; 
     border: 2px solid #f0f0f0;
     border-radius: 5px;
     text-align: center;
     cursor: pointer;
+}
+
+#rooms-container-admin .div-room .restart-button{
+    background-color: #8a6bbe; 
+    color: #f0f0f0; 
 }
 
 #rooms-container-admin .div-room .delete-button {
     background-color: red;
     color: #f0f0f0; 
-    border: 2px solid #f0f0f0;
-    border-radius: 5px;
-    text-align: center;
-    cursor: pointer;
 }
 
 #rooms-container-admin .div-room .join-button{
     background-color: #e6780e;
     color: #f0f0f0; 
-    border: 2px solid #f0f0f0;
-    border-radius: 5px;
-    text-align: center;
-    cursor: pointer;
 }
 
 #rooms-container-admin .div-room .standard-button {
     background-color: #f0f0f0;
     color: black; 
-    border: 2px solid #f0f0f0;
-    border-radius: 5px;
-    text-align: center;
-    cursor: pointer;
 }
 
-
-
-
+/*CSS per il bottone join private match, attualmente eliminato dal progetto*/
 #submitPrivateMatchButton{
     background-color: yellow; 
     border: 2px solid #f0f0f0;
@@ -427,4 +420,19 @@ header {
     font-size: 12px;
     color: black;
     font-weight: bold;
+}
+
+.home-button{
+    background-color: orangered;
+    color: white;
+    text-align: center;
+    border: 2px solid #f0f0f0; 
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 14px;
+    height:30px;
+    width: 30px;
+    border-radius: 50%;
+    cursor: pointer;
 }

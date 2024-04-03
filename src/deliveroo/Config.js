@@ -149,9 +149,24 @@ class Config {
                 
         // 8. Overwriting with values specified as config
         Object.keys( config ).forEach( key => {
-            if ( config[key] != null && key != 'LEVEL' )
+            
+            if ( config[key] != null && key != 'LEVEL' ){
+
                 this[key] = config[key];
+                
+                // menage the case of AGENTS_OBSERVATION_DISTANCE and PARCELS_OBSERVATION_DISTANCE
+                if( key == 'AGENTS_OBSERVATION_DISTANCE' || key == 'PARCELS_OBSERVATION_DISTANCE'){
+                    //console.log(key, ': ', config[key])
+                    /* if the given value is not a number the Config atribute is set default to infinite; 
+                    this is usefull if the user send some strang value for the creation of a new match */
+                    if (isNaN(parseFloat(config[key]))){this[key] = 'infinite'}
+                }
+
+            }
+            
         });
+
+        
         
     }
 

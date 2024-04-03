@@ -2,11 +2,8 @@ import { Color } from 'three';
 import { goToMatch } from './deliveroo.js';
 var params = new URLSearchParams(window.location.search);
 
-console.log(params)
-if (!params.has('room')) {
-    params.append('room', '0');
-}
-console.log(params)
+if (!params.has('room')) { params.append('room', '0'); }
+console.log(params.get('room'))
 
 allertAskName();
 

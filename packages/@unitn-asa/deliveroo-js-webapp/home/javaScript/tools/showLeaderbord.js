@@ -1,8 +1,33 @@
 /* the function request to the server the leaderborad data of the selected match */
-async function showLeaderbord(matchId, leaderbord){  
-    let recordsAndColors = new Map();
-    let records = new Map();
-    let teamsAndMembers = new Map(); 
+async function showLeaderbord(matchId, father){ 
+
+    //create the title of the leaderbord
+    const leaderbordTitle = document.createElement("h2")
+    leaderbordTitle.innerText = `Leadebord Match ${matchId}`
+    father.appendChild(leaderbordTitle)
+
+    //create a button for return to home
+    const button = document.createElement('button');
+    button.className = 'home-button';
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-home';
+    button.appendChild(icon);
+    document.body.appendChild(button);
+
+    button.addEventListener('click', function() {
+        var url = '/home';
+        window.location.href = url; 
+    });
+
+    //create the div that contain the real lederbord 
+    let leaderbordDiv = document.createElement("div")
+    leaderbordDiv.classList ='leaderbordDiv'
+    leaderbordDiv.innerText = ``
+
+    // variable used in the function
+    let recordsAndColors = new Map();   // maps record of leaderbord with color for estetic reason 
+    let records = new Map();            // map of records of the leaderbord
+    let teamsAndMembers = new Map();    // map team Id with the memebers of that team
 
     console.log('Request all team of the match')
     await fetch('/api/leaderboard', {
@@ -34,8 +59,8 @@ async function showLeaderbord(matchId, leaderbord){
 
         records = sortRecordsByScore(records);
         records.keys().forEach((key) => {
-            if(teamsAndMembers.has(key)){ addTeam(key, records.get(key).recordName, records.get(key).recordScore, leaderbord, recordsAndColors, teamsAndMembers) }
-            else{addAgent(key, records.get(key).recordName, records.get(key).recordScore, leaderbord, recordsAndColors) }
+            if(teamsAndMembers.has(key)){ addTeam(key, records.get(key).recordName, records.get(key).recordScore, leaderbordDiv, recordsAndColors, teamsAndMembers) }
+            else{addAgent(key, records.get(key).recordName, records.get(key).recordScore, leaderbordDiv, recordsAndColors) }
         });
     })
     .catch(error => { console.error('An error occurred:', error); });
@@ -65,6 +90,8 @@ async function showLeaderbord(matchId, leaderbord){
         })
         .catch(error => {console.error('An error occurred:', error);});
     }
+
+    father.appendChild(leaderbordDiv)
 }
 
 export{showLeaderbord}

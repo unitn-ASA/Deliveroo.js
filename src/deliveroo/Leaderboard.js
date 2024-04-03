@@ -197,7 +197,7 @@ class Leaderboard {
         return queried;
     }
 
-
+    // function that return the id and the date af all the matches of a room
     static async getMatches(roomId) {
         try {
             const matches = await RewardModel.aggregate([
@@ -212,6 +212,29 @@ class Leaderboard {
             const matchInfo = matches.map(match => ({ matchId: match._id, firstTime: match.firstTime }));
             return matchInfo;
 
+        } catch (error) {
+            console.error('Error occurred while fetching matches:', error);
+            throw error;
+        }
+    }
+
+    // function that return the first time saved in the dtabase for a required match
+    static async getMatcheFirst(matchId) {
+        try {
+            const matchFirstTime = await RewardModel.aggregate([
+                { $match: { matchId: matchId } },
+                { $group: { _id: "$matchId", firstTime: { $min: "$time" } } }
+            ]);
+            
+            //console.log('matchFirstTime: ', matchFirstTime)
+
+            if (matchFirstTime.length > 0) {
+                let dateObject = matchFirstTime[0].firstTime
+                let dateText = dateObject.getDate() + '/' + dateObject.getMonth() + 1 + '/' + dateObject.getFullYear()+ ' - '+ dateObject.getHours()+ ':'+ dateObject.getMinutes()
+                return  dateText;
+            } else {
+                return null; // the match has not found in the database 
+            }
         } catch (error) {
             console.error('Error occurred while fetching matches:', error);
             throw error;

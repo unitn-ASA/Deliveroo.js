@@ -8,14 +8,17 @@ class RandomlyMoveAgent {
     /** @type {Promise} Resolves when agent finally stops */
     stopped = Promise.resolve();
 
+    agent   //the Agent associeted to the autonomous agent
+    config
+
     /**
      * @param {Config} config
      * @param {Grid} myGrid 
      */
     constructor(config, myGrid) {
         
-        var myAgent = myGrid.createAgent({});
-        this.start(myAgent, config);
+        this.config = config
+        this.agent = myGrid.createAgent({});
     }
 
     /**
@@ -51,9 +54,9 @@ class RandomlyMoveAgent {
      * @param {Config} config
      * @returns {Promise} Resolves when agent starts after completing presious stop request
      */
-    async start(agent, config) {
+    async start() {
         await this.stopped;
-        this.stopped = this._randomlyMove(agent, config);
+        this.stopped = this._randomlyMove(this.agent, this.config);
     }
 
     /**

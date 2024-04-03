@@ -81,12 +81,16 @@ class Match {
             //console.log(remainingTime) /* print for debug */
             this.grid.emit('timer update',remainingTime);  
         })
-        this.#timer.on('timer started', () => {  console.log(`/${this.#roomId }/${this.#id } timer started`)  /* print for debug */ })
-        this.#timer.on('timer stopped', () => { console.log(`/${this.#roomId }/${this.#id } timer stopped`)   /* print for debug */ })
+        this.#timer.on('timer started', async () => {  
+            console.log(`/${this.#roomId }/${this.#id } timer started`)  /* print for debug */ 
+            await Promise.all(this.#randomlyMovingAgents.map(a => a.start()));  //stop all the autonomous agent
+        })
+        this.#timer.on('timer stopped', async () => { 
+            console.log(`/${this.#roomId }/${this.#id } timer stopped`)   /* print for debug */ 
+            await Promise.all(this.#randomlyMovingAgents.map(a => a.stop())); //stop all the autonomous agent
+        })
         this.#timer.on('timer ended', async () => {
             console.log(`/${this.#roomId }/${this.#id } timer ended`)
-            this.#status = MatchStatus.END
-            this.grid.emit('match ended', this.#id);
             await this.destroy()
         })
         
@@ -96,20 +100,28 @@ class Match {
    
     async destroy() {
 
-        await this.#timer.stop()
-        this.#timer.destroy()
-        this.#timer = null; 
+        if(this.#status == MatchStatus.END){ console.log("\tMatch alredy ended"); return } // check if the match is already ended 
+        this.grid.emit('match ended', this.#id);    //emit the end of the match
 
-        // Stoppa the motion of the agent
-        await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));
+        try{
+            // stop and destroy the timer
+            this.#status = MatchStatus.END
+            await this.#timer.stop()
+            this.#timer.destroy()
+            
+            // Stoppa the motion of the agent
+            await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));
     
-        // Destroy the generator of parcels
-        await this.#parcelsGenerator.destroy();
+            // Destroy the generator of parcels
+            await this.#parcelsGenerator.destroy();
     
-        // Destroy the grid
-        await this.grid.destroy();
+            // Destroy the grid
+            await this.grid.destroy();
 
-        this.#status = MatchStatus.END
+        }catch(error){
+            console.log("\tError match destroy")
+        }
+        
     
     }
 

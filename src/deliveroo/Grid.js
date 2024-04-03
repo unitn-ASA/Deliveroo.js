@@ -22,6 +22,8 @@ class Grid extends Observable {
     #agents;
     getAgents() { return this.#agents; }
 
+    lastId = 0; //last id for the autonomous agent
+
     /** @type {Map<string,Set<Agent>} agents in each team */
     #teamsAgents = new Map();
 

@@ -1,150 +1,120 @@
 import * as THREE from 'three';
-let params = new URLSearchParams(window.location.search);
 
-//key: nome team or alone agent, value: score
-let records = new Map();
-let recordsAndColors = new Map();
-let teamsAndMembers = new Map();
+async function showEndMatchScreen(matchId){
+    //console.log('mathID: ', matchId)
 
+    //key: nome team or alone agent, value: score
+    let records = new Map();
+    let recordsAndColors = new Map();
+    let teamsAndMembers = new Map();
 
-new Promise((resolve, reject) => {
-    console.log('EndMatchScreen')
-    if (!params.has('room')) {
-        params.append('room', '0');
-    }
-    resolve()
-})
-.then(()=>{
-    let roomId = params.get("room")
+    document.body.innerHTML = '';   // Empties the body of the HTML document
+    document.body.style.backgroundColor = 'black'
+    document.body.style.display = 'flex'
+    document.body.style.alignItems = 'center';
+    document.body.style.justifyContent = 'center'; 
 
-    // request the status of the match to the server
-    fetch(`/api/rooms/${roomId}/status`, {
+    const button = document.createElement('button');
+    button.className = 'home-button-end-match';
+    button.id = 'home-button';
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-home';
+    button.appendChild(icon);
+    document.body.appendChild(button);
+
+    button.addEventListener('click', function() {
+        var url = '/home';
+        window.location.href = url; 
+    });
+    
+    // Create a div for the leaderbord
+    const leaderboardDiv = document.createElement('div');
+    leaderboardDiv.id = 'leaderbord-end-match'
+    leaderboardDiv.style.color = 'white';
+    leaderboardDiv.style.textAlign = 'center';
+    leaderboardDiv.innerHTML = '<h1>Leaderboard</h1>'; // Contenuto del leaderboard
+
+    console.log('Request all team of the match')
+    await fetch('/api/leaderboard', {
         method: 'GET',
         headers: {
-        'Content-Type': 'application/json',
-        },
+            'Content-Type': 'application/json',
+            'matchId': matchId,
+            'teamId': '',
+            'aggregateby': 'true'
+
+        }
     })
     .then(response => {
-        if (response.ok) { return response.json(); 
-        } else { throw new Error('Error during data sending'); }
+        if (response.ok) { return response.json();}
+        throw new Error(`Error, Status code: ${response.status}`);
     })
-    .then(async data => {
-        console.log('Match Status: ', data.status)
-        if(data.status != 'end'){ return }
-
-        document.body.innerHTML = '';   // Empties the body of the HTML document
-        document.body.style.backgroundColor = 'black'
-        document.body.style.display = 'flex'
-        document.body.style.alignItems = 'center';
-        document.body.style.justifyContent = 'center'; 
-
-        const button = document.createElement('button');
-        button.className = 'home-button-end-match';
-        button.id = 'home-button';
-        const icon = document.createElement('i');
-        icon.className = 'fas fa-home';
-        button.appendChild(icon);
-        document.body.appendChild(button);
-
-        button.addEventListener('click', function() {
-            var url = '/home';
-            window.location.href = url; 
+    .then(data => {
+        console.log('leaderboard: Teams in the match: ')
+        console.log(data)
+        data.forEach(element => {
+            if(element.teamName !== 'no-team'){
+                console.log("leaderboard: Adding team ", element.teamName, ' id ', element.teamId);
+                records.set(element.teamId, {recordName: element.teamName, recordScore: element.score})     //add the team to the record of leaderbord
+                teamsAndMembers.set(element.teamId, []);                                                    //add a record in the teamsAndMembers map for save the memebers of the team    
+            }else{
+                console.log("leaderboard: Adding agent " + element.agentId + " without a team")
+                records.set(element.agentId, {recordName: element.agentName, recordScore: element.score})     
+            }
         });
-        
-        // Create a div for the leaderbord
-        const leaderboardDiv = document.createElement('div');
-        leaderboardDiv.id = 'leaderbord-end-match'
-        leaderboardDiv.style.color = 'white';
-        leaderboardDiv.style.textAlign = 'center';
-        leaderboardDiv.innerHTML = '<h1>Leaderboard</h1>'; // Contenuto del leaderboard
 
-        console.log('Request all team of the match')
+        records = sortRecordsByScore(records);      // sort the record in a decres order 
+        records.keys().forEach((key) => {           // for each record add an Agent or Team html element
+            if(teamsAndMembers.has(key)){ addTeam(key, records.get(key).recordName, records.get(key).recordScore, leaderboardDiv, recordsAndColors) }
+            else{addAgent(key, records.get(key).recordName, records.get(key).recordScore, leaderboardDiv, recordsAndColors) }
+        });
+
+        document.body.appendChild(leaderboardDiv);
+    })
+    .catch(error => {
+        console.error('An error occurred:', error);
+    });
+
+    // Now for each team we request the agent members
+    for (let team of teamsAndMembers.keys()) {
         await fetch('/api/leaderboard', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'roomId': roomId,
-                'teamId': '',
-                'aggregateby': 'true'
-
+                'matchId': matchId,
+                'teamId': team,  
+                'aggregateby': false
             }
         })
         .then(response => {
-            if (response.ok) {
-                return response.json();
-            }
+            if (response.ok) { return response.json(); }
             throw new Error(`Error, Status code: ${response.status}`);
         })
         .then(data => {
-            console.log('leaderboard: Teams in the match: ')
-            console.log(data)
-            data.forEach(element => {
-                if(element.teamName !== 'no-team'){
-                    console.log("leaderboard: Adding team ", element.teamName, ' id ', element.teamId);
-                    records.set(element.teamId, {recordName: element.teamName, recordScore: element.score}) 
-                    teamsAndMembers.set(element.teamId, []);                                 
+            console.log(`leaderborad/${team}: Request to database it's memebers: `)
+            data.forEach(element => { 
+                if(!teamsAndMembers.get(element.teamId).find(member => member.id === element.agentId )){
+                    teamsAndMembers.get(element.teamId).push({id: element.agentId, name: element.agentName, score: element.score})
                 }else{
-                    console.log("leaderboard: Adding agent " + element.agentId + " without a team")
-                    records.set(element.agentId, {recordName: element.agentName, recordScore: element.score})     
-                }
-            });
-
-            records = sortRecordsByScore(records);
-            records.keys().forEach((key) => {
-                if(teamsAndMembers.has(key)){ addTeam(key, records.get(key).recordName, records.get(key).recordScore, leaderboardDiv) }
-                else{addAgent(key, records.get(key).recordName, records.get(key).recordScore, leaderboardDiv) }
-            });
-
-            // Aggiungi il div al body del documento
-            document.body.appendChild(leaderboardDiv);
+                    console.log("This agent", element.agentId  +"already exists in teamMembers list.");
+                }     
+            });     
         })
         .catch(error => {
             console.error('An error occurred:', error);
         });
+    }
+}
 
-        // Now for each team we request the agent members
-        for (let team of teamsAndMembers.keys()) {
-            await fetch('/api/leaderboard', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'roomId': roomId,
-                    'teamId': team,  
-                    'aggregateby': false
-                }
-            })
-            .then(response => {
-                if (response.ok) { return response.json(); }
-                throw new Error(`Error, Status code: ${response.status}`);
-            })
-            .then(data => {
-                console.log(`leaderborad/${team}: Request to database it's memebers: `)
-                //console.log(data)
-                data.forEach(element => { 
-                    if(!teamsAndMembers.get(element.teamId).find(member => member.id === element.agentId )){
-                        teamsAndMembers.get(element.teamId).push({id: element.agentId, name: element.agentName, score: element.score})
-                    }else{
-                        console.log("This agent", element.agentId  +"already exists in teamMembers list.");
-                    }     
-                });     
-            })
-            .catch(error => {
-                console.error('An error occurred:', error);
-            });
-        }
+export{showEndMatchScreen}
 
-    })
-    .catch(error => {
-        console.error('An error occurred:', error.message);
-    });
 
-})
 
-async function addTeam (teamId, teamName, score, leaderboardDiv) {
+async function addTeam (teamId, teamName, score, leaderboardDiv, recordsAndColors) {
 
     // If the team have no yet assosieted a color, it associete one and save it in the game.teamsAndColors map.
-    if(!recordsAndColors.get(teamId)){ await newColor(teamId) }
-    let color = recordsAndColors.get(teamId)
+    if(!recordsAndColors.get(teamId)){ await newColor(teamId, recordsAndColors) }
+    let color = recordsAndColors.get(teamId, recordsAndColors)
 
     let teamElement = document.createElement('div');    // create a new div for the team
     teamElement.classList.add('team');                  // Add the class "team" to the new div
@@ -203,9 +173,9 @@ async function addTeam (teamId, teamName, score, leaderboardDiv) {
     
 }
 
-async function addAgent (id, agent, score, leaderboardDiv) {
+async function addAgent (id, agent, score, leaderboardDiv, recordsAndColors) {
 
-    if(!recordsAndColors.get(id)){ await newColor(id) }
+    if(!recordsAndColors.get(id)){ await newColor(id, recordsAndColors) }
     let color = recordsAndColors.get(id)
 
     let agentElement = document.createElement('div');     // create a new div for the agent
@@ -249,7 +219,7 @@ async function addAgent (id, agent, score, leaderboardDiv) {
     
 }
 
-async function newColor(id){
+async function newColor(id, recordsAndColors){
     let coloriGiaUsati = Array.from(recordsAndColors.values());   // get an array with all the already used colors    
    
     let color;

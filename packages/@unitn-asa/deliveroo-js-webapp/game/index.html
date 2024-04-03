@@ -4,6 +4,7 @@
     <title>Deliveroo.js</title>
     <link rel="stylesheet" href="styleAllert.css">
     <link rel="stylesheet" href="styleIndex.css">
+    <link rel="stylesheet" href="styleRestartMatch.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   </head>
   
@@ -41,8 +42,11 @@
 
       <div id="panel" style="display:none">
         <div id="admin-div">
-          <button class="home-button" id="home-button"><i class="fas fa-home"></i></button>
-          <button class="login-button" id="loginButton">Login</button>
+          <div id="home-login-buttons">
+            <button class="home-button" id="home-button"><i class="fas fa-home"></i></button>
+            <button class="login-button" id="loginButton">Login</button>
+          </div>
+          
         </div>
         <div id="timer-div">
           <h4>Timer: 
@@ -65,7 +69,6 @@
     <!-- <script  src="/socket.io/socket.io.js"></script> -->
     <script type="module" src="EndMatchScreen.js"></script>
     <script type="module" src="Allert.js"></script>
-    <script type="module" src="Admin.js"></script>
     <!-- <script type="module" src="deliveroo.js"></script> -->
 
   </body>
