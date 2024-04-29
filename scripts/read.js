@@ -10,13 +10,7 @@ mongoose.connect(process.env.DB_URL, {})
 .then ( async () => {
 	console.log("Connected to Database");
 
-	// delete all from mongoose collection RewardModel
-	await RewardModel.deleteMany({});
-
-	new Leaderboard( );
-	
-
-	console.log( await Leaderboard.get() );
+	console.log( await RewardModel.find().exec() );
 
 });
 

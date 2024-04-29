@@ -13,7 +13,7 @@ const roomRoutes = require('./routes/rooms');
 const tokenRoutes = require('./routes/token');
 const timerRoutes = require('./routes/timer');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
 
 // Middleware per gestire i dati JSON e form-urlencoded
@@ -32,7 +32,8 @@ app.use('/home', express.static( Path.join(__dirname, '..', 'packages', '\@unitn
 app.use('/old_matches', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'old_matches') ));
 
 app.use('/api/config', configRoutes);
-app.use('/api/grids', gridRoutes);
+app.use('/api/matches', matchesRoutes);
+app.use('/api/maps', mapsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/matches', matchesRoutes);
 app.use('/api/maps', mapsRoutes);
@@ -48,7 +49,7 @@ app.post('/login', (req, res) => {
         const token = generateTokenAdmin();
         res.json({ success: true, token: token});
     } else {
-        res.status(401).json({ success: false, message: 'Credenzialias not valid' });
+        res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 });
 

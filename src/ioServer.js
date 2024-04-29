@@ -88,7 +88,7 @@ class ioServer {
          * https://socket.io/docs/v4/server-api/#namespace
          */
         const parentNamespace = io.of( (name, auth, next) => {
-            console.log( `Check match namespace ${name}` ); // name includes the '/'
+            // console.log( `Check match namespace ${name}` ); // name includes the '/'. Can be accessed through socket.nsp.name.
             next(null, true); // or false, when the creation is denied
         }).on('connection', async (socket) => {
 
@@ -132,6 +132,7 @@ class ioServer {
             socket.on( 'disconnect', async (cause) => {
 
                 try{
+
                     let socketsLeft = (await agentRoom.fetchSockets()).length;
                     console.log( `/${room.id}/${me.name}-${me.teamName}-${me.id} Socket disconnected.`,
                         socketsLeft ?
@@ -149,8 +150,9 @@ class ioServer {
                             room.grid.deleteAgent ( me );
                         };
                     }
-                }catch(error){
-                    console.log('Error in the disconection of socket ', socket.id, ' -> ', error)
+
+                } catch (error) {
+                    console.log('Error in the disconection of socket ', socket.id, ' -> ', error);
                 }
                 
             });
@@ -306,8 +308,7 @@ class ioServer {
             if(agent.teamName != 'no-team'){
                 //console.log('team:' , agent.teamName)
                 let teamId = agent.teamId
-                dataTeam = await Leaderboard.get({matchId, teamId},['teamId']);
-                dataTeam = dataTeam[0]
+                dataTeam = ( await Leaderboard.get({matchId, teamId}, ['teamId']) )[0];
             }
 
             //console.log('agent reWard, agent id: ', agent.id + " -> ", dataAgent[0])
@@ -321,11 +322,13 @@ class ioServer {
 
 
     /**
+     * @function listenSocketEventsAndForwardToGame
      * @param {Agent} me
+     * @param {Match} match
      * @param {Socket} socket
      * @param {BroadcastOperator} agentRoom
      * @param {BroadcastOperator} teamRoom
-     * @param {Namespace} matchNamespace
+     * @param {BroadcastOperator} matchRoom
      */
     static listenSocketEventsAndForwardToGame ( me, socket, agentRoom, teamRoom, roomNamespace ) {
         
@@ -407,7 +410,7 @@ class ioServer {
 
         socket.on( 'say', (toId, msg, acknowledgementCallback) => {
             
-            console.log( me.id, me.name, me.teamId, 'say ', toId, msg );
+            console.log( `${matchRoom.name}/${me.name}-${me.id}-${me.teamName}`, 'say ', toId, msg );
 
             roomNamespace
             .in("agent:"+toId)
@@ -420,7 +423,7 @@ class ioServer {
         } )
 
         socket.on( 'ask', (toId, msg, replyCallback) => {
-            console.log( me.id, me.name, me.teamId, 'ask', toId, msg );
+            console.log( `${matchRoom.name}/${me.name}-${me.id}-${me.teamName}`, 'ask', toId, msg );
 
             roomNamespace
             .in("agent:"+toId)
@@ -435,7 +438,7 @@ class ioServer {
 
         socket.on( 'shout', (msg, acknowledgementCallback) => {
 
-            console.log( me.id, me.name, me.teamId, 'shout', msg );
+            console.log( `${matchRoom.name}/${me.name}-${me.id}-${me.teamName}`, 'shout', msg );
 
             roomNamespace.emit( 'msg', me.id, me.name, me.teamId, msg );
 

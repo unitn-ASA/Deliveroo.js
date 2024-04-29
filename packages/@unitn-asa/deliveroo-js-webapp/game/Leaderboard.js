@@ -59,7 +59,7 @@ class Leaderboard {
                 'teamId': '',
                 'aggregateby': 'true'
             }
-        })
+        )
         .then(response => {
             if (response.ok) {return response.json();}
             else {throw new Error(`Error, Status code: ${response.status}`);}
@@ -104,7 +104,7 @@ class Leaderboard {
                     'teamId': team,  
                     'aggregateby': false
                 }
-            })
+            )
             .then(response => {
                 if (response.ok) {
                     return response.json();

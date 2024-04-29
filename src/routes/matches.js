@@ -14,19 +14,14 @@ function verifyToken(req, res, next) {
   
   const token = req.headers.authorization;
   if (!token) {
-    return res.status(403).send({ auth: false, message: 'Token not find.' });
+    return res.status(403).send({ auth: false, message: 'No Token in headers.authorization.' });
   }
 
   // Check and decode the token
   jwt.verify(token, SUPER_SECRET_ADMIN, (err, decoded) => {
-    if (err) {
-      return res.status(500).send({ auth: false, message: 'Autenticatione feiled.' });
+    if ( err || decoded.user != 'admin' || decoded.password != 'god1234' ) {
+      return res.status(500).send({ auth: false, message: 'Autenticatione failed.' });
     }
-
-    if(decoded.user != 'admin' || decoded.password != 'god1234'){
-      return res.status(500).send({ auth: false, message: 'Autenticatione feiled.' });
-    }
-
     next();
   });
 }

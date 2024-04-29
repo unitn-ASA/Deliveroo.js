@@ -169,14 +169,15 @@ class Leaderboard {
         groupExpression.agentName = { $first: '$agentName' };
         groupExpression.agentId = { $first: '$agentId' };
         groupExpression.teamName = { $first: '$teamName' };
+        groupExpression.teamId = { $first: '$teamId' };
         groupExpression.score = { $sum: '$score' };
-        groupExpression.history = { $push: { score: '$score', time: '$time' } };
+        // groupExpression.history = { $push: { score: '$score', time: '$time' } };
         
 
         // console.log( 'Leaderboard.get()', 'matchExpression:', matchExpression, 'groupExpression:', groupExpression );
         
         // query mongoose with aggregation api
-        try{
+        try {
             var queried = await RewardModel        
             // aggregate results
             .aggregate()
@@ -187,10 +188,8 @@ class Leaderboard {
             // hide _id
             // .project( '-_id matchId teamId agentId score history' )
             .exec();
-        }catch (error) {
-            console.log('Error 2')
-            console.error(error); // Log any errors occurred during the process
-            return error;
+        } catch (error) {
+            // console.log('Cannot get rewards of Leaderboard from mongoDb');
         }
         
         // return results
@@ -261,8 +260,6 @@ class Leaderboard {
             console.error(error); // Log any errors occurred during the process
             return;
         }
-        
-        return await reward.save();
     }
 
 }
