@@ -137,6 +137,7 @@ class Gui {
                     console.log( 'tile', x, y );
                     socket.emit( 'tile', x, y );
                 } else {
+                    /* DOVE LO PRENDO PARCEL ?
                     if ( Array.from(parcels.values()).find( p => p.x == x && p.y == y ) ) {
                         console.log( 'dispose parcel', x, y );
                         socket.emit( 'dispose parcel', x, y );
@@ -144,6 +145,7 @@ class Gui {
                         console.log( 'create parcel', x, y );
                         socket.emit( 'create parcel', x, y );
                     }
+                    */
                 }
             }
         } );
@@ -167,8 +169,6 @@ class Gui {
     setTarget ( mesh ) {
         this.targetMesh = mesh;
     }
-
-
 
     /**
      * @type {EventEmitter}

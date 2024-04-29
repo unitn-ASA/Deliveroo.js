@@ -67,48 +67,6 @@ router.post('/', verifyToken, async (req, res) => {
 
 });
 
- 
-
-/********************************************* */
-/*                    PUT                      */
-/********************************************* */
-// Endpoint for the restart of the match in the room
-router.put('/:id/match', verifyToken, async (req, res) => {
-  const roomId = req.params.id;         // get id of the room
-  let room = Arena.rooms.get(roomId);   // get the room
-
-  if(!room){
-    console.log('PUT room: room', roomId, ' requested not found')
-    res.status(400).json({ message: `Room ${roomId} not found` });
-    return
-  }
-
-  room.match = new Match()
-})
-
-
-// Endpoint to put the match to change it statuts in live on or live off 
-router.put('/:id/match/status', verifyToken, (req, res) => {
-  const roomId = req.params.id;         // get id of the room
-  let room = Arena.rooms.get(roomId);   // get the room
-
-  if(!room){
-    console.log('PUT room: room', roomId, ' requested not found')
-    res.status(400).json({ message: `Room ${roomId} not found` });
-    return
-  }
-  
-  if(room.match.status == 'on'){room.match.liveOff()}  // if the status of the match is on, the endpoint put it to off
-  else{room.match.liveOn()}                            // else if the status is off, the endpoint put it to on
-  console.log(`PUT room: status of match in room ${roomId} update to ${room.match.status}.`)
-
-  res.status(200).json({ 
-    message: `Stato del match in room ${roomId} aggiornato a ${room.match.status}.`,
-    matchId: room.match.id,
-    status: room.match.status
-  });
-});
-
 
 
 /********************************************* */
@@ -129,32 +87,6 @@ router.delete('/:id', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Error during the elimination of the room' });
   }
   
-  
-});
-
-// Endpoint to change the match in the room 
-router.delete('/:id/match', verifyToken, async (req, res) => {
-  const roomId = req.params.id;
-  let room = Arena.rooms.get(roomId);
-
-  if(!room){
-    console.log('DELETE room: room', roomId, 'requested not found')
-    res.status(400).json({ message: `Room ${roomId} not found` });
-    return
-  }
-
-  if(room.match.status == 'end'){
-    console.log('DELETE room: match in room ', roomId, ' is already ended, request invalid ')
-    res.status(400).json({ message: `Match in room ${roomId} already ended` });
-    return
-  }
-  
-  await room.match.change();
-  console.log(`DELETE room: match ${room.match.id} in room ${roomId} deleted.`)
-
-  res.status(200).json({ 
-    message: `match ${room.match.id} in room ${roomId} deleted`,
-  });
   
 });
 
@@ -213,17 +145,7 @@ router.get('/:id', (req, res) => {
     remainingTime: remainingTime
   });
 });
-/* Endpoint to obtain the list of pass match of a room
-router.get('/:id/matches', async (req, res) => {
-  const result = await Leaderboard.getMatches(req.params.id);
- 
-  res.status(200).json({
-    message: 'List active rooms',
-    result: result,
-  });
 
-});
-*/
 
 
 module.exports = router;

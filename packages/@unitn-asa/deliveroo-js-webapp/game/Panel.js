@@ -863,7 +863,7 @@ async function stopTimer(token_admin, roomId){
 async function deleteMatch(roomId){
 
     const token_admin = getAdminCookie();
-    await fetch(`/api/rooms/${roomId}/match`, {             // request to delete the match
+    await fetch(`/api/matches/${roomId}`, {             // request to delete the match
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',

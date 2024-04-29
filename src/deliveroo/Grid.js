@@ -5,8 +5,9 @@ const Parcel = require('./Parcel');
 const Xy = require('./Xy');
 const Config = require('./Config');
 const Leaderboard = require('./Leaderboard')
-const RandomlyMoveAgent = require('../workers/randomlyMovingAgent');
-const parcelsGenerator = require('../workers/parcelsGenerator');
+
+const RandomlyMoveAgent = require('../workers/RandomAgentMover');
+const parcelsGenerator = require('../workers/ParcelsGenerator');
 
 // enum for the status of the match
 const GridStatus = {

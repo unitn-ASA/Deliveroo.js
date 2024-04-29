@@ -35,7 +35,7 @@ class Timer extends EventEmitter {
         
       // Create an interval that decrements the remaining time of the timer evry 1 second
       this.intervalId = setInterval(() => {
-        this.#remainingTime -= 1; // Decrease the remaining time by 1 second
+        this.remainingTime -= 1; // Decrease the remaining time by 1 second
         this.emit('timer update', this.remainingTime);
         
         // Check if the remaining time has expired

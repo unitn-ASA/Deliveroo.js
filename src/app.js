@@ -32,8 +32,7 @@ app.use('/home', express.static( Path.join(__dirname, '..', 'packages', '\@unitn
 app.use('/old_matches', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'old_matches') ));
 
 app.use('/api/config', configRoutes);
-app.use('/api/matches', matchesRoutes);
-app.use('/api/maps', mapsRoutes);
+app.use('/api/grids', gridRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/matches', matchesRoutes);
 app.use('/api/maps', mapsRoutes);

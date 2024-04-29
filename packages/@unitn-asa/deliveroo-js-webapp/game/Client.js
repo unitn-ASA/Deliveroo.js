@@ -262,7 +262,7 @@ class Client {
             console.log(this.game)
             // try to update the leaderbord, the try is used becouse can happen that the update signal come before the costruct of the leaderbord
             try{this.game.leaderboard.updateLeaderbord(dataAgent.agentId, dataAgent.agentName, dataAgent.score, dataAgent.teamId, dataAgent.teamName, teamScore)}
-            catch(error){console.log('UPDATE LEADERBORD failed: incomin event before the costruct of leaderbord', error)}  
+            catch(error){console.log('UPDATE LEADERBORD failed: incomin event before the costruct of leaderbord')}  
         })
 
         // when the match is put off the game must remove the Leaderbord, but also update the match light in the client panel  

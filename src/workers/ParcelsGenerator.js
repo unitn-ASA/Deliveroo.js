@@ -1,15 +1,7 @@
 const Grid = require('../deliveroo/Grid');
 const myClock =  require('../deliveroo/Clock');
-/**
- * @typedef {import('../deliveroo/Config')} Config
- */
 
 
-
-/**
- * @param {Config} config
- * @param {Grid} grid 
- */
 class ParcelsGenerator {
 
     /** @type {Config} */
