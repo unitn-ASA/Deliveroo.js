@@ -29,8 +29,7 @@ class ioServer {
     constructor( httpServer ) {
         
         const defaultRoom = Arena.createRoom(); // with default config
-        defaultRoom.match.startStopGame();
-        
+                
         /**
          * Server Socket.IO
          */
@@ -107,61 +106,47 @@ class ioServer {
                 return;
             }
 
-            // if the socket try to cennect to a match that not exist we block the connection 
-            if(Arena.getRoom( roomTitle ).match.status == 'end'){
-                console.log( `socket ${socket.id} try to connected to a room ${roomTitle} that contain an ended match with and ended match` );
-                socket.emit('match ended',  Arena.getRoom( roomTitle ).match.id)
-                return;
-            }
-            
-            await socket.join("team:"+teamId);
-            await socket.join("agent:"+id);
-
-            console.log( `Socket ${socket.id} connecting as ${name}(${id})(${teamName}) to room ${roomTitle}, with token: ...${token.slice(-30)}` );
-
             const roomNamespace = socket.nsp;
             const teamRoom = roomNamespace.in("team:"+teamId);
             const agentRoom = roomNamespace.in("agent:"+id);
 
-            const room = Arena.getRoom( roomTitle ); // with default config
-            // const team = new Team();
+            const room = await Arena.getRoom( roomTitle ); 
+            let count = 0   
+            while(room.waitConnection){ if(count == 0){console.log('connection in room are waiting'); count++}}               
             const me = room.getOrCreateAgent( socket.request.user );
+            
+            await socket.join("team:"+teamId);
+            await socket.join("agent:"+id);
 
-            console.log( `/${room.id} socket ${socket.id} connected as ${me.name}-${me.teamName}-${me.id}` );
+            console.log( `Socket ${socket.id} connecting as ${me.name}-${me.teamName}-${me.id} to room ${room.id}, with token: ...${token.slice(-30)}` );
             
             // let socketsInAgentRoom = await agentRoom.fetchSockets();
             // console.log( socketsInAgentRoom.length, 'sockets in room', "agent:"+id, "at", matchTitle)
 
-            ioServer.listenToGameEventsAndForwardToSocket( socket, me, room.match.grid, room, roomNamespace );
+            ioServer.listenToGameEventsAndForwardToSocket( socket, me, room, roomNamespace );
             ioServer.listenSocketEventsAndForwardToGame( me, socket, agentRoom, teamRoom, roomNamespace );
-
+    
             /**
              * on Disconnect
              */
             socket.on( 'disconnect', async (cause) => {
-
-                // if the disconection is occured after the match ended we dont have to execute the rest of the code 
-                if(room.match.status == 'end'){ console.log('socket ', socket.id + ' disconected'); return}
 
                 try{
                     let socketsLeft = (await agentRoom.fetchSockets()).length;
                     console.log( `/${room.id}/${me.name}-${me.teamName}-${me.id} Socket disconnected.`,
                         socketsLeft ?
                         `Other ${socketsLeft} connections to the agent.` :
-                        `No other connections, agent will be removed in ${this.#config.AGENT_TIMEOUT/1000} seconds.`
+                        `No other connections, agent will be removed in ${room.grid.config.AGENT_TIMEOUT/1000} seconds.`
                     );
-                    if ( socketsLeft == 0 && room.match.grid.getAgent(me.id) ) {
+                    if ( socketsLeft == 0 && room.grid.getAgent(me.id) ) {
                         
                         // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${this.#config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
-                        await new Promise( res => setTimeout(res, this.#config.AGENT_TIMEOUT) );
+                        await new Promise( res => setTimeout(res, room.grid.AGENT_TIMEOUT) );
                         
-                        // if in this 10 seconds the match end we stop the action
-                        if(room.match.status == 'end'){/*console.log('interrupt action, match ended')*/; return}
-
                         let socketsLeft = (await agentRoom.fetchSockets()).length;
-                        if ( socketsLeft == 0 && room.match.grid.getAgent(me.id) ) {
+                        if ( socketsLeft == 0 && room.grid.getAgent(me.id) ) {
                             console.log( `/${room.id}/${me.name}-${me.teamName}-${me.id} Agent deleted after ${this.#config.AGENT_TIMEOUT/1000} seconds of no connections` );
-                            room.match.grid.deleteAgent ( me );
+                            room.grid.deleteAgent ( me );
                         };
                     }
                 }catch(error){
@@ -172,9 +157,7 @@ class ioServer {
             
         });
 
-        /**
-         * Broadcast server log
-         */
+        /* Broadcast server log */
         const oldLog = console.log;
         console.log = function ( ...message ) {
             io.emit( 'log', {src: 'server', timestamp: myClock.ms}, ...message );
@@ -188,22 +171,11 @@ class ioServer {
     /**
      * @param {Socket} socket 
      * @param {Agent} me 
-     * @param {Grid} grid
-     * @param {Match} match
+     * @param {Grid} room
      */
-    static listenToGameEventsAndForwardToSocket ( socket, me, grid, room, roomNamespace ) {
-
-        // if the socket connect during the destroy of the match can happen error 
-        try{
-            socket.emit('timer update',  room.match.timer.remainingTime)
-        }catch(error){
-            console.log("ERROR TIMER : ", error)
-        }
+    static listenToGameEventsAndForwardToSocket ( socket, me, room, roomNamespace ) {      
         
-
-        /**
-         * Config
-         */
+        /* Config */
         if ( me.name == 'god' ) { // 'god' mod
             me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite'
             me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite'
@@ -211,23 +183,21 @@ class ioServer {
         socket.emit( 'config', me.config )
         
         //Emit map (tiles)
-        grid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {
+        room.grid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {
             // console.log( 'emit tile', x, y, delivery, parcelSpawner );
-            if (!blocked)
-                socket.emit( 'tile', x, y, delivery, parcelSpawner );
-            else
-                socket.emit( 'not_tile', x, y );
+            if (!blocked) socket.emit( 'tile', x, y, delivery, parcelSpawner );
+            else socket.emit( 'not_tile', x, y );
         } );
 
         let tiles = []
-        for (const {x, y, delivery, blocked, parcelSpawner} of grid.getTiles()) {
+        for (const {x, y, delivery, blocked, parcelSpawner} of room.grid.getTiles()) {
             if ( !blocked ) {
                 socket.emit( 'tile', x, y, delivery, parcelSpawner )
                 tiles.push( {x, y, delivery, parcelSpawner} )
             } else
                 socket.emit( 'not_tile', x, y );
         }
-        let {width, height} = grid.getMapSize()
+        let {width, height} = room.grid.getMapSize()
         socket.emit( 'map', width, height, tiles )
 
 
@@ -236,11 +206,10 @@ class ioServer {
             //console.log("Dati agent 1: ", id, name, teamId, teamName, x, y, score)
             socket.emit( 'you', id, name, teamId, teamName, x, y, score );
         } );
-        
         //console.log("Dati agent 2: ", me.id, me.name, me.teamId, me.teamName, me.x, me.y, me.score)
         socket.emit( 'you', me.id, me.name, me.teamId, me.teamName, me.x, me.y, me.score );
 
-        grid.on('agent deleted', ( who ) => {
+        room.grid.on('agent deleted', ( who ) => {
             // console.log("Agent ", who.name + " deleted")
             // if(who.team && this.#teamsAgents.has(who.team)){
             //     this.#teamsAgents.get(who.team).removeAgent(who.id)
@@ -248,59 +217,44 @@ class ioServer {
             socket.emit("agent deleted", who.id, who.team)
         })
 
-    
-        grid.on('timer update', (time) => { socket.emit("timer update", time) })
-        grid.on('match ended', async (matchId) => { 
-            // console.log('MATCH ENDED', matchId); 
-            socket.emit("match ended", matchId) 
-        })
-
-        //when a match in a room is restarted, the grid emit a reload signal to notice the client of the reload of the match
-        grid.on('reload', () => { 
-            console.log('RELOAD'); 
-            setTimeout(() => {socket.emit("reload");}, 2000);
-        })
+        
+        // TIMER EVENT
+        room.on('timer update', (time) => { socket.emit("timer update", time) })
+        room.on('timer ended', () => { socket.emit("timer ended") })
 
               
-        /**
-         * Emit sensing
-         */
-
+        /* Emit sensing */
         // Parcels
-        me.on( 'parcels sensing', (parcels) => {
-            // console.log('emit parcels sensing', ...parcels);
+        me.on( 'parcels sensing', (parcels) => {  // console.log('emit parcels sensing', ...parcels);
             socket.emit('parcels sensing', parcels )
         } );
-        me.emitParcelSensing();
+        me.emitParcelSensing(room.grid);
 
         // Agents
-        me.on( 'agents sensing', (agents) => {
-            // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
+        me.on( 'agents sensing', (agents) => {  // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
             socket.emit( 'agents sensing', agents );
         } );
-        me.emitAgentSensing();
+        me.emitAgentSensing(room.grid);
 
-        /**
-         * GOD mod
-         */
+        /* GOD mod */
         if ( me.name == 'god' ) {
 
             socket.on( 'create parcel', async (x, y) => {
                 console.log( 'create parcel', x, y )
-                grid.createParcel(x, y)
+                room.grid.createParcel(x, y)
             } );
 
             socket.on( 'dispose parcel', async (x, y) => {
                 console.log( 'dispose parcel', x, y )
-                let parcels = Array.from(grid.getParcels()).filter( p => p.x == x && p.y == y );
+                let parcels = Array.from(room.grid.getParcels()).filter( p => p.x == x && p.y == y );
                 for ( p of parcels)
-                    grid.deleteParcel( p.id )
-                grid.emit( 'parcel' );
+                    room.grid.deleteParcel( p.id )
+                room.grid.emit( 'parcel' );
             } );
 
             socket.on( 'tile', async (x, y) => {
                 console.log( 'create/dispose tile', x, y )
-                let tile = grid.getTile(x, y)
+                let tile = room.grid.getTile(x, y)
                 
                 if ( !tile ) return;
                 
@@ -324,13 +278,31 @@ class ioServer {
         }
 
         // Leaderboard
-        grid.on( 'agent rewarded', async (agent, reward) => {
+        /* When the match is put on the server have to adise it to all the sockets in order to enable them to menage their leaderbord */
+        room.on('match on', () => { socket.emit('match on'); me.emitAgentSensing(room.grid)})
+        // at the connection time the server check if the match is on, if yes it advice the client to create the leaderbord
+        if(room.match.status == 'on'){ socket.emit('create leaderbord') } 
+
+        /* When the match is put off the server have to adise it to all the sockets in order to enable them to menage their leaderbord */
+        room.match.on('match off', () => { socket.emit('match off') })
+
+        /* When the grid is changed*/
+        room.on('changed grid', () => { socket.emit('changed grid') })
+        /* When the grid is update*/
+        room.on('update grid', (state) => { socket.emit('grid update', state) })
+
+        /* when an agent score and the match is on the server notice the happen to the user sending 
+        the update score so the user can update it leaderbords */
+        room.on( 'agent rewarded', async (agent) => {
             
-            let matchId = grid.matchId
             let agentId = agent.id
+            let matchId = room.match.id
+
+            // take the information of the score for the agent and its team
             let dataAgent = await Leaderboard.get({matchId, agentId})
             let dataTeam;
 
+            // we try to read the score of the team only if the agent has a team
             if(agent.teamName != 'no-team'){
                 //console.log('team:' , agent.teamName)
                 let teamId = agent.teamId
@@ -341,7 +313,7 @@ class ioServer {
             //console.log('agent reWard, agent id: ', agent.id + " -> ", dataAgent[0])
             //console.log('team reWard:' , dataTeam)
 
-            socket.emit( 'leaderboard', dataAgent[0], dataTeam);
+            socket.emit( 'leaderbord', dataAgent[0], dataTeam);
         });
 
     }
@@ -363,19 +335,15 @@ class ioServer {
          */
         socket.on('move', async (direction, acknowledgementCallback) => {
 
-            // Before move the agent check if the match is n stop status or play one.
             let roomId = roomNamespace.name
             if (roomId.startsWith("/")) { roomId = roomId.slice(1); }  // Remove the first '/' 
             let room = Arena.getRoom( roomId ); 
+
+            // if the room is not finded the request is not consideredc 
             if(room == false) { console.log('Received move request for an not existing room: ', roomId); return};
-            if(room.match.status == 'end') { console.log('Received move request for a ended match in room: ', roomId); return};
 
-
-            if(room.match.status == 'stop'){  
-                console.log('Motion disable becouse the match of the room ', roomId + ' status is stop')
-                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
-                return;
-            }
+            // if the grid is freezed the agent can't move
+            if(room.grid.status == 'freeze') { console.log('grid of the room: ', roomId + 'freezed, the agent can not move'); return};
 
             console.log( `${roomNamespace.name}/${me.name}-${me.teamName}-${me.id}`, me.x, me.y, direction );
             try {
@@ -387,19 +355,16 @@ class ioServer {
 
         socket.on('pickup', async (acknowledgementCallback) => {
 
-             // Before move the agent check if the match is n stop status or play one.
-             let roomId = roomNamespace.name
-             if (roomId.startsWith("/")) { roomId = roomId.slice(1); }  // Remove the first '/' 
-             let room = Arena.getRoom( roomId ); 
-             if(room == false) { console.log('Received pickup request for an not existing room: ', roomId); return};
-             if(room.match.status == 'end') { console.log('Received pickup request for a ended match in room: ', roomId); return};
+            // Before move the agent check if the match is n stop status or play one.
+            let roomId = roomNamespace.name
+            if (roomId.startsWith("/")) { roomId = roomId.slice(1); }  // Remove the first '/' 
+            let room = Arena.getRoom( roomId ); 
 
+            // if the room is not finded the request is not consideredc 
+            if(room == false) { console.log('Received pickup request for an not existing room: ', roomId); return};
 
-            if(room.match.status == 'stop'){  
-                console.log('PickUp disable becouse the match in room ', roomId + ' status is stop')
-                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
-                return;
-            }
+            // if the grid is freezed the agent can't move
+            if(room.grid.status == 'freeze') { console.log('grid of the room: ', roomId + 'freezed, the agent can not pickup'); return};
 
             const picked = await me.pickUp()
             
@@ -413,18 +378,16 @@ class ioServer {
 
         socket.on('putdown', async (selected, acknowledgementCallback) => {
 
-             // Before move the agent check if the match is n stop status or play one.
+            // Before move the agent check if the match is n stop status or play one.
             let roomId = roomNamespace.name
             if (roomId.startsWith("/")) { roomId = roomId.slice(1); }   // Remove the first '/' 
             let room = Arena.getRoom( roomId );
-            if(room == false) { console.log('Received putdown request for an not existing room: ', roomId); return};
-            if(room.match.status == 'end') { console.log('Received putdown request for a ended match in room: ', roomId); return};
 
-            if(room.match.status == 'stop'){  
-                console.log('PutDown disable becouse the match in room ', roomId + ' status is stop')
-                if ( acknowledgementCallback ) acknowledgementCallback( 'Match is in stop staus' ); 
-                return;
-            }
+            // if the room is not finded the request is not consideredc 
+            if(room == false) { console.log('Received putdown request for an not existing room: ', roomId); return};
+
+            // if the grid is freezed the agent can't move
+            if(room.grid.status == 'freeze') { console.log('grid of the room: ', roomId + 'freezed, the agent can not putdown'); return};
 
             const {dropped, reward} = await me.putDown( selected );
 
@@ -474,8 +437,7 @@ class ioServer {
 
             console.log( me.id, me.name, me.teamId, 'shout', msg );
 
-            roomNamespace
-            .emit( 'msg', me.id, me.name, me.teamId, msg );
+            roomNamespace.emit( 'msg', me.id, me.name, me.teamId, msg );
 
             try {
                 if (acknowledgementCallback) acknowledgementCallback( 'successful' )
@@ -483,8 +445,7 @@ class ioServer {
             
         } )
 
-
-        
+  
         /**
          * Path
          */
@@ -494,16 +455,12 @@ class ioServer {
         } )
 
 
-        
         /**
          * Bradcast client log
          */
         socket.on( 'log', ( ...message ) => {
             roomNamespace.emit( 'log', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, ...message )
         } )
-
-
-
 
         socket.on( 'draw', async (bufferPng) => {
             // console.log( 'draw' );

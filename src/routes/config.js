@@ -15,17 +15,17 @@ router.get('/', async (req, res) => {
         
         // check if the room requeste exist 
         if(!room){
-            console.log('PUT room: room', roomId, ' requested not found')
+            console.log('GET config: room', roomId, ' requested not found')
             res.status(400).json({ message: `Room ${roomId} not found` });
             return
         }
 
-        config = room.match.config;
+        config = await room.grid.config;
     }else{
-        config = new Config()
+        config = await new Config()
     }
     
-    //console.log(defaultConfig)
+    console.log('GET config: room', roomId,)
     res.status(200).json(config); 
 })
 

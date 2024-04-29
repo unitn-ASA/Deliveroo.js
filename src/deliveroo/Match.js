@@ -1,135 +1,100 @@
-const Grid = require('./Grid');
-const RandomlyMoveAgent = require('../workers/randomlyMovingAgent');
-const parcelsGenerator = require('../workers/parcelsGenerator');
 const { uid } = require('uid');
-const Config = require('./Config');
-const Timer = require('./Timer');
+const Leaderboard = require('./Leaderboard')
+const EventEmitter = require('events');
 
 // enum for the status of the match
 const MatchStatus = {
-    STOP: 'stop',
-    PLAY: 'play',
-    END: 'end'
+    ON: 'on',
+    OFF: 'off',
 };
 
-class Match {
+class Match extends EventEmitter{
 
-    /** @type {Config} config */
-    config;
-
-    /** @type {MatchStatus} config */
-    #status;
+    /** @type {MatchStatus} status */
+    #status;        //define if the match is on of off
     get status () {  return this.#status; }
-    set status (newStatus) {  this.#status = newStatus; }
 
     /** @type {string} #roomId */ 
     #roomId 
     get roomId () { return this.#roomId; }
 
-    /** @type {string} #match */    
+    /** @type {string} #matchId */    
     #id;
     get id () { return this.#id; }
 
-    /** @type {Grid} grid */
-    grid;
-
-    /** @type {parcelsGenerator} */
-    #parcelsGenerator;
-
-    /** @type {randomlyMovingAgent[]} */
-    #randomlyMovingAgents;
-
-    // /** @type {Map<string,{agent:Agent,sockets:Set<Socket>}>} idToAgentAndSockets */
-    // #idToAgentAndSockets = new Map();
-
-    /** @type {Timer} timer of the match */
-    #timer;
-    get timer () { return this.#timer; }
+    /** @type {string} #grid */ 
+    #grid
 
     /**
      * @param {Config} config 
      * @param {string} id 
      */
-    constructor ( {roomId, config = new Config()} )  {
+    constructor ( room )  {
 
-        this.config = config;
+        super()
 
-        this.#roomId = roomId
+        this.#roomId = room.id
+        this.#grid = room.grid
+        
         this.#id = uid(4)
 
-        this.#status = MatchStatus.STOP
+        this.#status = MatchStatus.OFF
 
-        // Create and start the timer of the match
-        this.#timer = new Timer(config.MATCH_TIMEOUT);
-
-        // Load map
-        let map = require( '../../levels/maps/' + this.config.MAP_FILE + '.json' );
-        this.grid = new Grid( this.#roomId, this.#id, config, map.map );
-
-        // Parcels generator
-        this.#parcelsGenerator = new parcelsGenerator( this.config, this.grid );
-        
-        // Randomly moving agents
-        this.#randomlyMovingAgents = [];
-        for (let i = 0; i < this.config.RANDOMLY_MOVING_AGENTS; i++) {
-            let randomlyMoveAgent = new RandomlyMoveAgent( this.config, this.grid );
-            this.#randomlyMovingAgents.push( randomlyMoveAgent );
-        }
-
-        // listeners to the event of the timer
-        this.#timer.on('timer update', (remainingTime) => { 
-            //console.log(remainingTime) /* print for debug */
-            this.grid.emit('timer update',remainingTime);  
-        })
-        this.#timer.on('timer started', async () => {  
-            console.log(`/${this.#roomId }/${this.#id } timer started`)  /* print for debug */ 
-            await Promise.all(this.#randomlyMovingAgents.map(a => a.start()));  //stop all the autonomous agent
-        })
-        this.#timer.on('timer stopped', async () => { 
-            console.log(`/${this.#roomId }/${this.#id } timer stopped`)   /* print for debug */ 
-            await Promise.all(this.#randomlyMovingAgents.map(a => a.stop())); //stop all the autonomous agent
-        })
-        this.#timer.on('timer ended', async () => {
-            console.log(`/${this.#roomId }/${this.#id } timer ended`)
-            await this.destroy()
-        })
-        
-        console.log(`/${this.#roomId }/${this.#id } match created`);        
+        console.log(`\t- match /${this.#id } created:`);       
     }
 
-   
+    // put the match in on, when it happen notice it with an event that will be menage from the room 
+    liveOn() { if(this.#status != MatchStatus.ON)  { this.#status = MatchStatus.ON; this.emit('match on');   console.log('/'+this.#roomId+ ' match', this.#id + ' started')}}  
+    liveOff(){ if(this.#status != MatchStatus.OFF) { this.#status = MatchStatus.OFF; this.emit('match off'); console.log('/'+this.#roomId+ ' match', this.#id + ' stopped')}}
+
+    // method to save the score in the database
+    async reward(agent,sc){
+        if(this.#status == MatchStatus.OFF) return false;     // if the match is in off status the reward is not saved 
+        //console.log('REWARD') console.log(this.listenerCount('agent rewarded'))
+        await Leaderboard.addReward( this.#roomId, this.#id, agent.teamId, agent.teamName, agent.id, agent.name, sc );
+        return true
+    }
+
+    // method to load the score of all the agents passed
+    async loadScoreAgents(agents){
+        
+        for(let agent of agents){                      // for each agent try to load a pass score from the database
+            let loadedScore = await this.loadScore( agent.id )
+            if(loadedScore !== false){
+                agent.score = loadedScore;         // overide the actual score with the score in the match
+                console.log(`/${this.#roomId}/${agent.name}-${agent.teamName}-${agent.id} loaded score `, agent.score );
+            }else{
+                console.log(`/${this.#roomId}/${agent.name}-${agent.teamName}-${agent.id} unable to load a pass score ` );
+                agent.score = 0;                                // overide the actual score with the score in the match: 0
+                agent.emitOnePerTick( 'rewarded', agent, 0 );   // emit a reward to 0 to init the agent in the database
+            }
+        }
+    }
+
+    // method to load the score of a singular agent in the match 
+    async loadScore(agentId){
+        try {
+            let record = await Leaderboard.get({ matchId:this.#id, agentId:agentId });
+            let score = record[0].score
+            return score
+        } catch (error) {
+            return false;
+        }   
+    }
+
+    async change(){
+        this.#status = MatchStatus.OFF // Put the status in off, it cause the stop of the saving of reward
+        this.#id = uid(4)              // Change the id for similate a new match
+    }
+
     async destroy() {
-
-        if(this.#status == MatchStatus.END){ console.log("\tMatch alredy ended"); return } // check if the match is already ended 
-        this.grid.emit('match ended', this.#id);    //emit the end of the match
-
-        try{
-            // stop and destroy the timer
-            this.#status = MatchStatus.END
-            await this.#timer.stop()
-            this.#timer.destroy()
-            
-            // Stoppa the motion of the agent
-            await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));
-    
-            // Destroy the generator of parcels
-            await this.#parcelsGenerator.destroy();
-    
-            // Destroy the grid
-            await this.grid.destroy();
-
-        }catch(error){
-            console.log("\tError match destroy")
-        }
-        
-    
+        this.removeAllListeners();     // Remove all listeners
     }
-
-    startStopGame(){
-        if(this.#status == MatchStatus.PLAY){ this.#status = MatchStatus.STOP; this.#timer.stop();  return; }
-        if(this.#status == MatchStatus.STOP){ this.#status = MatchStatus.PLAY; this.#timer.start(); return; }
-    }
-
 }
+
+
+
+
+
 
 module.exports = Match; 

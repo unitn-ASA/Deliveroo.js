@@ -71,7 +71,7 @@ class Controller {
                         return new Promise( (res, rej) => {
                             // console.log('emit move up');
                             socket.emit('move', 'up', (status) => {
-                                console.log(status);
+                                // console.log(status);
                                 //res(status);
                             } );
                         } );
@@ -82,8 +82,8 @@ class Controller {
                         return new Promise( (res, rej) => {
                             // console.log('emit move left');
                             socket.emit('move', 'left', (status) => {
-                                console.log(status);
-                                //res(status);
+                                // console.log(status);
+                                // res(status);
                             } );
                         } );
                     };
@@ -93,8 +93,8 @@ class Controller {
                         return new Promise( (res, rej) => {
                             // console.log('emit move down');
                             socket.emit('move', 'down', (status) => {
-                                console.log(status);
-                                //res(status);
+                                // console.log(status);
+                                // res(status);
                             } );
                         } );
                     };
@@ -104,8 +104,8 @@ class Controller {
                         return new Promise( (res, rej) => {
                             // console.log('emit move right');
                             socket.emit('move', 'right', (status) => {
-                                console.log(status);
-                                //res(status);
+                                // console.log(status);
+                                // res(status);
                             } );
                         } );
                     };

@@ -1,32 +1,57 @@
 class Leaderboard {
 
-    //key: nome team, value: array degli agenti(id,nome e score) 
-    teamsAndMembers = new Map();
-    game;
-    leaderboardElement;
+    teamsAndMembers;                // key: nome team, value: array degli agenti(id,nome e score) 
+    game;                           // parent object 
+    leaderboardElement;             // html element
 
 
     constructor(game, roomId){
-        
-        console.log('INIT LEADERBOARD', roomId);
 
         this.game = game
+        this.teamsAndMembers = new Map()
+        
+        new Promise(async (resolve, rejects) => {
+            this.costruct();                          // before costruct the html element
+            resolve()
+        })
+        .then(() => {  this.init(roomId); })          // then init it
+        
+    }
 
-        let leaderboard = document.getElementById("leaderboard");       // Find the leaderboard div
-        if(!leaderboard) console.log('Div Leaderboard not find')
-        this.leaderboardElement = leaderboard;
-       
-        this.init(roomId);
-     
+    // the function costruct the html element of the leaderbord before it init 
+    async costruct(){
+        
+        const folderDiv = document.createElement('div');                // parent folder
+        folderDiv.classList.add('folder');
+        folderDiv.id = 'folderLeaderbord';
+
+        const h4Element = document.createElement('h4');                 // Leaderbord title
+        h4Element.textContent = 'Leaderboard';  
+
+        this.leaderboardElement  = document.createElement('div');       // div in wich show the real leaderbord
+        this.leaderboardElement.classList.add('leaderboard');
+        this.leaderboardElement.id = 'leaderboard';
+
+        folderDiv.appendChild(h4Element);
+        folderDiv.appendChild(this.leaderboardElement);
+
+        const rightColum = document.getElementById('right-colum');
+        const panelElement = document.getElementById('panel');          // take the reference to the panel element
+
+        if (panelElement) {                                             // if the panel is found add the leaderbord after it 
+            panelElement.insertAdjacentElement('afterend', folderDiv);
+        } else {                                                        // else append it at the end of the eight colum 
+            rightColum.appendChild(folderDiv);
+        }
+
+        console.log('CREATED LEADERBORD')
     }
 
     // The definition and use of the function init is becouse the constructor can not define as async
     async init(roomId){
 
-        // request all the information of the match score to the server
-        // start with the request of all the teams:
-        console.log('Request all team of the room', roomId)
-        await fetch('/api/leaderboard', {
+        console.log('LEADERBORD: Request all team of the match of the room', roomId)         // request all the information of the match score to the server
+        await fetch('/api/leaderboard', {                                               // start with the request of all the teams:
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -36,31 +61,38 @@ class Leaderboard {
             }
         })
         .then(response => {
-            if (response.ok) {
-                return response.json();
-            }
-            throw new Error(`Error, Status code: ${response.status}`);
+            if (response.ok) {return response.json();}
+            else {throw new Error(`Error, Status code: ${response.status}`);}
         })
         .then(data => {
-            console.log('leaderboard: Teams in the match: ')
             console.log(data)
             data.forEach(element => {
                 if(element.teamName !== 'no-team'){
-                    console.log("leaderboard: Adding team ", element.teamName, ' id ', element.teamId);                
-                    // Then we add the div of the team in the leaderboard 
-                    this.addTeam(element.teamId, element.teamName, element.score)
+                    /* Could happen that arive an update signal before the init is complete, so the update add the team one time 
+                    for this reason we have to check that team is not alredy added */
+                    let teamElement = document.getElementById("team_" + element.teamId)
+                    if (teamElement) {
+                        console.log(`LEADERBORD: The team ${element.teamId} is already present on the leaderbord before init`);
+                    }else{
+                        console.log("LEADERBORD: Adding team ", element.teamName, ' id ', element.teamId);                
+                        // Then we add the div of the team in the leaderboard 
+                        this.addTeam(element.teamId, element.teamName, element.score)
+                    }
                 }else{
-                    console.log("leaderboard: Adding agent " + element.agentId + " without a team")
-                    // Then we add the div of the alone agent in the leaderboard 
-                    this.addAgent(element.agentName, element.agentId, element.teamId, element.score )
+                    /* Could happen that arive an update signal before the init is complete, so the update add the agent one time 
+                    for this reason we have to check that agent is not alredy added */
+                    let agentElement = document.getElementById("agent_" + element.agentId)
+                    if (agentElement) {                                        // if the agent is not present in the leaderbord it is added
+                        console.log(`LEADERBORD: L'agent ${element.agentId} is already present on the leaderbord before init`);
+                    }else{
+                        console.log("LEADERBORD: Adding agent " + element.agentId + " without a team")
+                        // Then we add the div of the alone agent in the leaderboard 
+                        this.addAgent(element.agentName, element.agentId, element.teamId, element.score )
+                    }     
                 }
             });
         })
-        .catch(error => {
-            console.error('An error occurred:', error);
-        });
-
-        console.log('finita fatch team')
+        .catch(error => { console.error('An error occurred:', error); });
        
         // Now for each team we request the agent members
         for (let team of this.teamsAndMembers.keys()) {
@@ -80,24 +112,32 @@ class Leaderboard {
                 throw new Error(`Error, Status code: ${response.status}`);
             })
             .then(data => {
-                console.log(`leaderborad/${team}: Request to database it's memebers: `)
+                console.log(`LEADERBORD /${team}: Request to database it's memebers: `)
                 console.log(data)
                 data.forEach(element => { 
                     if(!this.teamsAndMembers.get(element.teamId).find(member => member.id === element.agentId )){
                         this.teamsAndMembers.get(element.teamId).push({id: element.agentId, name: element.agentName, score: element.score})
                     }else{
-                        console.log("This agent", element.agentId  +"already exists in teamMembers list.");
+                        console.log("LEADERBORD: This agent", element.agentId  +"already exists in teamMembers list.");
                     }     
                 });     
             })
-            .catch(error => {
-                console.error('An error occurred:', error);
-            });
+            .catch(error => { console.error('An error occurred:', error); });
       
         }
-       
-        
+
+        console.log('INITIALIZED LEADERBORD') 
     }
+
+    // remove the leaderbord element from the game screen
+    delete(){ 
+        let rightColum = document.getElementById('right-colum');
+        let leaderbord = document.getElementById('folderLeaderbord');
+        rightColum.removeChild(leaderbord) 
+
+        this.leaderboardElement = null;
+        this.teamsAndMembers.clear();
+    } 
 
     addTeam (teamId, teamName, score) {
 
@@ -225,49 +265,31 @@ class Leaderboard {
         return agentsList;
     
     }
-
-
-    findTeamNameById(id){
-        for (let [teamName, agents] of this.teamsAndMembers) {
-            console.log('team name: ', teamName)
-            console.log('agents: ', agents)
-            for (let agent of agents) {
-                console.log('chack: ', agent + " with ", id)
-                if (agent == id) {
-                    return teamName;
-                }
-            }
-        }
-        // Se non trovi corrispondenze, ritorna null o gestisci il caso in cui non viene trovato l'ID
-        return null;
-    }
     
-    updateLeaderbord (id, name, score, teamId, teamName, teamScore ) {
+    async updateLeaderbord (id, name, score, teamId, teamName, teamScore ) {
         
-        console.log(id, name, score, teamId, teamName, teamScore );
+        console.log('LEADERBORD UPDATE: data recevied:', id, name, score, teamId, teamName, teamScore );
 
         // if the agent has no team we update only the score of the agent 
         if(teamName === 'no-team'){
             let agentElement = document.getElementById("agent_" + id)
            
             if (!agentElement) {                                        // if the agent is not present in the leaderbord it is added
-                console.log(`L'agent ${name} is not present on the leaderbord`);
+                console.log(`LEADERBORD: L'agent ${name} is not present on the leaderbord`);
                 this.addAgent(name, id, teamId, score);
                 return;
             }
     
-            let scoreElement = agentElement.querySelector('.score');    // Find the elemento of team score 
+            let scoreElement = agentElement.querySelector('.score');    // Find the element of agent score 
             scoreElement.textContent = score;                           // Update the score 
     
         // if the agent has a team we have to update the agent and also the team
         }else{
-            //console.log('lista teams e mabri: ', this.teamsAndMembers.has(teamId));
-
             // first update the team score 
             let teamElement = document.getElementById("team_" + teamId)
             // If the team is not present to the leaderboard we add it 
             if (!teamElement) {
-                console.log(`The team ${teamId} is not present in the leaderboard.`);
+                console.log(`LEADERBORD: The team ${teamId} is not present in the leaderboard.`);
                 this.addTeam(teamId, teamName, teamScore);
                 teamElement = document.getElementById("team_" + teamId)
             }
@@ -276,20 +298,15 @@ class Leaderboard {
 
             // then we update the agent score
             if(this.teamsAndMembers.has(teamId)){
-                console.log(`The team ${teamId} is present in the teamsAndMembers.`);
-                const teamMembers = this.teamsAndMembers.get(teamId);     // Ottengo l'array dei membri del team e controllo se contiene gia l'agente
+                const teamMembers = this.teamsAndMembers.get(teamId);     // Get array of member of the team, then chack if it contain already the agent 
                 const existingMember = teamMembers.find(member => member.id === id );
     
-                if (existingMember) {
-                    // L'array teamMembers has already an object with the same id
-                    console.log("This agent already exists in teamMembers list.");
+                if (existingMember) {       // L'array teamMembers has already an object with the same id
+                    console.log("LEADERBORD: This agent already exists in teamMembers list.");
                     existingMember.score = score;
-                    
-                } else {
-                    // if it nox exist we add it 
-                    console.log("This agent not exists in teamMembers list, we add it.");
+                } else {                    // if it nox exist we add it 
+                    console.log("LEADERBORD: This agent not exists in teamMembers list, we add it.");
                     teamMembers.push({ id, name, score });  
-
                 }
 
                 // close and reopen the label to show the update 
@@ -300,7 +317,7 @@ class Leaderboard {
 
             } else {
                 // if the team is not present, we create a new record with the team and agent
-                console.log(`The team ${teamId} is NOT present in the teamsAndMembers.`);
+                console.log(`LEADERBORD: The team ${teamId} is NOT present in the teamsAndMembers.`);
                 this.teamsAndMembers.set(team, [{ id, name, score }]);
                 console.log(this.teamsAndMembers.get(team))
             }   

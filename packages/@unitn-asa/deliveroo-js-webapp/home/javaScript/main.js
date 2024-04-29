@@ -1,6 +1,6 @@
 import { newRoom } from './NewRoom.js'
 import { defineContainerRooms } from './ContainerRooms.js';
-import { showLoginForm } from './tools/showLoginForm.js'
+import { showLoginForm } from './ShowLoginForm.js'
 
 main()
 
@@ -24,24 +24,23 @@ function main(){
 
     if(cookie !== 'false'){
         
-        // change the login button to logged status
-        let loggedButton = document.getElementById('loginButton');
+        let loggedButton = document.getElementById('loginButton');                  // change the login button to logged status
         loggedButton.classList.add('logged');
         loggedButton.innerText = 'Logged'
         
-        //show the admin part 
-        let admin = document.getElementById('admin-part');
+        let admin = document.getElementById('admin-part');                          // show the admin part 
         admin.style.display = 'block'; 
 
-        //hide the user part 
-        let user = document.getElementById('user-part');
+        let user = document.getElementById('user-part');                            // hide the user part 
         user.style.display = 'none'; 
 
-        //define the container of the match for admin 
-        defineContainerRooms(true)
+        defineContainerRooms(true)                                                  // define the container of the match for admin 
 
-        //add the listener to the botton create New Room
-        document.getElementById('createRoomButton').addEventListener('click', function() { newRoom() })
+        document.getElementById('createRoomButton').addEventListener('click', function() { newRoom() })         // add the listener to the botton create New Room
+        document.getElementById('oldMatch').addEventListener('click', function() { 
+            var url = '/old_matches';
+            window.location.href = url; 
+        })
 
     }else{
 

@@ -15,8 +15,8 @@ const myClock = require('./Clock');
  */
 class Agent extends Xy {
 
-    /** @type {Grid} #grid */
-    #grid;
+    /** @type {string} grid */
+    #grid
     /** @type {string} id */
     id;
     /** @type {string} name */
@@ -44,25 +44,23 @@ class Agent extends Xy {
      * @param {{id:number,name:string}} options
      */
     constructor ( grid, {id, name, teamId, teamName}, config ) {
-        
-        {           
-            let tiles_unlocked =
-                Array.from( grid.getTiles() )
-                // not locked
-                .filter( t => ! t.blocked )
-                // not locked
-                .filter( t => ! t.locked )
+                  
+        let tiles_unlocked =
+            Array.from( grid.getTiles() )
+            // not locked
+            .filter( t => ! t.blocked )
+            // not locked
+            .filter( t => ! t.locked )
 
                 
-            if ( tiles_unlocked.length == 0 )
-                throw new Error('No unlocked tiles available on the grid')
+        if ( tiles_unlocked.length == 0 ) throw new Error('No unlocked tiles available on the grid')
 
-            let i = Math.floor( Math.random() * tiles_unlocked.length - 1 )
-            let tile = tiles_unlocked.at( i )
-            let x = tile.x, y = tile.y;
+        let i = Math.floor( Math.random() * tiles_unlocked.length - 1 )
+        let tile = tiles_unlocked.at( i )
+        let x = tile.x, y = tile.y;
         
-            super(x, y);
-        }
+        super(x, y);
+        
 
         this.config = config;
         
@@ -89,32 +87,12 @@ class Agent extends Xy {
         this.sensing = new Set();
         this.score = 0;
 
-
-        loadScore(this.#grid.matchId, this.id )
-        .then(loadedScore => {
-            console.log(`/${this.#grid.roomId} costructed new Agent: id=`, this.id + ' name=', this.name + ' team name=', this.teamName + ' team id=', this.teamId)
-            return loadedScore
-        })
-        .then(loadedScore => {
-            if(loadedScore !== false){
-                this.score = loadedScore;
-                console.log(`/${this.#grid.roomId}/${this.name}-${this.teamName}-${this.id} loaded score `, this.score );
-            }else{
-                this.score = 0;
-                console.log(`/${this.#grid.roomId}/${this.name}-${this.teamName}-${this.id} unable to load a pass score ` );
-                this.emitOnePerTick( 'rewarded', this, 0 ); 
-            }
-        })
-        .catch(error => {
-            console.error(`/${this.#grid.matchId}/${this.id} error in loading the score`, error);
-            this.score = 0;
-        });
-        
-
+        console.log(`/${this.#grid.roomId} costructed new Agent: id=`, this.id + ' name=', this.name + ' team name=', this.teamName + ' team id=', this.teamId)
+        //console.log('Config Agent:', this.config)
         this.emitOnePerTick( 'xy', this ); // emit agent when spawning
         
-        // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
-        this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
+        /* Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
+        this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() ); */
     }
 
     
@@ -123,16 +101,22 @@ class Agent extends Xy {
      * Agents sensend on the grid
      * @type {function(Agent,Array<Parcel>): void}
      */
-    emitAgentSensing () {
-
-        var agents = [];
-        for ( let agent of this.#grid.getAgents() ) {
-            if ( agent != this && !( Xy.distance(agent, this) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                const {id, name, teamId, teamName, x, y, score} = agent
-                agents.push( {id, name, teamId, teamName, x, y, score} )
+    emitAgentSensing (grid) {
+        try {
+            var agents = [];
+            for (let agent of grid.getAgents()) {
+                //console.log('Agent:', agent.name + ' -> config: ', agent.config)
+                if (agent != this && !(Xy.distance(agent, this) >= this.config.AGENTS_OBSERVATION_DISTANCE)) {
+                    const {id, name, teamId, teamName, x, y, score} = agent;
+                    agents.push({id, name, teamId, teamName, x, y, score});
+                }
             }
+            this.sensing = agents;
+            this.emitOnePerTick('agents sensing', agents);
+        } catch (error) {
+            console.error('Failed to process agent sensing:', error);
+            console.log('AGents: ', grid.getAgents())
         }
-        this.emitOnePerTick( 'agents sensing', agents )
         
         // this.emitOnePerTick( 'agents sensing',
         //     Array.from( this.#grid.getAgents() ).filter( a => a != this && Xy.distance(a, this) < 5 ).map( ( {id, name, x, y, score} ) => { return {id, name, x, y, score} } )
@@ -153,10 +137,10 @@ class Agent extends Xy {
     /**
      * Parcels sensend on the grid
      */
-    emitParcelSensing () {
+    emitParcelSensing (grid) {
 
         var parcels = [];
-        for ( const parcel of this.#grid.getParcels() ) {
+        for ( const parcel of grid.getParcels() ) {
             if ( !( Xy.distance(parcel, this) >= this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
                 let {id, x, y, carriedBy, reward} = parcel;
                 parcels.push( {id, x, y, carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ), reward} )
@@ -165,8 +149,6 @@ class Agent extends Xy {
         this.emit( 'parcels sensing', parcels )
 
     }
-
-
 
     get tile() {
         return this.#grid.getTile( Math.round(this.x), Math.round(this.y) );
@@ -254,8 +236,6 @@ class Agent extends Xy {
             if ( parcel.x == this.x && parcel.y == this.y && parcel.carriedBy == null ) {
                 this.#carryingParcels.add(parcel);
                 parcel.carriedBy = this;
-                // parcel.x = 0;
-                // parcel.y = 0;
                 picked.push( parcel );
                 counter++;
             }
@@ -314,16 +294,6 @@ class Agent extends Xy {
         this.#grid = null;              // Set the reference to the Grid object to null
         this.config = null;             // Set the reference to the Config object to null
     }
-}
-
-async function loadScore(matchId, agentId){
-    try {
-        let record = await Leaderboard.get({ matchId, agentId });
-        let score = record[0].score
-        return score
-    } catch (error) {
-        return false;
-    }   
 }
 
 

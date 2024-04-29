@@ -1,10 +1,82 @@
-/* the function request to the server the leaderborad data of the selected match */
-async function showLeaderbord(matchId, father){ 
+// the function request to the server all the match id saved in the database, for each add a botton in the page
+function init() {
+    
+    fetch(`/api/matches`, {
+        method: 'GET',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+    })
+    .then(response => {
+        if (response.ok) { return response.json(); 
+        } else { throw new Error('Error during data sending', response.json()); }
+    })
+    .then(data => {
+        console.log('Corect: ', data)
 
+        const table = document.getElementById('matches-table');         // take the reference to the grid container of the matches 
+        
+        const columnsPerRow = 10;                                       // Calculate the number of rows needed considering that each row can contain 10 match 
+        const totalMatches = data.result.length;                               // total number of match 
+        const rowsNeeded = Math.ceil(totalMatches / columnsPerRow);     // Number of rows needed
+        console.log(rowsNeeded)
+        
+        while (table.rows.length < rowsNeeded) { table.insertRow(); }       // add the rows
+
+        for (let i = 0; i < data.result.length; i++) {
+            const match = data.result[i];
+
+            const rowIndex = Math.floor(i / columnsPerRow);             // Calculate the row where add the button of the match
+            const cellIndex = i % columnsPerRow;                        // Calculate the column where add the button of the match
+            
+            const row = table.rows[rowIndex];                           // take the coorect row
+            const cell = row.insertCell(cellIndex);                     // Add the cell if it don't exist
+    
+            const button = document.createElement('button');            // Create the button for the match
+            button.className = 'match-button';                          // give the class for the style
+            const formattedDate = formatDate(match.firstTime);          // traduce the date in the format gg/mm/aaaa
+            button.innerHTML = `${match.matchId}<br>${formattedDate}`;  // text of the button is the id of the match and the date of it creation
+            button.addEventListener('click', () => {
+                showLeaderbord(match.matchId)               
+            });
+    
+            cell.appendChild(button);                                   // add the botton to the cell 
+        }
+    }) 
+}
+
+//convert the date in the format gg/mm/aaaa
+function formatDate(isoString) {
+    const date = new Date(isoString);
+    
+    const day = ('0' + date.getDate()).slice(-2); // Aggiunge lo zero davanti se necessario
+    const month = ('0' + (date.getMonth() + 1)).slice(-2); // Mese è zero-based
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+}
+
+// FUNCTION for the show of the LEADERBORD 
+/* the function request to the server the leaderborad data of the selected match */
+async function showLeaderbord(matchId){ 
+
+    var modalDiv = document.createElement('div');                   //div modal to set a darker background
+    modalDiv.id = 'modal';
+    modalDiv.classList.add('modal');
+  
+    var modalContentDiv = document.createElement('div');            // div modal-content that contain the leaderord
+    modalContentDiv.classList.add('modal-content');
+  
+    var closeDiv = document.createElement('div');                   // close button 
+    closeDiv.classList.add('close');
+    closeDiv.innerHTML = '&times;';
+    closeDiv.onclick = function() {document.body.removeChild(modalDiv);};
+    modalContentDiv.appendChild(closeDiv);
+  
     //create the title of the leaderbord
     const leaderbordTitle = document.createElement("h2")
     leaderbordTitle.innerText = `Leadebord Match ${matchId}`
-    father.appendChild(leaderbordTitle)
+    modalContentDiv.appendChild(leaderbordTitle)
 
     //create a button for return to home
     const button = document.createElement('button');
@@ -91,11 +163,10 @@ async function showLeaderbord(matchId, father){
         .catch(error => {console.error('An error occurred:', error);});
     }
 
-    father.appendChild(leaderbordDiv)
+    modalContentDiv.appendChild(leaderbordDiv)
+    modalDiv.appendChild(modalContentDiv)
+    document.body.appendChild(modalDiv)
 }
-
-export{showLeaderbord}
-
 /* the function add a html Team elemenet in the leaderbord */
 async function addTeam (teamId, teamName, score, leaderboardDiv, recordsAndColors, teamsAndMembers) {
 
@@ -154,7 +225,6 @@ async function addTeam (teamId, teamName, score, leaderboardDiv, recordsAndColor
     leaderboardDiv.appendChild(teamElement);
     
 }
-
 /* the function add an html Agent elemenet in the leaderbord */
 async function addAgent (id, agent, score, leaderboardDiv, recordsAndColors) {
 
@@ -196,7 +266,6 @@ async function addAgent (id, agent, score, leaderboardDiv, recordsAndColors) {
    
     
 }
-
 /* the function set in the recordsAndColors map a new record id-color, where color is one not already present in recordsAndColors */
 async function newColor(id, recordsAndColors){
     let coloriGiaUsati = Array.from(recordsAndColors.values());   // get an array with all the already used colors    
@@ -215,7 +284,6 @@ async function newColor(id, recordsAndColors){
     // update teamsAndColors adding tha net record
     recordsAndColors.set(id,color); 
 }
-
 /* the function define the html element that contain the members of the team, and for each memeber it request to define and html element */
 function showAgentsOfTeam(agents){
     var agentsList = document.createElement('div');
@@ -228,7 +296,6 @@ function showAgentsOfTeam(agents){
     return agentsList;
 
 }
-
 /* the function return an html alement for an member of a team */
 function addAgentInTeam(id, name, score, list) {
 
@@ -265,7 +332,6 @@ function addAgentInTeam(id, name, score, list) {
     // Aggiungi il div del team al leaderboard
     list.appendChild(agentElement);
 }
-
 /* the function check if the 2 colors are too similar */
 function areColorsSimilar(color1, color2) {
     //console.log("Colore 1:", color1 + " colore 2: ", color2);
@@ -277,7 +343,6 @@ function areColorsSimilar(color1, color2) {
     //console.log("Return: ", deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance);
     return deltaR <= tolerance && deltaG <= tolerance && deltaB <= tolerance;    
 }
-
 /* the function sort the records in a discent way based on them scores */
 function sortRecordsByScore(records) {
     const keys = Array.from(records.keys()); // Converti le chiavi della mappa in un array
@@ -291,3 +356,4 @@ function sortRecordsByScore(records) {
 
     return sortedRecords;
 }
+

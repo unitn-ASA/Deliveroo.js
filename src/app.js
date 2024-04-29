@@ -5,10 +5,13 @@ const app = express();
 const jwt = require('jsonwebtoken');
 
 const configRoutes = require('./routes/config')
-const matchesRoutes = require('./routes/rooms');
-const mapsRoutes = require('./routes/maps');
+const gridRoutes = require('./routes/grids')
 const leaderboardRoutes = require('./routes/leaderboard');
+const matchesRoutes = require('./routes/matches')
+const mapsRoutes = require('./routes/maps');
+const roomRoutes = require('./routes/rooms');
 const tokenRoutes = require('./routes/token');
+const timerRoutes = require('./routes/timer');
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
@@ -26,12 +29,16 @@ app.use('/', (req, res, next) => {
 });
 app.use('/game', express.static(Path.join(__dirname, '..', 'packages', '@unitn-asa', 'deliveroo-js-webapp', 'dist', 'game')));
 app.use('/home', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
+app.use('/old_matches', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'old_matches') ));
 
 app.use('/api/config', configRoutes);
-app.use('/api/rooms', matchesRoutes);
-app.use('/api/maps', mapsRoutes);
+app.use('/api/grids', gridRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/matches', matchesRoutes);
+app.use('/api/maps', mapsRoutes);
+app.use('/api/rooms', roomRoutes);
 app.use('/api/token', tokenRoutes);
+app.use('/api/timers', timerRoutes);
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;

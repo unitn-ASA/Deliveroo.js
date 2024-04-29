@@ -1,111 +1,71 @@
-import { showMatchForm } from './tools/showMatchForm.js';
-import { requestNewMatch } from './tools/requestNewMatch.js';
-import { showLeaderbord } from  './tools/showLeaderbord.js'
-
-
 async function defineContainerRooms(admin){
     try {
-        var data = await requestRooms();
+        var data = await requestRooms();    // request all the rooms in the server 
         console.log(data);
         
+        //The container has a different structure if the user is an admin or not 
         if(admin){
             let container = document.getElementById('rooms-container-admin')
+            /* for each room add a id, description, date of match, join button ( to go to the game ), freeze/unfreeze button 
+            ( to freeze or unfreeze the grid ) a change grid button and start/stop button and eventualy the change match */
             data.rooms.forEach((room, index) => {
-                // for each element add a id, description, delete button and play button
+        
                 let divRoom = document.createElement('div'); 
                 divRoom.classList = 'div-room';
 
-                let idRoom = document.createElement('div');          
+                let idRoom = document.createElement('div');                         // create the id of the room
                 idRoom.classList = 'id-room';
                 idRoom.textContent = room;
     
-                let descriptionMatch = document.createElement('div');          
+                let descriptionMatch = document.createElement('div');               // create the description 
                 descriptionMatch.classList = 'description-match';
-                descriptionMatch.textContent = 'Match ' + data.matches[index] +' status is ' + getStatusText(data.status[index]);
+                descriptionMatch.textContent = 'Match ' + data.matchesId[index] +' status is ' + data.matchesStatus[index];
 
-                let dateMatch = document.createElement('div')
+                let dateMatch = document.createElement('div')                       // create the date of the match i the room
                 dateMatch.classList = 'date-match';
-                dateMatch.textContent =  data.dates[index]
+                dateMatch.textContent =  data.matchesDates[index]
 
                 divRoom.appendChild(idRoom);
                 divRoom.appendChild(descriptionMatch);
                 divRoom.appendChild(dateMatch);
 
-                let buttonsRoom = document.createElement('div')
+                let buttonsRoom = document.createElement('div')                     // now define all the buttons 
                 buttonsRoom.classList.add('buttons-room')
 
-                if(data.status[index] != 'end'){
+                let joinButton = document.createElement('button');                  // join game
+                joinButton.classList.add('join-button');
+                joinButton.setAttribute('room', room);
+                joinButton.textContent = `join`;
+                joinButton.addEventListener('click',requestJoinGame)
+                buttonsRoom.appendChild(joinButton);
+                       
+                let freezeButton = document.createElement('button');                 // freeze grid 
+                freezeButton.classList.add('freeze-button');
+                freezeButton.setAttribute('room', room);
+                freezeButton.textContent = getFreezeButtonText(data.gridStatus[index]);
+                freezeButton.addEventListener('click', requestFreezeGrid)
+                buttonsRoom.appendChild(freezeButton);               
 
-                    let joinButton = document.createElement('button');
-                    joinButton.classList.add('join-button');
-                    joinButton.setAttribute('room', room);
-                    joinButton.textContent = `join`;
-                    joinButton.addEventListener('click',requestJoinMatch)
-                                        
-                    let playButton = document.createElement('button');
-                    playButton.classList.add('standard-button');
-                    playButton.setAttribute('room', room);
-                    playButton.textContent = getStatusButtonText(data.status[index]);
-                    playButton.addEventListener('click',sendPlayStopMatch)
-
-                    buttonsRoom.appendChild(joinButton);
-                    buttonsRoom.appendChild(playButton);
-                }else{
-                    let resultButton = document.createElement('button');
-                    resultButton.classList.add('join-button');
-                    resultButton.setAttribute('matchId', data.matches[index]);
-                    resultButton.textContent = `result`;
-                    resultButton.addEventListener('click',showResultMatch)
-            
-                    buttonsRoom.appendChild(resultButton);
-                }
-
-                let matchesButton = document.createElement('button');
-                matchesButton.classList.add('standard-button');
-                matchesButton.setAttribute('room', room);
-                matchesButton.textContent = `matches`;
-                matchesButton.addEventListener('click',reqMatches)
-
-                buttonsRoom.appendChild(matchesButton);
-
-                let restartButton = document.createElement('button');
-                restartButton.classList.add('restart-button');
-                restartButton.setAttribute('room', room);
-                restartButton.textContent = `restart`;
-                restartButton.addEventListener('click',restartMatch)
-
-                let deleteButton = document.createElement('button');
-                deleteButton.classList.add('delete-button');
-                deleteButton.setAttribute('room', room);
-                deleteButton.textContent = `X`;
-                deleteButton.addEventListener('click',deleteRoom)
-
-                buttonsRoom.appendChild(restartButton);
-                buttonsRoom.appendChild(deleteButton);
+                let changeButton = document.createElement('button');                // chagne grid
+                changeButton.classList.add('change-button');
+                changeButton.setAttribute('room', room);
+                changeButton.textContent = `grid`;
+                changeButton.addEventListener('click',requestChangeGrid)
+                buttonsRoom.appendChild(changeButton);
 
                 divRoom.appendChild(buttonsRoom)
-
                 container.appendChild(divRoom);
             });
-        }else{
-            let container = document.getElementById('rooms-container')
+        }else{                                                              // if the client is a standard user we add only a botton to join 
+            let container = document.getElementById('rooms-container')      // 
             data.rooms.forEach((room, index) => {                    // for each element add a button
 
                 let button = document.createElement('button');
                 button.classList.add('partecipaBtn');
                 button.setAttribute('room', room);
-
-                // if the match in the room is ended it has a different color and on the click show the final leaderbord, else it send the client to the match 
-                if(data.status[index] == 'end'){
-                    button.style.backgroundColor = 'grey'
-                    button.textContent = `Result Room ${room}`;
-                    button.setAttribute('matchId', data.matches[index]);
-                    button.addEventListener('click', showResultMatch)
-                }else{
-                    button.textContent = `Join Room ${room}`;
-                    button.addEventListener('click',requestJoinMatch)
-                }
-                 
+                button.textContent = `Join Room ${room}`;
+                button.addEventListener('click',requestJoinGame)
+                
                 container.appendChild(button);
             });
         }
@@ -117,6 +77,8 @@ async function defineContainerRooms(admin){
 }
 export { defineContainerRooms };
 
+
+/* AUXILIAR FUNCTION */
 /* the function request to the server all the active rooms */
 async function requestRooms(){
     // Ask the list of the matchs
@@ -142,8 +104,9 @@ async function requestRooms(){
 
 }
 
-/* the function request to the server for the socket to join the match in the selected room  */
-function requestJoinMatch(event){
+/* FUNCTION used by the BOTTONS */
+// the function request to the server for the socket to join the match in the selected room  
+function requestJoinGame(event){
     
     var url = '/game';
     url += '?room=' + encodeURIComponent(event.target.getAttribute('room')); 
@@ -153,43 +116,50 @@ function requestJoinMatch(event){
     window.location.href = url; 
 }
 
-/* the function show the end leaderbord of the last match of a room */
-function showResultMatch(event){
-    
-    let matchId = event.target.getAttribute('matchId') 
-    console.log('MaTCHID:', matchId)
-    document.body.innerHTML ='';            // clear the body
-    //change the style of the body
-    document.body.style.display = 'flex';
-    document.body.style.alignItems = 'center';
-    showLeaderbord(matchId, document.body)  // add the leaderbord
-}
-
-/* the function define the the status part of the match descriptio based on the match status*/
-function getStatusText(status) {
-    if (status === 'play') return ' active';
-    if (status === 'stop') return ' pause';
-    if (status === 'end') return ' end';
-    return 'undefined status';
-}
-
-/* the function define the text of the button status based on the match status*/
-function getStatusButtonText(status) {
-    if (status === 'stop') return 'play';
-    if (status === 'play') return 'stop';
+/* the function define the text of the freeze button based on the grid status*/
+function getFreezeButtonText(status) {
+    if (status === 'freeze') return 'unfreeze';
+    if (status === 'unfreeze') return 'freeze';
     return 'undefined';
 }
+/* the function request to the server to freeze or unfreeze the grid of the room. 
+After the request it update the match description and the play/stop button*/
+function requestFreezeGrid(event){
+    
+    const token_admin = getAdminCookie();
+    const roomId = event.target.getAttribute('room');
 
-/* the function restart the match in the room, first request the config of the last match; then ask to the user if he want to change it 
- and after it make a request ot the api put room/id/match */
-async function restartMatch(event){
+    console.log('Cange staus match ', roomId + ' to ', event.currentTarget.textContent);
+
+    fetch(`/api/grids/${roomId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token_admin}`
+        },
+    })
+    .then(response => {
+        if (response.ok) { return response.json(); } 
+        else { throw new Error('Error during data sending'); }
+    })
+    .then(data => {
+        console.log('FREEZE BUTTON: request correct; ', data.message)
+        event.target.textContent = getFreezeButtonText(data.status)                     // Update the botton's text
+    })
+    .catch(error => {
+        console.error('An error occurred:', error.message);
+    });
+    
+}
+
+/* the function request a to change the grid in the room, first request the config of the last grid; then ask to the user if he want to 
+change it and after it make the request  */
+async function requestChangeGrid(event){
 
     const token_admin = getAdminCookie();
     const roomId = event.target.getAttribute('room');
 
-    console.log('Restart match in room ', roomId);
-
-    fetch('/api/config', {
+    fetch('/api/config', {                                          // first request the old configs
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -201,24 +171,69 @@ async function restartMatch(event){
         else {throw new Error('Error in the request of config data'); }
     })
     .then(data => {
-        showMatchForm();
-        document.getElementById('matchFormContainer').style.display = 'block';
+        let form = showGridForm();                                                             // show the form for menage the config of the new grid
+        
+        form.addEventListener('submit',(event) => {                                            // define what happen on the submit action
+            event.preventDefault();
 
-        // MENGAE THE SUBMIT ACTION 
-        document.getElementById('matchForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Impedisce l'invio del form predefinito
-            requestNewMatch(roomId, token_admin)
+            const mapFile = document.getElementById('mapFile').value;                              // Get the value from the different input of the form
+            const parcelsInterval = document.getElementById('parcelsInterval').value;
+            const parcelsMax = document.getElementById('parcelsMax').value;
+            const parcelsRewardAvg = document.getElementById('parcelsRewardAvg').value;
+            const parcelsRewardVariance = document.getElementById('parcelsRewardVariance').value;
+            const parcelsDecadingInterval = document.getElementById('parcelsDecadingInterval').value;
+            const randomlyMovingAgents = document.getElementById('randomlyMovingAgents').value;
+            const randomlyAgentSpeed = document.getElementById('randomlyAgentSpeed').value;
+            const agentsObservationDistance = document.getElementById('agentsObservationDistance').value;
+            const parcelsObservationDistance = document.getElementById('parcelsObservationDistance').value;
+
+            if (mapFile === '') { document.getElementById('mapFile').classList.add('error'); return;}       // check if the map input is empty
+            else{ document.getElementById('mapFile').classList.remove('error'); }
+    
+    
+            const formData = {                      // Create an object with all the input value  
+                MAP_FILE: mapFile,
+                PARCELS_GENERATION_INTERVAL: parcelsInterval,
+                PARCELS_MAX: parseInt(parcelsMax),
+                PARCEL_REWARD_AVG: parseInt(parcelsRewardAvg),
+                PARCEL_REWARD_VARIANCE: parseInt(parcelsRewardVariance),
+                PARCEL_DECADING_INTERVAL: parcelsDecadingInterval,
+
+                RANDOMLY_MOVING_AGENTS: parseInt(randomlyMovingAgents),
+                RANDOM_AGENT_SPEED: randomlyAgentSpeed,
+
+                AGENTS_OBSERVATION_DISTANCE: agentsObservationDistance,
+                PARCELS_OBSERVATION_DISTANCE: parcelsObservationDistance,
+                MOVEMENT_DURATION: 50
+            };
+
+    
+            fetch(`/api/grids/${roomId}`, {           // Make the request for change the grid
+                method: 'PUT',
+                headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${token_admin}`
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (response.ok) { return response.json(); } 
+                else { throw new Error('Errore durante l\'invio dei dati al server.'); }
+            })
+            .then(() => {
+                console.log('Dati sucsessfully sended to server: ');
+                let gridForm = document.getElementById('gridFormContainer')
+                document.body.removeChild(gridForm)                                             // delete the new match form
+            })
+            .catch(error => {console.error('Si è verificato un errore:', error);});
         })
-
         return data
     })
     .then(data => {
         console.log(data);
         if(!data){console.log('Error get past config'); return}
 
-        // Put the input to the default value
-        document.getElementById('mapFile').value = data.MAP_FILE;
-        document.getElementById('matchTimeout').value = data.MATCH_TIMEOUT;
+        document.getElementById('mapFile').value = data.MAP_FILE;                               // Put the input to the default value
         document.getElementById('parcelsInterval').value = data.PARCELS_GENERATION_INTERVAL;
         document.getElementById('parcelsMax').value = data.PARCELS_MAX;
         document.getElementById('parcelsRewardAvg').value = data.PARCEL_REWARD_AVG;
@@ -234,54 +249,110 @@ async function restartMatch(event){
         if(isNaN(data.PARCELS_OBSERVATION_DISTANCE)){document.getElementById('parcelsObservationDistance').value = 'infinite'}
         else{ document.getElementById('parcelsObservationDistance').value = data.PARCELS_OBSERVATION_DISTANCE; }
 
-
     })
-    .catch(error => {
-        console.error('It occures an error:', error);
-    });
+    .catch(error => { console.error('It occures an error:', error); });
+}
+/* define the html of the change grid form */
+function showGridForm() {
+
+    var modalDiv = document.createElement('div');                   //div modal to set a darker background
+    modalDiv.id = 'gridFormContainer';
+    modalDiv.classList.add('modal');
+
+    var modalContentDiv = document.createElement('div');            // div modal-content that is the colored pop-up
+    modalContentDiv.classList.add('modal-content');
+
+    var closeDiv = document.createElement('div');                   // close button 
+    closeDiv.classList.add('close');
+    closeDiv.innerHTML = '&times;';
+    closeDiv.onclick = function() {
+        modalDiv.style.display = 'none';
+    };
+    modalContentDiv.appendChild(closeDiv);
+
+    // new match form
+    var form = document.createElement('form');
+    form.id = 'gridForm';
+
+    // HTML code of the form 
+    form.innerHTML = `
+    <div style="text-align: center;">
+        <div style="display: inline-block;">
+            <h1 style="font-weight: bolder; display: inline-block;">NEW MATCH</h1>
+        </div>
+    </div>
+
+    <label for="mapFile" class="lableNewMap">MAP_FILE:</label>
+    <input type="text" id="mapFile"  class="inputNewMap" name='mapFile' readonly>
+    <span onclick="openMapList()" class="returnButton">Seleziona</span>
+
+    <label for="parcelsInterval" class="lableNewMap">PARCELS_GENERATION_INTERVAL:</label>
+    <select id="parcelsInterval" class="inputNewMap" name="parcelsInterval">
+        <option value="1s">1 second</option>
+        <option value="2s" selected>2 second</option>
+        <option value="5s">5 second</option>
+        <option value="10s">10 second</option>
+    </select>
+
+    <label for="parcelsMax" class="lableNewMap">PARCELS_MAX:</label>
+    <input type="number" id="parcelsMax" class="inputNewMap" name="parcelsMax" required>
+
+    <label for="parcelsRewardAvg" class="lableNewMap">PARCEL_REWARD_AVG:</label>
+    <input type="number" id="parcelsRewardAvg" class="inputNewMap" name="parcelsRewardAvg" required>
+
+    <label for="parcelsRewardVariance" class="lableNewMap">PARCEL_REWARD_VARIANCE:</label>
+    <input type="number" id="parcelsRewardVariance" class="inputNewMap" name="parcelsRewardVariance" required>
+
+    <label for="parcelsDecadingInterval" class="lableNewMap">PARCE_DECADING_INTERVALL:</label>
+    <select id="parcelsDecadingInterval" class="inputNewMap" name="parcelsDecadingInterval">
+        <option value="infinite" selected>Costanti</option>
+        <option value="1s">1 second</option>
+        <option value="2s">2 second</option>
+        <option value="5s">5 second</option>
+        <option value="10s">10 second</option>
+    </select><br>
+
+    <label for="randomlyMovingAgents" class="lableNewMap">RANDOMLY_MOVING_AGENTS:</label>
+    <input type="number" id="randomlyMovingAgents" class="inputNewMap" name="randomlyMovingAgents" required>
+
+    <label for="randomlyAgentSpeed" class="lableNewMap">RANDOM_AGENT_SPEED:</label>
+    <select id="randomlyAgentSpeed" class="inputNewMap" name="randomlyAgentSpeed">
+        <option value="1s">1 second</option>
+        <option value="2s" selected>2 second</option>
+        <option value="5s">5 second</option>
+        <option value="10s">10 second</option>
+    </select><br><br>
+
+    
+    <label for="agentsObservationDistance" class="lableNewMap">AGENTS_OBSERVATION_DISTANCE:</label>
+    <input type="text" id="agentsObservationDistance" class="inputNewMap" name="agentsObservationDistance" value=5>
+    
+    <label for="parcelsObservationDistance" class="lableNewMap">PARCELS_OBSERVATION_DISTANCE:</label>
+    <input type="text" id="parcelsObservationDistance" class="inputNewMap" name="parcelsObservationDistance" value=5>
+    <br><br>
+
+    <div style="text-align: center;">
+        <div style="display: inline-block;">
+            <input type="submit" class="submitNewMap" value="Submit">
+        </div>
+    </div>
+    `;
+
+    // add the form to the div modal-content
+    modalContentDiv.appendChild(form);
+
+    // add the div modal-content to the div modal
+    modalDiv.appendChild(modalContentDiv);
+
+    // add the div modal in the body
+    document.body.appendChild(modalDiv);
+    return form;
 }
 
-/* the function request to the server to start or stop the selected match. The stop or play action is choose based on the text of the button. 
-After the request it update the match description and the play/stop button*/
-function sendPlayStopMatch(event){
-    
-    const token_admin = getAdminCookie();
-    const roomId = event.target.getAttribute('room');
 
-    console.log('Cange staus match ', roomId + ' to ', event.currentTarget.textContent);
 
-    fetch(`/api/rooms/${roomId}/match/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${token_admin}`
-        },
-        body: JSON.stringify({ id: roomId}) // Invia l'ID del match e il nuovo stato
-      })
-      .then(response => {
-        if (response.ok) {
-          return response.json(); 
-        } else {
-          throw new Error('Error during data sending');
-        }
-      })
-      .then(data => {
-        console.log('Correct: ', data.message)
 
-        // Update the description
-        const descriptionElement = event.target.parentElement.querySelector('.description-match')
-        descriptionElement.textContent = 'Match ' + data.matchId +' status is ' + getStatusText(data.status);;
-
-        // Update the botton
-        event.target.textContent = getStatusButtonText(data.status)
-
-      })
-      .catch(error => {
-        console.error('An error occurred:', error.message);
-      });
-    
-}
-
+// OLD FUNCTIONS 
 /* the function request all the matches of a room*/
 function reqMatches(event){
 
@@ -292,23 +363,31 @@ function reqMatches(event){
         headers: {
           'Content-Type': 'application/json',
         },
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json(); 
-        } else {
-            throw new Error('Error during data sending', response.json().message);
-        }
-    })
-    .then(data => {
+    }).then(response => {
+        if (response.ok) { return response.json(); } 
+        else { throw new Error('Error during data sending', response.json().message); }
+    }).then(data => {
         console.log('Correct: ', data.result)
         displayMatches(data.result)
-    })
-    .catch(error => {
-        console.error('An error occurred:', error.message);
-    });
+    }).catch(error => { console.error('An error occurred:', error.message); });
 }
-
+// the function show the end leaderbord of the last match of a room 
+function showResultMatch(event){
+    
+    let matchId = event.target.getAttribute('matchId') 
+    console.log('MaTCHID:', matchId)
+    document.body.innerHTML ='';            // clear the body
+    //change the style of the body
+    document.body.style.display = 'flex';
+    document.body.style.alignItems = 'center';
+    showLeaderbord(matchId, document.body)  // add the leaderbord
+}
+// the function define the text of the button status based on the match status
+function getStatusButtonText(status) {
+    if (status === 'on') return 'off';
+    if (status === 'off') return 'on';
+    return 'undefined';
+}
 /* the function menage the request to delete a room */
 function deleteRoom(event){
 
@@ -338,7 +417,6 @@ function deleteRoom(event){
     });
     
 }
-
 /* the function menage the html for show the matches screen */
 function displayMatches(matches) {
 
@@ -401,12 +479,8 @@ function displayMatches(matches) {
 
     document.body.appendChild(matchListContainer)
 }
-
 /* the function init the right part of the window that is dedicated to show the leaderborad of the selected match */
 function handleLeaderboardButtonClick(matchId, leaderbord) {
     leaderbord.innerHTML = ''; 
     showLeaderbord(matchId, leaderbord)
 }
-
-
-

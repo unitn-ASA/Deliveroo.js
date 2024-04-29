@@ -5,44 +5,63 @@ const Parcel = require('./Parcel');
 const Xy = require('./Xy');
 const Config = require('./Config');
 const Leaderboard = require('./Leaderboard')
+const RandomlyMoveAgent = require('../workers/randomlyMovingAgent');
+const parcelsGenerator = require('../workers/parcelsGenerator');
 
+// enum for the status of the match
+const GridStatus = {
+    FREEZE: 'freeze',
+    UNFREEZE: 'unfreeze',
+};
 
 /**
  * @class Grid
  */
 class Grid extends Observable {
 
-    roomId;    // Id of the room
-    matchId;     // Id of the match
+    roomId;     // Id of the room
+    status      // status of the grid: it coul be freeze ( the grid is blocked ) or unfreeze ( the grid is sblocked )
+    
     /** @type {Config} */
-    #config;
-    /** @type {Array<Tile>} */
-    #tiles;
-    /** @type {Map<string, Agent>} */
-    #agents;
-    getAgents() { return this.#agents; }
+    #config;    //config of the grid
+    get config () {  return this.#config; } 
 
+    /** @type {Array<Tile>} */
+    #tiles;     // array of the tiles of the grid
+
+    /** @type {Map<string, Agent>} */
+    #agents;    // array of hte agents in the grid
+    getAgents() { return this.#agents; }
     lastId = 0; //last id for the autonomous agent
 
     /** @type {Map<string,Set<Agent>} agents in each team */
-    #teamsAgents = new Map();
+    #teamsAgents = new Map();   // map with keys the team id, and onbject the list of agent belong to that team 
 
     /** @type {Map<string, Parcel>} */
-    #parcels;
+    #parcels;   //array of the parcels in the match 
+
+    /** @type {parcelsGenerator} */
+    #parcelsGenerator;  //object that menage the spawn of the parcels
+
+    /** @type {randomlyMovingAgent[]} */
+    #randomlyMovingAgents; // object htat menage the autonomus agent 
     
     /**
      * @constructor Grid
      */
-    constructor ( roomId, matchId, config = new Config(), map = new Array(10).map( c=>new Array(10) ) ) {
+    constructor ({roomId, config} ) {
         super();
 
         this.#config = config;
-        this.matchId = matchId;
         this.roomId = roomId;
+
+        // Load map    
+        let map = require( '../../levels/maps/' + this.#config.MAP_FILE + '.json' );
         
-        var Xlength = map.length;
-        var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
-        this.#tiles = Array.from(map).map( (column, x) => {
+        var Xlength = map.map.length;
+        var Ylength = Array.from(map.map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
+
+        this.#tiles = Array.from(map.map).map( (column, x) => {
             return Array.from(column).map( (value, y) => new Tile(
                 this,       // grid
                 x, y,       // x, y
@@ -55,8 +74,21 @@ class Grid extends Observable {
 
         this.#agents = new Map();
         this.#parcels = new Map();
-       
 
+        // Parcels generator
+        this.#parcelsGenerator = new parcelsGenerator( this.#config, this );
+        
+        // Randomly moving agents
+        this.#randomlyMovingAgents = [];
+        for (let i = 0; i < this.#config.RANDOMLY_MOVING_AGENTS; i++) {
+            let randomlyMoveAgent = new RandomlyMoveAgent( this.#config, this );
+            this.#randomlyMovingAgents.push( randomlyMoveAgent );
+        }
+
+        //default the status of the grid is unfreeze
+        this.status = GridStatus.UNFREEZE
+
+        console.log(`\t- grid created:`);
     }
 
     /**
@@ -124,45 +156,38 @@ class Grid extends Observable {
 
         // Grid scoped events propagation
         me.on( 'xy', this.emit.bind(this, 'agent xy') );
-        //me.on( 'score', this.emit.bind(this, 'agent score') );
         me.on( 'score', () => { 
            // console.log('agente score:', me.id, me.name, me.team, me.score);
             this.emit('agente score', me.id, me.name, me.team, me.score); 
         });
-        // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
-        // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
-        // me.on( 'agent', this.emit.bind(this, 'agent') );
-        me.on( 'rewarded', async (agent,sc) => {
-            //console.log('REWARD')
-            //console.log(this.listenerCount('agent rewarded'))
-            await Leaderboard.addReward( this.roomId, this.matchId, agent.teamId, agent.teamName, agent.id, agent.name, sc );
-            this.emitOnePerTick('agent rewarded', agent)
-        });
+        
+        // when an agent score, the grid emit the event so the match can save the score
+        me.on( 'rewarded', async (agent,sc) => {this.emit('agent reward', agent, sc ) });
 
         // On mine or others movement emit SensendAgents
         this.on( 'agent xy', ( who ) => {
             if ( me.id == who.id || !( Xy.distance(me, who) > me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
+                me.emitAgentSensing(this)
             }
         } )
         
         // On agent deleted emit agentSensing
         this.on( 'agent deleted', ( who ) => {
             if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
+                me.emitAgentSensing(this)
             }
         } )
 
         // On others score emit agentSensing
         this.on( 'agent score', ( who ) => {
             if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
+                me.emitAgentSensing(this)
             }
         } )
 
         // On parcel and my movements emit parcels sensing
-        this.on( 'parcel', () => me.emitParcelSensing() );
-        me.on( 'xy', () => me.emitParcelSensing() );
+        this.on( 'parcel', () => me.emitParcelSensing(this) );
+        me.on( 'xy', () => me.emitParcelSensing(this) );
 
         // Team
         var teamMates = this.#teamsAgents.get( userParam.teamId );
@@ -202,7 +227,6 @@ class Grid extends Observable {
         
         this.emit( 'agent deleted', agent );
     }
-
 
 
     /**
@@ -257,55 +281,86 @@ class Grid extends Observable {
         
     }
 
+    //Block the grid 
+    async freeze(){
+        if(this.status == GridStatus.FREEZE){return}
+        this.status = GridStatus.FREEZE;
+        await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));   //stop all the autonomous agent
+        this.emit('update', 'freeze')
+        return true
+    }
+
+    //Unblock the grid 
+    async unfreeze(){
+        if(this.status == GridStatus.UNFREEZE){return}
+        this.status = GridStatus.UNFREEZE;
+        await Promise.all(this.#randomlyMovingAgents.map(a => a.start()));  //restart all the autonomus agent
+        this.emit('update', 'unfreeze')
+        return true
+    }
+
     async destroy() {
-        
-        // Destroy all the agent of the grid
-        console.log(`\tDelete Agents`);
-        for (let agent of this.#agents.values()) {
-            //console.log(agent)
-            agent.destroy();
-            console.log('\t\tdelete agent ', agent.id, ' -> ', agent.listenerCount())
-            agent = null;
-            //console.log(agent)
-        }
-        //console.log(this.#agents)
-        this.#agents.clear();
-        this.#agents = null
-        //console.log(this.#agents)
-        
-        // Destroy all the parcels of the grid
-        console.log(`\tDelete PArcels`);
-        for (let parcel of this.#parcels.values()) {
-            //console.log(parcel)
-            parcel.destroy();
-            console.log('\t\tdelete parcel ', parcel.id, ' -> ', parcel.listenerCount())
-            parcel = null;
-            //console.log(parcel)
-        }
-        //console.log(this.#parcels)
-        this.#parcels.clear();
-        this.#parcels = null
-        //console.log(this.#parcels)
-        
-        // Destroy all the parcels of the grid
-        for (let row of this.#tiles.values()) {
-            for (let tile of row.values()) {
-                //console.log(tile)
-                tile.destroy();
-                //console.log(tile)
-                tile = null;
-                //console.log(tile)
+        try{
+            // Stop the motion of the agent
+            await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));
+            console.log('\tGRID DESTROY: autonomus agents stoped');
+            // Destroy the generator of parcels
+            await this.#parcelsGenerator.destroy();
+            console.log('\tGRID DESTROY: parcel generetor destroyed');
+
+            // Destroy all the agent of the grid
+            console.log(`\tGRID DESTROY: Delete Agents`);
+            for (let agent of this.#agents.values()) {
+                //console.log(agent)
+                await agent.destroy();
+                console.log('\t\tdelete agent ', agent.id, ' -> ', agent.listenerCount())
+                agent = null;
+                //console.log(agent)
             }
+            //console.log(this.#agents)
+            this.#agents.clear();
+            this.#agents = null
+            //console.log(this.#agents)
+            
+            // Destroy all the parcels of the grid
+            console.log(`\tGRID DESTROY: Delete PArcels`);
+            for (let parcel of this.#parcels.values()) {
+                //console.log(parcel)
+                await parcel.destroy();
+                console.log('\t\tdelete parcel ', parcel.id, ' -> ', parcel.listenerCount())
+                parcel = null;
+                //console.log(parcel)
+            }
+            //console.log(this.#parcels)
+            this.#parcels.clear();
+            this.#parcels = null
+            //console.log(this.#parcels)
+            
+            // Destroy all the parcels of the grid
+            for (let row of this.#tiles.values()) {
+                for (let tile of row.values()) {
+                    //console.log(tile)
+                    await tile.destroy();
+                    //console.log(tile)
+                    tile = null;
+                    //console.log(tile)
+                }
+            }
+            //console.log(this.#tiles)
+            this.#tiles = null
+            //console.log(this.#tiles)
+
+            this.removeAllListeners();
+
+            this.#config = null;
+
+            console.log(`\tGrid destroyed`);
+    
+        }catch(error){
+            console.log("\tError grid destroy")
         }
-        //console.log(this.#tiles)
-        this.#tiles = null
-        //console.log(this.#tiles)
 
-        this.removeAllListeners();
-
-        this.#config = null;
-
-        console.log(`\tGrid destroyed`);
+        
     }
 
 }
@@ -330,6 +385,7 @@ function printSet(set) {
     output += "]";
     return output;
 }
+
 
 
 

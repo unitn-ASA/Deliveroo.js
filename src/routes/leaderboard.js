@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
     if ( agentId === '' && aggregateBy === 'true' ) aggregate.push('agentId');
 
     // Log
-    console.log('GET leaderboard:'+ `RewardModel.aggregate().match(`, filter ,`).group(`, aggregate, `)` );
+    //console.log('GET leaderboard:'+ `RewardModel.aggregate().match(`, filter ,`).group(`, aggregate, `)` );
 
     try {
         let results = await Leaderboard.get(filter, aggregate).catch(console.error);

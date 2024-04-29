@@ -5,7 +5,7 @@ import { Client } from './Client.js';
 import { Controller } from './Controller.js';
 import { Leaderboard } from './Leaderboard.js';
 import { Tile } from './Tile.js';
-import { Admin } from './Admin.js'
+import { Panel } from './Panel.js'
 
 import * as THREE from 'three';
 
@@ -15,24 +15,22 @@ if (!params.has('room')) {params.append('room', '0');}
 let roomId = params.get("room");
 
 class Game {
-    
-    /** @type {Client} */
-    client;
 
-    /** @type {Gui} */
-    gui;
+    /** @type {Panel} */                        /** @type {Client} */
+    panel;                                      client;
+   
+    /** @type {Gui} */                          /** @type {Controller} */
+    gui;                                        controller;
 
-    /** @type {Controller} */
-    ìcontroller;
-    
-    /** @type {Agent} */
-    me;
+    /** @type {Agent} */                        /** @type {Leaderboard} leaderboard */
+    me;                                         leaderboard;
 
     /** @type {Map<string,THREE.Color>} team to color */
     teamsAndColors = new Map();
 
     /** @type {Map<string,Agent>} id to agent */
     agents = new Map();
+
 
     /**
      * @param {string} id 
@@ -51,7 +49,7 @@ class Game {
             this.gui.clickables.push( agent.mesh );
 
             this.agents.set( id, agent );
-            console.log('new agent added: ', agent.id, agent.name)
+            console.log('GAME: new agent added: ', agent.id, agent.name)
         }
         return agent;
     }
@@ -88,58 +86,38 @@ class Game {
         return this.tiles.get( x + y*1000 );
     }
 
-    /** @type {Leaderboard} leaderboard */
-    leaderboard;
     
-
     /**
      * 
      * @param {{token: string, name: string, match: string, team: string}} options
      */
     constructor ( options ) {
 
-        let admin = new Admin(roomId);
-        admin.checkLogged();
-        
         (async () => {
-            console.log('Game options:', options)
+            console.log('GAME: options:', options)        
 
             // Creation of all the object in asincronus way 
-            const clientPromise = new Promise((resolve, reject) => {
-                this.client = new Client(this, options);
-                resolve();
-            });
+            const panelPromise = new Promise((resolve, reject) => { this.panel = new Panel(options.roomId, this); resolve(); });
+            await panelPromise
+
+            const clientPromise = new Promise((resolve, reject) => { this.client = new Client(this, options); resolve(); });
             await clientPromise
 
-            const controllerPromise = new Promise((resolve, reject) => {
-                this.controller = new Controller(this.client);
-                resolve();
-            });
+            const controllerPromise = new Promise((resolve, reject) => { this.controller = new Controller(this.client); resolve(); });
             await controllerPromise
 
-            const leaderboardPromise = new Promise((resolve, reject) => {
-                this.leaderboard = new Leaderboard(this, options.roomId);
-                resolve();
-            });
-            await leaderboardPromise
-
-            const guiPromise = new Promise((resolve, reject) => {
-                this.gui = new Gui();
-                resolve();
-            });
+            const guiPromise = new Promise((resolve, reject) => { this.gui = new Gui(); resolve(); });
             await guiPromise
-           
-    
+
+            
             // menage the chat 
             document.getElementById('panel').style.display = 'block'; // Show the lateral panel
     
             document.getElementById('chatTitle').addEventListener('click', () => { //Sistem to open and close the chat
                 const chatElement = document.getElementById('chat');
-                if (chatElement.classList.contains('closed')) {
-                    chatElement.classList.remove('closed');
-                } else {
-                    chatElement.classList.add('closed');
-                }
+
+                if (chatElement.classList.contains('closed')) { chatElement.classList.remove('closed');} 
+                else { chatElement.classList.add('closed'); }
             });
         })();
       
@@ -162,8 +140,6 @@ class Game {
 }
 
  
-
-
 // funzione per confrontare due colore THREE.Color per evitare colori uguali o troppo simili
 function areColorsSimilar(color1, color2) {
     //console.log("Colore 1:", color1 + " colore 2: ", color2);

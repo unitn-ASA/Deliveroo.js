@@ -58,8 +58,6 @@ router.post('/', verifyToken, async (req, res) => {
       res.status(200).json({
         message: 'Data received successfully',
         id: newRoom.id,
-        config: newRoom.match.config,
-        map: map
       });
     })
     .catch(error => {
@@ -76,9 +74,8 @@ router.post('/', verifyToken, async (req, res) => {
 /********************************************* */
 // Endpoint for the restart of the match in the room
 router.put('/:id/match', verifyToken, async (req, res) => {
-
   const roomId = req.params.id;         // get id of the room
-  let room = Arena.rooms.get(roomId);
+  let room = Arena.rooms.get(roomId);   // get the room
 
   if(!room){
     console.log('PUT room: room', roomId, ' requested not found')
@@ -86,55 +83,23 @@ router.put('/:id/match', verifyToken, async (req, res) => {
     return
   }
 
-  //check if the room has already a non ended match, in the case terminate it
-  if(room.match.status != 'end'){
-    console.log('PUT room: ending the already existing match ', room.match.id)
-    await room.match.destroy();
-  }
-  
-  var config = new Config( req.body );
-  let newMatch = new Match({roomId: roomId, config: config})
-  room.match = newMatch
-  console.log("PUT room: creation of the new Match: ")
+  room.match = new Match()
+})
 
-  let mapPath = mapsDirectory + '/' + config.MAP_FILE +'.json';
 
-  fs.promises.readFile(mapPath, 'utf8')
-    .then(data => {
-      const dataJson = JSON.parse(data);
-      const map = dataJson.map;
-
-      res.status(200).json({
-        message: 'Data received successfully',
-        id: newMatch.id,
-        config: newMatch.config,
-        map: map
-      });
-    })
-    .catch(error => {
-      console.error('PUT room: error in the reading of the map file:', error);
-      res.status(500).json({ error: 'Error in the reading of the map file:' });
-    });
-
-});
-
+// Endpoint to put the match to change it statuts in live on or live off 
 router.put('/:id/match/status', verifyToken, (req, res) => {
-  const roomId = req.params.id;      // get id of the match
-  let room = Arena.rooms.get(roomId);
+  const roomId = req.params.id;         // get id of the room
+  let room = Arena.rooms.get(roomId);   // get the room
 
   if(!room){
     console.log('PUT room: room', roomId, ' requested not found')
     res.status(400).json({ message: `Room ${roomId} not found` });
     return
   }
-
-  if(room.match.status == 'end'){
-    console.log('PUT room: match in room ', roomId, ' is already ended, request invalid ')
-    res.status(400).json({ message: `Match in room ${roomId} already ended` });
-    return
-  }
   
-  room.match.startStopGame();
+  if(room.match.status == 'on'){room.match.liveOff()}  // if the status of the match is on, the endpoint put it to off
+  else{room.match.liveOn()}                            // else if the status is off, the endpoint put it to on
   console.log(`PUT room: status of match in room ${roomId} update to ${room.match.status}.`)
 
   res.status(200).json({ 
@@ -145,10 +110,11 @@ router.put('/:id/match/status', verifyToken, (req, res) => {
 });
 
 
+
 /********************************************* */
 /*                   DELETE                    */
 /********************************************* */
-// Endpoint per eliminare un gioco
+// Endpoint t delete the room
 router.delete('/:id', verifyToken, async (req, res) => {
   const roomId = req.params.id;
   
@@ -166,6 +132,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
   
 });
 
+// Endpoint to change the match in the room 
 router.delete('/:id/match', verifyToken, async (req, res) => {
   const roomId = req.params.id;
   let room = Arena.rooms.get(roomId);
@@ -182,13 +149,12 @@ router.delete('/:id/match', verifyToken, async (req, res) => {
     return
   }
   
-  await room.match.destroy();
+  await room.match.change();
   console.log(`DELETE room: match ${room.match.id} in room ${roomId} deleted.`)
 
   res.status(200).json({ 
     message: `match ${room.match.id} in room ${roomId} deleted`,
   });
-  
   
 });
 
@@ -196,26 +162,58 @@ router.delete('/:id/match', verifyToken, async (req, res) => {
 /********************************************* */
 /*                     GET                     */
 /********************************************* */
-// Endpoint per ottenere la lista dei rooms
+// Endpoint to obtain the list of all the room
 router.get('/', async (req, res) => {
+  /* for each room we send: the id of the actual match, the status of the match (on or off), the status of the grid (freeze or unfreeze),
+  the flag run of the timer and the date of the match*/
   const rooms = Array.from(Arena.rooms.keys());
-  const matches = Array.from(Arena.rooms.values()).map(room => room.match.id);
-  const status = Array.from(Arena.rooms.values()).map(room => room.match.status);
+  const matchesId = Array.from(Arena.rooms.values()).map(room => room.match.id);
+  const matchesStatus = Array.from(Arena.rooms.values()).map(room => room.match.status);
+  const gridStatus = Array.from(Arena.rooms.values()).map(room => room.grid.status);
+  const timerStatus = Array.from(Arena.rooms.values()).map(room => room.timer.run);
 
   // get all the promise for request the dates, then we wait that all the promise are resolved 
   const datesPromises = Array.from(Arena.rooms.values()).map(room => Leaderboard.getMatcheFirst(room.match.id));       
-  const dates = await Promise.all(datesPromises);
+  const matchesDates = await Promise.all(datesPromises);
 
   res.status(200).json({
     message: 'List active rooms',
     rooms: rooms,
-    matches: matches,
-    status: status,
-    dates: dates
+    matchesId: matchesId,
+    matchesStatus: matchesStatus,
+    matchesDates: matchesDates,
+    gridStatus: gridStatus,
+    timerStatus: timerStatus
   });
 });
-
-// Endpoint per ottenere la lista dei matchs di una rooms
+// Endpoint to obtain the state info of the room
+router.get('/:id', (req, res) => {
+  const roomId = req.params.id;
+  const room = Arena.getRoom(roomId);
+  let matchStatus; let matchId; let gridStatus; let timerStatus; let remainingTime
+   
+  if(room){ 
+    matchStatus = room.match.status 
+    matchId = room.match.id
+    gridStatus = room.grid.status
+    timerStatus = room.timer.run
+    remainingTime = room.timer.remainingTime
+  }
+  else{
+    //console.log('Match ', matchId + ' not find')
+    res.status(400).send('Room not find')
+    return
+  }
+ 
+  res.status(200).json({
+    matchId: matchId,
+    matchStatus: matchStatus,
+    gridStatus: gridStatus,
+    timerStatus: timerStatus,
+    remainingTime: remainingTime
+  });
+});
+/* Endpoint to obtain the list of pass match of a room
 router.get('/:id/matches', async (req, res) => {
   const result = await Leaderboard.getMatches(req.params.id);
  
@@ -225,28 +223,7 @@ router.get('/:id/matches', async (req, res) => {
   });
 
 });
-
-
-// Endpoint per ottenere lo stato del match del room
-router.get('/:id/status', (req, res) => {
-  const roomId = req.params.id;
-  const room = Arena.getRoom(roomId);
-  let status
-   
-  if(room){
-    //console.log(match, match.status);
-    status = room.match.status
-  }else{
-    //console.log('Match ', matchId + ' not find')
-    res.status(400).send('Room not find')
-    return
-  }
- 
-  res.status(200).json({
-    matchId: room.match.id,
-    status: status
-  });
-});
+*/
 
 
 module.exports = router;

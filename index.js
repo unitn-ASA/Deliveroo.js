@@ -29,7 +29,7 @@ async function start () {
      */
     const httpServer = createServer(app);
 
-    const server = new ioServer(httpServer);  
+    const server = await new ioServer(httpServer);  
 
     httpServer.listen( PORT, () => {
         

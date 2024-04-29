@@ -1,10 +1,8 @@
 import { default as io, Socket } from 'socket.io-client';
-import { Agent } from './Agent.js';
-import { Parcel } from './Parcel.js';
-import { Tile } from './Tile.js';
 import { Game } from './Game.js';
 import { Chat } from './Chat.js';
-import { showEndMatchScreen } from './EndMatchScreen.js';
+import { Leaderboard } from './Leaderboard.js'
+
 
 
 var WIDTH;
@@ -40,7 +38,7 @@ class Client {
 
         this.game = game;
                 
-        console.log( "connecting to", HOST+'/'+roomId, "with token:", token.slice(-30) );
+        console.log( "CLIENT: connecting to", HOST+'/'+roomId, "with token:", token.slice(-30) );
 
         this.socket = io( HOST+'/'+roomId, {
             withCredentials: true,
@@ -71,17 +69,11 @@ class Client {
             // alert( `Reconnecting, press ok to continue.` );
         } );
 
-        /*socket.on( "token", (token) => {
-            prompt( `Welcome, ${name}, here is your new token. Use it to connect to your new agent.`, token );
-            setCookie( 'token_'+name, token, 365 );
-            // navigator.clipboard.writeText(token);
-        }); */
-
         this.socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
             if ( src == 'server' )
-                console.log( 'server', timestamp, '\t', ...message )
+                console.log( 'CLIENT: server', timestamp, '\t', ...message )
             else
-                console.log( 'client', timestamp, socket, id, name, '\t', ...message );
+                console.log( 'CLIENT: client', timestamp, socket, id, name, '\t', ...message );
         } );
 
         this.socket.on( 'draw', ( {src, timestamp, socket, id, name}, buffer ) => {
@@ -113,7 +105,7 @@ class Client {
         });
 
         this.socket.on( "msg", ( id, name, teamId, msg, reply ) => {
-            console.log( 'msg', {id, name, teamId, msg, reply} )
+            console.log( 'CLIENT: msg', {id, name, teamId, msg, reply} )
 
             let color
             if(this.game.teamsAndColors.has(teamId)){color = this.game.teamsAndColors.get(teamId);}
@@ -143,25 +135,13 @@ class Client {
 
         this.socket.on( "you", ( id, name, teamId, teamName, x, y, score ) => {
 
-            console.log( "you", id, name, teamId, teamName, x, y, score )
+            //console.log( "CLIENT: you", id, name, teamId, teamName, x, y, score )
 
             document.getElementById('agent.id').textContent = `agent.id ${id}`;
             document.getElementById('agent.name').textContent = `agent.name ${name}`;
             document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
             document.getElementById('agent.team').textContent = `agent.team ${teamName}`;
             
-            /* per l'info agent.team controllo che team non sia "" ( quindi l'agente non è in nessun team )
-            let varTeam = document.getElementById('agent.team');
-            if(varTeam) {
-                if(team == "") {
-                    document.getElementById('info').removeChild(varTeam); // Se team è "" rimuovo l'info agent.team
-                } else {
-                    varTeam.textContent = `agent.team ${team}`;
-                }
-            } else {
-                console.error("Elemento 'varTeam' non trovato.");
-            }*/
-
             this.game.me = this.game.getOrCreateAgent( id, name, teamId, teamName, x, y, score );
             this.game.gui.setTarget( this.game.me.mesh );
 
@@ -197,11 +177,11 @@ class Client {
 
 
 
-        this.socket.on("agents sensing", (sensed) => {
+        this.socket.on("agents sensing", (sensedReceived) => {
 
             //console.log("agents sensing", ...sensed)//, sensed.length)
 
-            var sensed = Array.from(sensed)
+            var sensed = Array.from(sensedReceived)
             
             var sensed_ids = sensed.map( ({id}) => id )
             for ( const [id, agent] of this.game.agents.entries() ) {
@@ -222,7 +202,6 @@ class Client {
 
                 if ( agent.score != score ) {
                     agent.score = score;
-                    //updateLeaderboard( agent );
                 }
             }
 
@@ -266,26 +245,62 @@ class Client {
 
         });
 
-        this.socket.on('leaderboard', (dataAgent, dataTeam) => {
-            console.log('Leaderboard: ', dataAgent, dataTeam)
+        // when the match is put on the game must add the Leaderbord, but also update the match light in the client panel 
+        this.socket.on('match on', async () => { 
+            try { await this.game.leaderboard.delete() } catch(error){}    // try to delate the already old leaderbord  
+
+            this.game.leaderboard = new Leaderboard(game, roomId);         // add the new one
+            console.log('MATCH ON', this.game)  
+            this.game.panel.updateMatchLight();
+        })
+
+        // menage the event of an agent that score while the match is on, in this case the leaderbord must be update 
+        this.socket.on('leaderbord', (dataAgent, dataTeam) => {
+            console.log('UPDATE LEADERBORD: ', dataAgent, dataTeam)
             let teamScore;
             if(dataTeam){teamScore = dataTeam.score}
-            
-            this.game.leaderboard.updateLeaderbord(dataAgent.agentId, dataAgent.agentName, dataAgent.score, dataAgent.teamId, dataAgent.teamName, teamScore)  
+            console.log(this.game)
+            // try to update the leaderbord, the try is used becouse can happen that the update signal come before the costruct of the leaderbord
+            try{this.game.leaderboard.updateLeaderbord(dataAgent.agentId, dataAgent.agentName, dataAgent.score, dataAgent.teamId, dataAgent.teamName, teamScore)}
+            catch(error){console.log('UPDATE LEADERBORD failed: incomin event before the costruct of leaderbord', error)}  
         })
 
-        var timerSpan = document.getElementById('timer-span')
-        this.socket.on("timer update", (time) => {
-            const minutes = Math.floor(time / 60);
-            const seconds = time % 60;
-            const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds; // Add a zero if the seconds are less than 10 
-            timerSpan.textContent = `${minutes}:${formattedSeconds}`
+        // when the match is put off the game must remove the Leaderbord, but also update the match light in the client panel  
+        this.socket.on('match off', () => { 
+            this.game.leaderboard.delete(); 
+            this.game.panel.updateMatchLight();
         })
 
-        // event emit when the match ended
-        this.socket.on('match ended', (matchId) => {
-            //console.log('Match Ended: ', matchId);
-            showEndMatchScreen(matchId);
+        // if the grid has been changed reload the page 
+        this.socket.on('changed grid', () => { 
+            console.log('Changes Grid')
+            location.reload()  
+        })
+
+        // event emit to notify the update time of the room timer
+        this.socket.on('timer update', (time) => {
+            //take the reference to the timer element
+            let timerInput = document.getElementById('timer-input');
+
+            if(!timerInput) return                                // check if the timer element is found
+            if(!timerInput.readOnly ) timerInput.readOnly = true  //check if the input is disabled, if not disable it becous the user can not change it while it is running
+
+            let minutes = Math.floor(time / 60);                let seconds = time % 60; 
+
+            let formattedMinutes = minutes < 10 ? `0${minutes}` : minutes; // Add a zero if the minutes are less than 10 
+            let formattedSeconds = seconds < 10 ? `0${seconds}` : seconds; // Add a zero if the seconds are less than 10 
+        
+            timerInput.value = formattedMinutes + ':' + formattedSeconds; // Update the value of input with the pattern __:__  
+        })
+
+        // event emit to notify the end of the timer
+        this.socket.on('timer ended', () => { 
+            this.game.panel.updateCentralPart()     // simply update the central part of the panel 
+        })
+
+        // evetn emit to notify the freeze or unfreeze of the grid, in this case we update the freeze buttons
+        this.socket.on('grid update', () => {
+           this.game.panel.updateFreezeButton()
         })
 
 

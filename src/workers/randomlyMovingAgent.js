@@ -13,12 +13,13 @@ class RandomlyMoveAgent {
 
     /**
      * @param {Config} config
-     * @param {Grid} myGrid 
+     * @param {Grid} grid 
      */
-    constructor(config, myGrid) {
+    constructor(config, grid) {
         
         this.config = config
-        this.agent = myGrid.createAgent({});
+        this.agent = grid.createAgent({});    // costruct the agent on the grid 
+                               
     }
 
     /**
@@ -44,7 +45,7 @@ class RandomlyMoveAgent {
             index %= 4;
         }
 
-        console.log('\tStop Randomly Move Agent for ', agent.id)
+        console.log('\t\tStop Randomly Move Agent for ', agent.id)
         return;
     }
 
@@ -57,6 +58,8 @@ class RandomlyMoveAgent {
     async start() {
         await this.stopped;
         this.stopped = this._randomlyMove(this.agent, this.config);
+        //console.log('Agent ', this.agent.name + 'started')
+        return
     }
 
     /**

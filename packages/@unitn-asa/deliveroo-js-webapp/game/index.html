@@ -2,10 +2,9 @@
 <html>
   <head>
     <title>Deliveroo.js</title>
-    <link rel="stylesheet" href="styleAllert.css">
-    <link rel="stylesheet" href="styleIndex.css">
-    <link rel="stylesheet" href="styleRestartMatch.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style/styleAllert.css">
+    <link rel="stylesheet" href="style/styleIndex.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">  
   </head>
   
   <body>
@@ -40,23 +39,9 @@
         <img id="canvas" width="200" height="200" style="position: relative; top: 0; left: 0; z-index: 1000;"></img>
       </div>
 
-      <div id="panel" style="display:none">
-        <div id="admin-div">
-          <div id="home-login-buttons">
-            <button class="home-button" id="home-button"><i class="fas fa-home"></i></button>
-            <button class="login-button" id="loginButton">Login</button>
-          </div>
-          
-        </div>
-        <div id="timer-div">
-          <h4>Timer: 
-            <span id = 'timer-span'></span>
-          </h4>
-        </div>
-        <div class="folder">
-          <h4>Leaderboard</h4>
-          <div class="leaderboard" id="leaderboard"></div>
-        </div>
+      <div id="right-colum" style="display:none">
+        <div id="panel"></div>
+
         <div class="folder">
             <h4 id="chatTitle">Chat</h4>
             <div class="chat closed" id="chat"></div>
@@ -65,11 +50,7 @@
       </div>
     </div>
 
-    <!-- <script src="http://localhost:8080/socket.io/socket.io.js"></script> -->
-    <!-- <script  src="/socket.io/socket.io.js"></script> -->
-    <script type="module" src="EndMatchScreen.js"></script>
     <script type="module" src="Allert.js"></script>
-    <!-- <script type="module" src="deliveroo.js"></script> -->
 
   </body>
 </html>

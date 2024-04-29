@@ -248,7 +248,7 @@ header {
     cursor: pointer;
 }
 
-#rooms-container-admin .div-room .restart-button{
+#rooms-container-admin .div-room .change-button{
     background-color: #8a6bbe; 
     color: #f0f0f0; 
 }
@@ -268,8 +268,13 @@ header {
     color: black; 
 }
 
-/*CSS per il bottone join private match, attualmente eliminato dal progetto*/
-#submitPrivateMatchButton{
+#rooms-container-admin .div-room .freeze-button {
+    background-color: aquamarine;
+    color: black; 
+}
+
+/* CSS per il bottone old match */
+#oldMatch{
     background-color: yellow; 
     border: 2px solid #f0f0f0;
     color: #000000; 
@@ -283,20 +288,6 @@ header {
     border-radius: 5px;
     cursor: pointer;
     transition-duration: 0.4s;
-}
-
-#submitPrivateMatchButton:hover{
-    background-color: rgb(170, 170, 0);
-}
-
-#matchId{
-    max-width: 100px;
-    min-height: 30px;
-    border: 2px solid yellow;
-}
-
-#matchId:not(:placeholder-shown) {
-    border-color: whitesmoke; 
 }
 
 

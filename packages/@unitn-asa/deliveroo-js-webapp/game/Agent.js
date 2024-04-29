@@ -75,7 +75,7 @@ class Agent extends onGrid {
      */
     constructor ( game, id, name, teamId, teamName, x, y, score ) {
 
-        console.log("Agent constructor", id, name, teamId, teamName, x, y, score);
+        console.log("AGENT: Agent constructor", id, name, teamId, teamName, x, y, score);
         
         const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
         const material = new THREE.MeshBasicMaterial( { color: 'white', transparent: true, opacity: 1 } );
@@ -95,7 +95,6 @@ class Agent extends onGrid {
         var color;
 
         //check if the agent is in the team and if the team has already a color associeted
-        console.log(this.#game.teamsAndColors) 
         if(this.#game.teamsAndColors.has(teamId) ){ color = this.#game.teamsAndColors.get(teamId) }
         else {
             this.#game.newColor(teamId);

@@ -28,7 +28,6 @@ parser.add_argument('-z', '--npc-num', { dest:'RANDOMLY_MOVING_AGENTS', help: "S
 parser.add_argument('-y', '--npc-speed', { dest:'RANDOM_AGENT_SPEED', help: "Specify the speed for randomly moving agents, options are '1s', '2s', '5s', '10s', default is '2s'" });
 
 parser.add_argument('-k', '--clock', { dest:'CLOCK', help: "Specify the clock, default is 50" });
-parser.add_argument('-o', '--match-timeout', { dest:'MATCH_TIMEOUT', help: "Specify the match timeout, default is 60" });
 
 const args = parser.parse_args();
 
@@ -51,7 +50,7 @@ const args = parser.parse_args();
  * @property {number} RANDOMLY_MOVING_AGENTS - default is 2
  * @property {string} RANDOM_AGENT_SPEED - options are '1s', '2s', '5s', '10s', default is '2s'
  * @property {number} CLOCK - default is 50
- * @property {number} MATCH_TIMEOUT - default is 60
+
  */
 class Config {
     
@@ -90,8 +89,6 @@ class Config {
     /** @type {number} default is 50 (=20frame/s) */
     CLOCK = process.env.CLOCK || 50;
 
-    /** @type {number} default is 600, 10 minutes*/
-    MATCH_TIMEOUT = process.env.MATCH_TIMEOUT || 10;
     
     /** @param {Config} config */
     constructor ( config = {} ) {

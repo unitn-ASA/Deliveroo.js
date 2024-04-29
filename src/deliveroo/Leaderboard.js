@@ -197,11 +197,11 @@ class Leaderboard {
         return queried;
     }
 
-    // function that return the id and the date af all the matches of a room
-    static async getMatches(roomId) {
+    // function that return the id of all the past matches
+    static async getMatches() {
         try {
             const matches = await RewardModel.aggregate([
-                { $match: { roomId: roomId } },
+                { $match: {} },
                 { $group: { 
                         _id: "$matchId",
                         firstTime: { $min: "$time" } 
