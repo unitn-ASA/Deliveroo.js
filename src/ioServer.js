@@ -346,7 +346,14 @@ class ioServer {
             if(room == false) { console.log('Received move request for an not existing room: ', roomId); return};
 
             // if the grid is freezed the agent can't move
-            if(room.grid.status == 'freeze') { console.log('grid of the room: ', roomId + 'freezed, the agent can not move'); return};
+            let errorFreezeLog =  `grid of the room: ${roomId} freezed, the agent can not move `
+            if(room.grid.status == 'freeze') { 
+                // console.log(errorFreezeLog); 
+                if ( acknowledgementCallback )
+                try { acknowledgementCallback(errorFreezeLog); } 
+                catch (error) { console.error(error) }
+                return
+            };
 
             console.log( `${roomNamespace.name}/${me.name}-${me.teamName}-${me.id}`, me.x, me.y, direction );
             try {
@@ -367,7 +374,14 @@ class ioServer {
             if(room == false) { console.log('Received pickup request for an not existing room: ', roomId); return};
 
             // if the grid is freezed the agent can't move
-            if(room.grid.status == 'freeze') { console.log('grid of the room: ', roomId + 'freezed, the agent can not pickup'); return};
+            let errorFreezeLog =  `grid of the room: ${roomId} freezed, the agent can not pickup `
+            if(room.grid.status == 'freeze') { 
+                // console.log(errorFreezeLog); 
+                if ( acknowledgementCallback )
+                try { acknowledgementCallback(errorFreezeLog); } 
+                catch (error) { console.error(error) }
+                return
+            };
 
             const picked = await me.pickUp()
             
@@ -390,7 +404,14 @@ class ioServer {
             if(room == false) { console.log('Received putdown request for an not existing room: ', roomId); return};
 
             // if the grid is freezed the agent can't move
-            if(room.grid.status == 'freeze') { console.log('grid of the room: ', roomId + 'freezed, the agent can not putdown'); return};
+            let errorFreezeLog =  `grid of the room: ${roomId} freezed, the agent can not pickup `
+            if(room.grid.status == 'freeze') { 
+                // console.log(errorFreezeLog); 
+                if ( acknowledgementCallback )
+                try { acknowledgementCallback(errorFreezeLog); } 
+                catch (error) { console.error(error) }
+                return
+            };
 
             const {dropped, reward} = await me.putDown( selected );
 

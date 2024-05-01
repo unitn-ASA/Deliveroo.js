@@ -83,6 +83,7 @@ class Grid extends Observable {
         this.#randomlyMovingAgents = [];
         for (let i = 0; i < this.#config.RANDOMLY_MOVING_AGENTS; i++) {
             let randomlyMoveAgent = new RandomlyMoveAgent( this.#config, this );
+            randomlyMoveAgent.start()
             this.#randomlyMovingAgents.push( randomlyMoveAgent );
         }
 
@@ -284,7 +285,8 @@ class Grid extends Observable {
 
     //Block the grid 
     async freeze(){
-        if(this.status == GridStatus.FREEZE){return}
+        console.log('FREEZE')
+        if(this.status == GridStatus.FREEZE){console.log('already FREEZE'); return}
         this.status = GridStatus.FREEZE;
         await Promise.all(this.#randomlyMovingAgents.map(a => a.stop()));   //stop all the autonomous agent
         this.emit('update', 'freeze')
@@ -293,7 +295,8 @@ class Grid extends Observable {
 
     //Unblock the grid 
     async unfreeze(){
-        if(this.status == GridStatus.UNFREEZE){return}
+        console.log('UNFREEZE')
+        if(this.status == GridStatus.UNFREEZE){console.log('already UNFREEZE'); return}
         this.status = GridStatus.UNFREEZE;
         await Promise.all(this.#randomlyMovingAgents.map(a => a.start()));  //restart all the autonomus agent
         this.emit('update', 'unfreeze')

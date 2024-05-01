@@ -115,7 +115,7 @@ class Agent extends Xy {
             this.emitOnePerTick('agents sensing', agents);
         } catch (error) {
             console.error('Failed to process agent sensing:', error);
-            console.log('AGents: ', grid.getAgents())
+            //console.log('Agents: ', grid.getAgents())
         }
         
         // this.emitOnePerTick( 'agents sensing',

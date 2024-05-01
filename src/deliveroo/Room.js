@@ -100,7 +100,8 @@ class Room extends EventEmitter{
         console.log(`/${this.#id } change grid`)
         this.waitConnection = true;         // stop the connection during the change of the grid
         await this.grid.destroy();          // destroy the grid
-        //console.log('old grid destroied', this.grid)
+        this.grid = null;
+        console.log('old grid destroied', this.grid)
 
         this.grid = new Grid({roomId: this.#id, config : newConfig})
         await this.grid.freeze()    //when the grid is changed the new one start freezed

@@ -62,10 +62,10 @@ router.put('/:id/status', verifyToken, async (req, res) => {
       res.status(400).json({ message: `Room ${roomId} not found` });
       return
     }
-    
+    console.log(`PUT room received`)
     //console.log(`PUT room: receveid request when the grid is ${room.grid.status}.`)
     if(room.grid.status == 'freeze'){await room.grid.unfreeze()}  // if the status of the match is on, the endpoint put it to off
-    else{await room.grid.freeze()}                            // else if the status is off, the endpoint put it to on
+    else{await room.grid.freeze()}                                // else if the status is off, the endpoint put it to on
     console.log(`PUT room: status of grid in room ${roomId} update to ${room.grid.status}.`)
   
     res.status(200).json({ 

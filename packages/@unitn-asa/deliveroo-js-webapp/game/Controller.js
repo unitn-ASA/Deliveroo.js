@@ -84,7 +84,7 @@ class Controller {
                 } );
             case 'KeyW':// W up
                 return new Promise( (res, rej) => {
-                    // console.log('emit move up');
+                    console.log('emit move up');
                     socket.emit('move', 'up', (status) => {
                         res(status);
                     } );

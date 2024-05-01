@@ -561,6 +561,7 @@ function requestFreezeUnfreezeGrid(event){
 
     const token_admin = getAdminCookie();
     const roomId = event.target.getAttribute('room');
+    console.log('CHAGE STATUS GRID: REQUEST')
     
     fetch(`/api/grids/${roomId}/status`, {
         method: 'PUT',
@@ -568,7 +569,6 @@ function requestFreezeUnfreezeGrid(event){
           'Content-Type': 'application/json',
           'Authorization': `${token_admin}`
         },
-        body: JSON.stringify({ id: roomId}) // Invia l'ID del match e il nuovo stato
     })
     .then(response => {
         if (response.ok) { return response.json(); } 
