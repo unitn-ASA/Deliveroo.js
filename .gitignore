@@ -20,3 +20,5 @@ logs
 
 # binaries
 bin
+
+.DS_Store
