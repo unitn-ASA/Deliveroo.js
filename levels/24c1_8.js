@@ -7,8 +7,8 @@ module.exports = {
     PARCELS_MAX: '10',                  // 'infinite' (DEFAULT)
 
     MOVEMENT_STEPS: 1,                  // default is 1
-    MOVEMENT_DURATION: 50,              // default is 500
-    AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5
+    MOVEMENT_DURATION: 10,              // default is 500
+    AGENTS_OBSERVATION_DISTANCE: 10,     // default is 5
     PARCELS_OBSERVATION_DISTANCE: 10,    // default is 5
 
     PARCEL_REWARD_AVG: 10,             // default is 30
