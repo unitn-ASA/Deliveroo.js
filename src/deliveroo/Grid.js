@@ -23,6 +23,7 @@ class Grid extends Observable {
      */
     constructor ( map = new Array(10).map( c=>new Array(10) ) ) {
         super();
+        this.setMaxListeners(200);
         
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
