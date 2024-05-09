@@ -3,6 +3,8 @@ const myGrid = require('./grid');
 const Authentication = require('./deliveroo/Authentication');
 const config = require('../config');
 const myClock = require('./deliveroo/Clock');
+require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
+
 
 
 
