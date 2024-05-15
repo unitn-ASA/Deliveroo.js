@@ -2,6 +2,8 @@ import { Color } from 'three';
 import { goToMatch } from './deliveroo.js';
 var params = new URLSearchParams(window.location.search);
 
+var HOST = import.meta.env.VITE_SOCKET_IO_HOST || 'http://localhost:8080';
+
 if (!params.has('room')) { params.append('room', '0'); }
 console.log(params.get('room'))
 
@@ -113,7 +115,7 @@ async function addAgent() {
 function setCookie(response, exdays) {
 
     // define the name of the cookie
-    let cname = 'token_' + response.id + '_'+ response.name + '_' + response.teamId + '_' +response.teamName
+    let cname = 'token_' + response.payload.id + '_'+ response.payload.name + '_' + response.payload.teamId + '_' +response.payload.teamName
 
     // first verify that the browser don't have already the cookie 
     let alreadyPresentToken = getCookie( cname );
@@ -276,8 +278,8 @@ function richiediToken(nome, team, callback) {
 
         console.log("Nome fetch: ", nome + " team fetch: ", team);
 
-        fetch('/api/token', {
-            method: 'GET',
+        fetch(HOST+'/api/tokens', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'name': nome,

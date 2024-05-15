@@ -1,113 +1,216 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-
 const Arena = require('../deliveroo/Arena');
-const Leaderboard = require('../deliveroo/Leaderboard');
-const Match = require('../deliveroo/Match');
+const { RewardModel } = require('../models/RewardModel');
+const {createMatch, getCurrentMatchByRoomId, MatchModel} = require('../models/MatchModel');
+const Room = require('../deliveroo/Room');
+const { authorizeAdmin, authorizeUser } = require('../middlewares/tokens');
 
-// Chiave segreta o chiave pubblica per la verifica della firma
-const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
+const matchDoc = new MatchModel();
+/**
+ * @typedef {typeof matchDoc} MatchDocType
+*/
 
-// Middleware to check admin token
-function verifyToken(req, res, next) {
-  
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(403).send({ auth: false, message: 'No Token in headers.authorization.' });
-  }
 
-  // Check and decode the token
-  jwt.verify(token, SUPER_SECRET_ADMIN, (err, decoded) => {
-    if ( err || decoded.user != 'admin' || decoded.password != 'god1234' ) {
-      return res.status(500).send({ auth: false, message: 'Autenticatione failed.' });
-    }
+
+/**********************************************/
+/*                  :roomId                   */
+/**********************************************/
+router.use('/', async ( /**@type {express.Request & {roomId:string, room:Room}}*/ req, res, next ) => {
+
+    const roomId = req.roomId;
+    const room = req.room;
     next();
-  });
-}
 
-/********************************************* */
-/*                    POST                     */
-/********************************************* */
-// Endpoint for the restart of the match in the room
-router.post('/:id', verifyToken, async (req, res) => {
-  const roomId = req.params.id;         // get id of the room
-  let room = Arena.rooms.get(roomId);   // get the room
+});
 
-  if(!room){
-    console.log('PUT room: room', roomId, ' requested not found')
-    res.status(400).json({ message: `Room ${roomId} not found` });
-    return
-  }
 
-  room.match = new Match()
-})
 
-// Endpoint to put the match to change it statuts in live on or live off 
-router.put('/:id/status', verifyToken, (req, res) => {
-  const roomId = req.params.id;         // get id of the room
-  let room = Arena.rooms.get(roomId);   // get the room
+/**********************************************/
+/*                     GET                    */
+/**********************************************/
+router.get('/', async ( /**@type {express.Request & {roomId:string, room:Room}}*/ req, res ) => {
+    
+    const filter = {};
+    var path = ``;
 
-  if(!room){
-    console.log('PUT room: room', roomId, ' requested not found')
-    res.status(400).json({ message: `Room ${roomId} not found` });
-    return
-  }
+    if ( req.room ) {
+
+        filter.roomId = req.room.id;
+        var path = `/rooms/${req.room.id}`;
+    
+    } else if ( req.query.roomId ) {
+    
+        filter.roomId = req.query.roomId;
+    
+    }
+    
+    console.log( `GET ${req.url} - MatchModel.find( ${filter} )` );
+
+    res.status(200).json( await MatchModel.find( filter ).exec() );
+
+});
+
+
+
+/**********************************************/
+/*                    POST                    */
+/**********************************************/
+// Endpoint to start a new match in the room 
+router.post('/', authorizeAdmin, async ( /**@type {express.Request & {roomId:string, room:Room}}*/ req, res ) => {
+
+    console.log( `POST ${req.url}: ${req.body}` );
+
+    // get Title of the match
+    const matchTitle = req.body.matchTitle;
+    
+    // get the start time of the match
+    const startTime = req.body.startTime;
+    
+    // get the end time of the match
+    const endTime = req.body.endTime;
+    
+    // get the configuration of the match
+    const config = req.body.config;
+
+    // get roomId
+    const roomId = req.roomId || req.params?.roomId || req.body.roomId;
+    if ( ! roomId ) {
+        console.error(`POST ${req.url} - Cannot create match, required param "roomId" not in req.params.roomId || req.body.roomId`)
+        res.status(400).json({ message: `Cannot create match, roomId is required` });
+        return;
+    }
+
+    // get the room
+    let room = req.room || Arena.rooms.get(roomId);
+    if ( ! room ) {
+        console.log(`POST ${req.url} - Cannot create match, Room ${roomId} does not exist`)
+        res.status(400).json({ message: `Cannot create match, Room ${roomId} does not exist` });
+        return;
+    }
+
+    const match = await createMatch(
+        roomId,
+        matchTitle || (new Date()).toISOString(),
+        startTime,
+        endTime,
+        config
+    );
+    
+    res.status(201).location( `\\matches\\${match._id}` ).json( match );
+});
+
+
+
+/**********************************************/
+/*                  :matchId                  */
+/**********************************************/
+/**
+ * Middleware to check if match exists
+ */
+router.use('/:matchId', async ( /**@type {express.Request & {room:Room}}*/ req, res, next ) => {
+
+    // :current not valid when room not specified
+    if ( req.params.matchId == 'current' && ! req.room ) {
+        
+        console.log(`${req.method} ${req.url} - No room specified to resolve ":current" match`);
+        res.status(404).send(`No room specified to resolve ":current" match`);
+        return;
+
+    }
+
+    // when room specified resolves :current to the current matchId in the room
+    if ( req.params.matchId == 'current' && req.room ) {
+
+        var match = await getCurrentMatchByRoomId(req.room.id);
+        
+        if ( ! match ) {
+            console.log(`${req.method} ${req.url} - No :current match in room ${req.room.id}`);
+            res.status(404).send(`No :current match in room ${req.room.id}`);
+            return;
+        }
+
+        req.params.matchId = match._id.toString();
+
+    }
+
+    // if both room specified and :matchId
+    else if ( req.room ) {
+        
+        var match = await MatchModel.findOne({ roomId: req.room.id, _id: req.params.matchId }).exec();
+
+        if ( ! match ) {
+            console.log(`${req.method} ${req.url} - No match ${req.params.matchId} in room ${req.room.id}`);
+            res.status(404).send(`No match ${req.params.matchId} in room ${req.room.id}`);
+            return;
+        }
+        
+        req.params.matchId = match._id.toString();
+
+    }
+    
+    // if only :matchId
+    else {
+        
+        var match = await MatchModel.findById( req.params.matchId ).exec();
+
+        if ( ! match ) {
+            console.log(`${req.method} ${req.url} - Match ${req.params.matchId} does not exist`);
+            res.status(404).send(`Match ${req.params.matchId} does not exist`);
+            return;
+        }
+
+    }
+        
+    // dynamically declare property in req object
+    req['match'] = match;
+    req['matchId'] = match._id.toString();
+    next();
+
+});
+
+
+
+/**********************************************/
+/*                   DELETE                   */
+/**********************************************/
+router.delete('/:matchId', authorizeAdmin, async ( /**@type {express.Request & {match:MatchDocType}}*/ req, res ) => {
   
-  if(room.match.status == 'on'){room.match.liveOff()}  // if the status of the match is on, the endpoint put it to off
-  else{room.match.liveOn()}                            // else if the status is off, the endpoint put it to on
-  console.log(`PUT room: status of match in room ${roomId} update to ${room.match.status}.`)
+    console.log( "DELETE /matches/"+req.params.matchId, req.body );
 
-  res.status(200).json({ 
-    message: `Stato del match in room ${roomId} aggiornato a ${room.match.status}.`,
-    matchId: room.match.id,
-    status: room.match.status
-  });
+    const matchId = req.params.matchId;
+    const match = req.match;
+    
+    await Promise.all([
+        RewardModel.deleteMany( { matchId } ).exec(),
+        MatchModel.deleteOne( { _id: matchId } ).exec()
+    ])
+
+    res.status(204).send();
+  
 });
 
 
 
 /********************************************* */
-/*                   DELETE                    */
+/*                   STOP                      */
 /********************************************* */
-// Endpoint to change the match in the room 
-router.delete('/:id', verifyToken, async (req, res) => {
-  const roomId = req.params.id;
-  let room = Arena.rooms.get(roomId);
-
-  if(!room){
-    console.log('DELETE room: room', roomId, 'requested not found')
-    res.status(400).json({ message: `Room ${roomId} not found` });
-    return
-  }
-
-  if(room.match.status == 'end'){
-    console.log('DELETE room: match in room ', roomId, ' is already ended, request invalid ')
-    res.status(400).json({ message: `Match in room ${roomId} already ended` });
-    return
-  }
+router.patch('/:matchId', authorizeAdmin, async ( /**@type {express.Request & {match:MatchDocType}}*/ req, res ) => {
   
-  await room.match.change();
-  console.log(`DELETE room: match ${room.match.id} in room ${roomId} deleted.`)
+    console.log( "PATCH /matches/"+req.params.matchId, req.body );
 
-  res.status(200).json({ 
-    message: `match ${room.match.id} in room ${roomId} deleted`,
-  });
-  
-});
+    const matchId = req.params.matchId;
+    const match = req.match;
 
+    if ( req.body?.status == 'end' ) {
 
-/********************************************* */
-/*                     GET                     */
-/********************************************* */
-// Endpoint to obtain the list of pass match of a room
-router.get('/', async (req, res) => {
-  const result = await Leaderboard.getMatches();
- 
-  res.status(200).json({
-    message: 'List active rooms',
-    result: result,
-  });
+        // set endTime to now
+        match.endTime = new Date();
+        await match.save();
+
+    }
+    
+    res.status(200).json( match );
 
 });
 

@@ -17,6 +17,7 @@ class Controller {
         
         let currEvt = new Map();
         document.onkeydown = async (evt) => {
+            if (evt.repeat) return; // ignore key continuosly pressed
             currEvt.set(evt.code, evt);
             if ( currEvt.size == 1 && ! doing )
                 startDoing();
@@ -84,7 +85,7 @@ class Controller {
                 } );
             case 'KeyW':// W up
                 return new Promise( (res, rej) => {
-                    console.log('emit move up');
+                    // console.log('emit move up');
                     socket.emit('move', 'up', (status) => {
                         res(status);
                     } );

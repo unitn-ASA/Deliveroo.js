@@ -41,7 +41,7 @@ class Client {
         console.log( "CLIENT: connecting to", HOST+'/'+roomId, "with token:", token.slice(-30) );
 
         this.socket = io( HOST+'/'+roomId, {
-            withCredentials: true,
+            withCredentials: false,
             extraHeaders: {
                 'x-token': token
             }

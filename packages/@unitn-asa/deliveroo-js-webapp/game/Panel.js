@@ -1,5 +1,7 @@
 import { Leaderboard } from "./Leaderboard";
 
+var HOST = import.meta.env.VITE_SOCKET_IO_HOST || 'http://localhost:8080';
+
 /* the class is used to menage the right top pannel, wich show the home and login button; timer and leable of match on or off
 and contain all the admin part to menage the room */
 class Panel{
@@ -93,7 +95,7 @@ class Panel{
             const username = document.getElementById('username-login').value;   // take the username input
             const password = document.getElementById('password-login').value;   // take the password input
 
-            const response = await fetch('/login', {                            // request the login with the given credetials
+            const response = await fetch(HOST+'/api/tokens', {                            // request the login with the given credetials
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -133,7 +135,7 @@ class Panel{
         centralPart.id ='central-part'
 
         // request the status of the match to the server, based on this information the method can build the correct central part 
-        await fetch(`/api/rooms/${this.roomId}`, {
+        await fetch(`${HOST}/api/rooms/${this.roomId}`, {
             method: 'GET',
             headers: {
             'Content-Type': 'application/json',
@@ -563,7 +565,7 @@ function requestFreezeUnfreezeGrid(event){
     const roomId = event.target.getAttribute('room');
     console.log('CHAGE STATUS GRID: REQUEST')
     
-    fetch(`/api/grids/${roomId}/status`, {
+    fetch(`${HOST}/api/grids/${roomId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -681,7 +683,7 @@ function showGridForm(event) {
     form.querySelector('.returnButton').addEventListener('click', openMapList);
 
     //set as default the config of the actual grid in the new match form
-    fetch('/api/config', {
+    fetch(`${HOST}/api/config`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -759,7 +761,7 @@ function showGridForm(event) {
         };
 
         // Make the request for a new grid
-        fetch(`/api/grids/${roomId}`, {
+        fetch(`${HOST}/api/grids/${roomId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -822,7 +824,7 @@ async function startTimer(token_admin, roomId, timerInput){
     }
 
     let matchId = false                                 // is the varaible where save the matchId received in the response
-    await fetch(`/api/timers/${roomId}/start`, {              // request to the server to start the timer
+    await fetch(`${HOST}/api/timers/${roomId}/start`, {              // request to the server to start the timer
         method: 'PUT',      
         headers: {
             'Content-Type': 'application/json',
@@ -843,7 +845,7 @@ async function startTimer(token_admin, roomId, timerInput){
 // the function menege the stop of the timer that lead also to a stop of the match.The return indicate if the request goes right or not
 async function stopTimer(token_admin, roomId){
     let matchId = false                                 // is the varaible where save the matchId received in the response
-    await fetch(`/api/timers/${roomId}/stop`, {         // request to start the timer
+    await fetch(`${HOST}/api/timers/${roomId}/stop`, {         // request to start the timer
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -863,7 +865,7 @@ async function stopTimer(token_admin, roomId){
 async function deleteMatch(roomId){
 
     const token_admin = getAdminCookie();
-    await fetch(`/api/matches/${roomId}`, {             // request to delete the match
+    await fetch(`${HOST}/api/matches/${roomId}`, {             // request to delete the match
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
@@ -880,7 +882,7 @@ async function deleteMatch(roomId){
 // function to show the list of agents in the grid
 function requestShowAgents(roomId, agentsListDiv){
     const token_admin = getAdminCookie();
-    fetch(`/api/grids/${roomId}/agents`, {             // request the list of agents
+    fetch(`${HOST}/api/grids/${roomId}/agents`, {             // request the list of agents
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -938,7 +940,7 @@ function openMapList() {
     mapListDiv.innerHTML = '';
 
     // request all the maps from the server
-    fetch('/api/maps', {
+    fetch(`${HOST}/api/maps`, {
         method: 'get',
         headers: {
         'Content-Type': 'application/json'

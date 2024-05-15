@@ -1,6 +1,6 @@
 require('dotenv').config();
-var RewardModel = require('../src/models/RewardModel'); // get our mongoose model
-var Leaderboard = require('../src/deliveroo/Leaderboard');
+var {RewardModel} = require('../src/models/RewardModel'); // get our mongoose model
+var Leaderboard = require('../src/models/LeaderboardView');
 var mongoose = require('mongoose');
 
 
@@ -11,12 +11,9 @@ mongoose.connect(process.env.DB_URL, {})
 	console.log("Connected to Database");
 
 	// delete all from mongoose collection RewardModel
-	await RewardModel.deleteMany({});
+	await RewardModel.deleteMany({});	
 
-	new Leaderboard( );
-	
-
-	console.log( await Leaderboard.get() );
+	console.log( await Leaderboard.read() );
 
 });
 

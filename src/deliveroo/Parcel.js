@@ -61,7 +61,7 @@ class Parcel extends Xy {
         
     }
 
-    async destroy() {
+    destroy() {
         myClock.off( this.#config.PARCEL_DECADING_INTERVAL, this.decay )
         this.removeAllListeners();          // Remove all event listeners
         this.#config = null;                // Set the reference to the Config object to null

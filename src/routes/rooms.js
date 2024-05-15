@@ -1,69 +1,173 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const jwt = require('jsonwebtoken');
 
 const Arena = require('../deliveroo/Arena');
 const Config = require('../deliveroo/Config');
-const Leaderboard = require('../deliveroo/Leaderboard');
-const Match = require('../deliveroo/Match');
-const fs = require('fs');
+const Room = require('../deliveroo/Room');
+const Grid = require('../deliveroo/Grid');
+
+const {authorizeAdmin} = require('../middlewares/tokens');
+const {MatchModel} = require('../models/MatchModel');
+
+const matchDoc = new MatchModel();
+/**
+ * @typedef {typeof matchDoc} MatchDocType
+*/
 
 
-// Chiave segreta o chiave pubblica per la verifica della firma
-const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
+/**
+ * https://stackoverflow.com/questions/27266857/how-to-annotate-express-middlewares-with-jsdoc
+*/
 
-// Directory that contain maps file
-const mapsDirectory = path.join(__dirname, '..','..','levels','maps')
 
-// Middleware to check admin token
-function verifyToken(req, res, next) {
-  
-  const token = req.headers.authorization;
-  if (!token) {
-    return res.status(403).send({ auth: false, message: 'Token not find.' });
-  }
+/**
+ * Middleware to check if the room exists
+ */
+router.use('/:roomId', async (req, res, next) => {
 
-  // Check and decode the token
-  jwt.verify(token, SUPER_SECRET_ADMIN, (err, decoded) => {
-    if (err) {
-      return res.status(500).send({ auth: false, message: 'Autenticatione feiled.' });
+    const roomId = req.params.roomId;
+    const room = Arena.getRoom(roomId);
+    
+    if ( room ) {
+
+        // dynamically declare property in req object
+        req['room'] = room;
+        req['roomId'] = roomId;
+        next();
+    
+    } else {
+
+        console.log(`${req.method} /rooms/${roomId} - Room ${roomId} does not exist`)
+        res.status(404).send(`Room ${roomId} does not exist`)
+    
     }
 
-    if(decoded.user != 'admin' || decoded.password != 'god1234'){
-      return res.status(500).send({ auth: false, message: 'Autenticatione feiled.' });
-    }
+});
 
-    next();
-  });
+
+
+/**
+ * @typedef {Object} RoomJson
+ * @property {string} roomId
+ * @property {Config} config
+ * property {Object|undefined} match
+ * property {string} match.matchTitle
+ * property {Date} match.startDate
+ * property {Date} match.endDate
+ * @property {boolean} freezed
+ * 
+ * @param {Room} room 
+ * @returns {RoomJson} restRoom 
+ */
+function roomToJson( room ) {
+
+    return {
+        roomId: room.id,
+        config: room.grid.config,
+        // match: room.match ? {
+        //   matchTitle: room.match.matchTitle,
+        //   startDate: room.match.startTime,
+        //   endDate: room.match.endTime
+        // } : null,
+        freezed: room.grid.freezed
+    };
+
 }
+
+
+
+/********************************************* */
+/*                     GET                     */
+/********************************************* */
+
+// GET all the rooms
+router.get('/', async ( req, res ) => {
+  
+    console.log( `GET /rooms` );
+
+    const rooms = Array.from( Arena.rooms.values() ).map( room => roomToJson(room) );
+    res.status(200).json( rooms );
+
+});
+
+// GET one room
+router.get('/:roomId', ( /**@type {express.Request & {room:Room}}*/req, res ) => {
+
+    console.log( `GET /rooms/ ${req.params.roomId}` );
+
+    const room = req.room;
+    res.status(200).json( roomToJson( room ) );
+
+});
+
+
 
 /********************************************* */
 /*                    POST                     */
 /********************************************* */
-// Endpoint for the cration of a new Room with a start match
-router.post('/', verifyToken, async (req, res) => {
+
+// POST /room new room with a start match
+router.post('/', authorizeAdmin, async (req, res) => {
+
+    console.log( "POST /rooms", req.body );
+    
+    const config = new Config( req.body.config );
+
+    try {
+        
+        const newRoom = Arena.createRoom( config );
+        res.status( 200 ).location( newRoom.id ).json( roomToJson(newRoom) );
+
+    } catch (error) {
+
+            console.error( `POST /rooms - Error in the creation of the room with config ${config}.` );
+            console.error( error );
+            res.status(500).json({
+                message: `Error in the creation of the room with config ${config}`,
+                error: error
+            });
+    }
   
-  var config = new Config( req.body );
-  var newRoom = Arena.createRoom(config);
-  console.log("POST room: creation of the new Room: ", newRoom.id)
+});
 
-  let mapPath = mapsDirectory + '/' + config.MAP_FILE +'.json';
 
-  fs.promises.readFile(mapPath, 'utf8')
-    .then(data => {
-      const dataJson = JSON.parse(data);
-      const map = dataJson.map;
 
-      res.status(200).json({
-        message: 'Data received successfully',
-        id: newRoom.id,
-      });
-    })
-    .catch(error => {
-      console.error('POST room: error in the reading of the map file:', error);
-      res.status(500).json({ error: 'Error in the reading of the map file:' });
-    });
+/********************************************* */
+/*             Freeze / Reload Config          */
+/********************************************* */
+
+// PATCH /room/id
+router.patch('/:roomId', authorizeAdmin, async ( /**@type {express.Request & {room:Room}}*/req, res ) => {
+    
+    const roomId = req.params.roomId;
+    const room = req.room;
+    const grid = req.room.grid;
+    
+    console.log( `PATCH /rooms/${roomId}`, req.body );
+
+    // change the grid configuration and reload the grid
+    if ( req.body?.config ) {
+
+        await room.changeGrid( req.body.config );
+        console.log(`PATCH /rooms/${roomId} - Grid reloaded with config ${room.grid.config}`);
+    
+    }
+
+    // freeze or unfreeze the grid
+    if ( req.body?.freezed === true ) {
+
+        await grid.freeze();
+        console.log(`PATCH /rooms/${room.id} - Grid freezed`);
+
+    }
+    else if ( req.body?.freezed === false ) {
+
+        grid.unfreeze();
+        console.log(`PATCH /rooms/${room.id} - Grid unfreezed`);
+
+    }
+
+    res.status(200).json( roomToJson(req.room) );
 
 });
 
@@ -72,79 +176,48 @@ router.post('/', verifyToken, async (req, res) => {
 /********************************************* */
 /*                   DELETE                    */
 /********************************************* */
-// Endpoint t delete the room
-router.delete('/:id', verifyToken, async (req, res) => {
-  const roomId = req.params.id;
+
+// DELETE /room/id
+router.delete('/:roomId', authorizeAdmin, async (req, res) => {
   
-  if( await Arena.deleteRoom(roomId) ){
-    console.log("DELETE room: ", roomId, " deleted")
-    res.status(200).json({
-      message: 'Room deleted sucsessfully!',
-      id: roomId
+    const roomId = req.params.roomId;
+
+    console.log( `DELETE /rooms/${roomId}` );
+    
+    await Arena.deleteRoom( roomId );
+
+    res.status(204).send();
+  
+});
+
+
+
+/**********************************************/
+/*                 SUB-RESOURCES              */
+/**********************************************/
+
+
+
+// GET /rooms/id/agents get the list of all the agents on the grid
+router.get('/:roomId/agents', async (/**@type {express.Request & {room:Room}}*/req, res) => {
+
+    console.log( `GET /rooms/${req.params.roomId}/agents` );
+
+    const /** @type {Grid} */ grid = req.room.grid;
+
+    const agents = Array.from( await grid.getAgents() ).map( agent => {
+        return {
+            id: agent.id,
+            name: agent.name
+        };
     });
-  }else{
-    console.log("DELETE room: error, room: ", roomId, " not found")
-    res.status(500).json({ message: 'Error during the elimination of the room' });
-  }
-  
+    res.status(200).json( agents );
   
 });
 
 
-/********************************************* */
-/*                     GET                     */
-/********************************************* */
-// Endpoint to obtain the list of all the room
-router.get('/', async (req, res) => {
-  /* for each room we send: the id of the actual match, the status of the match (on or off), the status of the grid (freeze or unfreeze),
-  the flag run of the timer and the date of the match*/
-  const rooms = Array.from(Arena.rooms.keys());
-  const matchesId = Array.from(Arena.rooms.values()).map(room => room.match.id);
-  const matchesStatus = Array.from(Arena.rooms.values()).map(room => room.match.status);
-  const gridStatus = Array.from(Arena.rooms.values()).map(room => room.grid.status);
-  const timerStatus = Array.from(Arena.rooms.values()).map(room => room.timer.run);
 
-  // get all the promise for request the dates, then we wait that all the promise are resolved 
-  const datesPromises = Array.from(Arena.rooms.values()).map(room => Leaderboard.getMatcheFirst(room.match.id));       
-  const matchesDates = await Promise.all(datesPromises);
-
-  res.status(200).json({
-    message: 'List active rooms',
-    rooms: rooms,
-    matchesId: matchesId,
-    matchesStatus: matchesStatus,
-    matchesDates: matchesDates,
-    gridStatus: gridStatus,
-    timerStatus: timerStatus
-  });
-});
-// Endpoint to obtain the state info of the room
-router.get('/:id', (req, res) => {
-  const roomId = req.params.id;
-  const room = Arena.getRoom(roomId);
-  let matchStatus; let matchId; let gridStatus; let timerStatus; let remainingTime
-   
-  if(room){ 
-    matchStatus = room.match.status 
-    matchId = room.match.id
-    gridStatus = room.grid.status
-    timerStatus = room.timer.run
-    remainingTime = room.timer.remainingTime
-  }
-  else{
-    //console.log('Match ', matchId + ' not find')
-    res.status(400).send('Room not find')
-    return
-  }
- 
-  res.status(200).json({
-    matchId: matchId,
-    matchStatus: matchStatus,
-    gridStatus: gridStatus,
-    timerStatus: timerStatus,
-    remainingTime: remainingTime
-  });
-});
+router.use('/:roomId/matches', require('./matches'));
 
 
 

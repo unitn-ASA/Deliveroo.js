@@ -3,19 +3,19 @@ const Xy =  require('./Xy')
 const Grid =  require('./Grid')
 const Parcel =  require('./Parcel');
 const Postponer = require('./Postponer');
-const Leaderboard = require('./Leaderboard');
 const myClock = require('./Clock');
+const Config = require('./Config');
 
 
 
 /**
  * @class Agent
- * @extends Observable
+ * @extends Xy
  * @property {Set<Agent>} sensing agents in the sensed area
  */
 class Agent extends Xy {
 
-    /** @type {string} grid */
+    /** @type {Grid} grid */
     #grid
     /** @type {string} id */
     id;
@@ -25,8 +25,6 @@ class Agent extends Xy {
     teamId;
      /** @type {string} team name */
     teamName;
-    /** @type {Set<Agent>} sensing agents in the sensed area */
-    sensing;
     /** @type {Number} score */
     score = 0;
     /** @type {Set<Parcel>} #carryingParcels */
@@ -41,7 +39,8 @@ class Agent extends Xy {
     /**
      * @constructor Agent
      * @param {Grid} grid
-     * @param {{id:number,name:string}} options
+     * @param {{id:string,name:string,teamId:string,teamName:string}} options
+     * @param {Config} config
      */
     constructor ( grid, {id, name, teamId, teamName}, config ) {
                   
@@ -58,6 +57,7 @@ class Agent extends Xy {
         let i = Math.floor( Math.random() * tiles_unlocked.length - 1 )
         let tile = tiles_unlocked.at( i )
         let x = tile.x, y = tile.y;
+        tile.lock();
         
         super(x, y);
         
@@ -99,7 +99,7 @@ class Agent extends Xy {
 
     /**
      * Agents sensend on the grid
-     * @type {function(Agent,Array<Parcel>): void}
+     * @type {function(Grid): void}
      */
     emitAgentSensing (grid) {
         try {
@@ -111,7 +111,6 @@ class Agent extends Xy {
                     agents.push({id, name, teamId, teamName, x, y, score});
                 }
             }
-            this.sensing = agents;
             this.emitOnePerTick('agents sensing', agents);
         } catch (error) {
             console.error('Failed to process agent sensing:', error);
@@ -226,7 +225,7 @@ class Agent extends Xy {
     /**
      * Pick up all parcels in the agent tile.
      * @function pickUp
-     * @returns {[Parcel]} An array of parcels that have been picked up
+     * @returns {Promise<Parcel[]>} An array of parcels that have been picked up
      */
     async pickUp () {
         await myClock.synch();
@@ -251,8 +250,9 @@ class Agent extends Xy {
      * - if array of ids is provided: putdown only specified parcels
      * - if no list is provided: put down all parcels
      * @function putDown
-     * @param {[string]} ids An array of parcels id
-     * @returns {[Parcel]} An array of parcels that have been put down
+     * @async
+     * @param {string[]} ids An array of parcels id
+     * @returns {Promise<{dropped:Parcel[], reward:Number}>} An array of parcels that have been put down
      */
     async putDown ( ids = [] ) {
         await myClock.synch();
@@ -284,7 +284,7 @@ class Agent extends Xy {
         return {dropped, reward: sc};
     }
 
-    async destroy() {
+    destroy() {
         
         this.moving = false;            // Stop action 
         this.#carryingParcels.clear();  // Cleare the Parcel transported 

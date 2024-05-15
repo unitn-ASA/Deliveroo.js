@@ -2,6 +2,7 @@ const Observable =  require('./Observable')
 
 /**
  * @class Xy
+ * @extends Observable
  */
  class Xy extends Observable {
     
@@ -29,20 +30,22 @@ const Observable =  require('./Observable')
 
     /**
      * rectanguralDistanceTo
+     * @param {{x:Number,y:Number}} a
+     * @param {{x:Number,y:Number}} b
      */
-    static distance ( a = {x, y}, b = {x, y} ) {
+    static distance ( a = {x:undefined, y:undefined}, b = {x:undefined, y:undefined} ) {
         return Math.abs( b.x - a.x ) +  Math.abs( b.y - a.y )
     }
 
-    distance ( other = {x, y} ) {
+    distance ( other = {x:undefined, y:undefined} ) {
         return Xy.distance(this, other)
     }
 
-    static equals ( a = {x, y}, b = {x, y} ) {
+    static equals ( a = {x:undefined, y:undefined}, b = {x:undefined, y:undefined} ) {
         return b.x == a.x && b.y == a.y;
     }
 
-    equals ( other = {x, y} ) {
+    equals ( other = {x:undefined, y:undefined} ) {
         return Xy.equals(this, other)
     }
 

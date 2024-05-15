@@ -4,47 +4,47 @@ const Room = require('./Room');
 class Arena {
 
     /**
-     * @type {Map<string, Match>}
+     * @type {Map<string, Room>}
      */
     static rooms = new Map();
 
     /** 
-     * @param {string} name
-     * @returns {Match}
+     * @param {string} id
+     * @returns {Room}
      */
     static getRoom ( id ) {
-        if(Arena.rooms.has(id)){ return Arena.rooms.get(id);}
-        return false
+        return Arena.rooms.get(id);
     }
 
     /**
-     * @param {{name:string, config:Config}} options
-     * @returns 
+     * @param {Config} config
+     * @returns {Room}
      */
-    static createRoom (config = new Config()) {
+    static createRoom ( config = new Config() ) {
         
-        //console.log('NEW MATCH ', id)
-        let room = new Room(config);        // Create a new Match and add it to the id-match map
+        let room = new Room( config );
         Arena.rooms.set(room.id, room);
         
         return room;
     }
 
     /**
-     * @param {string} name 
+     * @param {string} id 
+     * @returns {Promise<boolean>}
      */
     static async deleteRoom (id) {
+        
         let room = Arena.rooms.get(id);
 
-        if(!room){
-            console.log(`/${id}: not find in the rooms`)
+        if ( ! room ) {
+            console.log(`Arena.deleteRoom(${id}) room not found`);
             return false;
         } 
 
-        try { await room.destroy(); console.log(`/${id} room destroied`)} 
-        catch (error) { console.error('An error occurred while destroying the room:', error); }
-        
+        await room.destroy();
+        console.log(`Arena.deleteRoom(${id}) room destroyed`);
         return true;
+        
     }
     
     

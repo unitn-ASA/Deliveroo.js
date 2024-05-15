@@ -51,15 +51,18 @@ class Leaderboard {
     async init(roomId){
 
         console.log('LEADERBORD: Request all team of the match of the room', roomId)         // request all the information of the match score to the server
-        await fetch('/api/leaderboard', {                                               // start with the request of all the teams:
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'roomId': roomId,
-                'teamId': '',
-                'aggregateby': 'true'
+        await fetch('/api/leaderboard?' + + new URLSearchParams(
+            {
+                roomId: roomId,
+                aggregateBy: 'teamId'
+            } ),
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             }
-        })
+        )
         .then(response => {
             if (response.ok) {return response.json();}
             else {throw new Error(`Error, Status code: ${response.status}`);}
@@ -96,15 +99,19 @@ class Leaderboard {
        
         // Now for each team we request the agent members
         for (let team of this.teamsAndMembers.keys()) {
-            await fetch('/api/leaderboard', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'roomId': roomId,
-                    'teamId': team,  
-                    'aggregateby': false
+            await fetch('/api/leaderboard?' + new URLSearchParams(
+                {
+                    roomId: roomId,
+                    teamId: team,
+                    aggregateBy: 'agentId'
+                } ),
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 }
-            })
+            )
             .then(response => {
                 if (response.ok) {
                     return response.json();

@@ -1,3 +1,6 @@
+
+var HOST = import.meta.env.VITE_SOCKET_IO_HOST || 'http://localhost:8080';
+
 /* BUILD THE HTML ELEMENT FOR THE LOGIN ACTION */
 function showLoginForm() {
     
@@ -50,7 +53,7 @@ function showLoginForm() {
         const username = document.getElementById('username-login').value;
         const password = document.getElementById('password-login').value;
     
-        const response = await fetch('/login', {
+        const response = await fetch(HOST+'/api/tokens', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

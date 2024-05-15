@@ -101,7 +101,7 @@ class Observable extends EventEmitter {
 
     #postponer = new Map()
     /**
-     * @type {function(string,[]):boolean} Returns true if event triggered, false if event was already triggered before
+     * @type {function(string,...any):void} Returns true if event triggered, false if event was already triggered before
      */ 
     emitOnePerTick (event, ...args) {
         if ( !this.#postponer.has(event) )

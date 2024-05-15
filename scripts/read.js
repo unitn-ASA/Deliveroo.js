@@ -1,6 +1,5 @@
 require('dotenv').config();
-var RewardModel = require('../src/models/RewardModel'); // get our mongoose model
-var Leaderboard = require('../src/deliveroo/Leaderboard');
+var {RewardModel} = require('../src/models/RewardModel'); // get our mongoose model
 var mongoose = require('mongoose');
 
 

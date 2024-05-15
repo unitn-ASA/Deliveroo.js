@@ -2,85 +2,110 @@ const express = require('express');
 const cors = require('cors');
 const Path = require('path');
 const app = express();
-const jwt = require('jsonwebtoken');
 
-const configRoutes = require('./routes/config')
-const gridRoutes = require('./routes/grids')
-const leaderboardRoutes = require('./routes/leaderboard');
+const configRoutes = require('./routes/config');
+const leaderboardRoutes = require('./routes/rewards');
+const rewardsRoute = require('./routes/rewards');
 const matchesRoutes = require('./routes/matches')
 const mapsRoutes = require('./routes/maps');
 const roomRoutes = require('./routes/rooms');
-const tokenRoutes = require('./routes/token');
-const timerRoutes = require('./routes/timer');
+const {verifyTokenMiddleware, signTokenMiddleware} = require('./middlewares/tokens');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
-const SUPER_SECRET_ADMIN = process.env.SUPER_SECRET_ADMIN || 'default_admin_token_private_key';
+
 
 // Middleware per gestire i dati JSON e form-urlencoded
 app.use(express.json());
-// Middleware per chiamate cors
-app.use(cors());
 
+// Middleware per chiamate cors
+app.use(cors({
+    origin: '*',
+    credentials: false, // https://socket.io/docs/v4/handling-cors/#credential-is-not-supported-if-the-cors-header-access-control-allow-origin-is-
+    allowedHeaders: ["x-token"]
+}));
+
+// Middleware to redirect / to /game
 app.use('/', (req, res, next) => {
     if (req.originalUrl === '/') { 
         req.url += 'game'; 
     }
     next() 
 });
-app.use('/game', express.static(Path.join(__dirname, '..', 'packages', '@unitn-asa', 'deliveroo-js-webapp', 'dist', 'game')));
+
+
+
+/**
+ * Serve front-end static files
+*/
+// app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','home') ));
+app.use('/game', express.static(Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'dist', 'game')));
 app.use('/home', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'home') ));
 app.use('/old_matches', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-webapp', 'old_matches') ));
 
-app.use('/api/config', configRoutes);
-app.use('/api/grids', gridRoutes);
-app.use('/api/leaderboard', leaderboardRoutes);
-app.use('/api/matches', matchesRoutes);
-app.use('/api/maps', mapsRoutes);
-app.use('/api/rooms', roomRoutes);
-app.use('/api/token', tokenRoutes);
-app.use('/api/timers', timerRoutes);
 
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
 
-    if (username === 'admin' && password === ADMIN_PASSWORD) {
-        console.log("LOGIN ADMIN")
-        const token = generateTokenAdmin();
-        res.json({ success: true, token: token});
-    } else {
-        res.status(401).json({ success: false, message: 'Invalid credentials' });
+/**
+ * Middleware to login with a name
+ */
+app.use( verifyTokenMiddleware );               // Verify token and expose req.payload and req.token
+app.use( signTokenMiddleware );                 // Generate token and joining existing req.payload.team or new team
+
+
+
+/**********************************************/
+/*                     API                    */
+/*                                            */
+
+// return the generated token
+app.post('/api/tokens', (req, res) => {
+
+    if ( ! req['token'] ) {
+        console.error(`${req.method} ${req.url} - Login failed, no name specified.`);
+        res.status(401).json({
+            message: 'Login failed, no name specified.'
+        });
+        return;
     }
+
+    res.status(200).json({
+        message: 'Login successful',
+        token: req['token'],
+        payload: req['payload']
+    });
+
 });
 
-function generateTokenAdmin(){
+app.use('/api/configs', configRoutes);          // api/configs      GET config by roomId
+app.use('/api/maps', mapsRoutes);               // api/maps         GET, POST, GET/:id as json, GET/:id.png as png
+app.use('/api/rewards', rewardsRoute);          // api/rewards      GET ? roomId, matchId, teamId Name, agentId Name, aggregateBy
+app.use('/api/leaderboard', leaderboardRoutes); // api/leaderboards GET
 
-    token = jwt.sign({user:'admin', password:'god1234'}, SUPER_SECRET_ADMIN );
-    console.log( 'Generate new toke: ', token.slice(-30));
-    return token
+app.use('/api/rooms', roomRoutes);              // POST api/rooms create a new room, DELETE api/rooms/:id delete the room :id
+app.use('/api/matches', matchesRoutes);         // POST api/matches/:id start new match in room :id, PUT api/matches/:id/status switch on/off the match in room :id DELETE api/matches/:id delete the match in room :id, GET api/matches ???
 
-}
+app.use( (err, req, res, next) => { 
+    console.error(err.stack); 
+    res.status(500).json({
+        message: 'Something went wrong!',
+        error: err.message
+    }); 
+})
+
+/*                                            */
+/*                                            */
+/**********************************************/
+
 
 
 module.exports = app;
 
 
 
-
-
-/**
- * Serve front-end static files
- */
-// app.use('/', express.static('packages/\@unitn-asa/vite-project/dist/'));
-// app.use('/', express.static(Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'vite-project', 'dist')));
-// app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp','home') ));
-// app.use('/', express.static('static'));
-// app.use("/", express.static(Path.join(__dirname, '..', 'static')));
-
 // /**
 //  * Agent id
-//  */ls 
+//  */
 // app.use('/:id', (req, res) => {
 //     // now use socket.io in your routes file
 //     var io = req.app.get('socketio');
 //     io.emit('hi!');
 // } );
+
