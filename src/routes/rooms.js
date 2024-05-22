@@ -6,7 +6,7 @@ const Config = require('../deliveroo/Config');
 const Room = require('../deliveroo/Room');
 const Grid = require('../deliveroo/Grid');
 
-const {authorizeAdmin} = require('../middlewares/tokens');
+const {authorizeAdmin, authorizeUser} = require('../middlewares/tokens');
 const {MatchModel} = require('../models/MatchModel');
 
 const matchDoc = new MatchModel();

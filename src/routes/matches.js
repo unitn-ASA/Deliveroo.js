@@ -45,7 +45,7 @@ router.get('/', async ( /**@type {express.Request & {roomId:string, room:Room}}*
     
     }
     
-    console.log( `GET ${req.url} - MatchModel.find( ${filter} )` );
+    console.log( `GET ${req.originalUrl} - MatchModel.find( ${filter} )` );
 
     res.status(200).json( await MatchModel.find( filter ).exec() );
 
@@ -91,7 +91,7 @@ router.post('/', authorizeAdmin, async ( /**@type {express.Request & {roomId:str
 
     const match = await createMatch(
         roomId,
-        matchTitle || (new Date()).toISOString(),
+        matchTitle || 'match_room'+roomId+'_'+(new Date()).toLocaleDateString()+'_'+(new Date()).toLocaleTimeString(),
         startTime,
         endTime,
         config
@@ -166,6 +166,19 @@ router.use('/:matchId', async ( /**@type {express.Request & {room:Room}}*/ req, 
     req['match'] = match;
     req['matchId'] = match._id.toString();
     next();
+
+});
+
+
+
+/**********************************************/
+/*                    GET                     */
+/**********************************************/
+router.get('/:matchId', async ( /**@type {express.Request & {match:MatchDocType}}*/ req, res ) => {
+    
+    console.log( `GET ${req.originalUrl}` );
+
+    res.status(200).json( req.match );
 
 });
 

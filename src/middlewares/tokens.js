@@ -63,6 +63,8 @@ async function authorizeUser ( req, res, next ) {
         
         } );
     }
+
+    next();
     
 }
 

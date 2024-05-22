@@ -37,7 +37,6 @@
     "yalc": "^1.0.0-pre.53"
   },
   "dependencies": {
-    "@unitn-asa/deliveroo-js-webapp": "^1.0.0",
     "argparse": "^2.0.1",
     "canvas": "^2.11.2",
     "express": "^4.19.2",

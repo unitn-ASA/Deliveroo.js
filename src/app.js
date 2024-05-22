@@ -4,7 +4,6 @@ const Path = require('path');
 const app = express();
 
 const configRoutes = require('./routes/config');
-const leaderboardRoutes = require('./routes/rewards');
 const rewardsRoute = require('./routes/rewards');
 const matchesRoutes = require('./routes/matches')
 const mapsRoutes = require('./routes/maps');
@@ -20,7 +19,7 @@ app.use(express.json());
 app.use(cors({
     origin: '*',
     credentials: false, // https://socket.io/docs/v4/handling-cors/#credential-is-not-supported-if-the-cors-header-access-control-allow-origin-is-
-    allowedHeaders: ["x-token"]
+    allowedHeaders: '*'
 }));
 
 // Middleware to redirect / to /game
@@ -77,7 +76,6 @@ app.post('/api/tokens', (req, res) => {
 app.use('/api/configs', configRoutes);          // api/configs      GET config by roomId
 app.use('/api/maps', mapsRoutes);               // api/maps         GET, POST, GET/:id as json, GET/:id.png as png
 app.use('/api/rewards', rewardsRoute);          // api/rewards      GET ? roomId, matchId, teamId Name, agentId Name, aggregateBy
-app.use('/api/leaderboard', leaderboardRoutes); // api/leaderboards GET
 
 app.use('/api/rooms', roomRoutes);              // POST api/rooms create a new room, DELETE api/rooms/:id delete the room :id
 app.use('/api/matches', matchesRoutes);         // POST api/matches/:id start new match in room :id, PUT api/matches/:id/status switch on/off the match in room :id DELETE api/matches/:id delete the match in room :id, GET api/matches ???
