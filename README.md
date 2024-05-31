@@ -10,7 +10,11 @@ You can play in **Multi-Player** from your browser or develop your own Autonomou
 
 Play online from your browser at [deliveroojs.onrender.com/](https://deliveroojs.onrender.com/)
 
-Or run locally `npm install` `node index.js level_1`
+Or run locally:
+
+1. `npm install`
+
+2. `node index.js level_1`
 
 ## How to develop your own autonomous agents
 
