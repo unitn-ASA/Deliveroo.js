@@ -8,11 +8,11 @@ You can play in **Multi-Player** from your browser or develop your own Autonomou
 
 ## How to play
 
-Play online from your browser at https://deliveroojs.onrender.com/
+Play online from your browser at [deliveroojs.onrender.com/](https://deliveroojs.onrender.com/)
 
 Or run locally `npm install` `node index.js level_1`
 
 ## How to develop your own autonomous agents
 
 An library is available for JavaScript to interact with the APIs of the game (based on socket.io).
-Check the examples at https://github.com/unitn-ASA/DeliverooAgent.js
+Check the examples at [github.com/unitn-ASA/DeliverooAgent.js](https://github.com/unitn-ASA/DeliverooAgent.js)
