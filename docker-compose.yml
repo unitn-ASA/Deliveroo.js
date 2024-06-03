@@ -1,0 +1,36 @@
+version: "1"
+name: deliveroojs
+services:
+  deliveroojs:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    image: deliveroojs
+    environment:
+      - LEVEL=24c1_1
+      - PORT=80
+
+    labels:
+      - caddy="deliveroojs.rtibdi.disi.unitn.it",
+      - caddy.reverse_proxy="{{ upstreams }}"
+
+    network_mode: bridge
+
+    # networks:
+    #   - caddy
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./caddy_data:/data
+      - ./www:/var/www
+      # - /etc/caddy:/caddy
+      - .:/caddy
+
+    restart: unless-stopped
+
+# networks:
+#   caddy:
+#     driver: "bridge"
+
+volumes:
+  caddy_data: {}
