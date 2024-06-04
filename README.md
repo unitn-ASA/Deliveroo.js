@@ -1,23 +1,22 @@
+Marco Robol - marco.robol@unitn.it - University of Trento - 2022/2023
+
 # Deliveroo.js
 
-## Autonomous Software Agents
+Deliveroo.js it's an **Educational Game**, developed by *Marco Robol* for the course on **Autonomous Software Agents** (ASA) by Prof. *Paolo Giorgini*.
+It is a **Grid-Based** parcel collection videogame.
+You can play in **Multi-Player** from your browser or develop your own Autonomous Agent that plays in your place.
 
-Marco Robol - marco.robol@unitn.it
+## How to play
 
-University of Trento - 2022/2023
+Play online from your browser at [deliveroojs.onrender.com/](https://deliveroojs.onrender.com/)
 
-# Changelog
+Or run locally:
 
-### v1.5 (27/03/2023)
+1. `npm install`
 
-`$ node index.js level_1`
+2. `node index.js level_1`
 
-- config.js
-- /levels
-    - level_1
-    - level_2
-    - level_3
-    - /maps
-        - default_map
-        - empty_map
-        - map_20
+## How to develop your own autonomous agents
+
+An library is available for JavaScript to interact with the APIs of the game (based on socket.io).
+Check the examples at [github.com/unitn-ASA/DeliverooAgent.js](https://github.com/unitn-ASA/DeliverooAgent.js)
