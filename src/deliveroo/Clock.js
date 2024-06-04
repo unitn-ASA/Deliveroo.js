@@ -1,4 +1,4 @@
-const Observable =  require('./Observable')
+const EventEmitter = require('events');
 const config = require('../../config');
 
 
@@ -7,7 +7,7 @@ const CLOCK = process.env.CLOCK || config.CLOCK || 50; // 40ms are 25frame/s; 50
 
 
 
-class Clock extends Observable {
+class Clock extends EventEmitter {
 
     #base = CLOCK; // 40ms are 25frame/s
     #id;
@@ -16,7 +16,7 @@ class Clock extends Observable {
     
     constructor () {
         super();
-        this.setMaxListeners(50000);
+        this.setMaxListeners(5000);
         this.start();
     }
     
@@ -52,7 +52,7 @@ class Clock extends Observable {
             await new Promise( res => this.once('frame', res) );
 
         const initial = this.#ms
-        while ( delay >= this.#ms - initial ) {
+        while ( delay > this.#ms - initial ) {
             await new Promise( res => this.once('frame', res) )
         }
         

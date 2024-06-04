@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const myClock = require('./Clock');
 
 /**
  * Observer callback function
@@ -8,6 +9,25 @@ const EventEmitter = require('events');
  */
 // * @callback Observer
 // * @typedef {function(Observable): void} Observer
+
+
+
+/**
+ * Wrap finallyDo function and call it just once every frame.
+ * @function postpone
+ */
+function postponeAtNextFrame ( finallyDo ) {
+    var promiseFired = false;
+    return async (...args) => {
+        promiseFired = false;
+        myClock.once('frame', () => {
+            if ( !promiseFired ) {
+                promiseFired = true;
+                finallyDo(...args);
+            }
+        } );
+    }
+}
 
 
 
@@ -65,6 +85,16 @@ function accumulate ( finallyDo ) {
 
 class Observable extends EventEmitter {
 
+
+
+    postponeAtNextFrame = postponeAtNextFrame;
+
+    postpone = postpone;
+
+    accumulate = accumulate;
+
+
+
     /**
      * @constructor Observable
      */
@@ -107,6 +137,16 @@ class Observable extends EventEmitter {
         if ( !this.#postponer.has(event) )
             this.#postponer.set( event, postpone( this.emit.bind(this) ) );
         var postponed = this.#postponer.get(event);
+        postponed(event, ...args);
+    }
+
+
+
+    #postponerAtFrame = new Map()
+    emitOnePerFrame (event, ...args) {
+        if ( !this.#postponerAtFrame.has(event) )
+            this.#postponerAtFrame.set( event, postponeAtNextFrame( this.emit.bind(this) ) );
+        var postponed = this.#postponerAtFrame.get(event);
         postponed(event, ...args);
     }
 

@@ -121,7 +121,7 @@ class Agent extends Xy {
                 agents.push( {id, name, x, y, score} )
             }
         }
-        this.emitOnePerTick( 'agents sensing', agents )
+        this.emitOnePerFrame( 'agents sensing', agents )
         
         // this.emitOnePerTick( 'agents sensing',
         //     Array.from( this.#grid.getAgents() ).filter( a => a != this && Xy.distance(a, this) < 5 ).map( ( {id, name, x, y, score} ) => { return {id, name, x, y, score} } )
