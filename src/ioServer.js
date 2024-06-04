@@ -5,6 +5,7 @@ const config = require('../config');
 const myClock = require('./deliveroo/Clock');
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 
+const BROADCAST_LOGS = process.env.BROADCAST_LOGS ?? config.BROADCAST_LOGS ?? false;
 
 
 
@@ -207,9 +208,11 @@ io.on('connection', (socket) => {
     /**
      * Bradcast client log
      */
-    socket.on( 'log', ( ...message ) => {
-        socket.broadcast.emit( 'log', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, ...message )
-    } )
+    if ( BROADCAST_LOGS ) {
+        socket.on( 'log', ( ...message ) => {
+            socket.broadcast.emit( 'log', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, ...message )
+        } )
+    }
 
 
 
@@ -273,11 +276,13 @@ io.on('connection', (socket) => {
 /**
  * Bradcast server log
  */
-const oldLog = console.log;
-console.log = function ( ...message ) {
-    io.emit( 'log', {src: 'server', timestamp: myClock.ms}, ...message );
-    oldLog.apply( console, message );
-};
+if ( BROADCAST_LOGS ) {
+    const oldLog = console.log;
+    console.log = function ( ...message ) {
+        io.emit( 'log', {src: 'server', timestamp: myClock.ms}, ...message );
+        oldLog.apply( console, message );
+    };
+}
 
 
 

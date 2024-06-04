@@ -20,6 +20,8 @@ const config = {
 
     CLOCK: 50,  // default is 50 (50ms are 20frame/s)
 
+    BROADCAST_LOGS: false,  // default is false
+
 }
 
 

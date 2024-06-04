@@ -188,6 +188,9 @@ class Agent extends Xy {
     async move ( incr_x, incr_y ) {
         if ( this.moving ) // incr_x%1!=0 || incr_y%1!=0 ) // if still moving
             return false;
+        this.moving = true;
+        await myClock.synch();
+        this.moving = false;
         let fromTile = this.tile;
         // if (!fromTile)
         //     return false;
@@ -207,25 +210,21 @@ class Agent extends Xy {
     }
 
     async up () {
-        await myClock.synch();
         // console.log(this.id + ' move up')
         return this.move(0, 1);
     }
 
     async down () {
-        await myClock.synch();
         // console.log(this.id + ' move down')
         return this.move(0, -1);
     }
 
     async left () {
-        await myClock.synch();
         // console.log(this.id + ' move left')
         return this.move(-1, 0);
     }
 
     async right () {
-        await myClock.synch();
         // console.log(this.id + ' move right')
         return this.move(1, 0);
     }
@@ -233,10 +232,14 @@ class Agent extends Xy {
     /**
      * Pick up all parcels in the agent tile.
      * @function pickUp
-     * @returns {[Parcel]} An array of parcels that have been picked up
+     * @returns {Promise<Parcel[]>} An array of parcels that have been picked up
      */
     async pickUp () {
+        if ( this.moving )
+            return [];
+        this.moving = true;
         await myClock.synch();
+        this.moving = false;
         const picked = new Array();
         var counter = 0;
         for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcels() ) {
@@ -260,11 +263,15 @@ class Agent extends Xy {
      * - if array of ids is provided: putdown only specified parcels
      * - if no list is provided: put down all parcels
      * @function putDown
-     * @param {[string]} ids An array of parcels id
-     * @returns {[Parcel]} An array of parcels that have been put down
+     * @param {string[]} ids An array of parcels id
+     * @returns {Promise<Parcel[]>} An array of parcels that have been put down
      */
     async putDown ( ids = [] ) {
+        if ( this.moving )
+            return [];
+        this.moving = true;
         await myClock.synch();
+        this.moving = false;
         var tile = this.tile
         var sc = 0;
         var dropped = new Array();
