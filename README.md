@@ -10,6 +10,12 @@ You can play in **Multi-Player** from your browser or develop your own Autonomou
 
 Play online from your browser at [deliveroojs.onrender.com/](https://deliveroojs.onrender.com/)
 
+`a`: left, `s`: down, `d`: right, `w`: up,
+`q`: pickup, `e`: putdown
+
+Enter with name `god` to have unlimited observation distance and administration capabilities. Click on the map to create or dispose parcels and use `shift` to click and modify tiles into delivery, walkable, spawning, and remove the tile.
+
+
 Or run locally:
 
 1. `npm install`
