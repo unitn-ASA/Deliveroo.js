@@ -11,7 +11,7 @@ module.exports = {
     AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5
     PARCELS_OBSERVATION_DISTANCE: 5,    // default is 5
 
-    PARCEL_REWARD_AVG: 20,             // default is 30
+    PARCEL_REWARD_AVG: 80,             // default is 30
     PARCEL_REWARD_VARIANCE: 20,     // default is 10
     PARCEL_DECADING_INTERVAL: '1s', // options are '1s', '2s', '5s', '10s', 'infinite' (DEFAULT)
 
