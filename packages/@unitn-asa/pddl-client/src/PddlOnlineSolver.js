@@ -162,6 +162,16 @@ async function parsePlan (json) {
         lines = lines.slice(0,-1);
     }
 
+    // PARSING plan from /package/lama-first/solve
+    else if ( json.result.call.split(' ').includes('lama-first') && json.result.stdout.split('\n').includes('Solution found.') ) {
+        
+        console.log( 'Using parser for /package/lama-first/solve');
+
+        lines = json.result.output.sas_plan.split(';')[0].split('\n');
+        lines = lines.map( line => line.replace('(','').replace(')','').split(' ') );
+        lines = lines.slice(0,-1);
+    }
+
     // ERROR
     else {
         console.log(json);
