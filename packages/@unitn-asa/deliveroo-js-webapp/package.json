@@ -1,0 +1,30 @@
+{
+  "name": "@unitn-asa/deliveroo-js-webapp",
+  "version": "1.6.1",
+  "description": "",
+  "author": "Marco Robol <marco.robol@unitn.it>",
+  "type": "module",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {},
+  "scripts": {
+    "prepare": "npm run build",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.2.0"
+  },
+  "dependencies": {
+    "events": "^3.3.0",
+    "socket.io-client": "^4.6.1",
+    "three": "^0.151.3"
+  }
+}

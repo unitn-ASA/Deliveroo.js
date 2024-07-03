@@ -1,0 +1,53 @@
+version: "1"
+
+name: deliveroojs
+
+services:
+
+  24c1_1:
+
+    build:
+      dockerfile: Dockerfile
+      context: .
+    image: deliveroojs
+
+    network_mode: bridge
+
+    restart: unless-stopped
+
+    environment:
+      - LEVEL=24c1_1
+      - PORT=4000
+
+    ports: # not needed if proxied by caddy
+      - "4001:4000"
+
+    labels: # https://github.com/lucaslorentz/caddy-docker-proxy?tab=readme-ov-file#services
+      caddy: "deliveroojs24c1_1.rtibdi.disi.unitn.it"
+      caddy.reverse_proxy: "{{ upstreams 4000 }}"
+
+  24c1_2:
+
+    build:
+      dockerfile: Dockerfile
+      context: .
+    image: deliveroojs
+
+    network_mode: bridge
+
+    restart: unless-stopped
+
+    environment:
+      - LEVEL=24c1_2
+      - PORT=4000
+
+    ports: # not needed if proxied by caddy
+      - "4002:4000"
+
+    labels: # https://github.com/lucaslorentz/caddy-docker-proxy?tab=readme-ov-file#services
+      caddy: "deliveroojs24c1_2.rtibdi.disi.unitn.it"
+      caddy.reverse_proxy: "{{ upstreams 4000 }}"
+
+
+
+

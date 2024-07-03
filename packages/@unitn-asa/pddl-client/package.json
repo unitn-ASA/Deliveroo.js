@@ -1,0 +1,28 @@
+{
+  "name": "@unitn-asa/pddl-client",
+  "version": "1.6.0",
+  "description": "",
+  "author": "Marco Robol <marco.robol@unitn.it>",
+  "type": "module",
+  "main": "index.js",
+  "module": "index.js",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node -r dotenv/config"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.0"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.0"
+  },
+  "gitHead": "64b48fd9882f9369a727246794f4e8f63106c89d"
+}
