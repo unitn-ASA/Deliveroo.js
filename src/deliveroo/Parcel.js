@@ -4,7 +4,6 @@ const myClock =  require('./Clock')
 const config =  require('../../config')
 
 
-
 const PARCEL_REWARD_AVG = process.env.PARCEL_REWARD_AVG || config.PARCEL_REWARD_AVG || 30;
 const PARCEL_REWARD_VARIANCE = process.env.PARCEL_REWARD_VARIANCE ?? config.PARCEL_REWARD_VARIANCE ?? 10;
 const PARCEL_DECADING_INTERVAL = process.env.PARCEL_DECADING_INTERVAL || config.PARCEL_DECADING_INTERVAL || 'infinite';
@@ -24,7 +23,13 @@ class Parcel extends Xy {
      * @constructor Parcel
      */
     constructor (x, y, carriedBy = null, reward ) {
-        super(x, y);
+
+        let color =  Math.random() * 0xffffff ;
+        let style = {shape:'box', params:{width:0.5, height: 0.5, depth:0.5}, color: color}     
+        
+        super(x, y, 'parcel');
+
+        this.metadata.style = style;
 
         this.carriedBy = carriedBy;
         this.interceptValueSet('carriedBy');

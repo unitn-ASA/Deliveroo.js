@@ -9,19 +9,27 @@ const Observable =  require('./Observable')
     x;
     /** @attribute {Number} y */
     y;
-    
+    /** @attribute {String} type */
+    type;
+    /** @attribute {{}} geometry */
+    metadata 
+
+
     /**
      * @constructor Xy
      * @param {Number} x
      * @param {Number} y
      */
-    constructor ( x, y ) {
+    constructor(x, y, type) {
         super();
         this.x = x;
         this.y = y;
-        // group 'x' and 'y' into 'xy'
-        this.interceptValueSet('x', 'xy')
-        this.interceptValueSet('y', 'xy')
+        this.type = type
+        this.metadata = {}
+
+        // Group 'x' and 'y' into 'xy'
+        this.interceptValueSet('x', 'xy');
+        this.interceptValueSet('y', 'xy');
     }
 
     // get x () { return this.#x }

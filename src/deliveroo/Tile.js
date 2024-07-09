@@ -3,8 +3,6 @@ const Parcel =  require('./Parcel')
 const Grid =  require('./Grid')
 
 
-
-
 /**
  * @class Tile
  */
@@ -24,7 +22,18 @@ const Grid =  require('./Grid')
      * @param {*} y
      */
     constructor ( grid, x, y, blocked = false, delivery = false, parcelSpawner = true ) {
-        super(x, y);
+        
+        super(x, y, 'tile');
+
+        //Defines the graphical representation
+        let color = 0x55dd55
+        if(blocked) color = 0x000000
+        if(delivery) color = 0xff0000
+        if(parcelSpawner) color = 0x00ff00
+        let style = {shape:'box', params:{width:1, height: 0.1, depth:1}, color: color } 
+
+        this.metadata.style = style;               // save the graphical rappresentation on the metadata attribute
+
         this.#grid = grid;
         this.#blocked = blocked;
         this.#delivery = delivery;
@@ -83,6 +92,10 @@ const Grid =  require('./Grid')
     set parcelSpawner(value) {
         this.#parcelSpawner = value?true:false;
         this.#grid.emitOnePerTick( 'tile', this )
+    }
+
+    getObjects(){
+        return []
     }
     
     // /**

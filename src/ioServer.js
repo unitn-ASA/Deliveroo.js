@@ -47,20 +47,21 @@ io.on('connection', (socket) => {
     /**
      * Emit map (tiles)
      */
-    myGrid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {
-        // console.log( 'emit tile', x, y, delivery, parcelSpawner );
+    myGrid.on( 'tile', ({x, y, type, metadata, delivery, blocked, parcelSpawner}) => {
+        //console.log( 'emit tile', x, y, type, metadata, delivery, parcelSpawner );
         if (!blocked)
-            socket.emit( 'tile', x, y, delivery, parcelSpawner );
+            socket.emit( 'tile', x, y, type, metadata, delivery, parcelSpawner );
         else
-            socket.emit( 'not_tile', x, y );
+            socket.emit( 'not_tile', x, y, type, metadata );
     } );
     let tiles = []
-    for (const {x, y, delivery, blocked, parcelSpawner} of myGrid.getTiles()) {
+    for (const {x, y, type, metadata, delivery, blocked, parcelSpawner} of myGrid.getTiles()) {
+        //console.log( 'emit tile', x, y, type, metadata, delivery, parcelSpawner );
         if ( !blocked ) {
-            socket.emit( 'tile', x, y, delivery, parcelSpawner )
-            tiles.push( {x, y, delivery, parcelSpawner} )
+            socket.emit( 'tile', x, y, type, metadata, delivery, parcelSpawner )
+            tiles.push( {x, y, type, metadata, delivery, parcelSpawner} )
         } else
-            socket.emit( 'not_tile', x, y );
+            socket.emit( 'not_tile', x, y, type, metadata );
     }
     let {width, height} = myGrid.getMapSize()
     socket.emit( 'map', width, height, tiles )
@@ -72,12 +73,12 @@ io.on('connection', (socket) => {
      */
 
     // Emit you
-    me.on( 'agent', ({id, name, x, y, score}) => {
-        // console.log( 'emit you', id, name, x, y, score );
-        socket.emit( 'you', {id, name, x, y, score} );
+    me.on( 'agent', ({id, name, x, y, type, metadata, score}) => {
+        //console.log( 'emit you', id, name, x, y, type, metadata, score );
+        socket.emit( 'you', {id, name, x, y, type, metadata, score} );
     } );
     // console.log( 'emit you', id, name, x, y, score );
-    socket.emit( 'you', {id, name, x, y, score} = me );
+    socket.emit( 'you', me );
     
 
 
@@ -87,14 +88,14 @@ io.on('connection', (socket) => {
 
     // Parcels
     me.on( 'parcels sensing', (parcels) => {
-        // console.log('emit parcels sensing', ...parcels);
+        //console.log('emit parcels sensing', ...parcels);
         socket.emit('parcels sensing', parcels )
     } );
     me.emitParcelSensing();
 
     // Agents
     me.on( 'agents sensing', (agents) => {
-        // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
+        //console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
         socket.emit( 'agents sensing', agents );
     } );
     me.emitAgentSensing();
@@ -104,14 +105,49 @@ io.on('connection', (socket) => {
     /**
      * Actions
      */
-    
-    socket.on('move', async (direction, acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, direction);
+    socket.on('up', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'up');
         try {
-            const moving = me[direction]();
+            const moving = me.up();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); //.bind(me)()
-        } catch (error) { console.error(direction, 'is not a method of agent'); console.error(error) }
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('down', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'down');
+        try {
+            const moving = me.down();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('left', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'left');
+        try {
+            const moving = me.left();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('right', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'right');
+        try {
+            const moving = me.right();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('jump', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'jump');
+        try {
+            const moving = me.jump();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
     });
 
     socket.on('pickup', async (acknowledgementCallback) => {
@@ -128,6 +164,75 @@ io.on('connection', (socket) => {
             try {
                 acknowledgementCallback( dropped )
             } catch (error) { console.error(error) }
+    });
+
+    socket.on('shift-up', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'shift-up');
+        try {
+            const moving = me.shiftUp();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('shift-down', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'shift-down');
+        try {
+            const moving = me.shiftDown();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('shift-left', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'shift-left');
+        try {
+            const moving = me.shiftLeft();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('shift-right', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'shift-right');
+        try {
+            const moving = me.shiftRight();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('shift-jump', async (acknowledgementCallback) => {
+        // console.log(me.id, me.x, me.y, 'shift-jump');
+        try {
+            const moving = me.shiftJump();
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await moving ); 
+        } catch (error) { console.error(error) }
+    });
+
+    socket.on('shift-pickup', async (acknowledgementCallback) => {
+        const picked = await me.shiftPickUp()
+        if ( acknowledgementCallback )
+            try {
+                acknowledgementCallback( picked )
+            } catch (error) { console.error(error) }
+    });
+
+    socket.on('shift-putdown', async (selected, acknowledgementCallback) => {
+        const dropped = await me.shiftPutDown( selected )
+        if ( acknowledgementCallback )
+            try {
+                acknowledgementCallback( dropped )
+            } catch (error) { console.error(error) }
+    });
+
+    socket.on( 'click', async (x, y) => {
+        me.click(x,y)
+    });
+
+    socket.on( 'shift-click', async (x, y) => {
+        me.shiftClick(x,y)
     });
 
 

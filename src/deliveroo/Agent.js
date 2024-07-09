@@ -6,6 +6,7 @@ const Parcel =  require('./Parcel');
 const config =  require('../../config');
 const Postponer = require('./Postponer');
 const myClock = require('./Clock');
+const THREE = require('three');
 
 
 
@@ -73,9 +74,15 @@ class Agent extends Xy {
             let i = Math.floor( Math.random() * tiles_unlocked.length - 1 )
             let tile = tiles_unlocked.at( i )
             let x = tile.x, y = tile.y;
-        
-            super(x, y);
+
+            super(x, y, 'agent');
+  
         }
+
+        let color =  Math.random() * 0xffffff ;
+        let style = {shape:'cone', params:{radius:0.5, height: 1, radialSegments:32}, color: color }  
+            
+        this.metadata.style = style;
 
         Object.assign( this.config, config );
         
@@ -110,15 +117,14 @@ class Agent extends Xy {
 
     /**
      * Agents sensend on the grid
-     * @type {function(Agent,Array<Parcel>): void}
      */
     emitAgentSensing () {
 
         var agents = [];
         for ( let agent of this.#grid.getAgents() ) {
             if ( agent != this && !( Xy.distance(agent, this) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                const {id, name, x, y, score} = agent
-                agents.push( {id, name, x, y, score} )
+                const {id, name, x, y, type, metadata, score} = agent
+                agents.push( {id, name, x, y, type, metadata, score} )
             }
         }
         this.emitOnePerFrame( 'agents sensing', agents )
@@ -147,8 +153,8 @@ class Agent extends Xy {
         var parcels = [];
         for ( const parcel of this.#grid.getParcels() ) {
             if ( !( Xy.distance(parcel, this) >= this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
-                let {id, x, y, carriedBy, reward} = parcel;
-                parcels.push( {id, x, y, carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ), reward} )
+                let {id, x, y, type, metadata, carriedBy, reward} = parcel;
+                parcels.push( {id, x, y, type, metadata, carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ), reward} )
             }
         }
         this.emit( 'parcels sensing', parcels )
@@ -185,56 +191,86 @@ class Agent extends Xy {
     }
 
     moving = false;
+
     async move ( incr_x, incr_y ) {
-        if ( this.moving ) // incr_x%1!=0 || incr_y%1!=0 ) // if still moving
-            return false;
-        this.moving = true;
+        // if the agent is still moving it can not move again
+        if ( this.moving ) return false;     
+
+        // sincronize the method with the game clock 
+        this.moving = true;                 
         await myClock.synch();
         this.moving = false;
+
         let fromTile = this.tile;
-        // if (!fromTile)
-        //     return false;
+       
+        // get the end tile of the move 
         let toTile = this.#grid.getTile( this.x+incr_x, this.y+incr_y );
-        if ( toTile && !toTile.blocked && toTile.lock() ) {
-            // console.log(this.id, 'start move in', this.x+incr_x, this.y+incr_y)
+
+        await toTile.lock();                    
+        
+        // The standard agent cen move to a tile if it is not blocked 
+        if (!toTile.blocked) {
             this.moving = true;
             await this.stepByStep( incr_x, incr_y );
-            // console.log(this.id, 'done move in', this.x, this.y)
             this.moving = false;
             fromTile.unlock();
-            // this.emitParcelSensing(); // NO! this is done outside
             return { x: this.x, y: this.y };
         }
-        // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
-        return false;
+
+        return false
     }
 
     async up () {
-        // console.log(this.id + ' move up')
+        //console.log('Agent ', this.name + ' up');
         return this.move(0, 1);
     }
 
     async down () {
-        // console.log(this.id + ' move down')
+        //console.log('Agent ', this.name + ' down');
         return this.move(0, -1);
     }
 
     async left () {
-        // console.log(this.id + ' move left')
+        //console.log('Agent ', this.name + ' left');
         return this.move(-1, 0);
     }
 
     async right () {
-        // console.log(this.id + ' move right')
+        //console.log('Agent ', this.name + ' right');
         return this.move(1, 0);
     }
+    
+    async jump(){
+        //console.log('Agent ', this.name + ' jump');
+    }
 
+    async shiftUp(){
+        //console.log('Agent ', this.name + ' shiftUp');
+    } 
+    
+    async shiftDown(){
+        //console.log('Agent ', this.name + ' shiftDown');
+    } 
+    
+    async shiftLeft(){
+        //console.log('Agent ', this.name + ' shiftLeft');
+    }
+
+    async shiftRight(){
+        //console.log('Agent ', this.name + ' shiftRight');
+    } 
+    
+    async shiftJump(){
+        //console.log('Agent ', this.name + ' shiftJump');
+    }
+    
     /**
      * Pick up all parcels in the agent tile.
      * @function pickUp
      * @returns {Promise<Parcel[]>} An array of parcels that have been picked up
      */
     async pickUp () {
+        //console.log('Agent ', this.name + ' pickUp');
         if ( this.moving )
             return [];
         this.moving = true;
@@ -267,6 +303,7 @@ class Agent extends Xy {
      * @returns {Promise<Parcel[]>} An array of parcels that have been put down
      */
     async putDown ( ids = [] ) {
+        //console.log('Agent ', this.name + ' putDown');
         if ( this.moving )
             return [];
         this.moving = true;
@@ -297,6 +334,22 @@ class Agent extends Xy {
         if ( dropped.length > 0 )
             this.emitOnePerTick( 'putdown', this, dropped );
         return dropped;
+    }
+
+    async shiftPickUp(){
+        //console.log('Agent ', this.name + ' shiftPickUp');
+    }
+    
+    async shiftPutDown( ids = [] ){
+        //console.log('Agent ', this.name + ' shiftPutDown');
+    }
+    
+    async click(x,y){
+        //console.log('Agent ', this.name + ' click (', x + ' ', y + ' )');
+    }
+
+    async shiftClick(x,y){
+        //console.log('Agent ', this.name + ' shiftClick (', x + ' ', y + ' )');
     }
 }
 

@@ -41,12 +41,12 @@ controls.screenSpacePanning = false;
 controls.target.set(0, 0, 0);
 controls.update();
 
-var enable_tile_mod = false;
+var enable_shift_mod = false;
 window.addEventListener( 'keydown', (event) => {
-    enable_tile_mod = ( event.keyCode === 16 ) ? true : false; // 12 is SHIFT
+    enable_shift_mod = ( event.keyCode === 16 ) ? true : false; // 12 is SHIFT
 } );
 window.addEventListener( 'keyup', (event) => {
-    enable_tile_mod = false;
+    enable_shift_mod = false;
 } );
 
 const mouse = new THREE.Vector2();
@@ -65,10 +65,11 @@ labelRenderer.domElement.addEventListener( 'click', ( event ) => {
         let hovered = intersections[ 0 ].object;
         let x = Math.round( hovered.position.x / 1.5 )
         let y = Math.round( - hovered.position.z / 1.5 )
-        if ( enable_tile_mod ) {
-            console.log( 'tile', x, y );
-            socket.emit( 'tile', x, y );
+        if ( enable_shift_mod ) {
+            console.log( 'shift-click', x, y );
+            socket.emit( 'shift-click', x, y );
         } else {
+            /* For the plugin update the client emit only the click event, the server then will menage that 
             if ( Array.from(parcels.values()).find( p => p.x == x && p.y == y ) ) {
                 console.log( 'dispose parcel', x, y );
                 socket.emit( 'dispose parcel', x, y );
@@ -76,6 +77,9 @@ labelRenderer.domElement.addEventListener( 'click', ( event ) => {
                 console.log( 'create parcel', x, y );
                 socket.emit( 'create parcel', x, y );
             }
+            */
+            console.log( 'click', x, y );
+            socket.emit( 'click', x, y );
         }
     }
 } );
@@ -92,7 +96,7 @@ const animator = new EventEmitter();
 animator.setMaxListeners(1000);
 
 function animate() {
-    
+   
     //me.position.lerp( new Vector3().set(me.x-2, 10, -me.y+10), 0.1 );
     animator.emit( 'animate' );
 
@@ -373,6 +377,58 @@ window.getMap = function () {
     return map;
 };
 
+// Function that create the 3D Graphical rappresentation given e style object 
+function createGraphic(style) {
+    let geometry;
+    let shape = style.shape
+    let params = style.params
+
+    switch (shape) {
+        case 'box':
+            geometry = new THREE.BoxGeometry(params.width, params.height, params.depth, params.widthSegments, params.heightSegments, params.depthSegments);
+            break;
+        case 'capsule':
+            geometry = new THREE.CapsuleGeometry(params.radius, params.lenght, params.capSegment, params.radialSegment)
+            break
+        case 'cone':
+            geometry = new THREE.ConeGeometry(params.radius, params.height, params.radialSegments, params.heightSegments, params.openEnded, params.thetaStart, params.thetaLength)
+            break
+        case 'cylinder':
+            geometry = new THREE.CylinderGeometry(params.radiusTop, params.radiusBottom, params.height, params.radialSegments, params.heightSegments, params.openEnded, params.thetaStart, params.thetaLength);
+            break;
+        case 'dodecahedron':
+            geometry = new THREE.DodecahedronGeometry(params.radius, params.detail);
+            break;
+        case 'icosahedron':
+            geometry = new THREE.IcosahedronGeometry(params.radius, params.detail);
+            break;
+        case 'lathe':
+            geometry = new THREE.LatheGeometry(params.points, params.segments, params.phiStart, params.phiLength);
+            break;
+        case 'octahedron':
+            geometry = new THREE.OctahedronGeometry(params.radius, params.detail);
+            break;
+        case 'sphere':
+            geometry = new THREE.SphereGeometry(params.radius, params.widthSegments, params.heightSegments, params.phiStart, params.phiLength, params.thetaStart, params.thetaLength);
+            break;
+        case 'tetrahedron':
+            geometry = new THREE.TetrahedronGeometry(params.radius, params.detail);
+            break;
+        case 'torus':
+            geometry = new THREE.TorusGeometry(params.radius, params.tube, params.radialSegments, params.tubularSegments, params.arc);
+            break;
+        default:
+            console.error('Shape not supported:', shape);
+            return null; // Ritorna null o gestisci l'errore in altro modo
+    }
+
+    let color = style.color 
+    const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
+    const graphic = new THREE.Mesh( geometry, material );
+
+    return graphic
+}
+
 class Tile extends onGrid {
 
     pathPoint;
@@ -383,10 +439,6 @@ class Tile extends onGrid {
     }
     set delivery ( value ) {
         this.#delivery = value;
-        if ( value )
-            this.color = 0xff0000
-        else
-            this.color = 0x00ff00
     }
 
     #parcelSpawner = false;
@@ -395,10 +447,6 @@ class Tile extends onGrid {
     }
     set parcelSpawner ( value ) {
         this.#parcelSpawner = value?true:false;
-        if ( value )
-            this.color = 0x00ff00
-        else if ( ! this.delivery )
-            this.color = 0x55dd55
     }
     
     #blocked = false;
@@ -407,21 +455,16 @@ class Tile extends onGrid {
     }
     set blocked ( value ) {
         this.#blocked = value;
-        if ( value )
-            this.color = 0x000000
-        else
-            this.delivery = this.#delivery;
+        
     }
     
-    constructor (x, y, delivery=false) {
-        const geometry = new THREE.BoxGeometry( 1, 0.1, 1 );
-        const color = delivery ? 0xff0000 : 0x00ff00;
-        const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
-        const cube = new THREE.Mesh( geometry, material );
-        scene.add( cube );
+    constructor (x, y, type, metadata, delivery=false) {
+        
+        let graphic = createGraphic(metadata.style);
+        scene.add( graphic );
 
-        super(cube, x, y);
-        cube.position.y = 0;
+        super(graphic, x, y);
+        graphic.position.y = 0;
         this.#delivery = delivery;
 
         this.pathPoint = new PathPoint(x, y);
@@ -429,15 +472,16 @@ class Tile extends onGrid {
 
 }
 
-function setTile(x, y, delivery) {
+function setTile(x, y, type, metadata, delivery) {
     if ( !tiles.has(x + y*1000) )
-        tiles.set( x + y*1000, new Tile(x, y, delivery) );
+        tiles.set( x + y*1000, new Tile(x, y, type, metadata, delivery) );
     return tiles.get( x + y*1000 );
 }
 
-function getTile(x, y) {
+function getTile(x, y, type, metadata) {
+    //console.log(x, y, geometry, color)
     if ( !tiles.has(x + y*1000) )
-        tiles.set( x + y*1000, new Tile(x, y) );
+        tiles.set( x + y*1000, new Tile(x, y, type, metadata) );
     return tiles.get( x + y*1000 );
 }
 
@@ -456,15 +500,11 @@ class Parcel extends onGrid {
         this.text = reward;
     }
 
-    constructor ( id, x, y, carriedBy, reward ) {
-        const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
-        var color = new THREE.Color( 0xffffff );
-        color.setHex( Math.random() * 0xffffff );
-        const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
-        const parcel = new THREE.Mesh( geometry, material );
-        scene.add( parcel );
+    constructor ( id, x, y, type, metadata, carriedBy, reward ) {
+        let graphic = createGraphic(metadata.style);
+        scene.add( graphic );
 
-        super(parcel, x, y, reward)
+        super(graphic, x, y, reward)
 
         this.id = id
         this.#reward = reward
@@ -480,10 +520,10 @@ class Parcel extends onGrid {
 
 var parcels = new Map();
 
-function getOrCreateParcel ( id, x=-1, y=-1, carriedBy=null, reward=-1 ) {
+function getOrCreateParcel ( id, x=-1, y=-1, type, metadata, carriedBy=null, reward=-1 ) {
     var parcel = parcels.get(id);
     if ( !parcel ) {
-        parcel = new Parcel(id, x, y, carriedBy, reward);
+        parcel = new Parcel(id, x, y, type, metadata, carriedBy, reward);
         parcels.set( id, parcel );
     }
     return parcel;
@@ -534,15 +574,11 @@ class Agent extends onGrid {
         this.text = this.#name+'\n'+this.#score;
     }
 
-    constructor (id, name, x, y, score) {
-        const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
-        var color = new THREE.Color( 0xffffff );
-        color.setHex( Math.random() * 0xffffff );
-        const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
-        const mesh = new THREE.Mesh( geometry, material );
-        scene.add( mesh );
+    constructor (id, name, x, y, type, metadata, score) {
+        let graphic = createGraphic(metadata.style);
+        scene.add( graphic );
 
-        super(mesh, x, y, id+'\n'+score)
+        super(graphic, x, y, id+'\n'+score)
 
         this.id = id
         this.score = score
@@ -566,10 +602,10 @@ const agents = new Map();
  * @param {*} score 
  * @returns {Agent}
  */
-function getOrCreateAgent ( id, name='unknown', x=-1, y=-1, score=-1 ) {
+function getOrCreateAgent ( id, name='unknown', x=-1, y=-1, type, metadata, score=-1 ) {
     var agent = agents.get(id);
     if ( !agent ) {
-        agent = new Agent(id, name, x, y, score);
+        agent = new Agent(id, name, x, y, type, metadata, score);
         agents.set( id, agent );
     }
     return agent;
@@ -665,8 +701,8 @@ var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
 } );
 
 
-var me = getOrCreateAgent('loading', name, 0, 0, 0);
-// me.mesh.add( camera );
+var me = {mesh: {position: {x:0, y:0, z:0}} }
+
 
 socket.on( "connect", () => {
     // console.log( "connect", socket.id, token ); // x8WIv7-mJelg7on_ALbx
@@ -712,16 +748,16 @@ socket.on( 'draw', ( {src, timestamp, socket, id, name}, buffer ) => {
     
 } );
 
-socket.on( 'not_tile', (x, y) => {
-    // console.log( 'not_tile', x, y )
-    getTile(x, y).blocked = true;
+socket.on( 'not_tile', (x, y, type, metadata) => {
+    console.log( 'not_tile', x, y, type, metadata )
+    getTile(x, y, type, metadata).blocked = true;
 });
 
-socket.on( "tile", (x, y, delivery, parcelSpawner) => {
-    // console.log( "tile", x, y, delivery )
-    getTile(x, y).delivery = delivery;
-    getTile(x, y).blocked = false;
-    getTile(x, y).parcelSpawner = parcelSpawner;
+socket.on( "tile", (x, y, type, metadata, delivery, parcelSpawner) => {
+    console.log( "tile", x, y, type, metadata )
+    getTile(x, y, type, metadata).delivery = delivery;
+    getTile(x, y, type, metadata).blocked = false;
+    getTile(x, y, type, metadata).parcelSpawner = parcelSpawner;
 });
 
 var WIDTH;
@@ -756,9 +792,9 @@ socket.on( "config", ( config ) => {
     CONFIG = config;
 } )
 
-socket.on( "you", ( {id, name, x, y, score} ) => {
+socket.on( "you", ( {id, name, x, y, type, metadata, score} ) => {
 
-    // console.log( "you", {id, name, x, y, score} )
+    console.log( "you", {id, name, x, y, type, metadata, score} )
     document.getElementById('agent.id').textContent = `agent.id ${id}`;
     document.getElementById('agent.name').textContent = `agent.name ${name}`;
     document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
@@ -772,7 +808,7 @@ socket.on( "you", ( {id, name, x, y, score} ) => {
     //     document.location.search = params.toString();
     // }
 
-    me = getOrCreateAgent(id, name, x, y, score);
+    me = getOrCreateAgent(id, name, x, y, type, metadata, score);
 
     /**
      * Auto-follow camera
@@ -820,8 +856,8 @@ socket.on("agents sensing", (sensed) => {
     }
 
     for ( const sensed_p of sensed ) {
-        const {id, name, x, y, score} = sensed_p;
-        var agent = getOrCreateAgent(id, name, x, y, score)
+        const {id, name, x, y, type, metadata, score} = sensed_p;
+        var agent = getOrCreateAgent(id, name, x, y, type, metadata, score)
         agent.name = name;
         agent.opacity = 1;
         agent.x = x;
@@ -849,9 +885,9 @@ socket.on("parcels sensing", (sensed) => {
         }
     }
 
-    for ( const {id, x, y, carriedBy, reward} of sensed ) {
+    for ( const {id, x, y, type, metadata, carriedBy, reward} of sensed ) {
         
-        const was = getOrCreateParcel(id, x, y, carriedBy, reward);
+        const was = getOrCreateParcel(id, x, y, type, metadata, carriedBy, reward);
 
         if ( carriedBy ) {
             if ( !was.carriedBy ) {
@@ -885,82 +921,160 @@ async function start_doing ( ) {
 document.onkeyup = function(evt) {
     action = null;
 }
+
+// Update the key comands for support all the new actions of the agent
 document.onkeydown = function(evt) {
-    if ( action == null) {
+    if (action == null) {
         // do the rest of this function and then call start_doing
-        setTimeout( start_doing );
+        setTimeout(start_doing);
     }
-    switch (evt.code) {
-        case 'KeyQ':// Q pickup
+
+    let key = evt.code;
+    let isShift = evt.shiftKey;
+    
+    if (isShift) {
+        key = 'Shift' + key; // Concatenate 'Shift' with the key code
+    }
+
+    switch (key) {
+        case 'KeyQ': // Q pickup
+            // console.log('KeyQ')
             action = () => {
-                return new Promise( (res) => {
-                    // console.log('emit pickup');
+                return new Promise((res) => {
                     socket.emit('pickup', (picked) => {
-                        // console.log( 'pickup', picked, 'parcels' );
-                        // for ( let p of picked ) {
-                        //     parcels.get( p.id ).pickup(me);
-                        // }
-                        res(picked.length>0);
-                    } );
-                } );
+                        res(picked.length > 0);
+                    });
+                });
             };
             break;
-        case 'KeyE':// E putdown
+        case 'KeyE': // E putdown
+            // console.log('KeyE')
             action = () => {
-                return new Promise( (res) => {
-                    // console.log('emit putdown');
+                return new Promise((res) => {
                     socket.emit('putdown', null, (dropped) => {
-                        // console.log( 'putdown', dropped, 'parcels' );
-                        // for ( let p of dropped ) {
-                        //     parcels.get( p.id ).putdown();
-                        // }
-                        res(dropped.length>0);
-                    } );
-                } );
+                        res(dropped.length > 0);
+                    });
+                });
             };
             break;
-        case 'KeyW':// W up
+        case 'KeyW': // W up
+            // console.log('KeyW')
             action = () => {
-                return new Promise( (res, rej) => {
-                    // console.log('emit move up');
-                    socket.emit('move', 'up', (status) => {
-                        // console.log( (status ? 'move up done' : 'move up failed') );
+                return new Promise((res, rej) => {
+                    socket.emit('up', (status) => {
                         res(status);
-                    } );
-                } );
+                    });
+                });
             };
             break;
-        case 'KeyA':// A left
+        case 'KeyA': // A left
+            // console.log('KeyA')
             action = () => {
-                return new Promise( (res, rej) => {
-                    // console.log('emit move left');
-                    socket.emit('move', 'left', (status) => {
-                        // console.log( (status ? 'move left done' : 'move left failed') );
+                return new Promise((res, rej) => {
+                    socket.emit('left', (status) => {
                         res(status);
-                    } );
-                } );
+                    });
+                });
             };
             break;
-        case 'KeyS':// S down 
+        case 'KeyS': // S down
+            // console.log('KeyS')
             action = () => {
-                return new Promise( (res, rej) => {
-                    // console.log('emit move down');
-                    socket.emit('move', 'down', (status) => {
-                        // console.log( (status ? 'move down done' : 'move down failed') );
+                return new Promise((res, rej) => {
+                    socket.emit('down', (status) => {
                         res(status);
-                    } );
-                } );
+                    });
+                });
             };
             break;
-        case 'KeyD':// D right
+        case 'KeyD': // D right
+            // console.log('KeyD')
             action = () => {
-                return new Promise( (res, rej) => {
-                    // console.log('emit move right');
-                    socket.emit('move', 'right', (status) => {
-                        // console.log( (status ? 'move right done' : 'move right failed') );
+                return new Promise((res, rej) => {
+                    socket.emit('right', (status) => {
                         res(status);
-                    } );
-                } );
+                    });
+                });
+            };
+            break;
+        case 'Space': // Space jump
+            // console.log('Space')
+            action = () => {
+                return new Promise((res) => {
+                    socket.emit('jump', (status) => {
+                        res(status);
+                    });
+                });
+            };
+            break;
+        case 'ShiftKeyW': // Shift+W shiftUp
+            // console.log('ShiftKeyW')
+            action = () => {
+                return new Promise((res) => {
+                    socket.emit('shift-up', (status) => {
+                        res(status);
+                    });
+                });
+            };
+            break;
+        case 'ShiftKeyA': // Shift+A shiftLeft
+            // console.log('ShiftKeyA') 
+            action = () => {
+                return new Promise((res) => {
+                    socket.emit('shift-left', (status) => {
+                        res(status);
+                    });
+                });
+            };
+            break;
+        case 'ShiftKeyS': // Shift+S shiftDown
+            // console.log('ShiftKeyS')
+            action = () => {
+                return new Promise((res) => {
+                    socket.emit('shift-down', (status) => {
+                        res(status);
+                    });
+                });
+            };
+            break;
+        case 'ShiftKeyD': // Shift+D shiftRight
+            // console.log('ShiftKeyD')
+            action = () => {
+                return new Promise((res) => {
+                    socket.emit('shift-right', (status) => {
+                        res(status);
+                    });
+                });
+            };
+            break;
+        case 'ShiftSpace': // Shift+R shiftJump
+            // console.log('ShiftSpace')
+            action = () => {
+                return new Promise((res) => {
+                    socket.emit('shift-jump', (status) => {
+                        res(status);
+                    });
+                });
+            };
+            break;
+        case 'ShiftKeyQ': // Shift+Q shiftPickup
+            // console.log('ShiftKeyQ')
+            action = () => {
+                return new Promise((res) => {
+                    socket.emit('shift-pickup', (picked) => {
+                        res(status);
+                    });
+                });
+            };
+            break;
+        case 'ShiftKeyE': // Shift+E shiftPutdown
+            // console.log('ShiftKeyE')
+            action = () => {
+                return new Promise((res) => {
+                    socket.emit('shift-putdown', null, (dropped) => {
+                        res(status);
+                    });
+                });
             };
             break;
         default:
