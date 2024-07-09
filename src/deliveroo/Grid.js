@@ -1,7 +1,7 @@
 const Observable =  require('./Observable')
 const Tile =  require('./Tile')
 const Agent =  require('./Agent')
-const Parcel = require('./Parcel');
+const Entity = require('./Entity');
 const Xy = require('./Xy');
 const config =  require('../../config');
 
@@ -15,8 +15,8 @@ class Grid extends Observable {
     #tiles;
     /** @type {Map<string, Agent>} */
     #agents;
-    /** @type {Map<string, Parcel>} */
-    #parcels;
+    /** @type {Map<string, Entity>} */
+    #entities;
     
     /**
      * @constructor Grid
@@ -37,29 +37,10 @@ class Grid extends Observable {
             ) )
         } );
         // console.log( this.#tiles.map( c=>c.map( t=>t.x+' '+t.y+' ' ) ) )
-        
-        // this.#tiles = [];
-        // for (let x = 0; x < 10; x++) {
-        //     let column = [];
-        //     for (var y = 0; y < 10; y++) {
-        //         column.push(new Tile(this, x, y))
-        //     }
-        //     this.#tiles.push(column);
-        // }
 
         this.#agents = new Map();
-        this.#parcels = new Map();
+        this.#entities = new Map();
         
-        // for (let x = 0; x < map.length; x++) {
-        //     const column = map[x];
-        //     for (let y = 0; y < column.length; y++) {
-        //         const value = column[y];
-        //         if ( value > 2 )
-        //             this.createParcel( x, y, null, value );
-        //     }
-            
-        // }
-
     }
 
     /**
@@ -153,8 +134,8 @@ class Grid extends Observable {
         } )
 
         // On parcel and my movements emit parcels sensing
-        this.on( 'parcel', () => me.emitParcelSensing() );
-        me.on( 'xy', () => me.emitParcelSensing() );
+        this.on( 'update-entity', () => { me.emitEntitySensing()} );
+        me.on( 'xy', () => me.emitEntitySensing() );
 
         return me;
     }
@@ -181,50 +162,47 @@ class Grid extends Observable {
 
 
     /**
-     * @type {function(Number, Number): Parcel}
+     * @type {function(Number, Number, Entity): Entity}
      */
-    createParcel ( x, y ) {
+    createEntity ( x, y, entity ) {
         var tile = this.getTile( x, y );
         if ( !tile || tile.blocked )
             return false;
         
-        // Instantiate and add to Tile
-        var parcel = new Parcel( x, y );
-        // tile.addParcel( parcel );
-        this.#parcels.set( parcel.id, parcel )
+        this.#entities.set( entity.id, entity )
 
-        parcel.once( 'expired', (...args) => {
-            this.deleteParcel( parcel.id );
+        entity.once( 'expired', (...args) => {
+            this.deleteEntity( entity.id );
         } );
 
         // Grid scoped event propagation
-        this.emit( 'parcel', parcel )
-        parcel.on( 'reward', this.emit.bind(this, 'parcel') );
-        parcel.on( 'carriedBy', this.emit.bind(this, 'parcel') );
-        parcel.on( 'xy', this.emit.bind(this, 'parcel') );
+        this.emit( 'entity', entity )
+        entity.on( 'update-entity', () => {
+            this.emit('update-entity') 
+        });
 
-        return parcel;
+        return entity;
     }
 
     /**
      * @type {function(): IterableIterator<Parcel>}
      */
-    getParcels () {
-        return this.#parcels.values();
+    getEntities () {
+        return this.#entities.values();
     }
 
     /**
      * @type {function(): number}
      */
-    getParcelsQuantity () {
-        return this.#parcels.size;
+    getEntitiesQuantity () {
+        return this.#entities.size;
     }
 
     /**
      * @type {function(String):boolean}
      */
-    deleteParcel ( id ) {
-        return this.#parcels.delete( id );
+    deleteEntity ( id ) {
+        return this.#entities.delete( id );
     }
 
 }

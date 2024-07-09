@@ -1,5 +1,5 @@
 const Observable =  require('./Observable')
-const Xy =  require('./Xy')
+const Entity =  require('./Entity')
 const myClock =  require('./Clock')
 const config =  require('../../config')
 
@@ -10,12 +10,11 @@ const PARCEL_DECADING_INTERVAL = process.env.PARCEL_DECADING_INTERVAL || config.
 
 
 
-class Parcel extends Xy {
+class Parcel extends Entity {
     
     static #lastId = 0;
     
     // #grid;
-    id;
     reward;
     carriedBy;
     
@@ -24,10 +23,12 @@ class Parcel extends Xy {
      */
     constructor (x, y, carriedBy = null, reward ) {
 
+        let id = 'p' + Parcel.#lastId++;
+
         let color =  Math.random() * 0xffffff ;
         let style = {shape:'box', params:{width:0.5, height: 0.5, depth:0.5}, color: color}     
         
-        super(x, y, 'parcel');
+        super(id, x, y, 'parcel');
 
         this.metadata.style = style;
 
@@ -41,20 +42,26 @@ class Parcel extends Xy {
             this.y = agent.y;
         }
         this.on( 'carriedBy', (parcel) => {
-            if ( lastCarrier )
+            if ( lastCarrier ){
                 lastCarrier.off( 'xy', followCarrier )
-            if ( this.carriedBy )
+                this.metadata.carriedBy = false 
+            }
+
+            if ( this.carriedBy ){
                 this.carriedBy.on( 'xy', followCarrier )
+                this.metadata.carriedBy = true
+            }
+            
             lastCarrier = this.carriedBy;
-        } )
-        
-        this.id = 'p' + Parcel.#lastId++;
+        } )      
 
         this.interceptValueSet('reward');
         this.reward = reward || Math.floor( Math.random()*PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
+        this.metadata.label = this.reward;
 
         const decay = () => {
             this.reward = Math.floor( this.reward - 1 );
+            this.metadata.label = this.reward;
             if ( this.reward <= 0) {
                 this.emitOnePerTick( 'expired', this );
                 myClock.off( PARCEL_DECADING_INTERVAL, decay );

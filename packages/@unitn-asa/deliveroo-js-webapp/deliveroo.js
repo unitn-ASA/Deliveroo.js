@@ -265,7 +265,7 @@ class onGrid {
     #div
     #label
 
-    constructor (mesh, x, y, text = null) {
+    constructor (mesh, x, y, text) {
 
         clickables.push( mesh );
 
@@ -297,10 +297,12 @@ class onGrid {
         div.className = 'label';
         div.textContent = text;
         div.style.marginTop = '-1em';
-    
+
         const label = this.#label = new CSS2DObject( div );
+
         label.position.set( 0, 0, 0 );
         label.layers.set( 0 );
+        
         if ( text ) mesh.add( label );
     }
 
@@ -487,51 +489,44 @@ function getTile(x, y, type, metadata) {
 
 
 
-class Parcel extends onGrid {
+class Entity extends onGrid {
 
     id
 
-    #reward
-    get reward () {
-        return this.#reward
-    }
-    set reward (reward) {
-        this.#reward = reward
-        this.text = reward;
-    }
-
-    constructor ( id, x, y, type, metadata, carriedBy, reward ) {
+    constructor ( id, x, y, type, metadata) {
+        console.log('metadata:', metadata)
         let graphic = createGraphic(metadata.style);
         scene.add( graphic );
 
-        super(graphic, x, y, reward)
+        let label = metadata.label
+
+        super(graphic, x, y, label)
 
         this.id = id
-        this.#reward = reward
+        this.text = label
 
-        if (carriedBy) {
-            this.pickup( getOrCreateAgent( carriedBy ) )
+        if (metadata.carriedBy) {
+            this.pickup( getOrCreateAgent( metadata.carriedBy ) )
         }
 
-        // console.log('created parcel', id)
     }
 
 }
 
-var parcels = new Map();
+var entities = new Map();
 
-function getOrCreateParcel ( id, x=-1, y=-1, type, metadata, carriedBy=null, reward=-1 ) {
-    var parcel = parcels.get(id);
-    if ( !parcel ) {
-        parcel = new Parcel(id, x, y, type, metadata, carriedBy, reward);
-        parcels.set( id, parcel );
+function getOrCreateEntity ( id, x=-1, y=-1, type, metadata, carriedBy=null, reward=-1 ) {
+    var entity = entities.get(id);
+    if ( !entity ) {
+        entity = new Entity(id, x, y, type, metadata);
+        entities.set( id, entity );
     }
-    return parcel;
+    return entity;
 }
 
-function deleteParcel ( id ) {
-    getOrCreateParcel( id ).removeMesh();
-    parcels.delete( id );
+function deleteEntity ( id ) {
+    getOrCreateEntity( id ).removeMesh();
+    entities.delete( id );
 }
 
 
@@ -870,24 +865,24 @@ socket.on("agents sensing", (sensed) => {
 
 });
 
-socket.on("parcels sensing", (sensed) => {
+socket.on("entities sensing", (sensed) => {
 
     // console.log("parcels sensing", ...sensed)//, sensed.length)
 
     var sensed = Array.from(sensed)
 
     var sensed_ids = sensed.map( ({id}) => id )
-    for ( const [id, was] of parcels.entries() ) {
+    for ( const [id, was] of entities.entries() ) {
         if ( !sensed_ids.includes( was.id ) ) {
             // console.log('no more sensing parcel', knownId)
             // was.opacity = 0;
-            deleteParcel( was.id ); // parcel.removeMesh(); // parcels.delete(knownId);
+            deleteEntity( was.id ); // parcel.removeMesh(); // parcels.delete(knownId);
         }
     }
 
     for ( const {id, x, y, type, metadata, carriedBy, reward} of sensed ) {
         
-        const was = getOrCreateParcel(id, x, y, type, metadata, carriedBy, reward);
+        const was = getOrCreateEntity(id, x, y, type, metadata, carriedBy, reward);
 
         if ( carriedBy ) {
             if ( !was.carriedBy ) {
@@ -903,7 +898,7 @@ socket.on("parcels sensing", (sensed) => {
                 was.y = y;
             }
         }
-        was.reward = reward;
+        was.text = reward;
     }
 
 });

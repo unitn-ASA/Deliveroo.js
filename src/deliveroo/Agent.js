@@ -109,7 +109,7 @@ class Agent extends Xy {
         this.emitOnePerTick( 'xy', this ); // emit agent when spawning
         
         // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
-        this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
+        this.emitParcelSensing = new Postponer( this.emitEntitySensing.bind(this) ).at( myClock.synch() );
 
     }
 
@@ -148,16 +148,18 @@ class Agent extends Xy {
     /**
      * Parcels sensend on the grid
      */
-    emitParcelSensing () {
+    emitEntitySensing () {
 
-        var parcels = [];
-        for ( const parcel of this.#grid.getParcels() ) {
-            if ( !( Xy.distance(parcel, this) >= this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
-                let {id, x, y, type, metadata, carriedBy, reward} = parcel;
-                parcels.push( {id, x, y, type, metadata, carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ), reward} )
+        var entities = [];
+        for ( const enitity of this.#grid.getEntities() ) {
+            if ( !( Xy.distance(enitity, this) >= this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
+                let {id, x, y, type, metadata } = enitity;
+                console.log('METADATA: ', metadata)
+                entities.push( {id, x, y, type, metadata} )
             }
         }
-        this.emit( 'parcels sensing', parcels )
+        
+        this.emit( 'entities sensing', entities )
 
     }
 
@@ -278,7 +280,7 @@ class Agent extends Xy {
         this.moving = false;
         const picked = new Array();
         var counter = 0;
-        for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcels() ) {
+        for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getEntities() ) {
             if ( parcel.x == this.x && parcel.y == this.y && parcel.carriedBy == null ) {
                 this.#carryingParcels.add(parcel);
                 parcel.carriedBy = this;
@@ -323,7 +325,7 @@ class Agent extends Xy {
             dropped.push( parcel );
             if ( tile.delivery ) {
                 sc += parcel.reward;
-                this.#grid.deleteParcel( parcel.id );
+                this.#grid.deleteEntity( parcel.id );
             }
         }
         this.score += sc;

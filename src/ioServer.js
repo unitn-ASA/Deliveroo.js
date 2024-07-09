@@ -86,12 +86,12 @@ io.on('connection', (socket) => {
      * Emit sensing
      */
 
-    // Parcels
-    me.on( 'parcels sensing', (parcels) => {
-        //console.log('emit parcels sensing', ...parcels);
-        socket.emit('parcels sensing', parcels )
+    // Entities
+    me.on( 'entities sensing', (entities) => {
+        //console.log('emit entities sensing', ...entities);
+        socket.emit('entities sensing', entities )
     } );
-    me.emitParcelSensing();
+    me.emitEntitySensing();
 
     // Agents
     me.on( 'agents sensing', (agents) => {

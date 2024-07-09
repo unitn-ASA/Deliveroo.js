@@ -1,6 +1,6 @@
 const Grid = require('./deliveroo/Grid');
 const randomlyMovingAgent = require('./workers/randomlyMovingAgent');
-const parcelsGenerator = require('./workers/parcelsGenerator');
+const menagerEntities = require('./workers/MenagerEntities');
 const config = require('../config');
 
 
@@ -13,7 +13,7 @@ const RANDOMLY_MOVING_AGENTS = config.RANDOMLY_MOVING_AGENTS || process.env.RAND
 const map = require( '../levels/maps/' + MAP_FILE );
 const grid = new Grid( map );
 
-parcelsGenerator( grid );
+menagerEntities( grid );
 
 for (let i = 0; i < RANDOMLY_MOVING_AGENTS; i++) {
     randomlyMovingAgent( grid );
