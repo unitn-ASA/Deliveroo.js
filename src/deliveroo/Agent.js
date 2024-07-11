@@ -154,7 +154,6 @@ class Agent extends Xy {
         for ( const enitity of this.#grid.getEntities() ) {
             if ( !( Xy.distance(enitity, this) >= this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
                 let {id, x, y, type, metadata } = enitity;
-                console.log('METADATA: ', metadata)
                 entities.push( {id, x, y, type, metadata} )
             }
         }

@@ -49,9 +49,9 @@ class Parcel extends Entity {
 
             if ( this.carriedBy ){
                 this.carriedBy.on( 'xy', followCarrier )
-                this.metadata.carriedBy = true
+                this.metadata.carriedBy = this.carriedBy.id
             }
-            
+
             lastCarrier = this.carriedBy;
         } )      
 

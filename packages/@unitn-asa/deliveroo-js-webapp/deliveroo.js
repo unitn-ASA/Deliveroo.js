@@ -498,14 +498,12 @@ class Entity extends onGrid {
         let graphic = createGraphic(metadata.style);
         scene.add( graphic );
 
-        let label = metadata.label
-
-        super(graphic, x, y, label)
+        super(graphic, x, y, 'ciao')
 
         this.id = id
-        this.text = label
 
         if (metadata.carriedBy) {
+            this.carriedBy = metadata.carriedBy
             this.pickup( getOrCreateAgent( metadata.carriedBy ) )
         }
 
@@ -515,7 +513,7 @@ class Entity extends onGrid {
 
 var entities = new Map();
 
-function getOrCreateEntity ( id, x=-1, y=-1, type, metadata, carriedBy=null, reward=-1 ) {
+function getOrCreateEntity ( id, x=-1, y=-1, type, metadata) {
     var entity = entities.get(id);
     if ( !entity ) {
         entity = new Entity(id, x, y, type, metadata);
@@ -880,13 +878,13 @@ socket.on("entities sensing", (sensed) => {
         }
     }
 
-    for ( const {id, x, y, type, metadata, carriedBy, reward} of sensed ) {
+    for ( const {id, x, y, type, metadata} of sensed ) {
         
-        const was = getOrCreateEntity(id, x, y, type, metadata, carriedBy, reward);
+        const was = getOrCreateEntity(id, x, y, type, metadata);
 
-        if ( carriedBy ) {
+        if ( metadata.carriedBy ) {
             if ( !was.carriedBy ) {
-                var agent = getOrCreateAgent( carriedBy );
+                var agent = getOrCreateAgent( metadata.carriedBy );
                 was.pickup( agent );
             }
         }
@@ -898,7 +896,7 @@ socket.on("entities sensing", (sensed) => {
                 was.y = y;
             }
         }
-        was.text = reward;
+        was.text = metadata.label;
     }
 
 });
