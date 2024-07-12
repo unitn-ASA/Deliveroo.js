@@ -17,7 +17,9 @@ class Grid extends Observable {
     #agents;
     /** @type {Map<string, Entity>} */
     #entities;
-    
+
+    menagerAgents;
+
     /**
      * @constructor Grid
      */
@@ -33,7 +35,7 @@ class Grid extends Observable {
                 x, y,       // x, y
                 value == 0, // blocked
                 value == 2, // delivery // ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
-                value == 1  // parcelSpawner
+                value == 1  // spawner
             ) )
         } );
         // console.log( this.#tiles.map( c=>c.map( t=>t.x+' '+t.y+' ' ) ) )
@@ -185,18 +187,24 @@ class Grid extends Observable {
     }
 
     /**
-     * @type {function(): IterableIterator<Parcel>}
+     * @type {function(): IterableIterator<Entity>}
      */
-    getEntities () {
+    getEntities(entityType = null) {
+        if (entityType) {
+          return Array.from(this.#entities.values()).filter(entity => entity.type == entityType);
+        }
         return this.#entities.values();
-    }
+      }
 
     /**
      * @type {function(): number}
      */
-    getEntitiesQuantity () {
+    getEntitiesQuantity(entityType = null) {
+        if (entityType) {
+          return Array.from(this.getEntities(entityType)).length;
+        }
         return this.#entities.size;
-    }
+      }
 
     /**
      * @type {function(String):boolean}

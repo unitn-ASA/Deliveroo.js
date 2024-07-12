@@ -2,8 +2,10 @@ const config = {
 
     MAP_FILE: 'default_map',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
 
-    PARCELS_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
-    PARCELS_MAX: '5',                  // 'infinite' (DEFAULT)
+    ENTITIES: ['Parcel'],
+
+    PARCEL_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
+    PARCEL_MAX: '5',                  // 'infinite' (DEFAULT)
 
     MOVEMENT_STEPS: 1,                  // default is 1
     MOVEMENT_DURATION: 50,              // default is 500
@@ -20,7 +22,7 @@ const config = {
 
     CLOCK: 50,  // default is 50 (50ms are 20frame/s)
 
-    BROADCAST_LOGS: false,  // default is false
+    BROADCAST_LOGS: false  // default is false
 
 }
 

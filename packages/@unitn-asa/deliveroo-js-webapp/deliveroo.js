@@ -358,7 +358,7 @@ window.getMap = function () {
                     row.push(0);
                 else if ( tile.delivery )
                     row.push(2);
-                else if ( tile.parcelSpawner )
+                else if ( tile.spawner )
                     row.push(1);
                 else
                     row.push(3);
@@ -443,12 +443,12 @@ class Tile extends onGrid {
         this.#delivery = value;
     }
 
-    #parcelSpawner = false;
-    get parcelSpawner () {
-        return this.#parcelSpawner;
+    #spawner = false;
+    get spawner () {
+        return this.#spawner;
     }
-    set parcelSpawner ( value ) {
-        this.#parcelSpawner = value?true:false;
+    set spawner ( value ) {
+        this.#spawner = value?true:false;
     }
     
     #blocked = false;
@@ -494,7 +494,6 @@ class Entity extends onGrid {
     id
 
     constructor ( id, x, y, type, metadata) {
-        console.log('metadata:', metadata)
         let graphic = createGraphic(metadata.style);
         scene.add( graphic );
 
@@ -746,11 +745,11 @@ socket.on( 'not_tile', (x, y, type, metadata) => {
     getTile(x, y, type, metadata).blocked = true;
 });
 
-socket.on( "tile", (x, y, type, metadata, delivery, parcelSpawner) => {
+socket.on( "tile", (x, y, type, metadata, delivery, spawner) => {
     console.log( "tile", x, y, type, metadata )
     getTile(x, y, type, metadata).delivery = delivery;
     getTile(x, y, type, metadata).blocked = false;
-    getTile(x, y, type, metadata).parcelSpawner = parcelSpawner;
+    getTile(x, y, type, metadata).spawner = spawner;
 });
 
 var WIDTH;
@@ -778,6 +777,7 @@ socket.on( "path", (path) => {
 var AGENTS_OBSERVATION_DISTANCE = 5;
 var PARCELS_OBSERVATION_DISTANCE = 5;
 var CONFIG;
+
 socket.on( "config", ( config ) => {
     document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
     AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;

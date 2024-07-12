@@ -1,5 +1,5 @@
 const Xy =  require('./Xy')
-const Parcel =  require('./Parcel')
+const Parcel =  require('../entities/Parcel')
 const Grid =  require('./Grid')
 
 
@@ -8,12 +8,12 @@ const Grid =  require('./Grid')
  */
  class Tile extends Xy {
     #grid;
-    #blocked;
-    #locked;
+    #blocked;   // it is a non tile, a hole
+    #locked;    // flag indicating whether the card is free or already occupied
     /** @property {Set<Parcel>} parcel */
     #parcels = new Set();
     #delivery;
-    #parcelSpawner;
+    #spawner;
 
     /**
      * @constructor Tile
@@ -21,7 +21,7 @@ const Grid =  require('./Grid')
      * @param {*} x
      * @param {*} y
      */
-    constructor ( grid, x, y, blocked = false, delivery = false, parcelSpawner = true ) {
+    constructor ( grid, x, y, blocked = false, delivery = false, spawner = true ) {
         
         super(x, y, 'tile');
 
@@ -29,7 +29,7 @@ const Grid =  require('./Grid')
         let color = 0x55dd55
         if(blocked) color = 0x000000
         if(delivery) color = 0xff0000
-        if(parcelSpawner) color = 0x00ff00
+        if(spawner) color = 0x00ff00
         let style = {shape:'box', params:{width:1, height: 0.1, depth:1}, color: color } 
 
         this.metadata.style = style;               // save the graphical rappresentation on the metadata attribute
@@ -37,7 +37,7 @@ const Grid =  require('./Grid')
         this.#grid = grid;
         this.#blocked = blocked;
         this.#delivery = delivery;
-        this.#parcelSpawner = parcelSpawner;
+        this.#spawner = spawner;
     }
     
     get blocked() {
@@ -86,11 +86,11 @@ const Grid =  require('./Grid')
         this.#grid.emitOnePerTick( 'tile', this )
     }
 
-    get parcelSpawner() {
-        return this.#parcelSpawner;
+    get spawner() {
+        return this.#spawner;
     }
-    set parcelSpawner(value) {
-        this.#parcelSpawner = value?true:false;
+    set spawner(value) {
+        this.#spawner = value?true:false;
         this.#grid.emitOnePerTick( 'tile', this )
     }
 

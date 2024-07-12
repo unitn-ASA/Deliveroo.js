@@ -22,8 +22,6 @@ const io = new Server( {
 
 io.on('connection', (socket) => {
     
-
-
     /**
      * Authenticate socket on agent
      */
@@ -47,19 +45,19 @@ io.on('connection', (socket) => {
     /**
      * Emit map (tiles)
      */
-    myGrid.on( 'tile', ({x, y, type, metadata, delivery, blocked, parcelSpawner}) => {
+    myGrid.on( 'tile', ({x, y, type, metadata, delivery, blocked, spawner}) => {
         //console.log( 'emit tile', x, y, type, metadata, delivery, parcelSpawner );
         if (!blocked)
-            socket.emit( 'tile', x, y, type, metadata, delivery, parcelSpawner );
+            socket.emit( 'tile', x, y, type, metadata, delivery, spawner );
         else
             socket.emit( 'not_tile', x, y, type, metadata );
     } );
     let tiles = []
-    for (const {x, y, type, metadata, delivery, blocked, parcelSpawner} of myGrid.getTiles()) {
+    for (const {x, y, type, metadata, delivery, blocked, spawner} of myGrid.getTiles()) {
         //console.log( 'emit tile', x, y, type, metadata, delivery, parcelSpawner );
         if ( !blocked ) {
-            socket.emit( 'tile', x, y, type, metadata, delivery, parcelSpawner )
-            tiles.push( {x, y, type, metadata, delivery, parcelSpawner} )
+            socket.emit( 'tile', x, y, type, metadata, delivery, spawner )
+            tiles.push( {x, y, type, metadata, delivery, spawner} )
         } else
             socket.emit( 'not_tile', x, y, type, metadata );
     }

@@ -1,6 +1,5 @@
-const Observable =  require('./Observable')
-const Entity =  require('./Entity')
-const myClock =  require('./Clock')
+const Entity =  require('../deliveroo/Entity')
+const myClock =  require('../deliveroo/Clock')
 const config =  require('../../config')
 
 

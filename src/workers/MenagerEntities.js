@@ -1,14 +1,8 @@
+// @ts-nocheck
 const Grid = require('../deliveroo/Grid');
 const Tile =  require('../deliveroo/Tile');
-const Parcel = require('../deliveroo/Parcel')
 const myClock =  require('../deliveroo/Clock');
 const config =  require('../../config');
-
-
-
-const PARCELS_GENERATION_INTERVAL = process.env.PARCELS_GENERATION_INTERVAL || config.PARCELS_GENERATION_INTERVAL || '2s';
-const PARCELS_MAX = process.env.PARCELS_MAX || config.PARCELS_MAX || 'infinite';
-
 
 
 /**
@@ -17,29 +11,83 @@ const PARCELS_MAX = process.env.PARCELS_MAX || config.PARCELS_MAX || 'infinite';
  */
 module.exports = function (grid) {
     
-    myClock.on( PARCELS_GENERATION_INTERVAL, () => {
-        if ( grid.getEntitiesQuantity() >= PARCELS_MAX ) {
-            return;
-        }
-        let tiles_with_no_parcels =
-            Array.from( grid.getTiles() )
-            // parcel spawner tile
-            .filter( t => t.parcelSpawner )
-            // no parcels exists on the tile
-            .filter( t =>
-                Array.from( grid.getEntities() )
-                .find( p =>
-                    p.x == t.x && p.y == t.y
-                ) == undefined
-            )
-        if ( tiles_with_no_parcels.length > 0 ) {
-            let i = Math.floor( Math.random() * tiles_with_no_parcels.length - 1 )
-            let tile = tiles_with_no_parcels.at( i )
+    // Dynamically load entity classes
+    const entityClasses = {}
+    let entityClassesList = process.env.ENTITIES || config.ENTITIES;
+    
+    entityClassesList.forEach(entityName => {
+    try {
+        entityClasses[entityName] = require(`../entities/${entityName}`);
+    } catch (error) {
+        console.error(`Class ${entityName} non founded`);
+    }
+    });
 
-            let parcel = new Parcel( tile.x, tile.y );
-            parcel = grid.createEntity( tile.x, tile.y, parcel );
+    // for each class menage the generation of the 
+    console.log('Entities in the game: ')
+    Object.keys(entityClasses).forEach(entityName => {
+
+        //derive frome te env or config file the information about the generation
+        const interval = process.env[`${entityName.toUpperCase()}_GENERATION_INTERVAL`] || config[`${entityName.toUpperCase()}_GENERATION_INTERVAL`] || false;
+        const max = process.env[`${entityName.toUpperCase()}_MAX`] || config[`${entityName.toUpperCase()}_MAX`] || 0;
+        const EntityClass = entityClasses[entityName];
+
+        console.log(entityName.toLowerCase() + ' -> max: ', max + ' interval: ', interval)
+    
+        if (!EntityClass) {
+          console.error(`Class for entity type ${entityName} not found; skip the generation.`);
+          return;
         }
-        
-    } )
+
+        // If the intervall is null, it will generate all the entities immidiatly 
+        if(!interval){
+           // Genera tutte le entità in una volta sola
+            let tiles_with_no_entities =
+            Array.from(grid.getTiles())
+            // entity spawner tile
+            .filter(t => t.spawner)
+            // no entities exist on the tile
+            .filter(t =>
+                Array.from(grid.getEntities())
+                .find(e =>
+                e.x == t.x && e.y == t.y
+                ) == undefined
+            );
+
+            tiles_with_no_entities.slice(0, max).forEach(tile => {
+                let entity = new EntityClass(tile.x, tile.y);
+                grid.createEntity(tile.x, tile.y, entity);
+            }); 
+            
+            return
+        }
+    
+        myClock.on(interval, () => {
+            
+          if (grid.getEntitiesQuantity(entityName.toLowerCase()) >= max) {
+            return;
+          }
+
+          let tiles_with_no_entities =
+            Array.from(grid.getTiles())
+            // entity spawner tile
+            .filter(t => t.spawner)
+            // no entities exists on the tile
+            .filter(t =>
+              Array.from(grid.getEntities())
+              .find(e =>
+                e.x == t.x && e.y == t.y
+              ) == undefined
+            );
+          if (tiles_with_no_entities.length > 0) {
+            let i = Math.floor(Math.random() * tiles_with_no_entities.length);
+            let tile = tiles_with_no_entities.at(i);
+    
+            let entity = new EntityClass(tile.x, tile.y);
+            entity = grid.createEntity(tile.x, tile.y, entity);
+          }
+        });
+      });
 
 }
+
