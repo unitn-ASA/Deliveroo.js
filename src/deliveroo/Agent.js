@@ -2,7 +2,7 @@ const Observable =  require('./Observable')
 const Xy =  require('./Xy')
 const Grid =  require('./Grid')
 const Tile =  require('./Tile');
-const Parcel =  require('../entities/Parcel');
+const Parcel =  require('../extensions/entities/Parcel');
 const config =  require('../../config');
 const Postponer = require('./Postponer');
 const myClock = require('./Clock');
@@ -35,8 +35,8 @@ class Agent extends Xy {
     sensing;
     /** @type {Number} score */
     score = 0;
-    /** @type {Set<Parcel>} #carryingParcels */
-    #carryingParcels = new Set();
+    /** @type {Set<Parcel>} #carryingEntities */
+    #carryingEntities = new Set();
     // get carrying () {
     //     return Array.from(this.#carryingParcels);
     // }
@@ -87,7 +87,7 @@ class Agent extends Xy {
         Object.assign( this.config, config );
         
         Object.defineProperty (this, 'carrying', {
-            get: () => Array.from(this.#carryingParcels).map( ({id, reward}) => { return {id, reward}; } ), // Recursion on carriedBy->agent->carrying->carriedBy ... 
+            get: () => Array.from(this.#carryingEntities).map( ({id, reward}) => { return {id, reward}; } ), // Recursion on carriedBy->agent->carrying->carriedBy ... 
             enumerable: false
         });
 
@@ -109,7 +109,7 @@ class Agent extends Xy {
         this.emitOnePerTick( 'xy', this ); // emit agent when spawning
         
         // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
-        this.emitParcelSensing = new Postponer( this.emitEntitySensing.bind(this) ).at( myClock.synch() );
+        this.emitEntitySensing = new Postponer( this.emitEntitySensing.bind(this) ).at( myClock.synch() );
 
     }
 
@@ -207,7 +207,10 @@ class Agent extends Xy {
         // get the end tile of the move 
         let toTile = this.#grid.getTile( this.x+incr_x, this.y+incr_y );
 
-        await toTile.lock();                    
+        if(!toTile){ return }               // if the agent try to move to a Tile that not exist return the motion
+        
+        let tilefree = await toTile.lock(); // try lo lock the tile 
+        if(!tilefree){ return}              // if the toTile is already locked stop the motion
         
         // The standard agent cen move to a tile if it is not blocked 
         if (!toTile.blocked) {
@@ -221,50 +224,6 @@ class Agent extends Xy {
         return false
     }
 
-    async up () {
-        //console.log('Agent ', this.name + ' up');
-        return this.move(0, 1);
-    }
-
-    async down () {
-        //console.log('Agent ', this.name + ' down');
-        return this.move(0, -1);
-    }
-
-    async left () {
-        //console.log('Agent ', this.name + ' left');
-        return this.move(-1, 0);
-    }
-
-    async right () {
-        //console.log('Agent ', this.name + ' right');
-        return this.move(1, 0);
-    }
-    
-    async jump(){
-        //console.log('Agent ', this.name + ' jump');
-    }
-
-    async shiftUp(){
-        //console.log('Agent ', this.name + ' shiftUp');
-    } 
-    
-    async shiftDown(){
-        //console.log('Agent ', this.name + ' shiftDown');
-    } 
-    
-    async shiftLeft(){
-        //console.log('Agent ', this.name + ' shiftLeft');
-    }
-
-    async shiftRight(){
-        //console.log('Agent ', this.name + ' shiftRight');
-    } 
-    
-    async shiftJump(){
-        //console.log('Agent ', this.name + ' shiftJump');
-    }
-    
     /**
      * Pick up all parcels in the agent tile.
      * @function pickUp
@@ -281,7 +240,7 @@ class Agent extends Xy {
         var counter = 0;
         for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getEntities() ) {
             if ( parcel.x == this.x && parcel.y == this.y && parcel.carriedBy == null ) {
-                this.#carryingParcels.add(parcel);
+                this.#carryingEntities.add(parcel);
                 parcel.carriedBy = this;
                 // parcel.x = 0;
                 // parcel.y = 0;
@@ -294,7 +253,7 @@ class Agent extends Xy {
             this.emit( 'pickup', this, picked );
         return picked; // Array.from(this.#carryingParcels);
     }
-
+    
     /**
      * Put down parcels:
      * - if array of ids is provided: putdown only specified parcels
@@ -313,11 +272,11 @@ class Agent extends Xy {
         var tile = this.tile
         var sc = 0;
         var dropped = new Array();
-        var toPutDown = Array.from( this.#carryingParcels );    // put down all parcels
+        var toPutDown = Array.from( this.#carryingEntities );    // put down all parcels
         if ( ids && ids.length && ids.length > 0 )              // put down specified parcels
             toPutDown = toPutDown.filter( p => ids.includes( p.id ) );
-        for ( const parcel of this.#carryingParcels ) {
-            this.#carryingParcels.delete(parcel);
+        for ( const parcel of this.#carryingEntities ) {
+            this.#carryingEntities.delete(parcel);
             parcel.carriedBy = null;
             // parcel.x = this.x;
             // parcel.y = this.y;
@@ -336,24 +295,9 @@ class Agent extends Xy {
             this.emitOnePerTick( 'putdown', this, dropped );
         return dropped;
     }
-
-    async shiftPickUp(){
-        //console.log('Agent ', this.name + ' shiftPickUp');
-    }
     
-    async shiftPutDown( ids = [] ){
-        //console.log('Agent ', this.name + ' shiftPutDown');
-    }
-    
-    async click(x,y){
-        //console.log('Agent ', this.name + ' click (', x + ' ', y + ' )');
-    }
 
-    async shiftClick(x,y){
-        //console.log('Agent ', this.name + ' shiftClick (', x + ' ', y + ' )');
-    }
 }
-
 
 
 module.exports = Agent;

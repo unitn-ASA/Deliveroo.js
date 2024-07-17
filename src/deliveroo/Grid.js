@@ -96,50 +96,48 @@ class Grid extends Observable {
     }
 
     /**
-     * @type {function({id:string,name:string}): Agent}
+     * @type {function(agent:Agent}
      */
-    createAgent ( options = {} ) {
-        
+    createAgent ( agent ) { 
         // Instantiate
-        var me = new Agent( this, options );
-        this.emit( 'agent created', me );
+        this.emit( 'agent created', agent );
 
         // Register
-        this.#agents.set(me.id, me);
+        this.#agents.set(agent.id, agent);
 
         // Grid scoped events propagation
-        me.on( 'xy', this.emit.bind(this, 'agent xy') );
-        me.on( 'score', this.emit.bind(this, 'agent score') );
+        agent.on( 'xy', this.emit.bind(this, 'agent xy') );
+        agent.on( 'score', this.emit.bind(this, 'agent score') );
         // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
         // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
         // me.on( 'agent', this.emit.bind(this, 'agent') );
 
         // On mine or others movement emit SensendAgents
         this.on( 'agent xy', ( who ) => {
-            if ( me.id == who.id || !( Xy.distance(me, who) > me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
+            if ( agent.id == who.id || !( Xy.distance(agent, who) > agent.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+                agent.emitAgentSensing()
             }
         } )
         
         // On agent deleted emit agentSensing
         this.on( 'agent deleted', ( who ) => {
-            if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
+            if ( agent.id != who.id && !( Xy.distance(agent, who) >= agent.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+                agent.emitAgentSensing()
             }
         } )
 
         // On others score emit SensendAgents
         this.on( 'agent score', ( who ) => {
-            if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
+            if ( agent.id != who.id && !( Xy.distance(agent, who) >= agent.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+                agent.emitAgentSensing()
             }
         } )
 
         // On parcel and my movements emit parcels sensing
-        this.on( 'update-entity', () => { me.emitEntitySensing()} );
-        me.on( 'xy', () => me.emitEntitySensing() );
+        this.on( 'update-entity', () => { agent.emitEntitySensing()} );
+        agent.on( 'xy', () => agent.emitEntitySensing() );
 
-        return me;
+        return agent;
     }
 
     /**

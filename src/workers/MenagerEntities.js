@@ -1,6 +1,4 @@
-// @ts-nocheck
 const Grid = require('../deliveroo/Grid');
-const Tile =  require('../deliveroo/Tile');
 const myClock =  require('../deliveroo/Clock');
 const config =  require('../../config');
 
@@ -17,22 +15,19 @@ module.exports = function (grid) {
     
     entityClassesList.forEach(entityName => {
     try {
-        entityClasses[entityName] = require(`../entities/${entityName}`);
+        entityClasses[entityName] = require(`../extensions/entities/${entityName}`);
     } catch (error) {
-        console.error(`Class ${entityName} non founded`);
+        console.error(`Class ${entityName} not founded`);
     }
     });
 
     // for each class menage the generation of the 
-    console.log('Entities in the game: ')
     Object.keys(entityClasses).forEach(entityName => {
 
         //derive frome te env or config file the information about the generation
         const interval = process.env[`${entityName.toUpperCase()}_GENERATION_INTERVAL`] || config[`${entityName.toUpperCase()}_GENERATION_INTERVAL`] || false;
         const max = process.env[`${entityName.toUpperCase()}_MAX`] || config[`${entityName.toUpperCase()}_MAX`] || 0;
         const EntityClass = entityClasses[entityName];
-
-        console.log(entityName.toLowerCase() + ' -> max: ', max + ' interval: ', interval)
     
         if (!EntityClass) {
           console.error(`Class for entity type ${entityName} not found; skip the generation.`);

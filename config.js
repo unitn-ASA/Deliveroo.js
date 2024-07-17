@@ -3,6 +3,10 @@ const config = {
     MAP_FILE: 'default_map',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
 
     ENTITIES: ['Parcel'],
+    AGENTS: [],
+    AGENTSCONTROLLER: {
+        Agent: 'Controller'
+    },
 
     PARCEL_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
     PARCEL_MAX: '5',                  // 'infinite' (DEFAULT)

@@ -1,5 +1,4 @@
 const Xy =  require('./Xy')
-const Parcel =  require('../entities/Parcel')
 const Grid =  require('./Grid')
 
 

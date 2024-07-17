@@ -1,15 +1,11 @@
 const { Server } = require('socket.io');
 const myGrid = require('./grid');
-const Authentication = require('./deliveroo/Authentication');
 const config = require('../config');
 const myClock = require('./deliveroo/Clock');
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 
 const BROADCAST_LOGS = process.env.BROADCAST_LOGS ?? config.BROADCAST_LOGS ?? false;
 
-
-
-const myAuthenticator = new Authentication( myGrid )
 
 const io = new Server( {
     cors: {
@@ -25,8 +21,9 @@ io.on('connection', (socket) => {
     /**
      * Authenticate socket on agent
      */
-    const me = myAuthenticator.authenticate(socket);
+    const me = myGrid.menagerAgents.authenticate(socket);
     if ( !me ) return;
+    const controller = myGrid.menagerControllers.getController(me)
     socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
 
 
@@ -34,10 +31,10 @@ io.on('connection', (socket) => {
     /**
      * Config
      */
-    if ( me.name == 'god' ) { // 'god' mod
+    /*if ( me.name == 'god' ) { // 'god' mod
         me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite'
         me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite'
-    }
+    }*/
     socket.emit( 'config', me.config )
 
     
@@ -106,7 +103,7 @@ io.on('connection', (socket) => {
     socket.on('up', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'up');
         try {
-            const moving = me.up();
+            const moving = controller.up();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
@@ -115,7 +112,7 @@ io.on('connection', (socket) => {
     socket.on('down', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'down');
         try {
-            const moving = me.down();
+            const moving = controller.down();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
@@ -124,7 +121,7 @@ io.on('connection', (socket) => {
     socket.on('left', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'left');
         try {
-            const moving = me.left();
+            const moving = controller.left();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
@@ -133,7 +130,7 @@ io.on('connection', (socket) => {
     socket.on('right', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'right');
         try {
-            const moving = me.right();
+            const moving = controller.right();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
@@ -142,14 +139,14 @@ io.on('connection', (socket) => {
     socket.on('jump', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'jump');
         try {
-            const moving = me.jump();
+            const moving = controller.jump();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
     });
 
     socket.on('pickup', async (acknowledgementCallback) => {
-        const picked = await me.pickUp()
+        const picked = await controller.pickUp()
         if ( acknowledgementCallback )
             try {
                 acknowledgementCallback( picked )
@@ -157,7 +154,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('putdown', async (selected, acknowledgementCallback) => {
-        const dropped = await me.putDown( selected )
+        const dropped = await controller.putDown( selected )
         if ( acknowledgementCallback )
             try {
                 acknowledgementCallback( dropped )
@@ -167,7 +164,7 @@ io.on('connection', (socket) => {
     socket.on('shift-up', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'shift-up');
         try {
-            const moving = me.shiftUp();
+            const moving = controller.shiftUp();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
@@ -176,7 +173,7 @@ io.on('connection', (socket) => {
     socket.on('shift-down', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'shift-down');
         try {
-            const moving = me.shiftDown();
+            const moving = controller.shiftDown();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
@@ -185,7 +182,7 @@ io.on('connection', (socket) => {
     socket.on('shift-left', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'shift-left');
         try {
-            const moving = me.shiftLeft();
+            const moving = controller.shiftLeft();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
@@ -194,7 +191,7 @@ io.on('connection', (socket) => {
     socket.on('shift-right', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'shift-right');
         try {
-            const moving = me.shiftRight();
+            const moving = controller.shiftRight();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
@@ -203,14 +200,14 @@ io.on('connection', (socket) => {
     socket.on('shift-jump', async (acknowledgementCallback) => {
         // console.log(me.id, me.x, me.y, 'shift-jump');
         try {
-            const moving = me.shiftJump();
+            const moving = controller.shiftJump();
             if ( acknowledgementCallback )
                 acknowledgementCallback( await moving ); 
         } catch (error) { console.error(error) }
     });
 
     socket.on('shift-pickup', async (acknowledgementCallback) => {
-        const picked = await me.shiftPickUp()
+        const picked = await controller.shiftPickUp()
         if ( acknowledgementCallback )
             try {
                 acknowledgementCallback( picked )
@@ -218,7 +215,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('shift-putdown', async (selected, acknowledgementCallback) => {
-        const dropped = await me.shiftPutDown( selected )
+        const dropped = await controller.shiftPutDown( selected )
         if ( acknowledgementCallback )
             try {
                 acknowledgementCallback( dropped )
@@ -226,11 +223,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on( 'click', async (x, y) => {
-        me.click(x,y)
+        controller.click(x,y)
     });
 
     socket.on( 'shift-click', async (x, y) => {
-        me.shiftClick(x,y)
+        controller.shiftClick(x,y)
     });
 
 

@@ -1,6 +1,6 @@
-const Entity =  require('../deliveroo/Entity')
-const myClock =  require('../deliveroo/Clock')
-const config =  require('../../config')
+const Entity =  require('../../deliveroo/Entity')
+const myClock =  require('../../deliveroo/Clock')
+const config =  require('../../../config')
 
 
 const PARCEL_REWARD_AVG = process.env.PARCEL_REWARD_AVG || config.PARCEL_REWARD_AVG || 30;
