@@ -153,8 +153,8 @@ io.on('connection', (socket) => {
             } catch (error) { console.error(error) }
     });
 
-    socket.on('putdown', async (selected, acknowledgementCallback) => {
-        const dropped = await controller.putDown( selected )
+    socket.on('putdown', async (acknowledgementCallback) => {
+        const dropped = await controller.putDown()
         if ( acknowledgementCallback )
             try {
                 acknowledgementCallback( dropped )
@@ -214,8 +214,8 @@ io.on('connection', (socket) => {
             } catch (error) { console.error(error) }
     });
 
-    socket.on('shift-putdown', async (selected, acknowledgementCallback) => {
-        const dropped = await controller.shiftPutDown( selected )
+    socket.on('shift-putdown', async (acknowledgementCallback) => {
+        const dropped = await controller.shiftPutDown()
         if ( acknowledgementCallback )
             try {
                 acknowledgementCallback( dropped )

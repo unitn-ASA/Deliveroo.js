@@ -100,9 +100,9 @@ class Controller {
         }
     }
     
-    async putDown(ids = []) {
+    async putDown() {
         try {
-            return await this.subject.putDown(ids);
+            return await this.subject.putDown();
         } catch (error) {
             console.error(`Error in putDown: ${error}`);
         }
@@ -116,7 +116,7 @@ class Controller {
         }
     }
     
-    async shiftPutDown(ids = []) {
+    async shiftPutDown() {
         try {
             //console.log('Agent ', this.name + ' shiftPutDown');
         } catch (error) {

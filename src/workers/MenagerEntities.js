@@ -58,8 +58,7 @@ module.exports = function (grid) {
             }
 
             tiles_with_no_entities.slice(0, max).forEach(tile => {
-                let entity = new EntityClass(tile);
-                grid.createEntity(entity);
+                let entity = new EntityClass(tile, grid);
             }); 
             
             return
@@ -86,8 +85,7 @@ module.exports = function (grid) {
             let i = Math.floor(Math.random() * tiles_with_no_entities.length);
             let tile = tiles_with_no_entities.at(i);
     
-            let entity = new EntityClass(tile);
-            entity = grid.createEntity(entity);
+            let entity = new EntityClass(tile, grid);
           }
         });
       });

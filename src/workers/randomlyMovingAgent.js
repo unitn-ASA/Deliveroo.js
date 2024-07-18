@@ -43,7 +43,6 @@ module.exports = function ( myGrid, name ) {
     }
 
     var myAgent = new Agent(myGrid, {name: name })
-    myAgent = myGrid.createAgent( myAgent );
     randomlyMove (myAgent)
 
 }

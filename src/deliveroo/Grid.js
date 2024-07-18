@@ -137,7 +137,6 @@ class Grid extends Observable {
         this.on( 'update-entity', () => { agent.emitEntitySensing()} );
         agent.on( 'xy', () => agent.emitEntitySensing() );
 
-        return agent;
     }
 
     /**
@@ -162,7 +161,7 @@ class Grid extends Observable {
 
 
     /**
-     * @type {function(Number, Number, Entity): Entity}
+     * @type {function(Number, Number, Entity): void}
      */
     createEntity ( entity ) {
         this.#entities.set( entity.id, entity )
@@ -176,8 +175,6 @@ class Grid extends Observable {
         entity.on( 'update-entity', () => {
             this.emit('update-entity') 
         });
-
-        return entity;
     }
 
     /**

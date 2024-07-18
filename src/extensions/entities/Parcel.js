@@ -20,14 +20,14 @@ class Parcel extends Entity {
     /**
      * @constructor Parcel
      */
-    constructor (tile, carriedBy = null, reward ) {
+    constructor (tile, grid, carriedBy = null, reward ) {
 
         let id = 'p' + Parcel.#lastId++;
 
         let color =  Math.random() * 0xffffff ;
         let style = {shape:'box', params:{width:0.5, height: 0.5, depth:0.5}, color: color}     
         
-        super(id, tile.x, tile.y, 'parcel');
+        super(id, tile.x, tile.y, 'parcel', grid);
 
         this.metadata.style = style;
 
@@ -69,6 +69,28 @@ class Parcel extends Entity {
         myClock.on( PARCEL_DECADING_INTERVAL, decay );
         
     }
+
+    // implement the event when a parcel is picked up. 
+    pickedUp(agent){
+        if ( this.carriedBy == null ) {
+            this.carriedBy = agent;
+            return true;
+        }
+        return false;
+    }
+
+    putDown(agent, tile){
+        
+        agent.carriedBy = null;
+        
+        if ( tile.delivery ) {
+            agent.scoring(this.reward)   
+            this.delete();
+        }
+
+        return true;
+    }
+     
 
 }
 

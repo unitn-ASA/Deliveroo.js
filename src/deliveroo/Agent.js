@@ -1,7 +1,7 @@
 const Observable =  require('./Observable')
 const Xy =  require('./Xy')
 const Grid =  require('./Grid')
-const Tile =  require('./Tile');
+const Entity =  require('./Entity');
 const Parcel =  require('../extensions/entities/Parcel');
 const config =  require('../../config');
 const Postponer = require('./Postponer');
@@ -35,11 +35,12 @@ class Agent extends Xy {
     sensing;
     /** @type {Number} score */
     score = 0;
+    
     /** @type {Set<Parcel>} #carryingEntities */
     #carryingEntities = new Set();
-    // get carrying () {
-    //     return Array.from(this.#carryingParcels);
-    // }
+    get carryingEntities() {
+        return this.#carryingEntities;
+    }
 
     config = {};
 
@@ -110,6 +111,9 @@ class Agent extends Xy {
         
         // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
         this.emitEntitySensing = new Postponer( this.emitEntitySensing.bind(this) ).at( myClock.synch() );
+
+        // initialize the agent with the event of the grid 
+        this.#grid.createAgent(this);
 
     }
 
@@ -224,10 +228,18 @@ class Agent extends Xy {
         return false
     }
 
+    scoring(sc){
+        this.score += sc;
+        if ( sc > 0 ) {
+            console.log( `${this.name}(${this.id}) scores (+ ${sc} pti -> ${this.score} pti)` );
+            //console.log( Array.from(this.#grid.getAgents()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
+        }
+    }
+
     /**
      * Pick up all parcels in the agent tile.
      * @function pickUp
-     * @returns {Promise<Parcel[]>} An array of parcels that have been picked up
+     * @returns {Promise<Entity[]>} An array of entity that have been picked up
      */
     async pickUp () {
         //console.log('Agent ', this.name + ' pickUp');
@@ -236,16 +248,21 @@ class Agent extends Xy {
         this.moving = true;
         await myClock.synch();
         this.moving = false;
+
         const picked = new Array();
-        var counter = 0;
-        for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getEntities() ) {
-            if ( parcel.x == this.x && parcel.y == this.y && parcel.carriedBy == null ) {
-                this.#carryingEntities.add(parcel);
-                parcel.carriedBy = this;
-                // parcel.x = 0;
-                // parcel.y = 0;
-                picked.push( parcel );
-                counter++;
+        
+        for ( const  entity of this.#grid.getEntities() ) {
+            if ( entity.x == this.x && entity.y == this.y ) {
+                try {
+                    let result = entity.pickedUp(this)
+                    if(result){
+                        this.#carryingEntities.add(entity);
+                        picked.push( entity );
+                    }
+                } catch (error) {
+                    console.log('The entity ', entity.id + ' is not collectible')
+                }
+                
             }
         }
         // console.log(this.id, 'pickUp', counter, 'parcels')
@@ -256,43 +273,39 @@ class Agent extends Xy {
     
     /**
      * Put down parcels:
-     * - if array of ids is provided: putdown only specified parcels
      * - if no list is provided: put down all parcels
      * @function putDown
-     * @param {string[]} ids An array of parcels id
      * @returns {Promise<Parcel[]>} An array of parcels that have been put down
      */
-    async putDown ( ids = [] ) {
+    async putDown () {
         //console.log('Agent ', this.name + ' putDown');
         if ( this.moving )
             return [];
+
         this.moving = true;
         await myClock.synch();
         this.moving = false;
+
         var tile = this.tile
         var sc = 0;
         var dropped = new Array();
-        var toPutDown = Array.from( this.#carryingEntities );    // put down all parcels
-        if ( ids && ids.length && ids.length > 0 )              // put down specified parcels
-            toPutDown = toPutDown.filter( p => ids.includes( p.id ) );
-        for ( const parcel of this.#carryingEntities ) {
-            this.#carryingEntities.delete(parcel);
-            parcel.carriedBy = null;
-            // parcel.x = this.x;
-            // parcel.y = this.y;
-            dropped.push( parcel );
-            if ( tile.delivery ) {
-                sc += parcel.reward;
-                this.#grid.deleteEntity( parcel.id );
+        
+        for ( const entity of this.#carryingEntities ) {
+            try {
+                let result = entity.putDown(this, tile)
+                if(result){
+                    this.#carryingEntities.delete(entity);
+                    dropped.push( entity );
+                }
+            } catch (error) {
+                console.log(error)
+                console.log('The entity ', entity.id + ' is not releasable')
             }
         }
-        this.score += sc;
-        if ( sc > 0 ) {
-            console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti -> ${this.score} pti)` );
-            console.log( Array.from(this.#grid.getAgents()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
-        }
+
         if ( dropped.length > 0 )
             this.emitOnePerTick( 'putdown', this, dropped );
+
         return dropped;
     }
     

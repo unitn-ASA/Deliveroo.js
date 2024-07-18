@@ -63,8 +63,6 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
         me.score = db.get(id).score;
         me.on('score', () => entry.score = me.score);
 
-        // initialize the agent with the event of the grid 
-        me = grid.createAgent(me);
     }
 
     return me; // Return agent given the specified id

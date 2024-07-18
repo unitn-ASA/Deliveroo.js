@@ -243,6 +243,9 @@ class onGrid {
     get carriedBy () {
         return this.#carriedBy;
     }
+    set carriedBy(carriedBy) {
+        this.#carriedBy = carriedBy
+    }
 
     set opacity (opacity) {
         this.#mesh.material.opacity = opacity;
@@ -934,8 +937,8 @@ document.onkeydown = function(evt) {
             // console.log('KeyQ')
             action = () => {
                 return new Promise((res) => {
-                    socket.emit('pickup', (picked) => {
-                        res(picked.length > 0);
+                    socket.emit('pickup', (status) => {
+                        res(status);
                     });
                 });
             };
@@ -944,8 +947,8 @@ document.onkeydown = function(evt) {
             // console.log('KeyE')
             action = () => {
                 return new Promise((res) => {
-                    socket.emit('putdown', null, (dropped) => {
-                        res(dropped.length > 0);
+                    socket.emit('putdown', (status) => {
+                        res(status);
                     });
                 });
             };

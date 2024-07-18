@@ -1,16 +1,19 @@
 const Xy =  require('./Xy')
-const myClock =  require('./Clock')
-const config =  require('../../config')
 
 class Entity extends Xy {
 
     id
+    #grid
 
-    constructor (id, x, y, type ) {
-
+    constructor (id, x, y, type, grid ) {
         super(x, y, type);
         this.id = id;
+        this.#grid = grid
+        this.#grid.createEntity(this);
+    }
 
+    delete(){
+        this.#grid.deleteEntity(this.id)
     }
 
     /* overide the emit method in order to catch all the event emited by the subclass and propagate all them with only one event: 'update-entity'. 
