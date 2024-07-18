@@ -29,6 +29,8 @@ module.exports = function (grid) {
         const max = process.env[`${entityName.toUpperCase()}_MAX`] || config[`${entityName.toUpperCase()}_MAX`] || 0;
         const EntityClass = entityClasses[entityName];
     
+        console.log('Entity: ', entityName + ' max: ', max)
+
         if (!EntityClass) {
           console.error(`Class for entity type ${entityName} not found; skip the generation.`);
           return;
@@ -49,9 +51,15 @@ module.exports = function (grid) {
                 ) == undefined
             );
 
+            //shaffol the array of tiles for a randome selection of the spawn tile
+            for (let i = tiles_with_no_entities.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [tiles_with_no_entities[i], tiles_with_no_entities[j]] = [tiles_with_no_entities[j], tiles_with_no_entities[i]];
+            }
+
             tiles_with_no_entities.slice(0, max).forEach(tile => {
-                let entity = new EntityClass(tile.x, tile.y);
-                grid.createEntity(tile.x, tile.y, entity);
+                let entity = new EntityClass(tile);
+                grid.createEntity(entity);
             }); 
             
             return
@@ -78,8 +86,8 @@ module.exports = function (grid) {
             let i = Math.floor(Math.random() * tiles_with_no_entities.length);
             let tile = tiles_with_no_entities.at(i);
     
-            let entity = new EntityClass(tile.x, tile.y);
-            entity = grid.createEntity(tile.x, tile.y, entity);
+            let entity = new EntityClass(tile);
+            entity = grid.createEntity(entity);
           }
         });
       });

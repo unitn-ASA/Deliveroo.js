@@ -164,11 +164,7 @@ class Grid extends Observable {
     /**
      * @type {function(Number, Number, Entity): Entity}
      */
-    createEntity ( x, y, entity ) {
-        var tile = this.getTile( x, y );
-        if ( !tile || tile.blocked )
-            return false;
-        
+    createEntity ( entity ) {
         this.#entities.set( entity.id, entity )
 
         entity.once( 'expired', (...args) => {

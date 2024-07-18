@@ -29,5 +29,4 @@ for (let i = 0; i < RANDOMLY_MOVING_AGENTS; i++) {
     randomlyMovingAgent( grid );
 }
 
-
 module.exports = grid;

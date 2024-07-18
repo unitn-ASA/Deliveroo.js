@@ -11,6 +11,8 @@ const config = {
     PARCEL_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
     PARCEL_MAX: '5',                  // 'infinite' (DEFAULT)
 
+    OBSTACLE_MAX: '5',                  // 'infinite' (DEFAULT)
+
     MOVEMENT_STEPS: 1,                  // default is 1
     MOVEMENT_DURATION: 50,              // default is 500
     AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5, supports 'infinite'

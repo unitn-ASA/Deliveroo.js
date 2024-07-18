@@ -20,14 +20,14 @@ class Parcel extends Entity {
     /**
      * @constructor Parcel
      */
-    constructor (x, y, carriedBy = null, reward ) {
+    constructor (tile, carriedBy = null, reward ) {
 
         let id = 'p' + Parcel.#lastId++;
 
         let color =  Math.random() * 0xffffff ;
         let style = {shape:'box', params:{width:0.5, height: 0.5, depth:0.5}, color: color}     
         
-        super(id, x, y, 'parcel');
+        super(id, tile.x, tile.y, 'parcel');
 
         this.metadata.style = style;
 
