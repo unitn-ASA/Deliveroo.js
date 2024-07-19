@@ -106,35 +106,17 @@ class Grid extends Observable {
         this.#agents.set(agent.id, agent);
 
         // Grid scoped events propagation
-        agent.on( 'xy', this.emit.bind(this, 'agent xy') );
-        agent.on( 'score', this.emit.bind(this, 'agent score') );
-        // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
-        // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
-        // me.on( 'agent', this.emit.bind(this, 'agent') );
-
+        agent.on( 'agent', this.emit.bind(this, 'agent') );
+        
         // On mine or others movement emit SensendAgents
-        this.on( 'agent xy', ( who ) => {
+        this.on( 'agent', ( who ) => {
             if ( agent.id == who.id || !( Xy.distance(agent, who) > agent.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                 agent.emitAgentSensing()
             }
         } )
         
-        // On agent deleted emit agentSensing
-        this.on( 'agent deleted', ( who ) => {
-            if ( agent.id != who.id && !( Xy.distance(agent, who) >= agent.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                agent.emitAgentSensing()
-            }
-        } )
-
-        // On others score emit SensendAgents
-        this.on( 'agent score', ( who ) => {
-            if ( agent.id != who.id && !( Xy.distance(agent, who) >= agent.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                agent.emitAgentSensing()
-            }
-        } )
-
         // On parcel and my movements emit parcels sensing
-        this.on( 'update-entity', () => { agent.emitEntitySensing()} );
+        this.on( 'update', () => { agent.emitEntitySensing()} );
         agent.on( 'xy', () => agent.emitEntitySensing() );
 
     }
@@ -159,22 +141,12 @@ class Grid extends Observable {
     }
 
 
-
+    // ENTITY
     /**
      * @type {function(Number, Number, Entity): void}
      */
-    createEntity ( entity ) {
+    addEntity ( entity ) {
         this.#entities.set( entity.id, entity )
-
-        entity.once( 'expired', (...args) => {
-            this.deleteEntity( entity.id );
-        } );
-
-        // Grid scoped event propagation
-        this.emit( 'entity', entity )
-        entity.on( 'update-entity', () => {
-            this.emit('update-entity') 
-        });
     }
 
     /**
@@ -200,7 +172,7 @@ class Grid extends Observable {
     /**
      * @type {function(String):boolean}
      */
-    deleteEntity ( id ) {
+    removeEntity ( id ) {
         return this.#entities.delete( id );
     }
 

@@ -136,13 +136,17 @@ function createPanel() {
     
     const players = {}
     function updateLeaderboard ( agent ) {
-
-        if ( ! Object.hasOwnProperty.call( players, agent.name ) ) {
-            let player = {}; player[ agent.name ] = agent.score;
-            let controller = leaderboardFolder.add( player, agent.name, 0, 1000 );
-            players [ agent.name ] = controller;
+        try {
+            if ( ! Object.hasOwnProperty.call( players, agent.name ) ) {
+                let player = {}; player[ agent.name ] = agent.score;
+                let controller = leaderboardFolder.add( player, agent.name, 0, 1000 );
+                players [ agent.name ] = controller;
+            }
+            players[ agent.name ].setValue( agent.score );
+        } catch (error) {
+            //console.log(error)
         }
-        players[ agent.name ].setValue( agent.score );
+        
 
     }
 
@@ -295,7 +299,7 @@ class onGrid {
                 this.#mesh.position.lerp( targetVector3, 0.08 );
             }
         } )
-    
+        
         const div = this.#div = document.createElement( 'div' );
         div.className = 'label';
         div.textContent = text;
@@ -384,52 +388,62 @@ window.getMap = function () {
 
 // Function that create the 3D Graphical rappresentation given e style object 
 function createGraphic(style) {
-    let geometry;
-    let shape = style.shape
-    let params = style.params
+    let graphic;
 
-    switch (shape) {
-        case 'box':
-            geometry = new THREE.BoxGeometry(params.width, params.height, params.depth, params.widthSegments, params.heightSegments, params.depthSegments);
-            break;
-        case 'capsule':
-            geometry = new THREE.CapsuleGeometry(params.radius, params.lenght, params.capSegment, params.radialSegment)
-            break
-        case 'cone':
-            geometry = new THREE.ConeGeometry(params.radius, params.height, params.radialSegments, params.heightSegments, params.openEnded, params.thetaStart, params.thetaLength)
-            break
-        case 'cylinder':
-            geometry = new THREE.CylinderGeometry(params.radiusTop, params.radiusBottom, params.height, params.radialSegments, params.heightSegments, params.openEnded, params.thetaStart, params.thetaLength);
-            break;
-        case 'dodecahedron':
-            geometry = new THREE.DodecahedronGeometry(params.radius, params.detail);
-            break;
-        case 'icosahedron':
-            geometry = new THREE.IcosahedronGeometry(params.radius, params.detail);
-            break;
-        case 'lathe':
-            geometry = new THREE.LatheGeometry(params.points, params.segments, params.phiStart, params.phiLength);
-            break;
-        case 'octahedron':
-            geometry = new THREE.OctahedronGeometry(params.radius, params.detail);
-            break;
-        case 'sphere':
-            geometry = new THREE.SphereGeometry(params.radius, params.widthSegments, params.heightSegments, params.phiStart, params.phiLength, params.thetaStart, params.thetaLength);
-            break;
-        case 'tetrahedron':
-            geometry = new THREE.TetrahedronGeometry(params.radius, params.detail);
-            break;
-        case 'torus':
-            geometry = new THREE.TorusGeometry(params.radius, params.tube, params.radialSegments, params.tubularSegments, params.arc);
-            break;
-        default:
-            console.error('Shape not supported:', shape);
-            return null; // Ritorna null o gestisci l'errore in altro modo
+    try {
+        let geometry;
+        let shape = style.shape
+        let params = style.params
+
+        switch (shape) {
+            case 'box':
+                geometry = new THREE.BoxGeometry(params.width, params.height, params.depth, params.widthSegments, params.heightSegments, params.depthSegments);
+                break;
+            case 'capsule':
+                geometry = new THREE.CapsuleGeometry(params.radius, params.lenght, params.capSegment, params.radialSegment)
+                break
+            case 'cone':
+                geometry = new THREE.ConeGeometry(params.radius, params.height, params.radialSegments, params.heightSegments, params.openEnded, params.thetaStart, params.thetaLength)
+                break
+            case 'cylinder':
+                geometry = new THREE.CylinderGeometry(params.radiusTop, params.radiusBottom, params.height, params.radialSegments, params.heightSegments, params.openEnded, params.thetaStart, params.thetaLength);
+                break;
+            case 'dodecahedron':
+                geometry = new THREE.DodecahedronGeometry(params.radius, params.detail);
+                break;
+            case 'icosahedron':
+                geometry = new THREE.IcosahedronGeometry(params.radius, params.detail);
+                break;
+            case 'lathe':
+                geometry = new THREE.LatheGeometry(params.points, params.segments, params.phiStart, params.phiLength);
+                break;
+            case 'octahedron':
+                geometry = new THREE.OctahedronGeometry(params.radius, params.detail);
+                break;
+            case 'sphere':
+                geometry = new THREE.SphereGeometry(params.radius, params.widthSegments, params.heightSegments, params.phiStart, params.phiLength, params.thetaStart, params.thetaLength);
+                break;
+            case 'tetrahedron':
+                geometry = new THREE.TetrahedronGeometry(params.radius, params.detail);
+                break;
+            case 'torus':
+                geometry = new THREE.TorusGeometry(params.radius, params.tube, params.radialSegments, params.tubularSegments, params.arc);
+                break;
+            default:
+                console.error('Shape not supported:', shape);
+                geometry = new THREE.BoxGeometry(0.1, 0.1, 0.1)
+        }
+
+        let color = style.color || 0x000000 
+        const material = new THREE.MeshBasicMaterial( { color: color, transparent: true, opacity: 1 } );
+        graphic = new THREE.Mesh( geometry, material );
+
+    } catch (error) {
+        let geometry = new THREE.BoxGeometry(0, 0, 0)
+        const material = new THREE.MeshBasicMaterial( { color: 0x000000, transparent: true, opacity: 0 } );
+        graphic = new THREE.Mesh( geometry, material );
     }
-
-    let color = style.color 
-    const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
-    const graphic = new THREE.Mesh( geometry, material );
+    
 
     return graphic
 }
@@ -500,7 +514,8 @@ class Entity extends onGrid {
         let graphic = createGraphic(metadata.style);
         scene.add( graphic );
 
-        super(graphic, x, y, 'ciao')
+        if(metadata.label)super(graphic, x, y, 'ciao')
+        else  super(graphic, x, y, false)
 
         this.id = id
 
@@ -569,14 +584,14 @@ class Agent extends onGrid {
         this.text = this.#name+'\n'+this.#score;
     }
 
-    constructor (id, name, x, y, type, metadata, score) {
+    constructor (id, name, x, y, type, metadata) {
         let graphic = createGraphic(metadata.style);
-        scene.add( graphic );
+        if(graphic) scene.add( graphic );
 
-        super(graphic, x, y, id+'\n'+score)
+        super(graphic, x, y, metadata.label)
 
         this.id = id
-        this.score = score
+        this.score = metadata.score || 0
         this.name = name
     }
 
@@ -597,10 +612,10 @@ const agents = new Map();
  * @param {*} score 
  * @returns {Agent}
  */
-function getOrCreateAgent ( id, name='unknown', x=-1, y=-1, type, metadata, score=-1 ) {
+function getOrCreateAgent ( id, name='unknown', x=-1, y=-1, type, metadata ) {
     var agent = agents.get(id);
     if ( !agent ) {
-        agent = new Agent(id, name, x, y, type, metadata, score);
+        agent = new Agent(id, name, x, y, type, metadata);
         agents.set( id, agent );
     }
     return agent;
@@ -674,11 +689,19 @@ function checkCookieForToken ( name ) {
 
 let params = (new URL(document.location)).searchParams;
 let name = params.get("name");
+let agentType = params.get("agentType");
 
 // Redirect if no name specified in query
 if ( !name ) {
     name = prompt("Enter your name:", "");
     params.set( "name", name )
+    document.location.search = params.toString(); //document.location.href
+}
+
+// Redirect if no agentType specified in query
+if ( !agentType ) {
+    agentType = prompt("Enter your agentType:", "");
+    params.set( "agentType", agentType )
     document.location.search = params.toString(); //document.location.href
 }
 
@@ -692,6 +715,7 @@ var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
     },
     query: {
         name: params.get("name"),
+        agentType: params.get("agentType"),
     }
 } );
 
@@ -788,9 +812,9 @@ socket.on( "config", ( config ) => {
     CONFIG = config;
 } )
 
-socket.on( "you", ( {id, name, x, y, type, metadata, score} ) => {
+socket.on( "you", ( {id, name, x, y, type, metadata} ) => {
 
-    console.log( "you", {id, name, x, y, type, metadata, score} )
+    console.log( "you", {id, name, x, y, type, metadata} )
     document.getElementById('agent.id').textContent = `agent.id ${id}`;
     document.getElementById('agent.name').textContent = `agent.name ${name}`;
     document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
@@ -804,7 +828,7 @@ socket.on( "you", ( {id, name, x, y, type, metadata, score} ) => {
     //     document.location.search = params.toString();
     // }
 
-    me = getOrCreateAgent(id, name, x, y, type, metadata, score);
+    me = getOrCreateAgent(id, name, x, y, type, metadata);
 
     /**
      * Auto-follow camera
@@ -817,7 +841,7 @@ socket.on( "you", ( {id, name, x, y, type, metadata, score} ) => {
     // Me
     me.x = x
     me.y = y
-    me.score = score
+    me.score = metadata.score
 
     // when arrived
     if ( x % 1 == 0 && y % 1 == 0 ) {
@@ -853,13 +877,13 @@ socket.on("agents sensing", (sensed) => {
 
     for ( const sensed_p of sensed ) {
         const {id, name, x, y, type, metadata, score} = sensed_p;
-        var agent = getOrCreateAgent(id, name, x, y, type, metadata, score)
+        var agent = getOrCreateAgent(id, name, x, y, type, metadata)
         agent.name = name;
         agent.opacity = 1;
         agent.x = x;
         agent.y = y;
-        if ( agent.score != score ) {
-            agent.score = score;
+        if ( agent.score != metadata.score ) {
+            agent.score = metadata.score;
             updateLeaderboard( agent );
         }
     }

@@ -2,10 +2,11 @@ const config = {
 
     MAP_FILE: 'default_map',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
 
-    ENTITIES: ['Parcel'],
-    AGENTS: [],
+    ENTITIES: ['Parcel','Obstacle'],
+    AGENTS: ['God','Jumper'],
     AGENTSCONTROLLER: {
-        Agent: 'Controller'
+        Agent: 'Controller',
+        God: 'Controller',
     },
 
     PARCEL_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'

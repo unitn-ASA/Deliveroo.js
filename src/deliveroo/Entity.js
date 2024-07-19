@@ -2,31 +2,36 @@ const Xy =  require('./Xy')
 
 class Entity extends Xy {
 
+    static #lastId = 0;
+
     id
     #grid
 
-    constructor (id, x, y, type, grid ) {
+    constructor (x, y, type, grid ) {
         super(x, y, type);
-        this.id = id;
+        
+        this.id = 'e' + Entity.#lastId++;
         this.#grid = grid
-        this.#grid.createEntity(this);
+        this.#grid.addEntity(this)
+        this.#grid.postponeAtNextFrame( this.#grid.emit.bind(this.#grid) )('update',this)
     }
 
     delete(){
-        this.#grid.deleteEntity(this.id)
+        this.#grid.removeEntity(this.id)
+        this.#grid.postponeAtNextFrame( this.#grid.emit.bind(this.#grid) )('update',this)
     }
 
-    /* overide the emit method in order to catch all the event emited by the subclass and propagate all them with only one event: 'update-entity'. 
-    In this way the grid is able to capture all the events emitted by all the Entities and propagate them in turn towards the client*/
-    emit(event, ...args) {
-        //console.log(event + " emitted")
-        super.emit(event,...args)
-        if (event != 'update-entity') {
-            super.emit('update-entity');
-        }
+    get(property){
+        return  this.metadata[property]
     }
     
-
+    set(property, value){
+        //console.log('SET ', property , value)
+        this.metadata[property] = value
+        //emit only one time at the end of the frame the update event
+        this.#grid.postponeAtNextFrame( this.#grid.emit.bind(this.#grid) )('update',this)
+    }
+    
 }
 
 module.exports = Entity;

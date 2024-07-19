@@ -10,59 +10,30 @@ const PARCEL_DECADING_INTERVAL = process.env.PARCEL_DECADING_INTERVAL || config.
 
 
 class Parcel extends Entity {
-    
-    static #lastId = 0;
-    
-    // #grid;
-    reward;
-    carriedBy;
-    
+            
     /**
      * @constructor Parcel
      */
-    constructor (tile, grid, carriedBy = null, reward ) {
-
-        let id = 'p' + Parcel.#lastId++;
+    constructor (tile, grid, carriedBy = null, reward ) { 
+        
+        super(tile.x, tile.y, 'parcel', grid);
 
         let color =  Math.random() * 0xffffff ;
-        let style = {shape:'box', params:{width:0.5, height: 0.5, depth:0.5}, color: color}     
-        
-        super(id, tile.x, tile.y, 'parcel', grid);
+        let style = {shape:'box', params:{width:0.5, height: 0.5, depth:0.5}, color: color}  
 
-        this.metadata.style = style;
+        this.set('style', style)
+        this.set('cariedBy', carriedBy)
 
-        this.carriedBy = carriedBy;
-        this.interceptValueSet('carriedBy');
-
-        // Follow carrier
-        var lastCarrier = null;
-        const followCarrier = (agent) => {
-            this.x = agent.x;
-            this.y = agent.y;
-        }
-        this.on( 'carriedBy', (parcel) => {
-            if ( lastCarrier ){
-                lastCarrier.off( 'xy', followCarrier )
-                this.metadata.carriedBy = false 
-            }
-
-            if ( this.carriedBy ){
-                this.carriedBy.on( 'xy', followCarrier )
-                this.metadata.carriedBy = this.carriedBy.id
-            }
-
-            lastCarrier = this.carriedBy;
-        } )      
-
-        this.interceptValueSet('reward');
-        this.reward = reward || Math.floor( Math.random()*PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
-        this.metadata.label = this.reward;
+        let rewardParcel = reward || Math.floor( Math.random() * PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
+        this.set('reward', rewardParcel)
+        this.set('label', rewardParcel)
 
         const decay = () => {
-            this.reward = Math.floor( this.reward - 1 );
-            this.metadata.label = this.reward;
-            if ( this.reward <= 0) {
-                this.emitOnePerTick( 'expired', this );
+            let rewardParcel = Math.floor( this.get('reward') - 1 );
+            this.set('reward', rewardParcel)  
+            this.set('label', rewardParcel)
+            if ( rewardParcel <= 0) {
+                this.delete()
                 myClock.off( PARCEL_DECADING_INTERVAL, decay );
             }
         };
@@ -70,10 +41,16 @@ class Parcel extends Entity {
         
     }
 
+    followCarrier = (agent) => {
+        this.x = agent.x;
+        this.y = agent.y;
+    }
+
     // implement the event when a parcel is picked up. 
     pickedUp(agent){
-        if ( this.carriedBy == null ) {
-            this.carriedBy = agent;
+        if ( this.get('carriedBy') == null ) {
+            this.set('carriedBy', agent.id)
+            agent.on( 'xy', this.followCarrier )
             return true;
         }
         return false;
@@ -81,10 +58,11 @@ class Parcel extends Entity {
 
     putDown(agent, tile){
         
-        agent.carriedBy = null;
+        this.set('carriedBy', null)
+        agent.off('xy', this.followCarrier)
         
         if ( tile.delivery ) {
-            agent.scoring(this.reward)   
+            agent.scoring(this.get('reward'))   
             this.delete();
         }
 
