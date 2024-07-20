@@ -35,6 +35,7 @@ const Grid =  require('./Grid')
 
         this.#grid = grid;
         this.#blocked = blocked;
+        this.#locked = false
         this.#delivery = delivery;
         this.#spawner = spawner;
     }

@@ -26,37 +26,19 @@ class Agent extends Xy {
      * @param {Grid} grid
      * @param {{id:number,name:string}} options
      */
-    constructor ( grid, options, type = 'agent' ) {
+    constructor ( grid, id, name, tile, type = 'agent') {
         
-        {
-            let tiles_unlocked =
-                Array.from( grid.getTiles() )
-                // not locked
-                .filter( t => ! t.blocked )
-                // not locked
-                .filter( t => ! t.locked )
-
-                
-            if ( tiles_unlocked.length == 0 )
-                throw new Error('No unlocked tiles available on the grid')
-
-            let i = Math.floor( Math.random() * tiles_unlocked.length - 1 )
-            let tile = tiles_unlocked.at( i )
-            let x = tile.x, y = tile.y;
-
-            super(x, y, type);
-  
-        }
+        super(tile.x, tile.y, type);
 
         this.grid = grid;
-        this.id = options.id || 'a' + Agent.#lastId++;
+        this.id = id || 'a' + Agent.#lastId++;
 
         let color =  Math.random() * 0xffffff ;
         let style = {shape:'cone', params:{radius:0.5, height: 1, radialSegments:32}, color: color }  
         
-        this.set('name', options.name || this.id )
+        this.set('name', name || this.id )
         this.set('style', style)
-        this.set('label', this.id+'/n'+this.score)
+        this.set('label', this.id )
         this.set('agents_observation_distance', AGENTS_OBSERVATION_DISTANCE)  
         this.set('entities_observation_distance', ENTITIES_OBSERVATION_DISTANCE)  
        
@@ -70,7 +52,7 @@ class Agent extends Xy {
         this.on('putdown', this.emitOnePerTick.bind(this, 'agent') );
         */
 
-        this.on('xy', () => this.emitOnePerTick('update', this) );
+        this.on('xy', () => this.emitOnePerFrame('update', this) );
         
         // initialize the agent with the event of the grid 
         this.grid.addAgent(this);
@@ -78,14 +60,20 @@ class Agent extends Xy {
     }   
 
     get(property){
-        return  this.metadata[property]
+        return this.metadata[property]
     }
     
     set(property, value){
         //console.log('SET ', property , value)
         this.metadata[property] = value
         //emit only one time at the end of the frame the update event
-        this.postponeAtNextFrame( this.emit.bind(this) )('update', this)
+        this.emitOnePerFrame('update', this)
+    }
+
+    remove(property){
+        if (this.metadata.hasOwnProperty(property)) {
+            delete this.metadata[property];
+        }
     }
 
     delete(){

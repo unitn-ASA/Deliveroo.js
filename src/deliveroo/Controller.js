@@ -1,6 +1,6 @@
-const myClock = require('../../deliveroo/Clock');
-const Entity = require('../../deliveroo/Entity');
-const config =  require('../../../config');
+const myClock = require('./Clock');
+const Entity = require('./Entity');
+const config =  require('../../config');
 
 const MOVEMENT_STEPS = process.env.MOVEMENT_STEPS || config.MOVEMENT_STEPS || 1;
 const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
@@ -8,11 +8,11 @@ const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURAT
 class Controller {
 
     subject;
-    #grid; 
+    grid; 
 
     constructor(subject, grid){
         this.subject = subject
-        this.#grid = grid
+        this.grid = grid
 
         //set the new attribute of the default Agent
         if(!this.subject.get('score'))              this.subject.set('score', 0 )
@@ -124,15 +124,15 @@ class Controller {
         await myClock.synch();
         this.subject.set('moving', false)
 
-        let fromTile = this.#grid.getTile( Math.round(this.subject.x), Math.round(this.subject.y) )
+        let fromTile = this.grid.getTile( Math.round(this.subject.x), Math.round(this.subject.y) )
        
         // get the end tile of the move 
-        let toTile = this.#grid.getTile( this.subject.x + incr_x, this.subject.y + incr_y );
+        let toTile = this.grid.getTile( this.subject.x + incr_x, this.subject.y + incr_y );
 
-        if(!toTile){ return }               // if the agent try to move to a Tile that not exist return the motion
+        if(!toTile){ return false}               // if the agent try to move to a Tile that not exist return the motion
         
         let tilefree = await toTile.lock(); // try lo lock the tile 
-        if(!tilefree){ return}              // if the toTile is already locked stop the motion
+        if(!tilefree){ return false}              // if the toTile is already locked stop the motion
         
         // The standard agent cen move to a tile if it is not blocked 
         if (!toTile.blocked) {

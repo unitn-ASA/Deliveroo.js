@@ -51,14 +51,31 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
     var me = grid.getAgent(id);
 
     if (!me) {
+
+        let tiles_unlocked =
+        Array.from( grid.getTiles() )
+        // not locked
+        .filter( t => ! t.blocked )
+        // not locked
+        .filter( t => ! t.locked )
+
+                
+        if ( tiles_unlocked.length == 0 )
+            throw new Error('No unlocked tiles available on the grid')
+
+        let i = Math.floor( Math.random() * tiles_unlocked.length - 1 )
+        let tile = tiles_unlocked.at( i )
+
         // try to load the requested agent type, if it is not found generate a default Agent
         const AgentClass = agentClasses[agentType.toLowerCase()];
         if (!AgentClass) {
             console.error(`Class for agent type ${agentType} not found; default agent created`);
-            me = new Agent(grid, {id, name});
+            me = new Agent(grid, id, name, tile);
         } else {
-            me = new AgentClass(grid, {id, name});
+            me = new AgentClass(grid, id, name, tile);
         }
+
+        tile.lock()
 
         entry.agent = me
     }

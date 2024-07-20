@@ -700,7 +700,7 @@ if ( !name ) {
 
 // Redirect if no agentType specified in query
 if ( !agentType ) {
-    agentType = prompt("Enter your agentType:", "");
+    agentType = prompt("Enter your agentType:", "default");
     params.set( "agentType", agentType )
     document.location.search = params.toString(); //document.location.href
 }
@@ -801,15 +801,16 @@ socket.on( "path", (path) => {
     }
 });
 
+/*
 var AGENTS_OBSERVATION_DISTANCE = 5;
 var PARCELS_OBSERVATION_DISTANCE = 5;
 var CONFIG;
-
+*/
 socket.on( "config", ( config ) => {
     document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
-    AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
-    PARCELS_OBSERVATION_DISTANCE = config.PARCELS_OBSERVATION_DISTANCE;
-    CONFIG = config;
+    //AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
+    //PARCELS_OBSERVATION_DISTANCE = config.PARCELS_OBSERVATION_DISTANCE;
+    //CONFIG = config;
 } )
 
 socket.on( "you", ( {id, x, y, type, metadata} ) => {
@@ -848,8 +849,8 @@ socket.on( "you", ( {id, x, y, type, metadata} ) => {
         for ( var tile of tiles.values() ) {
             var distance = Math.abs(x-tile.x) + Math.abs(y-tile.y);
             let opacity = 0.1;
-            if ( !( distance >= PARCELS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
-            if ( !( distance >= AGENTS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
+            if ( !( distance >= metadata.entities_observation_distance) ) opacity += 0.2;
+            if ( !( distance >= metadata.agents_observation_distance) ) opacity += 0.2;
             tile.opacity = ( opacity > 0.4 ? 1 : opacity );
         }
     } else { // when moving

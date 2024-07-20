@@ -93,7 +93,6 @@ io.on('connection', (socket) => {
     me.emitAgentSensing();
     
 
-
     /**
      * Actions
      */

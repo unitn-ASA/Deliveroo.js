@@ -5,20 +5,20 @@ class Entity extends Xy {
     static #lastId = 0;
 
     id
-    #grid
+    grid
 
     constructor (x, y, type, grid ) {
         super(x, y, type);
         
         this.id = 'e' + Entity.#lastId++;
-        this.#grid = grid
-        this.#grid.addEntity(this)
-        this.#grid.postponeAtNextFrame( this.#grid.emit.bind(this.#grid) )('update',this)
+        this.grid = grid
+        this.grid.addEntity(this)
+        this.grid.postponeAtNextFrame( this.grid.emit.bind(this.grid) )('update',this)
     }
 
     delete(){
-        this.#grid.removeEntity(this.id)
-        this.#grid.postponeAtNextFrame( this.#grid.emit.bind(this.#grid) )('update',this)
+        this.grid.removeEntity(this.id)
+        this.grid.postponeAtNextFrame( this.grid.emit.bind(this.grid) )('update',this)
     }
 
     get(property){
@@ -29,7 +29,7 @@ class Entity extends Xy {
         //console.log('SET ', property , value)
         this.metadata[property] = value
         //emit only one time at the end of the frame the update event
-        this.#grid.postponeAtNextFrame( this.#grid.emit.bind(this.#grid) )('update',this)
+        this.grid.postponeAtNextFrame( this.grid.emit.bind(this.grid) )('update',this)
     }
     
 }
