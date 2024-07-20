@@ -22,7 +22,7 @@ function init(newGrid) {
 
     agentClassesList.forEach(agentName => {
         try {
-            agentClasses[agentName] = require(`../extensions/entities/${agentName}`);
+            agentClasses[agentName.toLowerCase()] = require(`../extensions/agents/${agentName}`);
         } catch (error) {
             console.error(`Class ${agentName} not founded`);
         }
@@ -30,7 +30,7 @@ function init(newGrid) {
 }
 
 /**
- * @type {Map<string,{score:int,sockets:Set<Socket>}>} idToAgentAndSockets
+ * @type {Map<string,{agent:Object ,sockets:Set<Socket>}>} idToAgentAndSockets
  */
 const idToAgentAndSockets = new Map();
 
@@ -40,7 +40,7 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
     // Get or create entry for id
     var entry = db.get(id);
     if (!entry) {
-        db.set(id, { score: 0, sockets: new Set() });
+        db.set(id, { agent: null, sockets: new Set() });
         entry = db.get(id);
     }
 
@@ -52,7 +52,7 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
 
     if (!me) {
         // try to load the requested agent type, if it is not found generate a default Agent
-        const AgentClass = agentClasses[agentType];
+        const AgentClass = agentClasses[agentType.toLowerCase()];
         if (!AgentClass) {
             console.error(`Class for agent type ${agentType} not found; default agent created`);
             me = new Agent(grid, {id, name});
@@ -60,9 +60,7 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
             me = new AgentClass(grid, {id, name});
         }
 
-        me.score = db.get(id).score;
-        me.on('score', () => entry.score = me.score);
-
+        entry.agent = me
     }
 
     return me; // Return agent given the specified id
@@ -72,7 +70,7 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
 function authenticate(socket) {
     var id;
     var name;
-    var agentType = null;
+    var agentType;
     var token = socket.handshake.headers['x-token'];
 
     // No token provided, generate new one
@@ -83,18 +81,18 @@ function authenticate(socket) {
 
         token = jwt.sign({ id, name, agentType }, SUPER_SECRET);
         socket.emit('token', token);
-        console.log(`Socket ${socket.id} connected as ${name}(${id}). New token created: ...${token.slice(-30)}`);
+        console.log(`Socket ${socket.id} connected as ${name}(${id},${agentType}). New token created: ...${token.slice(-30)}`);
     }
     // Token provided
     else {
         try {
             // Verify and decode payload
             const decoded = jwt.verify(token, SUPER_SECRET);
-            if (decoded.id && decoded.name) {
+            if (decoded.id && decoded.name && decoded.agentType) {
                 id = decoded.id;
                 name = decoded.name;
                 agentType = decoded.agentType;
-                console.log(`Socket ${socket.id} connected as ${name}(${id}). With token: ...${token.slice(-30)}`);
+                console.log(`Socket ${socket.id} connected as ${name}(${id},${agentType}). With token: ...${token.slice(-30)}`);
             } else {
                 throw `Socket ${socket.id} log in failure. Token is verified but id or name are missing.`;
             }
@@ -121,7 +119,7 @@ function authenticate(socket) {
             new Promise(res => setTimeout(res, AGENT_TIMEOUT)).then(() => {
                 if (tokenToSockets.get(id) && tokenToSockets.get(id).sockets.size == 0) {
                     console.log(`Agent ${me.name}(${me.id}) deleted after 10 seconds of no connections from token ...${token.slice(-30)}`);
-                    grid.deleteAgent(me);
+                    me.delete();
                 }
             });
         }

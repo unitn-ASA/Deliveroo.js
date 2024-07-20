@@ -3,10 +3,9 @@ const config = {
     MAP_FILE: 'default_map',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
 
     ENTITIES: ['Parcel','Obstacle'],
-    AGENTS: ['God','Jumper'],
+    AGENTS: [],
     AGENTSCONTROLLER: {
         Agent: 'Controller',
-        God: 'Controller',
     },
 
     PARCEL_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
@@ -17,7 +16,7 @@ const config = {
     MOVEMENT_STEPS: 1,                  // default is 1
     MOVEMENT_DURATION: 50,              // default is 500
     AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5, supports 'infinite'
-    PARCELS_OBSERVATION_DISTANCE: 5,    // default is 5, supports 'infinite' 
+    ENTITIES_OBSERVATION_DISTANCE: 5,    // default is 5, supports 'infinite' 
     AGENT_TIMEOUT: 10000,               // default is 10000
 
     PARCEL_REWARD_AVG: 30,          // default is 30

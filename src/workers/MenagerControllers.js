@@ -5,8 +5,12 @@ const config =  require('../../config');
 var controllerClasses = {};
 var mapControllerAgent = {};
 
+// Holds the grid
+var grid;
+
 // the initialization focus on the dynamic load of the different controller classes
-function init() {
+function init(newGrid) {
+  grid = newGrid;
   mapControllerAgent = process.env.AGENTSCONTROLLER || config.AGENTSCONTROLLER;
 
   // Dynamically load agent classes
@@ -27,7 +31,7 @@ function getController(agent){
   
   if (controllerName && controllerClasses[controllerName]) {
     let ControllerClass = controllerClasses[controllerName]
-    let controller = new ControllerClass(agent)
+    let controller = new ControllerClass(agent,grid)
     return controller
   } else {
     console.error(`Controller for type ${agent.constructor.name} not found`);

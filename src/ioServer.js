@@ -66,21 +66,18 @@ io.on('connection', (socket) => {
     /**
      * Emit me
      */
-
     // Emit you
-    me.on( 'agent', ({id, name, x, y, type, metadata, score}) => {
-        //console.log( 'emit you', id, name, x, y, type, metadata, score );
-        socket.emit( 'you', {id, name, x, y, type, metadata, score} );
+    me.on( 'update', ({id, x, y, type, metadata}) => {
+        //console.log( 'emit you', id, x, y, type, metadata );
+        socket.emit( 'you', {id, x, y, type, metadata} );
     } );
     // console.log( 'emit you', id, name, x, y, score );
     socket.emit( 'you', me );
     
 
-
     /**
      * Emit sensing
      */
-
     // Entities
     me.on( 'entities sensing', (entities) => {
         //console.log('emit entities sensing', ...entities);
@@ -90,7 +87,7 @@ io.on('connection', (socket) => {
 
     // Agents
     me.on( 'agents sensing', (agents) => {
-        //console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
+        //console.log('emit agents sensing', ...agents); // {id, x, y, type, metadata}
         socket.emit( 'agents sensing', agents );
     } );
     me.emitAgentSensing();
@@ -101,133 +98,163 @@ io.on('connection', (socket) => {
      * Actions
      */
     socket.on('up', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'up');
         try {
-            const moving = controller.up();
+            const action = await controller.up();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('down', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'down');
         try {
-            const moving = controller.down();
+            const action = await controller.down();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('left', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'left');
         try {
-            const moving = controller.left();
+            const action = await controller.left();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('right', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'right');
         try {
-            const moving = controller.right();
+            const action = await controller.right();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('jump', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'jump');
         try {
-            const moving = controller.jump();
+            const action = await controller.jump();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('pickup', async (acknowledgementCallback) => {
-        const picked = await controller.pickUp()
-        if ( acknowledgementCallback )
-            try {
-                acknowledgementCallback( picked )
-            } catch (error) { console.error(error) }
+        try {
+            const action = await controller.pickUp()
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('putdown', async (acknowledgementCallback) => {
-        const dropped = await controller.putDown()
-        if ( acknowledgementCallback )
-            try {
-                acknowledgementCallback( dropped )
-            } catch (error) { console.error(error) }
+        try {
+            const action = await controller.putDown()
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('shift-up', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'shift-up');
         try {
-            const moving = controller.shiftUp();
+            const action = await controller.shiftUp();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('shift-down', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'shift-down');
         try {
-            const moving = controller.shiftDown();
+            const action = controller.shiftDown();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('shift-left', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'shift-left');
         try {
-            const moving = controller.shiftLeft();
+            const action = controller.shiftLeft();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('shift-right', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'shift-right');
         try {
-            const moving = controller.shiftRight();
+            const action = controller.shiftRight();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('shift-jump', async (acknowledgementCallback) => {
-        // console.log(me.id, me.x, me.y, 'shift-jump');
         try {
-            const moving = controller.shiftJump();
+            const action = controller.shiftJump();
             if ( acknowledgementCallback )
-                acknowledgementCallback( await moving ); 
-        } catch (error) { console.error(error) }
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('shift-pickup', async (acknowledgementCallback) => {
-        const picked = await controller.shiftPickUp()
-        if ( acknowledgementCallback )
-            try {
-                acknowledgementCallback( picked )
-            } catch (error) { console.error(error) }
+        try {
+            const action = await controller.shiftPickUp()
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
     socket.on('shift-putdown', async (acknowledgementCallback) => {
-        const dropped = await controller.shiftPutDown()
-        if ( acknowledgementCallback )
-            try {
-                acknowledgementCallback( dropped )
-            } catch (error) { console.error(error) }
+        try {
+            const action = await controller.shiftPutDown()
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
-    socket.on( 'click', async (x, y) => {
-        controller.click(x,y)
+    socket.on( 'click', async (x, y, acknowledgementCallback) => {
+        try {
+            const action = await controller.controller.click(x,y)
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
-    socket.on( 'shift-click', async (x, y) => {
-        controller.shiftClick(x,y)
+    socket.on( 'shift-click', async (x, y, acknowledgementCallback) => {
+        try {
+            const action = await controller.shiftClick(x,y)
+            if ( acknowledgementCallback )
+                acknowledgementCallback( await action ); 
+        } catch (error) { 
+            //console.error(error) 
+        }
     });
 
 
@@ -318,7 +345,7 @@ io.on('connection', (socket) => {
 
     /**
      * GOD mod
-     */
+     
     if ( me.name == 'god' ) {
 
         socket.on( 'create parcel', async (x, y) => {
@@ -358,6 +385,7 @@ io.on('connection', (socket) => {
         } );
 
     }
+    */
 
     socket.on( 'draw', async (bufferPng) => {
         // console.log( 'draw' );

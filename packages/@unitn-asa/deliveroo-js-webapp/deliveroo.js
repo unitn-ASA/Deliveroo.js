@@ -584,7 +584,7 @@ class Agent extends onGrid {
         this.text = this.#name+'\n'+this.#score;
     }
 
-    constructor (id, name, x, y, type, metadata) {
+    constructor (id, x, y, type, metadata) {
         let graphic = createGraphic(metadata.style);
         if(graphic) scene.add( graphic );
 
@@ -592,7 +592,7 @@ class Agent extends onGrid {
 
         this.id = id
         this.score = metadata.score || 0
-        this.name = name
+        this.name = metadata.name || 'undefined'
     }
 
 }
@@ -612,10 +612,10 @@ const agents = new Map();
  * @param {*} score 
  * @returns {Agent}
  */
-function getOrCreateAgent ( id, name='unknown', x=-1, y=-1, type, metadata ) {
+function getOrCreateAgent ( id, x=-1, y=-1, type, metadata ) {
     var agent = agents.get(id);
     if ( !agent ) {
-        agent = new Agent(id, name, x, y, type, metadata);
+        agent = new Agent(id, x, y, type, metadata);
         agents.set( id, agent );
     }
     return agent;
@@ -812,9 +812,9 @@ socket.on( "config", ( config ) => {
     CONFIG = config;
 } )
 
-socket.on( "you", ( {id, name, x, y, type, metadata} ) => {
+socket.on( "you", ( {id, x, y, type, metadata} ) => {
 
-    console.log( "you", {id, name, x, y, type, metadata} )
+    console.log( "you", {id, x, y, type, metadata} )
     document.getElementById('agent.id').textContent = `agent.id ${id}`;
     document.getElementById('agent.name').textContent = `agent.name ${name}`;
     document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
@@ -828,7 +828,7 @@ socket.on( "you", ( {id, name, x, y, type, metadata} ) => {
     //     document.location.search = params.toString();
     // }
 
-    me = getOrCreateAgent(id, name, x, y, type, metadata);
+    me = getOrCreateAgent(id, x, y, type, metadata);
 
     /**
      * Auto-follow camera
@@ -876,8 +876,8 @@ socket.on("agents sensing", (sensed) => {
     }
 
     for ( const sensed_p of sensed ) {
-        const {id, name, x, y, type, metadata, score} = sensed_p;
-        var agent = getOrCreateAgent(id, name, x, y, type, metadata)
+        const {id, x, y, type, metadata} = sensed_p;
+        var agent = getOrCreateAgent(id, x, y, type, metadata)
         agent.name = name;
         agent.opacity = 1;
         agent.x = x;

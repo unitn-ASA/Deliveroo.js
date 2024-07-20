@@ -98,19 +98,16 @@ class Grid extends Observable {
     /**
      * @type {function(agent:Agent}
      */
-    createAgent ( agent ) { 
-        // Instantiate
-        this.emit( 'agent created', agent );
-
+    addAgent ( agent ) { 
         // Register
         this.#agents.set(agent.id, agent);
 
         // Grid scoped events propagation
-        agent.on( 'agent', this.emit.bind(this, 'agent') );
-        
+        agent.on( 'update', this.emit.bind(this, 'agent') );
+
         // On mine or others movement emit SensendAgents
         this.on( 'agent', ( who ) => {
-            if ( agent.id == who.id || !( Xy.distance(agent, who) > agent.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+            if ( agent.id == who.id || !( Xy.distance(agent, who) > agent.get('agents_observation_distance') ) ) {
                 agent.emitAgentSensing()
             }
         } )
@@ -126,16 +123,7 @@ class Grid extends Observable {
      * @param {Agent} agent 
      */
     deleteAgent ( agent ) {
-        if ( agent.tile )
-            agent.tile.unlock();
-        agent.putDown();
-        agent.x = undefined;
-        agent.y = undefined;
-        agent.removeAllListeners('xy');
-        agent.removeAllListeners('score');
-        agent.removeAllListeners('agent');
-        agent.removeAllListeners('agents sensing');
-        agent.removeAllListeners('parcels sensing');
+        
         this.#agents.delete( agent.id );
         this.emit( 'agent deleted', agent );
     }

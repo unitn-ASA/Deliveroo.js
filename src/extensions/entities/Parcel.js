@@ -8,7 +8,6 @@ const PARCEL_REWARD_VARIANCE = process.env.PARCEL_REWARD_VARIANCE ?? config.PARC
 const PARCEL_DECADING_INTERVAL = process.env.PARCEL_DECADING_INTERVAL || config.PARCEL_DECADING_INTERVAL || 'infinite';
 
 
-
 class Parcel extends Entity {
             
     /**
@@ -61,8 +60,10 @@ class Parcel extends Entity {
         this.set('carriedBy', null)
         agent.off('xy', this.followCarrier)
         
-        if ( tile.delivery ) {
-            agent.scoring(this.get('reward'))   
+        if ( tile.delivery) {
+            try {   agent.scoring(this.get('reward'))  } 
+            catch (error) { /* console.log('agent has not the scoring ability ') */ }
+        
             this.delete();
         }
 

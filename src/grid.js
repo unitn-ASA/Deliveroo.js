@@ -13,7 +13,7 @@ const grid = new Grid( map );
 
 // Initialize menagerAgents and menagerControllers
 menagerAgents.init(grid);
-menagerControllers.init(); 
+menagerControllers.init(grid); 
 
 // Add managerAgents and menagerControllers to grid
 grid.menagerAgents = menagerAgents;
@@ -21,8 +21,9 @@ grid.menagerControllers = menagerControllers
 
 menagerEntities( grid );
 
+/*
 for (let i = 0; i < RANDOMLY_MOVING_AGENTS; i++) {
     randomlyMovingAgent( grid );
-}
+} */
 
 module.exports = grid;
