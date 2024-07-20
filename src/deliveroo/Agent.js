@@ -90,7 +90,7 @@ class Agent extends Xy {
 
     delete(){
         let tile = this.grid.getTile(Math.round(this.x), Math.round(this.y))
-        if(tile){   tile.unlock(); }
+        if(tile){ tile.unlock(); }
         
         //agent.putDown();
         this.x = undefined;
@@ -99,6 +99,8 @@ class Agent extends Xy {
         this.removeAllListeners('update');
         this.removeAllListeners('agents sensing');
         this.removeAllListeners('entities sensing');
+
+        this.grid.removeAgent(this)
     }
 
     /**
@@ -109,6 +111,7 @@ class Agent extends Xy {
         var agents = [];
         for ( let agent of this.grid.getAgents() ) {
             if ( agent != this && !( Xy.distance(agent, this) >= this.get('agents_observation_distance')) ) {
+                
                 const {id, x, y, type, metadata} = agent
                 agents.push( {id, x, y, type, metadata} )
             }

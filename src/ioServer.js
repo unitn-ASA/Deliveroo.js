@@ -87,7 +87,7 @@ io.on('connection', (socket) => {
 
     // Agents
     me.on( 'agents sensing', (agents) => {
-        //console.log('emit agents sensing', ...agents); // {id, x, y, type, metadata}
+        // console.log(me.get('name') + ' emit agents sensing', ...agents); // {id, x, y, type, metadata}
         socket.emit( 'agents sensing', agents );
     } );
     me.emitAgentSensing();

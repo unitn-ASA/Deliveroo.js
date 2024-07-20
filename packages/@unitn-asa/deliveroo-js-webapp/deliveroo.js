@@ -864,7 +864,7 @@ socket.on( "you", ( {id, x, y, type, metadata} ) => {
 
 socket.on("agents sensing", (sensed) => {
 
-    // console.log("agents sensing", ...sensed)//, sensed.length)
+    console.log("agents sensing", ...sensed)//, sensed.length)
 
     var sensed = Array.from(sensed)
     
@@ -878,7 +878,7 @@ socket.on("agents sensing", (sensed) => {
     for ( const sensed_p of sensed ) {
         const {id, x, y, type, metadata} = sensed_p;
         var agent = getOrCreateAgent(id, x, y, type, metadata)
-        agent.name = name;
+
         agent.opacity = 1;
         agent.x = x;
         agent.y = y;

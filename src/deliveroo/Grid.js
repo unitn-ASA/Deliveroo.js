@@ -122,8 +122,7 @@ class Grid extends Observable {
      * 
      * @param {Agent} agent 
      */
-    deleteAgent ( agent ) {
-        
+    removeAgent ( agent ) {
         this.#agents.delete( agent.id );
         this.emit( 'agent deleted', agent );
     }
