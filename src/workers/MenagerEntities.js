@@ -42,7 +42,7 @@ module.exports = function (grid) {
             let tiles_with_no_entities =
             Array.from(grid.getTiles())
             // entity spawner tile
-            .filter(t => t.spawner)
+            .filter(t => t.type == 'spawner')
             // no entities exist on the tile
             .filter(t =>
                 Array.from(grid.getEntities())
@@ -73,7 +73,7 @@ module.exports = function (grid) {
           let tiles_with_no_entities =
             Array.from(grid.getTiles())
             // entity spawner tile
-            .filter(t => t.spawner)
+            .filter(t => t.type == 'spawner')
             // no entities exists on the tile
             .filter(t =>
               Array.from(grid.getEntities())

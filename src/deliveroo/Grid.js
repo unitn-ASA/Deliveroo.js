@@ -3,7 +3,8 @@ const Tile =  require('./Tile')
 const Agent =  require('./Agent')
 const Entity = require('./Entity');
 const Xy = require('./Xy');
-const config =  require('../../config');
+const menagerTiles = require('../workers/MenagerTiles');
+
 
 
 
@@ -29,16 +30,8 @@ class Grid extends Observable {
         
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
-        this.#tiles = Array.from(map).map( (column, x) => {
-            return Array.from(column).map( (value, y) => new Tile(
-                this,       // grid
-                x, y,       // x, y
-                value == 0, // blocked
-                value == 2, // delivery // ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
-                value == 1  // spawner
-            ) )
-        } );
-        // console.log( this.#tiles.map( c=>c.map( t=>t.x+' '+t.y+' ' ) ) )
+        
+        this.#tiles = menagerTiles(map)
 
         this.#agents = new Map();
         this.#entities = new Map();
@@ -49,6 +42,7 @@ class Grid extends Observable {
      * @type {function():Generator<Tile, Tile, Tile>}
      */
     *getTiles ( [x1,x2,y1,y2]=[0,10000,0,10000] ) {
+        
         const xLength = ( this.#tiles.length ? this.#tiles.length : 0 );
         const yLength = ( this.#tiles.length && this.#tiles[0].length ? this.#tiles[0].length : 0 );
         x1 = Math.max(0,x1)
@@ -61,7 +55,8 @@ class Grid extends Observable {
                 var tile = this.#tiles.at(x).at(y);
                 if ( tile ) yield tile;
             }
-        // return Array.from(this.#tiles).flat();
+        
+        //return Array.from(this.#tiles);
     }
 
     getMapSize () {

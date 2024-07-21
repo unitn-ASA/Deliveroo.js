@@ -14,6 +14,10 @@ class ControllerGod extends Controller{
         if(this.subject.catchEntity)    delete this.subject.catchEntity
         if(this.subject.dropEntity)     delete this.subject.dropEntity
 
+        //unlock the spawner tile of the god
+        let tile = this.grid.getTile( this.subject.x, this.subject.y );
+        tile.unlock();
+
     }
 
     //Overide the move method, the god can move everywhere 

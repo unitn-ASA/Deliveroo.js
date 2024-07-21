@@ -352,7 +352,7 @@ class PathPoint {
 
 
 
-const tiles = new Map();
+var tiles = new Map();
 window.getMap = function () {
     const map = [];
     for ( let x=0; x<WIDTH; x++ ) {
@@ -448,53 +448,27 @@ function createGraphic(style) {
     return graphic
 }
 
+
 class Tile extends onGrid {
 
     pathPoint;
-
-    #delivery = false;
-    get delivery () {
-        return this.#delivery;
-    }
-    set delivery ( value ) {
-        this.#delivery = value;
-    }
-
-    #spawner = false;
-    get spawner () {
-        return this.#spawner;
-    }
-    set spawner ( value ) {
-        this.#spawner = value?true:false;
-    }
     
-    #blocked = false;
-    get blocked () {
-        return this.#blocked;
-    }
-    set blocked ( value ) {
-        this.#blocked = value;
-        
-    }
-    
-    constructor (x, y, type, metadata, delivery=false) {
+    constructor (x, y, type, metadata) {
         
         let graphic = createGraphic(metadata.style);
         scene.add( graphic );
 
         super(graphic, x, y);
         graphic.position.y = 0;
-        this.#delivery = delivery;
 
         this.pathPoint = new PathPoint(x, y);
     }
 
 }
 
-function setTile(x, y, type, metadata, delivery) {
+function setTile(x, y, type, metadata) {
     if ( !tiles.has(x + y*1000) )
-        tiles.set( x + y*1000, new Tile(x, y, type, metadata, delivery) );
-    return tiles.get( x + y*1000 );
+        tiles.set( x + y*1000, new Tile(x, y, type, metadata) );
 }
 
 function getTile(x, y, type, metadata) {
@@ -767,23 +741,17 @@ socket.on( 'draw', ( {src, timestamp, socket, id, name}, buffer ) => {
     
 } );
 
-socket.on( 'not_tile', (x, y, type, metadata) => {
-    console.log( 'not_tile', x, y, type, metadata )
-    getTile(x, y, type, metadata).blocked = true;
-});
-
-socket.on( "tile", (x, y, type, metadata, delivery, spawner) => {
+socket.on( "tile", (x, y, type, metadata) => {
     console.log( "tile", x, y, type, metadata )
-    getTile(x, y, type, metadata).delivery = delivery;
-    getTile(x, y, type, metadata).blocked = false;
-    getTile(x, y, type, metadata).spawner = spawner;
 });
 
 var WIDTH;
 var HEIGHT;
-socket.on( "map", (width, height, tiles) => {
+socket.on( "map", (width, height, getTiles) => {
+    console.log('MAP', getTiles)
     WIDTH = width
     HEIGHT = height
+    getTiles.forEach(t => setTile(t.x, t.y, t.type, t.metadata))
 });
 
 socket.on( "msg", ( id, name, msg, reply ) => {

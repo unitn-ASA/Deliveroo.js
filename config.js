@@ -8,6 +8,11 @@ const config = {
         Agent: 'Controller',
         God: 'ControllerGod'
     },
+    TILETYPEMAP:{
+        0: 'Hole',  
+        1: 'Spawner',  
+        2: 'Delivery'  
+    },
 
     PARCEL_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
     PARCEL_MAX: '5',                  // 'infinite' (DEFAULT)

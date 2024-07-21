@@ -131,11 +131,14 @@ class Controller {
 
         if(!toTile){ return false}               // if the agent try to move to a Tile that not exist return the motion
         
-        let tilefree = await toTile.lock(); // try lo lock the tile 
-        if(!tilefree){ return false}              // if the toTile is already locked stop the motion
+        
         
         // The standard agent cen move to a tile if it is not blocked 
-        if (!toTile.blocked) {
+        if (!toTile.locked) {
+
+            let tilefree = await toTile.lock();       // try lo lock the tile 
+            if(!tilefree){ return false}              // if the toTile is already locked stop the motion
+
             this.subject.set('moving', true) 
             await this.stepByStep( incr_x, incr_y );
             this.subject.set('moving', false) 

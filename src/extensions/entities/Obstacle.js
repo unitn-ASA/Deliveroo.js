@@ -14,7 +14,7 @@ class Obstacle extends Entity {
 
         this.set('style', style) 
         
-        tile.block()
+        tile.lock()
         
     }
 

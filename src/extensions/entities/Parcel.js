@@ -60,7 +60,7 @@ class Parcel extends Entity {
         this.set('carriedBy', null)
         agent.off('xy', this.followCarrier)
         
-        if ( tile.delivery) {
+        if ( tile.type == 'delivery') {
             try {   agent.scoring(this.get('reward'))  } 
             catch (error) { /* console.log('agent has not the scoring ability ') */ }
         

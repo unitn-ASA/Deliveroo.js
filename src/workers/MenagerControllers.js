@@ -16,12 +16,11 @@ function init(newGrid) {
 
   // Dynamically load agent classes
   Object.values(mapControllerAgent).forEach(controllerName => {
-    console.log(controllerName)
     try {
         controllerClasses[controllerName] = require(`../extensions/controllers/${controllerName}`);
     } catch (error) {
         console.error(`Class ${controllerName} not founded`);
-        console.error(`Error: ${error.message}`);
+
     }
   });
 }

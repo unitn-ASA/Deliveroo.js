@@ -55,8 +55,6 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
         let tiles_unlocked =
         Array.from( grid.getTiles() )
         // not locked
-        .filter( t => ! t.blocked )
-        // not locked
         .filter( t => ! t.locked )
 
                 
@@ -65,6 +63,7 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
 
         let i = Math.floor( Math.random() * tiles_unlocked.length - 1 )
         let tile = tiles_unlocked.at( i )
+        tile.lock()
 
         // try to load the requested agent type, if it is not found generate a default Agent
         const AgentClass = agentClasses[agentType.toLowerCase()];
@@ -74,8 +73,6 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
         } else {
             me = new AgentClass(grid, id, name, tile);
         }
-
-        tile.lock()
 
         entry.agent = me
     }

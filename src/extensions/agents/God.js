@@ -1,6 +1,4 @@
 const Grid =  require('../../deliveroo/Grid')
-const Postponer = require('../../deliveroo/Postponer');
-const myClock = require('../../deliveroo/Clock');
 const Agent =  require('../../deliveroo/Agent')
 
 

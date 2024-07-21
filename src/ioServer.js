@@ -42,21 +42,14 @@ io.on('connection', (socket) => {
     /**
      * Emit map (tiles)
      */
-    myGrid.on( 'tile', ({x, y, type, metadata, delivery, blocked, spawner}) => {
-        //console.log( 'emit tile', x, y, type, metadata, delivery, parcelSpawner );
-        if (!blocked)
-            socket.emit( 'tile', x, y, type, metadata, delivery, spawner );
-        else
-            socket.emit( 'not_tile', x, y, type, metadata );
+    myGrid.on( 'tile', ({x, y, type, metadata}) => {
+        socket.emit( 'tile', x, y, type, metadata);
     } );
+
     let tiles = []
-    for (const {x, y, type, metadata, delivery, blocked, spawner} of myGrid.getTiles()) {
+    for (const {x, y, type, metadata} of myGrid.getTiles()) {
         //console.log( 'emit tile', x, y, type, metadata, delivery, parcelSpawner );
-        if ( !blocked ) {
-            socket.emit( 'tile', x, y, type, metadata, delivery, spawner )
-            tiles.push( {x, y, type, metadata, delivery, spawner} )
-        } else
-            socket.emit( 'not_tile', x, y, type, metadata );
+        tiles.push( {x, y, type, metadata} )
     }
     let {width, height} = myGrid.getMapSize()
     socket.emit( 'map', width, height, tiles )
