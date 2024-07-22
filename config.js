@@ -11,7 +11,8 @@ const config = {
     TILETYPEMAP:{
         0: 'Hole',  
         1: 'Spawner',  
-        2: 'Delivery'  
+        2: 'Delivery',
+        3: 'Fast'  
     },
 
     PARCEL_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'

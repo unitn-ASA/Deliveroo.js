@@ -3,7 +3,7 @@ const Entity = require('./Entity');
 const config =  require('../../config');
 
 const MOVEMENT_STEPS = process.env.MOVEMENT_STEPS || config.MOVEMENT_STEPS || 1;
-const MOVEMENT_DURATION = process.env.MOVEMENT_DURATION || config.MOVEMENT_DURATION || 500;
+const AGENT_SPEED = config.MOVEMENT_DURATION || 500
 
 class Controller {
 
@@ -18,6 +18,7 @@ class Controller {
         if(!this.subject.get('score'))              this.subject.set('score', 0 )
         if(!this.subject.get('moving'))             this.subject.set('moving', false )
         if(!this.subject.get('carryingEntities'))   this.subject.set('carryingEntities', new Set() )
+        if(!this.subject.get('speed'))              this.subject.set('speed', AGENT_SPEED)
         
         //add the new ability to the default agent
         if(!this.subject.scoring)                   this.subject.scoring = scoring
@@ -94,6 +95,7 @@ class Controller {
     async stepByStep ( incr_x, incr_y ) {
         var init_x = this.subject.x
         var init_y = this.subject.y
+        const MOVEMENT_DURATION = await this.subject.get('speed') || 500;
         
         if ( MOVEMENT_STEPS ) {
             // Immediate offset by 0.6*step

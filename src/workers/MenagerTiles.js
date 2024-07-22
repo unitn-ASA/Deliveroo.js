@@ -10,7 +10,7 @@ var tileClasses = {};
 const tileTypeMap = process.env.TILETYPEMAP || config.TILETYPEMAP
 
 // the initialization focus on the dynamic load of the different agent classes
-function init(map) {
+function init(map, grid) {
     
     Object.values(tileTypeMap).forEach(tileName =>  {
         try {
@@ -29,10 +29,10 @@ function init(map) {
 
             if (!TileClass) {
                 console.error(`No class found for tile type ${value}`);
-                return new Tile(this, x, y);
+                return new Tile(grid, x, y);
             }
 
-            return new TileClass(this, x, y);
+            return new TileClass(grid, x, y);
         })
     } );
 

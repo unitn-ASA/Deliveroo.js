@@ -42,11 +42,13 @@ const Grid =  require('./Grid')
 
     lock() {
         this.#locked = true;
+        this.emitOnePerFrame('locked')
         return true;
     }
 
     unlock() {
         this.#locked = false;
+        this.emitOnePerFrame('unlocked')
         return true;
     }
             

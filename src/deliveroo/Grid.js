@@ -31,7 +31,7 @@ class Grid extends Observable {
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
         
-        this.#tiles = menagerTiles(map)
+        this.#tiles = menagerTiles(map,this)
 
         this.#agents = new Map();
         this.#entities = new Map();
@@ -109,7 +109,10 @@ class Grid extends Observable {
         
         // On parcel and my movements emit parcels sensing
         this.on( 'update', () => { agent.emitEntitySensing()} );
-        agent.on( 'xy', () => agent.emitEntitySensing() );
+
+        agent.on( 'xy', () => { 
+            agent.emitEntitySensing()
+        } );
 
     }
 
