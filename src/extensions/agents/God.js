@@ -11,9 +11,6 @@ class God extends Agent{
      */
     constructor ( grid, id, name, tile, type = 'god' ) {
         
-        let x = 0
-        let y = 0
-
         super(grid, id, name, tile, type); 
         
         this.set('style', null);                            //the God agent hasn't a graphic rappresentation 
@@ -25,13 +22,6 @@ class God extends Agent{
     }
 
 }
-/*
-    
-    //change the typo of the tile
-   
 
-    
-
-*/
 
 module.exports = God;

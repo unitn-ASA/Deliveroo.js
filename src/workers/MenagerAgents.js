@@ -68,7 +68,9 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
         // try to load the requested agent type, if it is not found generate a default Agent
         const AgentClass = agentClasses[agentType.toLowerCase()];
         if (!AgentClass) {
-            console.error(`Class for agent type ${agentType} not found; default agent created`);
+            if(agentType != 'default'){
+                console.error(`Class for agent type ${agentType} not found; default agent created`);
+            }
             me = new Agent(grid, id, name, tile);
         } else {
             me = new AgentClass(grid, id, name, tile);
@@ -120,19 +122,54 @@ function authenticate(socket) {
     // Agent
     var me = registerSocketAndGetAgent(id, name, agentType, socket);
 
+
+    /**
+     * Emit me
+     */
+    socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
+
+    socket.emit( 'config', me.config )
+
+    // Emit you
+    me.on( 'update', ({id, x, y, type, metadata}) => {
+      //console.log( 'emit you', id, x, y, type, metadata );
+      socket.emit( 'you', {id, x, y, type, metadata} );
+    } );
+    // console.log( 'emit you', id, name, x, y, score );
+    socket.emit( 'you', me );
+  
+
+    /**
+     * Emit sensing
+     */
+    // Entities
+    me.on( 'entities sensing', (entities) => {
+        //console.log('emit entities sensing', ...entities);
+        socket.emit('entities sensing', entities )
+    } );
+    me.emitEntitySensing();
+
+    // Agents
+    me.on( 'agents sensing', (agents) => {
+        // console.log(me.get('name') + ' emit agents sensing', ...agents); // {id, x, y, type, metadata}
+        socket.emit( 'agents sensing', agents );
+    } );
+    me.emitAgentSensing();
+
+
     /**
      * on Disconnect
      */
     socket.on('disconnect', () => {
         const tokenToSockets = idToAgentAndSockets;
 
-        console.log(`Socket ${socket.id} disconnected from agent ${me.name}(${me.id})`);
+        console.log(`Socket ${socket.id} disconnected from agent ${me.metadata.name}(${me.id})`);
         tokenToSockets.get(id).sockets.delete(socket);
 
         if (tokenToSockets.get(id).sockets.size == 0) {
             new Promise(res => setTimeout(res, AGENT_TIMEOUT)).then(() => {
                 if (tokenToSockets.get(id) && tokenToSockets.get(id).sockets.size == 0) {
-                    console.log(`Agent ${me.name}(${me.id}) deleted after 10 seconds of no connections from token ...${token.slice(-30)}`);
+                    console.log(`Agent ${me.metadata.name}(${me.id}) deleted after 10 seconds of no connections from token ...${token.slice(-30)}`);
                     me.delete();
                 }
             });

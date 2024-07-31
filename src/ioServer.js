@@ -21,23 +21,8 @@ io.on('connection', (socket) => {
     /**
      * Authenticate socket on agent
      */
-    const me = myGrid.menagerAgents.authenticate(socket);
-    if ( !me ) return;
-    const controller = myGrid.menagerControllers.getController(me)
-    socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
+    const controller = myGrid.menagerControllers.getController(socket)
 
-
-
-    /**
-     * Config
-     */
-    /*if ( me.name == 'god' ) { // 'god' mod
-        me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite'
-        me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite'
-    }*/
-    socket.emit( 'config', me.config )
-
-    
 
     /**
      * Emit map (tiles)
@@ -53,37 +38,6 @@ io.on('connection', (socket) => {
     }
     let {width, height} = myGrid.getMapSize()
     socket.emit( 'map', width, height, tiles )
-    
-
-    
-    /**
-     * Emit me
-     */
-    // Emit you
-    me.on( 'update', ({id, x, y, type, metadata}) => {
-        //console.log( 'emit you', id, x, y, type, metadata );
-        socket.emit( 'you', {id, x, y, type, metadata} );
-    } );
-    // console.log( 'emit you', id, name, x, y, score );
-    socket.emit( 'you', me );
-    
-
-    /**
-     * Emit sensing
-     */
-    // Entities
-    me.on( 'entities sensing', (entities) => {
-        //console.log('emit entities sensing', ...entities);
-        socket.emit('entities sensing', entities )
-    } );
-    me.emitEntitySensing();
-
-    // Agents
-    me.on( 'agents sensing', (agents) => {
-        // console.log(me.get('name') + ' emit agents sensing', ...agents); // {id, x, y, type, metadata}
-        socket.emit( 'agents sensing', agents );
-    } );
-    me.emitAgentSensing();
     
 
     /**

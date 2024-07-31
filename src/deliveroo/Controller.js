@@ -1,5 +1,6 @@
 const myClock = require('./Clock');
 const Entity = require('./Entity');
+const Agent = require('./Agent');
 const config =  require('../../config');
 
 const MOVEMENT_STEPS = process.env.MOVEMENT_STEPS || config.MOVEMENT_STEPS || 1;

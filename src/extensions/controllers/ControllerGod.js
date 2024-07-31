@@ -69,6 +69,7 @@ class ControllerGod extends Controller{
 
             let parcel = new Parcel(tile, this.grid)
             return 
+            
         } 
 
         if(entity && entity.constructor.name == 'Parcel'){
