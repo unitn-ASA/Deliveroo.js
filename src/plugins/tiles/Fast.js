@@ -1,4 +1,5 @@
 const Tile =  require('../../deliveroo/Tile')
+const PluginTile = require('../PluginTile')
 const Grid =  require('../../deliveroo/Grid')
 
 /**
@@ -47,5 +48,10 @@ const Grid =  require('../../deliveroo/Grid')
             
 }
 
+const FastPlugin = new PluginTile(
+    'Fast',
+    Fast,
+)
 
-module.exports = Fast;
+
+module.exports = FastPlugin;

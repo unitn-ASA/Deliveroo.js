@@ -1,20 +1,20 @@
 const Tile = require('../deliveroo/Tile');
 const config =  require('../../config');
-const fs = require('fs');
-const path = require('path');
+
 
 // Holds the classes of agents dynamically loaded
 var tileClasses = {};
 
-// Define the map associating values to tile classes
-const tileTypeMap = process.env.TILETYPEMAP || config.TILETYPEMAP
-
 // the initialization focus on the dynamic load of the different agent classes
 function init(map, grid) {
+
+    // Define the map associating values to tile classes
+    const tileTypeMap = config.TILETYPEMAP
     
     Object.values(tileTypeMap).forEach(tileName =>  {
         try {
-            tileClasses[tileName] = require(`../extensions/tiles/${tileName}`);
+            let tilePlugin = require(`../plugins/tiles/${tileName}`)
+            tileClasses[tileName] = tilePlugin.core;
         } catch (error) {
             console.error(`Class ${tileName} not founded`);
         }

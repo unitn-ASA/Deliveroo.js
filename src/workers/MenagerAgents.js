@@ -17,12 +17,13 @@ function init(newGrid) {
     grid = newGrid;
 
     // Dynamically load agent classes
-    let agentClassesList = process.env.AGENTS || config.AGENTS;
+    let agentClassesList = config.AGENTS;
     if(!agentClassesList) return
 
     agentClassesList.forEach(agentName => {
         try {
-            agentClasses[agentName.toLowerCase()] = require(`../extensions/agents/${agentName}`);
+            let agentPlugin = require(`../plugins/agents/${agentName}`)
+            agentClasses[agentName.toLowerCase()] = agentPlugin.core;
         } catch (error) {
             console.error(`Class ${agentName} not founded`);
         }
@@ -108,12 +109,12 @@ function authenticate(socket) {
                 id = decoded.id;
                 name = decoded.name;
                 agentType = decoded.agentType;
-                console.log(`Socket ${socket.id} connected as ${name}(${id},${agentType}). With token: ...${token.slice(-30)}`);
+                console.log(`Socket ${socket.id} connected as ${name}(${id},${agentType}). With token: ...${token.slice(-15)}`);
             } else {
                 throw `Socket ${socket.id} log in failure. Token is verified but id or name are missing.`;
             }
         } catch (err) {
-            console.log(`Socket ${socket.id} log in failure. Invalid token provided.`);
+            console.error(`Socket ${socket.id} log in failure. Invalid token provided.`);
             socket.disconnect();
             return; // invalid token
         }

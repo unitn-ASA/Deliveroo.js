@@ -1,5 +1,6 @@
 const Grid =  require('../../deliveroo/Grid')
-const Agent =  require('../../deliveroo/Agent')
+const Agent =  require('../../deliveroo/Agent');
+const PluginAgent = require('../PluginAgent');
 
 
 class God extends Agent{
@@ -17,11 +18,17 @@ class God extends Agent{
         this.set('label', null);
         this.set('agents_observation_distance', 100)        //the God agent can see anything 
         this.set('entities_observation_distance', 100)
+        this.set('speed', 250)
 
         this.grid.removeAgent(this)                         //remove the God agent from the grid, this becouse we don'twant that other agent know about it 
     }
 
 }
 
+const GodPlugin = new PluginAgent(
+    'God',
+    God,
+)
 
-module.exports = God;
+
+module.exports = GodPlugin;

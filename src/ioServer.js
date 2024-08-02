@@ -1,11 +1,14 @@
 const { Server } = require('socket.io');
-const myGrid = require('./grid');
+const initGrid = require('./grid')
 const config = require('../config');
 const myClock = require('./deliveroo/Clock');
+const fs = require('fs');
+const path = require('path');
+
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 
 const BROADCAST_LOGS = process.env.BROADCAST_LOGS ?? config.BROADCAST_LOGS ?? false;
-
+var myGrid
 
 const io = new Server( {
     cors: {
@@ -15,6 +18,69 @@ const io = new Server( {
 } );
 
 
+io.init = async function() {
+    console.log('Initialization of ioServer:')
+    myGrid = await initGrid()
+};
+
+/**
+ * Add plugin from extensions folder
+ */
+io.addPlugin = function (pluginName) {
+    const extensionsDir = path.join(__dirname, 'plugins');
+    const subDirs = ['agents', 'tiles', 'entities', 'controllers'];
+    let found = false;
+    
+    try {
+        for (const subDir of subDirs) {
+            let fullPath = path.join(extensionsDir, subDir, pluginName);
+            fullPath = `${fullPath}.js`;
+    
+            if (fs.existsSync(fullPath) || fs.existsSync(fullPath.toLowerCase()) || fs.existsSync(fullPath.toUpperCase())) {
+                const pluginPath = [fullPath, fullPath.toLowerCase(), fullPath.toUpperCase()].find(p => fs.existsSync(p));
+                const plugin = require(pluginPath);
+                
+                if(!checkPluginStructur(plugin)){
+                    throw new Error('Incorrect plugin structure')
+                }
+
+                try {   plugin.load()   } 
+                catch (error) { console.error('ERROR loading plugin: ', pluginName + ':\n', error) }
+                
+                found = true;
+                break;
+            }
+        }
+    
+        if (!found) {
+            console.error(`Plugin "${pluginName}" not found in plugins folder.`);
+        } 
+
+    } catch (error) {
+        console.error('ERROR adding plugin: ', pluginName + ':\n', error)
+    }
+    
+};
+
+function checkPluginStructur(plugin){
+    
+    if (typeof plugin !== 'object' || plugin === null)  return false;    // Check if the plugin object is defined
+
+    if (typeof plugin.name !== 'string') return false;                   // Check if the name attribute is a string
+
+    // Check if the core attribute is a class
+    if (typeof plugin.core !== 'function' || plugin.core.prototype === undefined) return false;
+
+    // Check if the settings attribute exist, if exist check it is an object
+    if (plugin.settings && (typeof plugin.settings !== 'object' || Array.isArray(plugin.settings))) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Connection Menagment 
+ */
 
 io.on('connection', (socket) => {
     
@@ -185,7 +251,7 @@ io.on('connection', (socket) => {
 
     socket.on( 'click', async (x, y, acknowledgementCallback) => {
         try {
-            const action = await controller.controller.click(x,y)
+            const action = await controller.click(x,y)
             if ( acknowledgementCallback )
                 acknowledgementCallback( await action ); 
         } catch (error) { 

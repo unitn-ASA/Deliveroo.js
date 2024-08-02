@@ -1,4 +1,5 @@
 const Tile =  require('../../deliveroo/Tile')
+const PluginTile = require('../PluginTile')
 const Grid =  require('../../deliveroo/Grid')
 
 /**
@@ -26,4 +27,12 @@ const Grid =  require('../../deliveroo/Grid')
             
 }
 
-module.exports = Hole;
+const HolePlugin = new PluginTile(
+    'Hole',
+    Hole,
+    {
+        MAP_ID: 0
+    }
+)
+
+module.exports = HolePlugin;

@@ -11,11 +11,12 @@ module.exports = function (grid) {
     
     // Dynamically load entity classes
     const entityClasses = {}
-    let entityClassesList = process.env.ENTITIES || config.ENTITIES;
+    let entityClassesList = config.ENTITIES;
     
     entityClassesList.forEach(entityName => {
     try {
-        entityClasses[entityName] = require(`../extensions/entities/${entityName}`);
+        let entityPlugin = require(`../plugins/entities/${entityName}`)
+        entityClasses[entityName] = entityPlugin.core
     } catch (error) {
         console.error(`Class ${entityName} not founded`);
     }
@@ -24,12 +25,12 @@ module.exports = function (grid) {
     // for each class menage the generation of the 
     Object.keys(entityClasses).forEach(entityName => {
 
-        //derive frome te env or config file the information about the generation
-        const interval = process.env[`${entityName.toUpperCase()}_GENERATION_INTERVAL`] || config[`${entityName.toUpperCase()}_GENERATION_INTERVAL`] || false;
-        const max = process.env[`${entityName.toUpperCase()}_MAX`] || config[`${entityName.toUpperCase()}_MAX`] || 0;
+        //derive frome the config file the information about the generation
+        const interval = config[`${entityName.toUpperCase()}_GENERATION_INTERVAL`] || false;
+        const max = config[`${entityName.toUpperCase()}_MAX`] || 0;
+        const spawn_type_tile = config[`${entityName.toUpperCase()}_SPAWN_TILE`] || 'spawner';
+
         const EntityClass = entityClasses[entityName];
-    
-        console.log('Entity: ', entityName + ' max: ', max)
 
         if (!EntityClass) {
           console.error(`Class for entity type ${entityName} not found; skip the generation.`);
@@ -42,7 +43,7 @@ module.exports = function (grid) {
             let tiles_with_no_entities =
             Array.from(grid.getTiles())
             // entity spawner tile
-            .filter(t => t.type == 'spawner')
+            .filter(t => t.type == spawn_type_tile)
             // no entities exist on the tile
             .filter(t =>
                 Array.from(grid.getEntities())
@@ -73,7 +74,7 @@ module.exports = function (grid) {
           let tiles_with_no_entities =
             Array.from(grid.getTiles())
             // entity spawner tile
-            .filter(t => t.type == 'spawner')
+            .filter(t => t.type == spawn_type_tile)
             // no entities exists on the tile
             .filter(t =>
               Array.from(grid.getEntities())

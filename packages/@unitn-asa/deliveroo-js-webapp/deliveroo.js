@@ -554,8 +554,9 @@ class Agent extends onGrid {
         return this.#score
     }
     set score (score) {
-        this.#score = score
-        this.text = this.#name+'\n'+this.#score;
+        this.#score = score;
+        if(this.#score) this.text = this.#name+'\n'+this.#score;
+        else this.text = this.#name
     }
 
     constructor (id, x, y, type, metadata) {
@@ -743,6 +744,7 @@ socket.on( 'draw', ( {src, timestamp, socket, id, name}, buffer ) => {
 
 socket.on( "tile", (x, y, type, metadata) => {
     console.log( "tile", x, y, type, metadata )
+    setTile(x, y, type, metadata)
 });
 
 var WIDTH;

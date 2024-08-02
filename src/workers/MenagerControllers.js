@@ -12,16 +12,15 @@ var grid;
 // the initialization focus on the dynamic load of the different controller classes
 function init(newGrid) {
   grid = newGrid;
-  mapControllerAgent = process.env.AGENTSCONTROLLER || config.AGENTSCONTROLLER;
-
-  //set manualy the default Controller class
-  controllerClasses['Controller'] = Controller;
+  mapControllerAgent = config.AGENTSCONTROLLER;
+  if(!mapControllerAgent) return
 
   // Dynamically load agent classes
   Object.values(mapControllerAgent).forEach(controllerName => {
     if(controllerName != 'Controller'){
       try {
-        controllerClasses[controllerName] = require(`../extensions/controllers/${controllerName}`);
+        let controllerPlugin = require(`../plugins/controllers/${controllerName}`)
+        controllerClasses[controllerName] = controllerPlugin.core;
       } catch (error) {
         console.error(`Class ${controllerName} not founded`);
       }
@@ -31,12 +30,15 @@ function init(newGrid) {
 
 
 function getController(socket){
-  try {
+  
 
     // Get the the agent that will be associeted with the controller
     const agent = grid.menagerAgents.authenticate(socket);
-  
-    const controllerName = mapControllerAgent[agent.constructor.name];
+    if(!agent) return
+
+    let controllerName
+    if(mapControllerAgent) controllerName = mapControllerAgent[agent.constructor.name] 
+    else controllerName = undefined
     
     if (controllerName && controllerClasses[controllerName]) {
       let ControllerClass = controllerClasses[controllerName]
@@ -48,9 +50,7 @@ function getController(socket){
       return controller;
     }
 
-  } catch (error) {
-    console.error('ERROR getController: ', error)
-  }
+  
   
 }
 

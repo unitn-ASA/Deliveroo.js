@@ -1,10 +1,5 @@
 const myClock = require('./Clock');
-const Entity = require('./Entity');
-const Agent = require('./Agent');
 const config =  require('../../config');
-
-const MOVEMENT_STEPS = process.env.MOVEMENT_STEPS || config.MOVEMENT_STEPS || 1;
-const AGENT_SPEED = config.MOVEMENT_DURATION || 500
 
 class Controller {
 
@@ -16,15 +11,9 @@ class Controller {
         this.grid = grid
 
         //set the new attribute of the default Agent
-        if(!this.subject.get('score'))              this.subject.set('score', 0 )
         if(!this.subject.get('moving'))             this.subject.set('moving', false )
-        if(!this.subject.get('carryingEntities'))   this.subject.set('carryingEntities', new Set() )
-        if(!this.subject.get('speed'))              this.subject.set('speed', AGENT_SPEED)
+        if(!this.subject.get('speed'))              this.subject.set('speed', config.MOVEMENT_DURATION )
         
-        //add the new ability to the default agent
-        if(!this.subject.scoring)                   this.subject.scoring = scoring
-        if(!this.subject.catchEntity)               this.subject.catchEntity = catchEntity
-        if(!this.subject.dropEntity)                this.subject.dropEntity = dropEntity
     }
 
 
@@ -63,51 +52,22 @@ class Controller {
             console.error(`Error in right: ${error}`);
         }
     }
-
-    /**
-     * Pick up all entities in the agent tile.
-     * @function pickUp
-     * @returns {Promise<Entity[]>} An array of entity that have been picked up
-     */
-    async pickUp() {
-        try {
-            //console.log('Agent ', this.name + 'pickUp');
-            return await this.subject.catchEntity();
-        } catch (error) {
-            console.error(`Error in right: ${error}`);
-        }
-        
-    }
-    
-    /**
-     * Put down entities:
-     * @function putDown
-     * @returns {Promise<Entity[]>} An array of entity that have been put down
-     */
-    async putDown() {
-        try {
-            //console.log('Agent ', this.name + 'putDown');
-            return await this.subject.dropEntity();
-        } catch (error) {
-            console.error(`Error in right: ${error}`);
-        }
-    }
     
     async stepByStep ( incr_x, incr_y ) {
         var init_x = this.subject.x
         var init_y = this.subject.y
         const MOVEMENT_DURATION = await this.subject.get('speed') || 500;
         
-        if ( MOVEMENT_STEPS ) {
+        if ( config.MOVEMENT_STEPS ) {
             // Immediate offset by 0.6*step
-            this.subject.x = ( 100 * this.subject.x + 100 * incr_x / MOVEMENT_STEPS * 12/20 ) / 100;
-            this.subject.y = ( 100 * this.subject.y + 100 * incr_y / MOVEMENT_STEPS * 12/20 ) / 100;
+            this.subject.x = ( 100 * this.subject.x + 100 * incr_x / config.MOVEMENT_STEPS * 12/20 ) / 100;
+            this.subject.y = ( 100 * this.subject.y + 100 * incr_y / config.MOVEMENT_STEPS * 12/20 ) / 100;
         }
-        for ( let i = 0; i < MOVEMENT_STEPS; i++ ) {
+        for ( let i = 0; i < config.MOVEMENT_STEPS; i++ ) {
             // Wait for next step timeout = subject.config.MOVEMENT_DURATION / MOVEMENT_STEPS
             // await new Promise( res => setTimeout(res, subject.config.MOVEMENT_DURATION / MOVEMENT_STEPS ) )
-            await myClock.synch( MOVEMENT_DURATION / MOVEMENT_STEPS );
-            if ( i < MOVEMENT_STEPS - 1 ) {
+            await myClock.synch( MOVEMENT_DURATION / config.MOVEMENT_STEPS );
+            if ( i < config.MOVEMENT_STEPS - 1 ) {
                 // Move by one step = 1 / MOVEMENT_STEPS
                 this.subject.x = ( 100 * this.subject.x + 100 * incr_x / MOVEMENT_STEPS ) / 100;
                 this.subject.y = ( 100 * this.subject.y + 100 * incr_y / MOVEMENT_STEPS ) / 100;
@@ -153,88 +113,6 @@ class Controller {
     }
     
 }
-
-function scoring(sc){   
-    if ( sc > 0 ) {
-        this.set('score', this.get('score') + sc )
-        console.log( this.get('name') + `(${this.id}) scores (+ ${sc} pti -> ` + this.get('score'), ` pti)` );
-    }
-}
-
-async function catchEntity(){
-    try {
-        
-        if ( this.get('move') )
-            return [];
-
-        this.set('moving',true) 
-        await myClock.synch();
-        this.set('moving',false) 
-
-        const picked = new Array();
-        
-        for ( const  entity of this.grid.getEntities() ) {
-            if ( entity.x == this.x && entity.y == this.y ) {
-                try {
-                    let result = entity.pickedUp(this)
-                    if(result){
-                        this.get('carryingEntities').add(entity);
-                        picked.push( entity );
-                    }
-                } catch (error) {
-                    console.log('The entity ', entity.id + ' is not collectible')
-                }
-                
-            }
-        }
-
-        // console.log(this.id, 'pickUp', counter, 'parcels')
-        if ( picked.length > 0 )
-            this.grid.emitOnePerFrame( 'pickup', this, picked );
-        return picked; // Array.from(this.#carryingParcels);
-
-    } catch (error) {
-        console.error(`Error in pickUp: ${error}`);
-    }
-}
-
-async function dropEntity(){
-    try {
-        //console.log('Agent ', this.name + ' putDown');
-        if ( this.get('move')  )
-            return [];
-
-        this.set('moving',true) 
-        await myClock.synch();
-        this.set('moving',false) 
-
-        var tile = this.grid.getTile( Math.round(this.x), Math.round(this.y) )
-        var dropped = new Array();
-        
-        for ( const entity of this.get('carryingEntities') ) {
-            try {
-                let result = entity.putDown(this, tile)
-                if(result){
-                    this.get('carryingEntities').delete(entity);
-                    dropped.push( entity );
-                }
-            } catch (error) {
-                console.log(error)
-                console.log('The entity ', entity.id + ' is not releasable')
-            }
-        }
-
-        if ( dropped.length > 0 )
-            this.grid.emitOnePerFrame( 'putdown', this, dropped );
-
-        return dropped;
-
-    } catch (error) {
-        console.error(`Error in putDown: ${error}`);
-    }
-}
-
-
 
 module.exports = Controller;
 

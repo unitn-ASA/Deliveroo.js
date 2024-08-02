@@ -1,10 +1,11 @@
 const Tile =  require('../../deliveroo/Tile')
+const PluginTile = require('../PluginTile')
 const Grid =  require('../../deliveroo/Grid')
 
 /**
  * @class Delivery
  */
- class Delivery extends Tile {
+class Delivery extends Tile {
 
     /**
      * @constructor Tile
@@ -24,4 +25,12 @@ const Grid =  require('../../deliveroo/Grid')
             
 }
 
-module.exports = Delivery;
+const DeliveryPlugin = new PluginTile(
+    'Delivery',
+    Delivery,
+    {
+        MAP_ID: 2
+    }
+)
+
+module.exports = DeliveryPlugin;

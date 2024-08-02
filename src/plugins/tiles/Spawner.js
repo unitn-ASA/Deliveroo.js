@@ -1,4 +1,5 @@
 const Tile =  require('../../deliveroo/Tile')
+const PluginTile = require('../PluginTile')
 const Grid =  require('../../deliveroo/Grid')
 
 /**
@@ -24,4 +25,12 @@ const Grid =  require('../../deliveroo/Grid')
             
 }
 
-module.exports = Spawner;
+const SpawnerPlugin = new PluginTile(
+    'Spawner',
+    Spawner,
+    {
+        MAP_ID: 1
+    }
+)
+
+module.exports = SpawnerPlugin;

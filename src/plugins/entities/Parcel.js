@@ -1,20 +1,17 @@
 const Entity =  require('../../deliveroo/Entity')
+const PluginEntity = require('../PluginEntity')
+
 const myClock =  require('../../deliveroo/Clock')
 const config =  require('../../../config')
 
-
-const PARCEL_REWARD_AVG = process.env.PARCEL_REWARD_AVG || config.PARCEL_REWARD_AVG || 30;
-const PARCEL_REWARD_VARIANCE = process.env.PARCEL_REWARD_VARIANCE ?? config.PARCEL_REWARD_VARIANCE ?? 10;
-const PARCEL_DECADING_INTERVAL = process.env.PARCEL_DECADING_INTERVAL || config.PARCEL_DECADING_INTERVAL || 'infinite';
-
-
+      
 class Parcel extends Entity {
             
     /**
      * @constructor Parcel
      */
     constructor (tile, grid, carriedBy = null, reward ) { 
-        
+
         super(tile.x, tile.y, 'parcel', grid);
 
         let color =  Math.random() * 0xffffff ;
@@ -23,7 +20,7 @@ class Parcel extends Entity {
         this.set('style', style)
         this.set('cariedBy', carriedBy)
 
-        let rewardParcel = reward || Math.floor( Math.random() * PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
+        let rewardParcel = reward || Math.floor( Math.random() * config.PARCEL_REWARD_VARIANCE*2 + config.PARCEL_REWARD_AVG- config.PARCEL_REWARD_VARIANCE );
         this.set('reward', rewardParcel)
         this.set('label', rewardParcel)
 
@@ -33,10 +30,10 @@ class Parcel extends Entity {
             this.set('label', rewardParcel)
             if ( rewardParcel <= 0) {
                 this.delete()
-                myClock.off( PARCEL_DECADING_INTERVAL, decay );
+                myClock.off( config.PARCEL_DECADING_INTERVAL, decay );
             }
         };
-        myClock.on( PARCEL_DECADING_INTERVAL, decay );
+        myClock.on( config.PARCEL_DECADING_INTERVAL, decay );
         
     }
 
@@ -74,5 +71,19 @@ class Parcel extends Entity {
 }
 
 
+const ParcelPlugin = new PluginEntity(
+    'Parcel',
+    Parcel,
+    { 
+        PARCEL_GENERATION_INTERVAL: '2s',  
+        PARCEL_MAX: '5',
+        
+        PARCEL_REWARD_AVG: 30,          // default is 30
+        PARCEL_REWARD_VARIANCE: 10,     // default is 10
+        PARCEL_DECADING_INTERVAL: '1s', // options are '1s', '2s', '5s', '10s', 'infinite' 
+    }
+)
 
-module.exports = Parcel;
+
+
+module.exports = ParcelPlugin;
