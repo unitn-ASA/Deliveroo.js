@@ -1,6 +1,6 @@
 const Controller = require('../../deliveroo/Controller') 
 const myClock = require('../../deliveroo/Clock');
-const PluginController = require('../PluginController');
+
 
 class ControllerScore extends Controller {
 
@@ -131,14 +131,11 @@ async function dropEntity(){
 }
 
 
-const ControllerScorePlugin = new PluginController(
-    'ControllerScore',
-    ControllerScore,
-    {
-        SUBJECTS: ['Agent']
-    }
-
-)
+const ControllerScorePlugin = {
+    name: 'ControllerScore',
+    extension: ControllerScore,
+    settings: { SUBJECTS: ['Agent'] }
+}
 
 
 module.exports = ControllerScorePlugin;

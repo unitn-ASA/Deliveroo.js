@@ -1,6 +1,5 @@
 const Grid =  require('../../deliveroo/Grid')
 const Agent =  require('../../deliveroo/Agent');
-const PluginAgent = require('../PluginAgent');
 
 
 class God extends Agent{
@@ -25,10 +24,10 @@ class God extends Agent{
 
 }
 
-const GodPlugin = new PluginAgent(
-    'God',
-    God,
-)
+const GodPlugin = {
+    name: 'God',
+    extension: God
+}
 
 
 module.exports = GodPlugin;

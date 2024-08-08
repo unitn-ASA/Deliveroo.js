@@ -1,9 +1,8 @@
 const Controller = require('../../deliveroo/Controller');
-const PluginController = require('../PluginController');
 const config =  require('../../../config')
 
 const ParcelPlugin =  require('../entities/Parcel');
-const Parcel = ParcelPlugin.core; 
+const Parcel = ParcelPlugin.extension; 
 
 class ControllerGod extends Controller{
 
@@ -87,13 +86,11 @@ class ControllerGod extends Controller{
 }
 
 
-const ControlleGodPlugin = new PluginController(
-    'ControllerGod',
-    ControllerGod,
-    {
-        SUBJECTS: ['God']
-    }
+const ControlleGodPlugin = {
+    name: 'ControllerGod',
+    extension: ControllerGod,
+    settings: { SUBJECTS: ['God'] }
+}
 
-)
 
 module.exports = ControlleGodPlugin;

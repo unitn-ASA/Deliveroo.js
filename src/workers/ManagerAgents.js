@@ -6,28 +6,29 @@ const { uid } = require('uid');
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
 const AGENT_TIMEOUT = process.env.AGENT_TIMEOUT || 10000;
 
-// Holds the classes of agents dynamically loaded
-var agentClasses = {};
 
-// Holds the grid
-var grid;
+var agentClasses = {};                // Map associating name to the class of each agent type
 
-// the initialization focus on the dynamic load of the different agent classes
-function init(newGrid) {
-    grid = newGrid;
 
-    // Dynamically load agent classes
-    let agentClassesList = config.AGENTS;
-    if(!agentClassesList) return
+function loadPlugin(PluginName) {
 
-    agentClassesList.forEach(agentName => {
-        try {
-            let agentPlugin = require(`../plugins/agents/${agentName}`)
-            agentClasses[agentName.toLowerCase()] = agentPlugin.core;
-        } catch (error) {
-            console.error(`Class ${agentName} not founded`);
+    if (!config.AGENTS)  config.AGENTS = [];
+
+    // load the extension of the plugin in the agents register
+    let agentPlugin = require(`../plugins/agents/${PluginName}`)        // get the plugin from the agent's plugins folder
+    agentClasses[agentPlugin.name.toLowerCase()] = agentPlugin.extension;             // create a name-class entry for the loaded agent
+  
+    // if the plugin has settings the manager load them on file config
+    if(agentPlugin.settings){
+        for (let key in agentPlugin.settings) {                 // Iterate over each setting and add it to the config
+            if (!config[key]) {                          // set the new setting only if it not already defined
+                config[key] = agentPlugin.settings[key];
+            }
         }
-    });
+    }                      
+        
+    // Add the name of the agent type of the extension in the list of tiles in the game
+    config.AGENTS.push(agentPlugin.name)                    
 }
 
 /**
@@ -35,7 +36,7 @@ function init(newGrid) {
  */
 const idToAgentAndSockets = new Map();
 
-function registerSocketAndGetAgent(id, name, agentType, socket) {
+function registerSocketAndGetAgent(id, name, agentType, socket, grid) {
     const db = idToAgentAndSockets;
 
     // Get or create entry for id
@@ -83,8 +84,8 @@ function registerSocketAndGetAgent(id, name, agentType, socket) {
     return me; // Return agent given the specified id
 }
 
-/** @type {function(Socket):Agent} */
-function authenticate(socket) {
+/** @type {function(Socket,Grid):Agent} */
+function authenticate(socket, grid) {
     var id;
     var name;
     var agentType;
@@ -121,7 +122,7 @@ function authenticate(socket) {
     }
 
     // Agent
-    var me = registerSocketAndGetAgent(id, name, agentType, socket);
+    var me = registerSocketAndGetAgent(id, name, agentType, socket, grid);
 
 
     /**
@@ -180,4 +181,7 @@ function authenticate(socket) {
     return me;
 }
 
-module.exports = { init, authenticate };
+
+const ManagerAgent = { loadPlugin, authenticate}
+
+module.exports = ManagerAgent;

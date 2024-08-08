@@ -5,6 +5,11 @@ const myClock = require('./deliveroo/Clock');
 const fs = require('fs');
 const path = require('path');
 
+const ManagerEntities = require('./workers/ManagerEntities');
+const ManagerAgents = require('./workers/ManagerAgents');
+const ManagerControllers = require('./workers/ManagerControllers');
+const ManagerTiles = require('./workers/ManagerTiles');
+
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 
 const BROADCAST_LOGS = process.env.BROADCAST_LOGS ?? config.BROADCAST_LOGS ?? false;
@@ -44,7 +49,12 @@ io.addPlugin = function (pluginName) {
                     throw new Error('Incorrect plugin structure')
                 }
 
-                try {   plugin.load()   } 
+                try {  
+                    if(subDir == 'agents') ManagerAgents.loadPlugin(pluginName)
+                    if(subDir == 'tiles') ManagerTiles.loadPlugin(pluginName)
+                    if(subDir == 'entities') ManagerEntities.loadPlugin(pluginName)
+                    if(subDir == 'controllers') ManagerControllers.loadPlugin(pluginName)
+                } 
                 catch (error) { console.error('ERROR loading plugin: ', pluginName + ':\n', error) }
                 
                 found = true;
@@ -64,17 +74,16 @@ io.addPlugin = function (pluginName) {
 
 function checkPluginStructur(plugin){
     
-    if (typeof plugin !== 'object' || plugin === null)  return false;    // Check if the plugin object is defined
-
-    if (typeof plugin.name !== 'string') return false;                   // Check if the name attribute is a string
-
-    // Check if the core attribute is a class
-    if (typeof plugin.core !== 'function' || plugin.core.prototype === undefined) return false;
-
-    // Check if the settings attribute exist, if exist check it is an object
-    if (plugin.settings && (typeof plugin.settings !== 'object' || Array.isArray(plugin.settings))) {
+    // Controlla se l'attributo 'name' è presente e se è una stringa
+    if (typeof plugin.name !== 'string') {
         return false;
     }
+
+    // Controlla se l'attributo 'extension' è presente e se è una classe
+    if (typeof plugin.extension !== 'function' || !/^\s*class\s+/.test(plugin.extension.toString())) {
+        return false;
+    }
+
     return true;
 }
 
@@ -87,7 +96,7 @@ io.on('connection', (socket) => {
     /**
      * Authenticate socket on agent
      */
-    const controller = myGrid.menagerControllers.getController(socket)
+    const controller = ManagerControllers.getController(socket, myGrid)
 
 
     /**

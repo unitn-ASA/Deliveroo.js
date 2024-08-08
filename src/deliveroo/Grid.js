@@ -3,7 +3,7 @@ const Tile =  require('./Tile')
 const Agent =  require('./Agent')
 const Entity = require('./Entity');
 const Xy = require('./Xy');
-const menagerTiles = require('../workers/MenagerTiles');
+const MenagerTiles = require('../workers/ManagerTiles');
 
 
 
@@ -31,7 +31,7 @@ class Grid extends Observable {
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
         
-        this.#tiles = menagerTiles(map,this)
+        this.#tiles = MenagerTiles.manageSpawnTiles(map, this)
 
         this.#agents = new Map();
         this.#entities = new Map();

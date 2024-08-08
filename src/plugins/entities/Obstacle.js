@@ -1,5 +1,4 @@
 const Entity =  require('../../deliveroo/Entity')
-const PluginEntity = require('../PluginEntity')
 
 class Obstacle extends Entity {
     
@@ -21,13 +20,11 @@ class Obstacle extends Entity {
 
 }
 
-const ObstaclePlugin = new PluginEntity(
-    'Obstacle',
-    Obstacle,
-    {   
-        OBSTACLE_MAX: '5', 
-    }
-)
+const ObstaclePlugin = {
+    name: 'Obstacle',
+    extension: Obstacle,
+    settings: { OBSTACLE_MAX: '5' }
+}
 
 
 

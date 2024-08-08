@@ -1,5 +1,4 @@
 const Entity =  require('../../deliveroo/Entity')
-const PluginEntity = require('../PluginEntity')
 
 const myClock =  require('../../deliveroo/Clock')
 const config =  require('../../../config')
@@ -10,7 +9,7 @@ class Parcel extends Entity {
     /**
      * @constructor Parcel
      */
-    constructor (tile, grid, carriedBy = null, reward ) { 
+    constructor (tile, grid ) { 
 
         super(tile.x, tile.y, 'parcel', grid);
 
@@ -18,9 +17,9 @@ class Parcel extends Entity {
         let style = {shape:'box', params:{width:0.5, height: 0.5, depth:0.5}, color: color}  
 
         this.set('style', style)
-        this.set('cariedBy', carriedBy)
+        this.set('cariedBy', null )
 
-        let rewardParcel = reward || Math.floor( Math.random() * config.PARCEL_REWARD_VARIANCE*2 + config.PARCEL_REWARD_AVG- config.PARCEL_REWARD_VARIANCE );
+        let rewardParcel = Math.floor( Math.random() * config.PARCEL_REWARD_VARIANCE*2 + config.PARCEL_REWARD_AVG- config.PARCEL_REWARD_VARIANCE );
         this.set('reward', rewardParcel)
         this.set('label', rewardParcel)
 
@@ -71,18 +70,18 @@ class Parcel extends Entity {
 }
 
 
-const ParcelPlugin = new PluginEntity(
-    'Parcel',
-    Parcel,
-    { 
+const ParcelPlugin = {
+    name: 'Parcel',
+    extension: Parcel,
+    settings: { 
         PARCEL_GENERATION_INTERVAL: '2s',  
         PARCEL_MAX: '5',
         
-        PARCEL_REWARD_AVG: 30,          // default is 30
-        PARCEL_REWARD_VARIANCE: 10,     // default is 10
-        PARCEL_DECADING_INTERVAL: '1s', // options are '1s', '2s', '5s', '10s', 'infinite' 
+        PARCEL_REWARD_AVG: 30,          
+        PARCEL_REWARD_VARIANCE: 10,     
+        PARCEL_DECADING_INTERVAL: '1s',  
     }
-)
+}
 
 
 

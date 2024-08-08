@@ -1,21 +1,11 @@
 const Tile =  require('../../deliveroo/Tile')
-const PluginTile = require('../PluginTile')
-const Grid =  require('../../deliveroo/Grid')
 
-/**
- * @class Fast
- */
- class Fast extends Tile {
 
-    /**
-     * @constructor Tile
-     * @param {Grid} grid
-     * @param {*} x
-     * @param {*} y
-     */
+class Fast extends Tile {
+
     constructor(grid, x, y) {
 
-        super(grid, x, y, 'grass');
+        super(grid, x, y, 'fast');
 
         const style = { shape: 'box', params: { width: 1, height: 0.1, depth: 1 }, color: 0x003399 };
         this.metadata.style = style;
@@ -48,10 +38,10 @@ const Grid =  require('../../deliveroo/Grid')
             
 }
 
-const FastPlugin = new PluginTile(
-    'Fast',
-    Fast,
-)
+const FastPlugin = {
+    name: 'Fast',
+    extension: Fast,
+}
 
 
 module.exports = FastPlugin;
