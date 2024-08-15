@@ -50,7 +50,7 @@ function loadPlugin(PluginName){
 }
 
 
-function manageSpawnTiles(map, grid) {
+function spawnTiles(map, grid) {
 
     // tha map is a bidimensional matrix of number, the menager will generete the tiles associeted with that number
     const tileTypeMap = config.TILETYPEMAP
@@ -71,6 +71,6 @@ function manageSpawnTiles(map, grid) {
     return tiles;
 }
 
-const ManagerTiles = { loadPlugin, manageSpawnTiles}
+const ManagerTiles = { loadPlugin, spawnTiles}
 
 module.exports = ManagerTiles;

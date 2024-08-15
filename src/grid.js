@@ -10,7 +10,7 @@ const map = require( '../levels/maps/' + MAP_FILE );
 async function initGrid(){
     let grid = new Grid(map);
 
-    await ManagerEntities.managerSpawnEntities( grid );
+    await ManagerEntities.spawnEntities( grid );
     
     return grid
 }

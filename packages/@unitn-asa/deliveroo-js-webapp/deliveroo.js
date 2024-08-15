@@ -467,8 +467,29 @@ class Tile extends onGrid {
 }
 
 function setTile(x, y, type, metadata) {
-    if ( !tiles.has(x + y*1000) )
-        tiles.set( x + y*1000, new Tile(x, y, type, metadata) );
+    // Calcola la chiave per la mappa
+    let key = x + y * 1000;
+    
+    // Controlla se la tessera esiste
+    if (tiles.has(key)) {
+        
+        let tile = tiles.get(key);      // Recupera la tessera
+        scene.remove(tile.graphic);     // Rimuove l'oggetto grafico dalla scena
+        tiles.delete(key);              // Rimuove la tessera dalla mappa
+        
+        console.log(`Tile at (${x}, ${y}) removed.`);
+
+        let newTile = new Tile(x, y, type, metadata) 
+        console.log(newTile)
+        tiles.set( x + y*1000, newTile);
+
+    } else {
+        console.log(`No tile found at (${x}, ${y}).`);
+        let newTile = new Tile(x, y, type, metadata) 
+        console.log(newTile)
+        tiles.set( x + y*1000, newTile);
+    }
+    
 }
 
 function getTile(x, y, type, metadata) {

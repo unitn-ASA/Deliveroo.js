@@ -2,18 +2,19 @@ const { Server } = require('socket.io');
 const initGrid = require('./grid')
 const config = require('../config');
 const myClock = require('./deliveroo/Clock');
-const fs = require('fs');
-const path = require('path');
 
-const ManagerEntities = require('./workers/ManagerEntities');
-const ManagerAgents = require('./workers/ManagerAgents');
+const Authenticator = require('./deliveroo/Authenticator')
+
 const ManagerControllers = require('./workers/ManagerControllers');
-const ManagerTiles = require('./workers/ManagerTiles');
+
+
 
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 
 const BROADCAST_LOGS = process.env.BROADCAST_LOGS ?? config.BROADCAST_LOGS ?? false;
+
 var myGrid
+var authenticator
 
 const io = new Server( {
     cors: {
@@ -26,84 +27,66 @@ const io = new Server( {
 io.init = async function() {
     console.log('Initialization of ioServer:')
     myGrid = await initGrid()
+    authenticator = new Authenticator(myGrid)
 };
 
-/**
- * Add plugin from extensions folder
- */
-io.addPlugin = function (pluginName) {
-    const extensionsDir = path.join(__dirname, 'plugins');
-    const subDirs = ['agents', 'tiles', 'entities', 'controllers'];
-    let found = false;
-    
-    try {
-        for (const subDir of subDirs) {
-            let fullPath = path.join(extensionsDir, subDir, pluginName);
-            fullPath = `${fullPath}.js`;
-    
-            if (fs.existsSync(fullPath) || fs.existsSync(fullPath.toLowerCase()) || fs.existsSync(fullPath.toUpperCase())) {
-                const pluginPath = [fullPath, fullPath.toLowerCase(), fullPath.toUpperCase()].find(p => fs.existsSync(p));
-                const plugin = require(pluginPath);
-                
-                if(!checkPluginStructur(plugin)){
-                    throw new Error('Incorrect plugin structure')
-                }
-
-                try {  
-                    if(subDir == 'agents') ManagerAgents.loadPlugin(pluginName)
-                    if(subDir == 'tiles') ManagerTiles.loadPlugin(pluginName)
-                    if(subDir == 'entities') ManagerEntities.loadPlugin(pluginName)
-                    if(subDir == 'controllers') ManagerControllers.loadPlugin(pluginName)
-                } 
-                catch (error) { console.error('ERROR loading plugin: ', pluginName + ':\n', error) }
-                
-                found = true;
-                break;
-            }
-        }
-    
-        if (!found) {
-            console.error(`Plugin "${pluginName}" not found in plugins folder.`);
-        } 
-
-    } catch (error) {
-        console.error('ERROR adding plugin: ', pluginName + ':\n', error)
-    }
-    
-};
-
-function checkPluginStructur(plugin){
-    
-    // Controlla se l'attributo 'name' è presente e se è una stringa
-    if (typeof plugin.name !== 'string') {
-        return false;
-    }
-
-    // Controlla se l'attributo 'extension' è presente e se è una classe
-    if (typeof plugin.extension !== 'function' || !/^\s*class\s+/.test(plugin.extension.toString())) {
-        return false;
-    }
-
-    return true;
-}
 
 /**
  * Connection Menagment 
  */
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     
     /**
      * Authenticate socket on agent
      */
-    const controller = ManagerControllers.getController(socket, myGrid)
+    let me, controller
+    
+    try{
+        me = await authenticator.authenticate(socket)
+        controller = await ManagerControllers.getController( me, myGrid )
+    }catch(err){
+        console.log('Authentication error: ', err)
+        socket.disconnect();
+        return
+    }
+    
+
+    /**
+    * Emit from me
+    */
+    socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
+    socket.emit( 'config', me.config )
+
+    // Emit you
+    me.on( 'update', ({id, x, y, type, metadata}) => {
+      //console.log( 'emit you', id, x, y, type, metadata );
+      socket.emit( 'you', {id, x, y, type, metadata} );
+    } );
+    // console.log( 'emit you', id, name, x, y, score );
+    socket.emit( 'you', me );
+  
+    // Entities
+    me.on( 'entities sensing', (entities) => {
+        //console.log('emit entities sensing', ...entities);
+        socket.emit('entities sensing', entities )
+    } );
+    me.emitEntitySensing();
+
+    // Agents
+    me.on( 'agents sensing', (agents) => {
+        // console.log(me.get('name') + ' emit agents sensing', ...agents); // {id, x, y, type, metadata}
+        socket.emit( 'agents sensing', agents );
+    } );
+    me.emitAgentSensing();
+
 
 
     /**
-     * Emit map (tiles)
+     * Emit from myGrid
      */
-    myGrid.on( 'tile', ({x, y, type, metadata}) => {
-        socket.emit( 'tile', x, y, type, metadata);
+    myGrid.on( 'tile', (tile) => {
+        socket.emit( 'tile', tile.x, tile.y, tile.type, tile.metadata);
     } );
 
     let tiles = []

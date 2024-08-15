@@ -36,7 +36,7 @@ function loadPlugin(PluginName){
 }
 
 
-function managerSpawnEntities(grid) {
+function spawnEntities(grid) {
     
   // for each entity type in the game menage its generation 
   Object.keys(entityClasses).forEach(entityName => {
@@ -110,7 +110,7 @@ function managerSpawnEntities(grid) {
 }
 
 
-const ManagerEntities = { loadPlugin, managerSpawnEntities}
+const ManagerEntities = { loadPlugin, spawnEntities}
 
 module.exports = ManagerEntities;
 

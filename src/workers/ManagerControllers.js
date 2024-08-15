@@ -42,32 +42,33 @@ function loadPlugin(PluginName) {
 }
 
 
-function getController(socket, grid){
+function getController( agent, grid ){
+
+  if(!agent){
+    console.log('EROOR LOG IN');
+    return
+  }
 
   let mapControllerAgent = config.AGENTSCONTROLLER;
   
-  // Get the the agent for the incoming socket  
-  const agent = ManagerAgent.authenticate(socket, grid);
-  if(!agent) return
-
   // Get the controller type associeted with the agent type of the socket
   let controllerType = mapControllerAgent[agent.constructor.name] 
- 
+
   // If the controller type is found generete the corrrect controller, otherway generete a defoul controller
   if (controllerType && controllerClasses[controllerType]) {
     let ControllerClass = controllerClasses[controllerType]
-    let controller = new ControllerClass(agent,grid)
+    let controller = new ControllerClass(agent, grid)
     return controller
   } else {
     console.error(`Controller for type ${agent.constructor.name} not found, associated a default controller`);
-    let controller = new Controller(agent,grid)
+    let controller = new Controller(agent, grid)
     return controller;
   }
 
 }
 
 
-const ManagerController = { loadPlugin, getController}
+const ManagerControllers = { loadPlugin, getController}
 
 
-module.exports = ManagerController;
+module.exports = ManagerControllers;

@@ -28,8 +28,7 @@ class Entity extends Xy {
     set(property, value){
         //console.log('SET ', property , value)
         this.metadata[property] = value
-        //emit only one time at the end of the frame the update event
-        this.grid.postponeAtNextFrame( this.grid.emit.bind(this.grid) )('update',this)
+        this.grid.postponeAtNextFrame( this.grid.emit.bind(this.grid) )('update',this)      //emit only one time at the end of the frame the update event
     }
     
 }

@@ -9,7 +9,7 @@ class Obstacle extends Entity {
 
         super(tile.x, tile.y, 'obstacle', grid);
 
-        let color =  0x2c2c2c ;
+        let color =  0x4d4d4d ;
         let style = {shape:'box', params:{width:0.5, height: 1, depth:0.3}, color: color}     
 
         this.set('style', style) 

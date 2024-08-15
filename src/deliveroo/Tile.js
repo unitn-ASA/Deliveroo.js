@@ -34,6 +34,11 @@ const Grid =  require('./Grid')
         //emit only one time at the end of the frame the update event
         this.grid.postponeAtNextFrame( this.grid.emit.bind(this.grid) )('tile', this)
     }
+
+    delete(){
+        this.grid.removeTile(this.x, this.y)
+        this.grid.postponeAtNextFrame( this.grid.emit.bind(this.grid) )('tile',this)
+    }
     
     
     get locked() {

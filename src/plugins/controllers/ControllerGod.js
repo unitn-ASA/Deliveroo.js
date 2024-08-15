@@ -39,30 +39,27 @@ class ControllerGod extends Controller{
         // Trova la posizione del valore associato all'attributo type di tile (ignorando maiuscole/minuscole)
         const tileType = tile.type.toLowerCase();
         const tileTypes = Object.values(tileTypeMap).map(value => value.toLowerCase());
-        const currentIndex = tileTypes.indexOf(tileType);
+        let currentIndex = tileTypes.indexOf(tileType);
 
-        // Se il tipo corrente è trovato, calcola l'indice del tipo successivo
-        if (currentIndex !== -1) {
-            const nextIndex = (currentIndex + 1) % tileTypes.length;
-            const nextType = Object.values(tileTypeMap)[nextIndex];
-            let tileClass
+        const nextIndex = (currentIndex + 1) % tileTypes.length;
+        const nextType = Object.values(tileTypeMap)[nextIndex];
+        let tileClass
 
-            try {
-                let tilePlugin = require(`../tiles/${nextType}`)
-                tileClass = tilePlugin.core;
-            } catch (error) {
-                console.warn(`Class ${nextType} not founded`);
-            }
-
-            // Crea una nuova tile del tipo successivo nella mappa
-            const newTile = new tileClass(x, y, this.grid);
-
-            // Emetti l'evento per il nuovo tile
-            this.grid.emitOnePerTick('tile', newTile);
-        }
         
+        try {
+            let tilePlugin = await require(`../tiles/${nextType}`)
+            tileClass = tilePlugin.extension;
+        } catch (error) {
+            console.log(`Class ${nextType} not founded`);
+            return;
+        }
 
-        this.grid.emitOnePerTick( 'tile', tile )
+        // Crea una nuova tile del tipo successivo nella mappa
+        const newTile = new tileClass(this.grid, x, y);
+        
+        await this.grid.removeTile(x,y)
+        await this.grid.addTile(x,y,newTile)
+
     } 
 
     //spawn a parcel in the selected tile or if already exist one delete it

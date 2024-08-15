@@ -19,7 +19,6 @@ class Grid extends Observable {
     /** @type {Map<string, Entity>} */
     #entities;
 
-    menagerAgents;
 
     /**
      * @constructor Grid
@@ -31,12 +30,17 @@ class Grid extends Observable {
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
         
-        this.#tiles = MenagerTiles.manageSpawnTiles(map, this)
+        this.#tiles = MenagerTiles.spawnTiles(map, this)
 
         this.#agents = new Map();
         this.#entities = new Map();
         
     }
+
+
+
+    //TILES METHODS
+    
 
     /**
      * @type {function():Generator<Tile, Tile, Tile>}
@@ -74,6 +78,48 @@ class Grid extends Observable {
         let column = this.#tiles.at(x)
         return column ? column.at(y) : null;
     }
+    /**
+     * Removes a tile at the specified (x, y) position.
+     * @param {number} x - The x-coordinate.
+     * @param {number} y - The y-coordinate.
+     * @returns {boolean} - Returns true if the tile was successfully removed, false otherwise.
+     */
+    removeTile(x, y) {
+        if (x >= 0 && y >= 0 && x < this.#tiles.length && y < this.#tiles[0].length) {
+            if (this.#tiles[x][y]) {
+                this.#tiles[x][y] = null;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Adds a tile at the specified (x, y) position.
+     * @param {number} x - The x-coordinate.
+     * @param {number} y - The y-coordinate.
+     * @param {Tile} tile - The tile to add.
+     * @returns {boolean} - Returns true if the tile was successfully added, false otherwise.
+     */
+    addTile(x, y, tile) {
+        if (x < 0 || y < 0) return false;
+
+        // Expand the grid if necessary
+        while (x >= this.#tiles.length) {
+            this.#tiles.push(new Array(this.#tiles[0].length).fill(null));
+        }
+        while (y >= this.#tiles[0].length) {
+            this.#tiles.forEach(row => row.push(null));
+        }
+
+        this.#tiles[x][y] = tile;
+
+        this.emit('tile', tile)
+        return true;
+    }
+
+
+    //AGENTS METHODS
 
     /**
      * @type {function(): string[]}
@@ -86,8 +132,19 @@ class Grid extends Observable {
         return this.#agents.values();
     }
 
-    getAgent ( id ) {
-        return this.#agents.get( id );
+    getAgent(identifier, y = null) {
+        if (y === null) {
+            // Se 'y' non è fornito, presumiamo che 'identifier' sia un ID
+            return this.#agents.get(identifier);
+        } else {
+            // Se 'y' è fornito, presumiamo che 'identifier' sia la coordinata x
+            for (let agent of this.#agents.values()) {
+                if (agent.x === identifier && agent.y === y) {
+                    return agent;
+                }
+            }
+            return null; // Nessun agente trovato alle coordinate specificate
+        }
     }
 
     /**
@@ -127,12 +184,28 @@ class Grid extends Observable {
     }
 
 
-    // ENTITY
+    // ENTITY METHODS
+    
     /**
      * @type {function(Number, Number, Entity): void}
      */
     addEntity ( entity ) {
         this.#entities.set( entity.id, entity )
+    }
+
+    getEntity(identifier, y = null) {
+        if (y === null) {
+            // Se 'y' non è fornito, presumiamo che 'identifier' sia un ID
+            return this.#entities.get(identifier);
+        } else {
+            // Se 'y' è fornito, presumiamo che 'identifier' sia la coordinata x
+            for (let entity of this.#entities.values()) {
+                if (entity.x === identifier && entity.y === y) {
+                    return entity;
+                }
+            }
+            return null; // Nessun agente trovato alle coordinate specificate
+        }
     }
 
     /**
