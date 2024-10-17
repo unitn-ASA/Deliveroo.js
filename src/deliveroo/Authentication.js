@@ -2,9 +2,9 @@ const Agent = require('./Agent');
 const Grid = require('./Grid');
 const jwt = require('jsonwebtoken');
 const { uid } = require('uid');
+const {AGENT_TIMEOUT} = require('../../config');
 
 const SUPER_SECRET = process.env.SUPER_SECRET || 'default_token_private_key';
-const AGENT_TIMEOUT = process.env.AGENT_TIMEOUT || 10000;
 
 
 

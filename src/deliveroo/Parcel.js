@@ -1,13 +1,7 @@
 const Observable =  require('./Observable')
 const Xy =  require('./Xy')
 const myClock =  require('./Clock')
-const config =  require('../../config')
-
-
-
-const PARCEL_REWARD_AVG = process.env.PARCEL_REWARD_AVG || config.PARCEL_REWARD_AVG || 30;
-const PARCEL_REWARD_VARIANCE = process.env.PARCEL_REWARD_VARIANCE ?? config.PARCEL_REWARD_VARIANCE ?? 10;
-const PARCEL_DECADING_INTERVAL = process.env.PARCEL_DECADING_INTERVAL || config.PARCEL_DECADING_INTERVAL || 'infinite';
+const {PARCEL_REWARD_AVG, PARCEL_REWARD_VARIANCE, PARCEL_DECADING_INTERVAL} =  require('../../config')
 
 
 

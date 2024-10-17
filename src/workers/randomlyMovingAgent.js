@@ -1,10 +1,6 @@
 const Grid = require('../deliveroo/Grid');
 const myClock =  require('../deliveroo/Clock');
-const config =  require('../../config');
-
-
-
-const RANDOM_AGENT_SPEED = process.env.RANDOM_AGENT_SPEED || config.RANDOM_AGENT_SPEED || '2s'; // move frequency
+const {RANDOM_AGENT_SPEED} =  require('../../config');
 
 
 

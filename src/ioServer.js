@@ -1,11 +1,9 @@
 const { Server } = require('socket.io');
 const myGrid = require('./grid');
 const Authentication = require('./deliveroo/Authentication');
-const config = require('../config');
+const {BROADCAST_LOGS} = require('../config');
 const myClock = require('./deliveroo/Clock');
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
-
-const BROADCAST_LOGS = process.env.BROADCAST_LOGS ?? config.BROADCAST_LOGS ?? false;
 
 
 

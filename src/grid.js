@@ -1,12 +1,7 @@
 const Grid = require('./deliveroo/Grid');
 const randomlyMovingAgent = require('./workers/randomlyMovingAgent');
 const parcelsGenerator = require('./workers/parcelsGenerator');
-const config = require('../config');
-
-
-
-const MAP_FILE = config.MAP_FILE || process.env.MAP_FILE || "default_map";
-const RANDOMLY_MOVING_AGENTS = config.RANDOMLY_MOVING_AGENTS || process.env.RANDOMLY_MOVING_AGENTS || 0;
+const {RANDOMLY_MOVING_AGENTS, MAP_FILE} = require('../config');
 
 
 

@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const { ArgumentParser } = require('argparse');
-require("./levels/24c1_1.js")
+
 
 
 /**
@@ -9,31 +9,32 @@ require("./levels/24c1_1.js")
 class Config {
 
     #parameters = {};
-    
+    get parameters() { return this.#parameters; }
+
     /** @type {number} */
-    PORT = this.setNumber('PORT', 80,
+    PORT = this.setNumber('PORT', 8080,
         '-p', '--port', 'Specify a port for the server');
-    
+
     /** @type {string} */
     LEVEL = this.set('LEVEL', 'default_level',
         '-l', '--level', 'Specify path to a level file. Examples are in ./levels folder');
-    
+
     /** @type {string} path to a map .json file, maps are in levels/maps */
     MAP_FILE = this.set('MAP_FILE', 'default_map',
         '-m', '--map', 'Specify name of map file (without .json) from those in ./levels/maps folder');
-    
+
     /** @type {string} */
     PARCELS_GENERATION_INTERVAL = this.set('PARCELS_GENERATION_INTERVAL', '2s',
         '-i', '--parcels-interval', "Specify the interval for parcels generation, options are '1s', '2s', '5s', '10s', default is '2s'");
-    
-    /** @type {string | 'infinite'} */
-    PARCELS_MAX = this.set('PARCELS_MAX', '5',
+
+    /** @type {number} */
+    PARCELS_MAX = this.setNumber('PARCELS_MAX', 5,
         '-x', '--parcels-max', "Specify the max number of parcels on the grid, default is 5");
-    
+
     /** @type {number} */
     PARCEL_REWARD_AVG = this.setNumber('PARCEL_REWARD_AVG', 30,
         '-r', '--reward-avg', "Specify the average reward for parcels, default is 30");
-    
+
     /** @type {number} */
     PARCEL_REWARD_VARIANCE = this.setNumber('PARCEL_REWARD_VARIANCE', 10,
         '-v', '--reward-variance', "Specify the variance for parcels, default is 10");
@@ -41,7 +42,7 @@ class Config {
     /** @type {string} */
     PARCEL_DECADING_INTERVAL = this.set('PARCEL_DECADING_INTERVAL', '1s',
         '-c', '--decading-interval', "Specify the decading interval for parcels, options are '1s', '2s', '5s', '10s', 'infinite', default is '1s'");
-    
+
     /** @type {number} */
     MOVEMENT_STEPS = this.setNumber('MOVEMENT_STEPS', 1,
         '-s', '--mov-steps', "Specify the number of steps for each movement, default is 1");
@@ -61,7 +62,7 @@ class Config {
     /** @type {number} */
     AGENT_TIMEOUT = this.setNumber('AGENT_TIMEOUT', 10000,
         '-t', '--timeout', "Specify the timeout for agents, default is 10000");
-    
+
     /** @type {number} */
     RANDOMLY_MOVING_AGENTS = this.setNumber('RANDOMLY_MOVING_AGENTS', 2,
         '-z', '--npc-num', "Specify the number of randomly moving agents, default is 2");
@@ -69,11 +70,11 @@ class Config {
     /** @type {string} */
     RANDOM_AGENT_SPEED = this.set('RANDOM_AGENT_SPEED', '2s',
         '-y', '--npc-speed', "Specify the speed for randomly moving agents, options are '1s', '2s', '5s', '10s', default is '2s'");
-    
+
     /** @type {number} */
     CLOCK = this.setNumber('CLOCK', 50,
-        '-k', '--clock', "Specify the clock, default is 50 (=20frame/s)");
-    
+        '-k', '--clock', "Specify the clock [ms], 40 (25frame/s), default is 50 (20frame/s)");
+
     /** @type {boolean} */
     BROADCAST_LOGS = this.setBool('BROADCAST_LOGS', false,
         undefined, '--broadcast-logs', "Broadcast logs to all clients, default is false");
@@ -191,14 +192,15 @@ class Config {
 }
 
 
+
 function loadJavascript ( path ) {
 
     try {
         var js = require( './'+path );
-        console.log( 'Javascript loaded from:', './'+path );
+        console.log( 'Javascript loaded from:', './' + path );
         return js;
     } catch ( err ) {
-        console.warn( 'Loading javascript from', path, "was not possible, retrying under ./levels/" )
+        console.warn( 'Loading javascript from ./' + path, "was not possible, retrying under ./levels/" )
         try {
             var js = require( './levels/' + path );
             console.log( 'Javascript loaded from:', './levels/' + path );
@@ -232,6 +234,7 @@ function loadFromJson ( path ) {
 
 
 const config = new Config();
+// console.log("Initial config:", Object.keys(config.parameters).reduce( (obj,key) => { obj[key] = config[key]; return obj; } ,{}) );
 console.log("Initial config:", config);
 
 module.exports = config;

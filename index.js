@@ -1,9 +1,6 @@
 const httpServer = require('./src/httpServer.js');
 const ioServer = require('./src/ioServer');
-
-
-
-const PORT = process.env.PORT || 8080;
+const {PORT} = require('./config');
 
 
 
