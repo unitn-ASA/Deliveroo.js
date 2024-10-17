@@ -1,43 +1,237 @@
-const config = {
+const fs = require('node:fs');
+const { ArgumentParser } = require('argparse');
+require("./levels/24c1_1.js")
 
-    MAP_FILE: 'default_map',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
 
-    PARCELS_GENERATION_INTERVAL: '2s',  // options are '1s', '2s' (DEFAULT), '5s', '10s'
-    PARCELS_MAX: '5',                  // 'infinite' (DEFAULT)
+/**
+ * Config class
+ */
+class Config {
 
-    MOVEMENT_STEPS: 1,                  // default is 1
-    MOVEMENT_DURATION: 50,              // default is 500
-    AGENTS_OBSERVATION_DISTANCE: 5,     // default is 5, supports 'infinite'
-    PARCELS_OBSERVATION_DISTANCE: 5,    // default is 5, supports 'infinite' 
-    AGENT_TIMEOUT: 10000,               // default is 10000
+    #parameters = {};
+    
+    /** @type {number} */
+    PORT = this.setNumber('PORT', 80,
+        '-p', '--port', 'Specify a port for the server');
+    
+    /** @type {string} */
+    LEVEL = this.set('LEVEL', 'default_level',
+        '-l', '--level', 'Specify path to a level file. Examples are in ./levels folder');
+    
+    /** @type {string} path to a map .json file, maps are in levels/maps */
+    MAP_FILE = this.set('MAP_FILE', 'default_map',
+        '-m', '--map', 'Specify name of map file (without .json) from those in ./levels/maps folder');
+    
+    /** @type {string} */
+    PARCELS_GENERATION_INTERVAL = this.set('PARCELS_GENERATION_INTERVAL', '2s',
+        '-i', '--parcels-interval', "Specify the interval for parcels generation, options are '1s', '2s', '5s', '10s', default is '2s'");
+    
+    /** @type {string | 'infinite'} */
+    PARCELS_MAX = this.set('PARCELS_MAX', '5',
+        '-x', '--parcels-max', "Specify the max number of parcels on the grid, default is 5");
+    
+    /** @type {number} */
+    PARCEL_REWARD_AVG = this.setNumber('PARCEL_REWARD_AVG', 30,
+        '-r', '--reward-avg', "Specify the average reward for parcels, default is 30");
+    
+    /** @type {number} */
+    PARCEL_REWARD_VARIANCE = this.setNumber('PARCEL_REWARD_VARIANCE', 10,
+        '-v', '--reward-variance', "Specify the variance for parcels, default is 10");
 
-    PARCEL_REWARD_AVG: 30,          // default is 30
-    PARCEL_REWARD_VARIANCE: 10,     // default is 10
-    PARCEL_DECADING_INTERVAL: '1s', // options are '1s', '2s', '5s', '10s', 'infinite' (DEFAULT)
+    /** @type {string} */
+    PARCEL_DECADING_INTERVAL = this.set('PARCEL_DECADING_INTERVAL', '1s',
+        '-c', '--decading-interval', "Specify the decading interval for parcels, options are '1s', '2s', '5s', '10s', 'infinite', default is '1s'");
+    
+    /** @type {number} */
+    MOVEMENT_STEPS = this.setNumber('MOVEMENT_STEPS', 1,
+        '-s', '--mov-steps', "Specify the number of steps for each movement, default is 1");
 
-    RANDOMLY_MOVING_AGENTS: 2,  // default is 2
-    RANDOM_AGENT_SPEED: '2s',   // options are '1s', '2s' (DEFAULT), '5s', '10s'
+    /** @type {number} */
+    MOVEMENT_DURATION = this.setNumber('MOVEMENT_DURATION', 50,
+        '-d', '--mov-duration', "Specify the duration of each movement, default is 50");
 
-    CLOCK: 50,  // default is 50 (50ms are 20frame/s)
+    /** @type {number} */
+    AGENTS_OBSERVATION_DISTANCE = this.setNumber('AGENTS_OBSERVATION_DISTANCE', 5,
+        '-a', '--agent-observation-distance', "Specify the observation distance for agents, default is 5");
 
-    BROADCAST_LOGS: false,  // default is false
+    /** @type {number} */
+    PARCELS_OBSERVATION_DISTANCE = this.setNumber('PARCELS_OBSERVATION_DISTANCE', 5,
+        '-b', '--parcel-observation-distance', "Specify the observation distance for parcels, default is 5");
+
+    /** @type {number} */
+    AGENT_TIMEOUT = this.setNumber('AGENT_TIMEOUT', 10000,
+        '-t', '--timeout', "Specify the timeout for agents, default is 10000");
+    
+    /** @type {number} */
+    RANDOMLY_MOVING_AGENTS = this.setNumber('RANDOMLY_MOVING_AGENTS', 2,
+        '-z', '--npc-num', "Specify the number of randomly moving agents, default is 2");
+
+    /** @type {string} */
+    RANDOM_AGENT_SPEED = this.set('RANDOM_AGENT_SPEED', '2s',
+        '-y', '--npc-speed', "Specify the speed for randomly moving agents, options are '1s', '2s', '5s', '10s', default is '2s'");
+    
+    /** @type {number} */
+    CLOCK = this.setNumber('CLOCK', 50,
+        '-k', '--clock', "Specify the clock, default is 50 (=20frame/s)");
+    
+    /** @type {boolean} */
+    BROADCAST_LOGS = this.setBool('BROADCAST_LOGS', false,
+        undefined, '--broadcast-logs', "Broadcast logs to all clients, default is false");
+
+
+    
+    /** @param {Config} config */
+    constructor ( config = {} ) {
+
+        // 1. default values
+
+        // 2. values in process.env
+
+        // 3. Loading from file specified in process.env.LEVEL 
+        if (process.env.LEVEL) {
+            try {
+                const json = loadJavascript( process.env.LEVEL );
+                Object.assign( this, json );
+                this.LEVEL = process.env.LEVEL;
+            } catch (err) {
+                console.error( 'Error loading from process.env.LEVEL', process.env.LEVEL );
+            }
+        }
+
+        // Parsing Arguments
+        const parser = new ArgumentParser({
+            description: 'Usage of Deliveroo.js. Use double -- to separate args to be sent to the script, e.g. npm run dev -- -p=80',
+            add_help: true
+        });
+
+        for (const [key, {defaultValue, shortOpt, longOpt, helpText}] of Object.entries(this.#parameters)) {
+            if(shortOpt)
+                parser.add_argument(shortOpt, longOpt, {dest: key, help: helpText});
+            else
+                parser.add_argument(longOpt, {dest: key, help: helpText});
+        }
+
+        const args = parser.parse_args();
+
+        // 4. Loading from file specified in args.LEVEL
+        if ( args.LEVEL ) {
+            try {
+                const json = loadJavascript( args.LEVEL );
+                Object.assign( this, json );
+                this.LEVEL = args.LEVEL;
+                // console.log( 'Loaded level specified as argument', args.LEVEL );
+            } catch (err) {
+                console.error( 'Error loading from args.LEVEL', args.LEVEL );
+            }
+        }
+        
+        // 5. Overwriting with values specified as args
+        Object.keys( args ).forEach( key => {
+            if ( args[key] != null && key != 'LEVEL' )
+                this[key] = args[key];
+        });
+
+        // 6. Overwriting with values specified from config.LEVEL
+        if ( config.LEVEL ) {
+            try {
+                const json = loadJavascript( config.LEVEL );
+                Object.assign( this, json );
+                this.LEVEL = config.LEVEL;
+                // console.log( 'Loaded custom level', config.LEVEL );
+            } catch (err) {
+                console.error( 'Error loading from custom', config.LEVEL );
+            }    
+        }
+                
+        // 7. Overwriting with values specified as config
+        Object.keys( config ).forEach( key => {
+            if ( config[key] != null && key != 'LEVEL' ){
+                this[key] = config[key];
+            }
+        });
+
+        
+        
+    }
+
+
+
+
+    /**
+     * @param {string} key @param {string} defaultValue 
+     * @param {string} shortOpt @param {string} longOpt @param {string} helpText 
+     * @returns {string}
+     */
+    set(key, defaultValue, shortOpt, longOpt, helpText) {
+        this.#parameters[key] = {defaultValue, shortOpt, longOpt, helpText};
+        return process.env[key] || defaultValue;
+    }
+
+    /**
+     * @param {string} key @param {number} defaultValue 
+     * @param {string} shortOpt @param {string} longOpt @param {string} helpText 
+     * @returns {number}
+     */
+    setNumber(key, defaultValue, shortOpt, longOpt, helpText) {
+        this.#parameters[key] = {defaultValue, shortOpt, longOpt, helpText};
+        return Number( process.env[key] || defaultValue );
+    }
+
+    /**
+     * @param {string} key @param {boolean} defaultValue 
+     * @param {string} shortOpt @param {string} longOpt @param {string} helpText 
+     * @returns {boolean}
+     */
+    setBool(key, defaultValue, shortOpt, longOpt, helpText) {
+        this.#parameters[key] = {defaultValue, shortOpt, longOpt, helpText};
+        return Boolean( process.env[key] || defaultValue );
+    }
+
 
 }
 
 
+function loadJavascript ( path ) {
 
-const LEVEL = process.argv[2] || process.env.LEVEL;
+    try {
+        var js = require( './'+path );
+        console.log( 'Javascript loaded from:', './'+path );
+        return js;
+    } catch ( err ) {
+        console.warn( 'Loading javascript from', path, "was not possible, retrying under ./levels/" )
+        try {
+            var js = require( './levels/' + path );
+            console.log( 'Javascript loaded from:', './levels/' + path );
+            return js;
+        } catch ( err ) {
+            console.warn( 'Not even from ./levels/' + path,  "was possible" )
+            throw err;
+        }
+    }
 
-try {
-    if ( LEVEL ) {
-        Object.assign( config, require( './levels/' + LEVEL ) );
-        console.log( 'Level loaded:', LEVEL, config );
-    } else
-        console.log( 'Level not specified, using default config', config )
-} catch ( error ) {
-    console.error( 'Error while loading level', LEVEL, config )
 }
 
-module.exports = config
+function loadFromJson ( path ) {
+    if ( !path ) {
+        throw new Error('No path specified');
+    }
+    try {
+        const contents = fs.readFileSync(path, 'utf8');
+        try {
+            return JSON.parse(contents);
+        } catch (err) {
+            console.error('Error while parsing JSON' + path);
+            throw err;
+        }
+    } catch (err) {
+        console.error('Error while reading' + path);
+        throw err;
+    }
+}
 
 
+
+const config = new Config();
+console.log("Initial config:", config);
+
+module.exports = config;
