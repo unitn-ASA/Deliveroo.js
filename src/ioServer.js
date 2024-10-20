@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const httpServer = require('./httpServer');
 const myGrid = require('./grid');
 const Authentication = require('./deliveroo/Authentication');
 const {BROADCAST_LOGS} = require('../config');
@@ -9,10 +10,11 @@ require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10!
 
 const myAuthenticator = new Authentication( myGrid )
 
-const io = new Server( {
+const io = new Server( httpServer, {
     cors: {
         origin: "*", // http://localhost:3000",
-        methods: ["GET", "POST"]
+        credentials: false, // https://socket.io/docs/v4/handling-cors/#credential-is-not-supported-if-the-cors-header-access-control-allow-origin-is-
+        allowedHeaders: ["x-token"]
     }
 } );
 
