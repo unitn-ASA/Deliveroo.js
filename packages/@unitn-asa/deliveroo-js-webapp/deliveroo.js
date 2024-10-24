@@ -659,9 +659,7 @@ var socket = io( import.meta.env.VITE_SOCKET_IO_HOST || '', {
     extraHeaders: {
         'x-token': token
     },
-    query: {
-        name: params.get("name"),
-    }
+    query: ( ! token ? { name: params.get("name") } : {} )
 } );
 
 

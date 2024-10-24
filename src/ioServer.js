@@ -1,14 +1,12 @@
 const { Server } = require('socket.io');
 const httpServer = require('./httpServer');
 const myGrid = require('./grid');
-const Authentication = require('./deliveroo/Authentication');
-const {BROADCAST_LOGS} = require('../config');
+const {BROADCAST_LOGS, AGENT_TIMEOUT} = require('../config');
 const myClock = require('./deliveroo/Clock');
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
+const {tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware} = require('./middlewares/token');
 
 
-
-const myAuthenticator = new Authentication( myGrid )
 
 const io = new Server( httpServer, {
     cors: {
@@ -18,18 +16,82 @@ const io = new Server( httpServer, {
     }
 } );
 
-
-
-io.on('connection', (socket) => {
+/**
+ * Check token on Handshake
+ * https://socket.io/docs/v4/middlewares/#compatibility-with-express-middleware
+ */
+io.engine.use( (req, res, next) => {
     
+    // check if handshake
+    const isHandshake = req._query.sid === undefined;
+    if ( ! isHandshake ) {
+        return next();
+    }
+
+    // set query consistently as in express.js middlewares
+    req.query = req._query;
+
+    verifyTokenMiddleware(req, res, () => {
+        signTokenMiddleware(req, res, next);
+    } );
+
+} )
+
+
+
+io.on('connection', async (socket) => {
+
+    const id = socket.request['user'].id;
+    const name = socket.request['user'].name;
+    const teamId = socket.request['user'].teamId;
+    const teamName = socket.request['user'].teamName;
+    /** @type {string} */
+    const token = socket.request['token'] || '';
+    
+    socket.emit( 'token', token );
+    
+    console.log( `Socket ${socket.id} connected as ${name}(${id}). With token: ${token.slice(0,10)}...` );
+
+    await socket.join("agent:"+id);
+    await socket.join("team:"+teamId);
+    const ioAgent = socket.to("agent:"+id);
+    const ioTeam = socket.to("team:"+teamId);
+    
+    const me = myGrid.getAgent( id ) || myGrid.createAgent( {id: id, name} );
+    if ( !me ) return;
+
 
 
     /**
-     * Authenticate socket on agent
+     * on Disconnect
      */
-    const me = myAuthenticator.authenticate(socket);
-    if ( !me ) return;
-    socket.broadcast.emit( 'hi ', socket.id, me.id, me.name );
+    socket.on( 'disconnect', async (cause) => {
+
+        try{
+
+            let socketsLeft = (await ioAgent.fetchSockets()).length;
+            console.log( `${me.name}-${me.teamName}-${me.id} Socket disconnected.`,
+                socketsLeft ?
+                `Other ${socketsLeft} connections to the agent.` :
+                `No other connections, agent will be removed in ${AGENT_TIMEOUT/1000} seconds.`
+            );
+            if ( socketsLeft == 0 && myGrid.getAgent(me.id) ) {
+                
+                // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${AGENT_TIMEOUT/1000} seconds agent will be removed.` );
+                await new Promise( res => setTimeout(res, AGENT_TIMEOUT) );
+                
+                let socketsLeft = (await ioAgent.fetchSockets()).length;
+                if ( socketsLeft == 0 && myGrid.getAgent(me.id) ) {
+                    console.log( `${me.name}-${me.teamName}-${me.id} Agent deleted after ${AGENT_TIMEOUT/1000} seconds of no connections` );
+                    myGrid.deleteAgent ( me );
+                };
+            }
+
+        } catch (error) {
+            console.log('Error in the disconection of socket ', socket.id, ' -> ', error);
+        }
+        
+    });
 
 
 
@@ -77,7 +139,13 @@ io.on('connection', (socket) => {
         socket.emit( 'you', {id, name, x, y, score} );
     } );
     // console.log( 'emit you', id, name, x, y, score );
-    socket.emit( 'you', {id, name, x, y, score} = me );
+    socket.emit( 'you', {
+        id: me.id,
+        name: me.name,
+        x: me.x,
+        y: me.y,
+        score: me.score
+    } );
     
 
 
@@ -140,13 +208,10 @@ io.on('connection', (socket) => {
         
         // console.log( me.id, me.name, 'say ', toId, msg );
 
-        for ( let socket of myAuthenticator.getSockets( toId )() ) {
-            
-            // console.log( me.id, me.name, 'emit \'msg\' on socket', socket.id, msg );
-            socket.emit( 'msg', me.id, me.name, msg );
+        // console.log( me.id, me.name, 'emit \'msg\' on socket', socket.id, msg );
+        socket.to("agent:"+toId).emit( 'msg', me.id, me.name, msg );
 
-        }
-
+        
         try {
             if (acknowledgementCallback) acknowledgementCallback( 'successful' )
         } catch (error) { console.log( me.id, 'acknowledgement of \'say\' not possible' ) }
@@ -156,26 +221,22 @@ io.on('connection', (socket) => {
     socket.on( 'ask', (toId, msg, replyCallback) => {
         // console.log( me.id, me.name, 'ask', toId, msg );
 
-        for ( let socket of myAuthenticator.getSockets( toId )() ) {
-            
-            // console.log( me.id, 'socket', socket.id, 'emit msg', ...args );
-            socket.emit( 'msg', me.id, me.name, msg, (reply) => {
+        // console.log( me.id, 'socket', socket.id, 'emit msg', ...args );
+        socket.to("agent:"+toId).emit( 'msg', me.id, me.name, msg, (reply) => {
 
-                try {
-                    console.log( toId, 'replied', reply );
-                    replyCallback( reply )
-                } catch (error) { console.log( me.id, 'error while trying to acknowledge reply' ) }
+            try {
+                console.log( toId, 'replied', reply );
+                replyCallback( reply )
+            } catch (error) { console.log( me.id, 'error while trying to acknowledge reply' ) }
 
-            } );
-
-        }
+        } );
 
     } )
 
     socket.on( 'shout', (msg, acknowledgementCallback) => {
 
         // console.log( me.id, me.name, 'shout', msg );
-
+        
         socket.broadcast.emit( 'msg', me.id, me.name, msg );
 
         try {
@@ -192,14 +253,7 @@ io.on('connection', (socket) => {
     
     socket.on( 'path', ( path ) => {
         
-        for ( let s of myAuthenticator.getSockets( me.id )() ) {
-
-            if ( s == socket )
-                continue;
-            
-            s.emit( 'path', path );
-
-        }
+        ioAgent.emit( 'path', path );
 
     } )
 
@@ -260,13 +314,17 @@ io.on('connection', (socket) => {
     }
 
     socket.on( 'draw', async (bufferPng) => {
+        
         // console.log( 'draw' );
-        for ( let s of myAuthenticator.getSockets( me.id )() ) {
-            if ( s == socket )
-                continue;
-            s.emit( 'draw', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, bufferPng );
-        }
-        // socket.broadcast.emit( 'draw', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, bufferPng );
+
+        ioAgent.emit( 'draw', {
+            src: 'client',
+            timestamp: myClock.ms,
+            socket: socket.id,
+            id: me.id,
+            name: me.name
+        }, bufferPng );
+
     } );
 
 });

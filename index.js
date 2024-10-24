@@ -20,7 +20,7 @@ async function start () {
      * Start io server
      */
 
-    ioServer.listen( httpServer );
+    // ioServer.listen( httpServer );
 
 
     

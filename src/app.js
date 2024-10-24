@@ -6,6 +6,14 @@ const app = express();
 const configRoutes = require('./routes/configs');
 const mapsRoutes = require('./routes/maps');
 const agentsRoutes = require('./routes/agents');
+const { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware } = require('./middlewares/token');
+
+
+
+/**
+ * Serve front-end static files
+ */
+app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'dist') ));
 
 
 
@@ -19,7 +27,8 @@ app.use(cors({
     allowedHeaders: '*'
 }));
 
-
+//Middleware to login with a name
+app.use( verifyTokenMiddleware ); // Decode token if any
 
 /**********************************************/
 /*                     API                    */
@@ -32,7 +41,7 @@ app.get('/api', (req, res) => {
 })
 
 // return the generated token
-app.post('/api/tokens', (req, res) => {
+app.use('/api/tokens', signTokenMiddleware, (req, res) => {
 
     if ( ! req['token'] ) {
         console.error(`${req.method} ${req.url} - Login failed, no name specified.`);
@@ -65,17 +74,6 @@ app.use( (err, req, res, next) => {
 /*                                            */
 /*                                            */
 /**********************************************/
-
-
-
-/**
- * Serve front-end static files
- */
-// app.use('/', express.static('packages/\@unitn-asa/vite-project/dist/'));
-// app.use('/', express.static(Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'vite-project', 'dist')));
-app.use('/', express.static( Path.join(__dirname, '..', 'node_modules', '\@unitn-asa', 'deliveroo-js-webapp', 'dist') ));
-// app.use('/', express.static('static'));
-// app.use("/", express.static(Path.join(__dirname, '..', 'static')));
 
 
 

@@ -104,7 +104,7 @@ class Agent extends Xy {
 
     /**
      * Agents sensend on the grid
-     * @type {function(Agent,Array<Parcel>): void}
+     * @type {function(): void}
      */
     emitAgentSensing () {
 
@@ -135,6 +135,7 @@ class Agent extends Xy {
 
     /**
      * Parcels sensend on the grid
+     * @type {function(): void}
      */
     emitParcelSensing () {
 
