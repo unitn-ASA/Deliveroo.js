@@ -114,7 +114,7 @@ async function verifyTokenMiddleware ( req, res, next ) {
 
         } catch (error) { // Invalid token signature
 
-            console.log( `${req.method} ${req.url} Invalid token provided.` );
+            console.log( `${req.method} ${req.url} Invalid token provided. Error:`, error.message, jwt.decode( token.toString() ) );
 
             if ( res.status )
                 res.status(401).json( {
