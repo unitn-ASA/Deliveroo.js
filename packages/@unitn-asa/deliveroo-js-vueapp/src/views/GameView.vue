@@ -1,30 +1,20 @@
 <script setup>
     
-    import { Game } from '../deliveroo/Game.js';
-    import { user } from '../states/user.js';
     import { onMounted, onUnmounted, ref } from 'vue';
     import Login from '../components/Login.vue';
+    import Deliveroojs from '../components/Deliveroojs.vue';
 
-    var game;
     const isOverlayVisible = ref(false); // Reactive variable for overlay visibility
+    const deliverooKey = ref(0); // Key for Deliveroojs component
 
     const toggleOverlay = () => {
         isOverlayVisible.value = !isOverlayVisible.value; // Toggle overlay visibility
     };
 
-    onMounted(() => {
-        // const roomId = route.params?.id || 0;
-        if ( user && user.value ) {
-            const token = user.value.token;
-            console.log('GameView deliveroo token:', token)
-            game = new Game( { token } );
-        }
-    })
-
-    onUnmounted(() => {
-        if ( game )
-            game.destroy();
-    })
+    const handleLogin = () => {
+        isOverlayVisible.value = false; // Hide the overlay
+        deliverooKey.value += 1; // Increment the key to force reload Deliveroojs
+    };
 
 </script>
 
@@ -51,7 +41,8 @@
                         </button>
                     </div>
                     <div class="z-30 bg-white rounded-lg">
-                        <Login/>
+                        <Login @login="handleLogin"/>
+
                     </div>
                 </div>
             </div>
@@ -139,20 +130,11 @@
             </div>
             
         </div>
-        
-        <div id="threejs" class="fixed"></div>
+
+        <Deliveroojs :key="deliverooKey" /> <!-- Use the key to force reload -->
 
     </main>
 </template>
 
 <style>
-
-    .label {
-        color: #FFF;
-        font-family: sans-serif;
-        padding: 2px;
-        background: rgba( 0, 0, 0, .6 );
-        font-size: '12pt';
-    }
-
 </style>

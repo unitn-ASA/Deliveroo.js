@@ -4,24 +4,31 @@
     import { richiediToken } from '../apiClient.js';
     import { user, myTokens } from '../states/user.js';
     import { useRoute, useRouter } from 'vue-router'
+    import { jwtDecode } from "jwt-decode";
 
+    const emit = defineEmits(['login']); // Define the emit for login
     const router = useRouter();
-    const route = useRoute();
-
-    
+    const route = useRoute();  
 
     const name = ref('marco');
     const team = ref('disi');
-    const password = ref('password');
+    const password = ref('');
+    const token = ref('');
 
     async function requestToken() {
-
         let {token, payload} = await richiediToken(name.value, team.value, password.value);
-
         // console.log(token, payload);
-        
         myTokens.set( token, payload );
+    }
 
+    async function saveToken() {
+        try {
+            let payload = jwtDecode( token.value );
+            console.log( payload );
+            myTokens.set( token.value, payload );
+        } catch (error) {
+            console.error( 'Invalid token', token.value, error );
+        }
     }
 
     function copyToClipboard(text) {
@@ -33,6 +40,12 @@
         document.body.removeChild(tempInput);
     }
 
+    function pasteFromClipboard() {
+        navigator.clipboard.readText().then( text => {
+            token.value = text;
+        });
+    }
+
     function removeToken(token) {
         myTokens.delete( token );
     }
@@ -40,6 +53,7 @@
     function useToken(token, payload) {
         user.value = { token, payload };
         router.push({ query: {name:payload.name} });
+        emit('login', { token, payload });
     }
 
 
@@ -49,13 +63,13 @@
 <template>
     <main>
 
-    <div class="w-5/6 mx-auto pb-10">
+    <div class="w-5/6 mx-auto pb-10 space-y-4">
         
         <div class="text-center my-6 text-xl">
             <h2>Tokens</h2>
         </div>
         
-        <div class="mb-6">
+        <div class="table">
             <div class="bg-black bg-opacity-25 max-h-75 box-border p-2 backdrop-blur-md items-center rounded-xl break-inside-avoid mb-2"
                 v-for="[token, payload] of myTokens.entries()">
                 
@@ -76,15 +90,20 @@
                     </div>
                 </div>
                 
-                
             </div>
         </div>
         
         <div class="flex text-black rounded space-x-4">
-            <input v-model="name" class="input bg-white" type="text" placeholder="Name">
-            <input v-model="team" class="input bg-white" type="text" placeholder="Team">
-            <input v-model="password" class="input bg-white" type="password" placeholder="AdminPassword">
-            <button id="addButton" class="btn btn-primary" @click="requestToken()">New token</button>
+            <input v-model="name" class="input bg-white btn-sm" type="text" placeholder="Name">
+            <input v-model="team" class="input bg-white btn-sm" type="text" placeholder="Team">
+            <input v-model="password" class="input bg-white btn-sm" type="password" placeholder="AdminPassword">
+            <button id="addButton" class="btn btn-primary btn-sm" @click="requestToken()">New token</button>
+        </div>
+        
+        <div class="flex text-black rounded space-x-4">
+            <input v-model="token" class="input bg-white btn-sm" type="text" placeholder="Token">
+            <button class="btn btn-outline btn-info btn-sm" @click="pasteFromClipboard()">Paste</button>
+            <button id="saveButton" class="btn btn-primary btn-sm" @click="saveToken()">Save token</button>
         </div>
     
     </div>

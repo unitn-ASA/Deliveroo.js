@@ -3,7 +3,6 @@ import { Parcel } from './Parcel.js';
 import { Gui } from './Gui.js';
 import { Client } from './Client.js';
 import { Controller } from './Controller.js';
-import { Leaderboard } from './Leaderboard.js';
 import { Tile } from './Tile.js';
 
 import * as THREE from 'three';
@@ -21,9 +20,6 @@ class Game {
     
     /** @type {Agent} */
     me;
-    
-    /** @type {Leaderboard} leaderboard */
-    leaderboard;
 
     /** @type {Map<string,THREE.Color>} team to color */
     teamsAndColors = new Map();
@@ -92,7 +88,7 @@ class Game {
     
     /**
      * 
-     * @param {{token: string, roomId: string}} options
+     * @param {{token: string}} options
      */
     constructor ( options ) {
         
