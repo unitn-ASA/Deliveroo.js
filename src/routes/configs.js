@@ -10,4 +10,16 @@ router.get('/', async (req, res) => {
 
 })
 
+router.patch('/', async (req, res) => {
+    
+    console.log(`PATCH /configs`)
+    if ( config.LEVEL != req['LEVEL'] ) {
+        config.LEVEL = req['LEVEL'];
+        config.loadLevel();
+    }
+    Object.assign( config, req.body );
+    res.status(200).json( config );
+
+})
+
 module.exports = router;

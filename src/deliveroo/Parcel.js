@@ -1,7 +1,7 @@
 const Observable =  require('./Observable')
 const Xy =  require('./Xy')
 const myClock =  require('./Clock')
-const {PARCEL_REWARD_AVG, PARCEL_REWARD_VARIANCE, PARCEL_DECADING_INTERVAL} =  require('../../config')
+const config =  require('../../config')
 
 
 
@@ -40,16 +40,16 @@ class Parcel extends Xy {
         this.id = 'p' + Parcel.#lastId++;
 
         this.interceptValueSet('reward');
-        this.reward = reward || Math.floor( Math.random()*PARCEL_REWARD_VARIANCE*2 + PARCEL_REWARD_AVG-PARCEL_REWARD_VARIANCE );
+        this.reward = reward || Math.floor( Math.random()*config.PARCEL_REWARD_VARIANCE*2 + config.PARCEL_REWARD_AVG-config.PARCEL_REWARD_VARIANCE );
 
         const decay = () => {
             this.reward = Math.floor( this.reward - 1 );
             if ( this.reward <= 0) {
                 this.emitOnePerTick( 'expired', this );
-                myClock.off( PARCEL_DECADING_INTERVAL, decay );
+                myClock.off( config.PARCEL_DECADING_INTERVAL, decay );
             }
         };
-        myClock.on( PARCEL_DECADING_INTERVAL, decay );
+        myClock.on( config.PARCEL_DECADING_INTERVAL, decay );
         
     }
 

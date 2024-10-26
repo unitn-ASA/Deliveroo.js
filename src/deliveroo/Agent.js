@@ -36,10 +36,14 @@ class Agent extends Xy {
 
     config = {};
 
+    get grid () {
+        return this.#grid;
+    }
+
     /**
      * @constructor Agent
      * @param {Grid} grid
-     * @param {{id:number,name:string}} options
+     * @param {{id:string,name:string,teamName:string}} options
      */
     constructor ( grid, options ) {
         

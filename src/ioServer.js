@@ -45,20 +45,35 @@ io.on('connection', async (socket) => {
     const name = socket.request['user'].name;
     const teamId = socket.request['user'].teamId;
     const teamName = socket.request['user'].teamName;
+    const role = socket.request['user'].role;
     /** @type {string} */
     const token = socket.request['token'] || '';
     
     socket.emit( 'token', token );
     
-    console.log( `Socket ${socket.id} connected as ${name}(${id}). With token: ${token.slice(0,10)}...` );
+    console.log( `Socket ${socket.id} connected as ${role} ${name}(${id}). With token: ${token.slice(0,10)}...` );
 
     await socket.join("agent:"+id);
     await socket.join("team:"+teamId);
     const ioAgent = socket.to("agent:"+id);
     const ioTeam = socket.to("team:"+teamId);
     
-    const me = myGrid.getAgent( id ) || myGrid.createAgent( {id: id, name} );
+    /**
+     * Get or create agent
+     */
+    const me = myGrid.getAgent( id ) || myGrid.createAgent( {id, name, teamName } );
     if ( !me ) return;
+    if ( role == 'admin' ) { // former 'god' mod
+        me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite';
+        me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite';
+        // await me.putDown();
+        if  (me && me.tile && me.tile.unlock )
+            me.tile.unlock();
+        me.x = -1;
+        me.y = -1;
+        myGrid.agents.delete( me.id );
+        myGrid.emit( 'agent deleted', me );
+    }
 
 
 
@@ -75,13 +90,13 @@ io.on('connection', async (socket) => {
                 `Other ${socketsLeft} connections to the agent.` :
                 `No other connections, agent will be removed in ${AGENT_TIMEOUT/1000} seconds.`
             );
-            if ( socketsLeft == 0 && myGrid.getAgent(me.id) ) {
+            if ( socketsLeft == 0 && me.x ) {
                 
                 // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${AGENT_TIMEOUT/1000} seconds agent will be removed.` );
                 await new Promise( res => setTimeout(res, AGENT_TIMEOUT) );
                 
                 let socketsLeft = (await ioAgent.fetchSockets()).length;
-                if ( socketsLeft == 0 && myGrid.getAgent(me.id) ) {
+                if ( socketsLeft == 0 && me.x ) {
                     console.log( `${me.name}-${me.teamName}-${me.id} Agent deleted after ${AGENT_TIMEOUT/1000} seconds of no connections` );
                     myGrid.deleteAgent ( me );
                 };
@@ -112,17 +127,17 @@ io.on('connection', async (socket) => {
     myGrid.on( 'tile', ({x, y, delivery, blocked, parcelSpawner}) => {
         // console.log( 'emit tile', x, y, delivery, parcelSpawner );
         if (!blocked)
-            socket.emit( 'tile', x, y, delivery, parcelSpawner );
+            socket.emit( 'tile', x, y, delivery, parcelSpawner, {ms: myClock.ms, frame:myClock.frame} );
         else
-            socket.emit( 'not_tile', x, y );
+            socket.emit( 'not_tile', x, y, {ms: myClock.ms, frame: myClock.frame} );
     } );
     let tiles = []
     for (const {x, y, delivery, blocked, parcelSpawner} of myGrid.getTiles()) {
         if ( !blocked ) {
-            socket.emit( 'tile', x, y, delivery, parcelSpawner )
+            socket.emit( 'tile', x, y, delivery, parcelSpawner, {ms: myClock.ms, frame: myClock.frame} )
             tiles.push( {x, y, delivery, parcelSpawner} )
         } else
-            socket.emit( 'not_tile', x, y );
+            socket.emit( 'not_tile', x, y, {ms: myClock.ms, frame: myClock.frame} );
     }
     let {width, height} = myGrid.getMapSize()
     socket.emit( 'map', width, height, tiles )
@@ -136,16 +151,15 @@ io.on('connection', async (socket) => {
     // Emit you
     me.on( 'agent', ({id, name, x, y, score}) => {
         // console.log( 'emit you', id, name, x, y, score );
-        socket.emit( 'you', {id, name, x, y, score} );
+        socket.emit( 'you', {id, name, teamId, teamName, x, y, score}, {ms: myClock.ms, frame: myClock.frame} );
     } );
     // console.log( 'emit you', id, name, x, y, score );
     socket.emit( 'you', {
-        id: me.id,
-        name: me.name,
-        x: me.x,
-        y: me.y,
+        id: me.id, name: me.name,
+        teamId, teamName,
+        x: me.x, y: me.y,
         score: me.score
-    } );
+    }, {ms: myClock.ms, frame: myClock.frame} );
     
 
 
@@ -156,14 +170,14 @@ io.on('connection', async (socket) => {
     // Parcels
     me.on( 'parcels sensing', (parcels) => {
         // console.log('emit parcels sensing', ...parcels);
-        socket.emit('parcels sensing', parcels )
+        socket.emit('parcels sensing', parcels, {ms: myClock.ms, frame: myClock.frame} )
     } );
     me.emitParcelSensing();
 
     // Agents
     me.on( 'agents sensing', (agents) => {
         // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
-        socket.emit( 'agents sensing', agents );
+        socket.emit( 'agents sensing', agents, {ms: myClock.ms, frame: myClock.frame} );
     } );
     me.emitAgentSensing();
     
@@ -264,7 +278,7 @@ io.on('connection', async (socket) => {
      */
     if ( BROADCAST_LOGS ) {
         socket.on( 'log', ( ...message ) => {
-            socket.broadcast.emit( 'log', {src: 'client', timestamp: myClock.ms, socket: socket.id, id: me.id, name: me.name}, ...message )
+            socket.broadcast.emit( 'log', {src: 'client', ms: myClock.ms, frame: myClock.frame, socket: socket.id, id: me.id, name: me.name}, ...message )
         } )
     }
 
@@ -319,7 +333,7 @@ io.on('connection', async (socket) => {
 
         ioAgent.emit( 'draw', {
             src: 'client',
-            timestamp: myClock.ms,
+            timestamp: myClock,
             socket: socket.id,
             id: me.id,
             name: me.name
@@ -336,8 +350,8 @@ io.on('connection', async (socket) => {
  */
 if ( BROADCAST_LOGS ) {
     const oldLog = console.log;
-    console.log = function ( ...message ) {
-        io.emit( 'log', {src: 'server', timestamp: myClock.ms}, ...message );
+    global.console.log = function ( ...message ) {
+        io.emit( 'log', {src: 'server', timestamp: {ms: myClock.ms, frame: myClock.frame}}, ...message );
         oldLog.apply( console, message );
     };
 }

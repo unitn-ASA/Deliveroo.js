@@ -11,10 +11,16 @@ const config =  require('../../config');
  * @class Grid
  */
 class Grid extends Observable {
+
     /** @type {Array<Tile>} */
     #tiles;
+
     /** @type {Map<string, Agent>} */
     #agents;
+    get agents () {
+        return this.#agents;
+    }
+
     /** @type {Map<string, Parcel>} */
     #parcels;
     
@@ -113,12 +119,12 @@ class Grid extends Observable {
     }
 
     /**
-     * @type {function({id:string,name:string}): Agent}
+     * @type {function({id:string,name:string,teamName:string}): Agent}
      */
-    createAgent ( options = {} ) {
+    createAgent ( options ) {
         
         // Instantiate
-        var me = new Agent( this, options );
+        var me = new (global.Agent || Agent)( this, options );
         this.emit( 'agent created', me );
 
         // Register

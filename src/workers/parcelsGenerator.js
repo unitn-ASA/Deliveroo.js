@@ -12,7 +12,7 @@ const {PARCELS_GENERATION_INTERVAL, PARCELS_MAX} =  require('../../config');
 module.exports = function (grid) {
     
     myClock.on( PARCELS_GENERATION_INTERVAL, () => {
-        if ( grid.getParcelsQuantity() >= PARCELS_MAX ) {
+        if ( grid.getParcelsQuantity() >= require('../../config').PARCELS_MAX ) {
             return;
         }
         let tiles_with_no_parcels =

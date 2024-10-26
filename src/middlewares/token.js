@@ -94,7 +94,7 @@ async function verifyTokenMiddleware ( req, res, next ) {
                 const teamName = decoded['teamName'];
                 const role = decoded['role'];
                 
-                req['user'] = { id, name, teamId, teamName, token };
+                req['user'] = { id, name, teamId, teamName, role, token };
                 req['payload'] = { id, name, teamId, teamName, role };
                 req['token'] = token;
 

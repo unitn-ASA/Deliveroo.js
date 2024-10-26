@@ -68,11 +68,22 @@ class Client {
             // alert( `Reconnecting, press ok to continue.` );
         } );
 
+        function printLog ( ...msg ) {
+            console.log( ...msg );
+            
+            let chatElement = document.getElementById('logs');
+            const messageElement = document.createElement('p');        // create a new message element
+            messageElement.innerHTML = msg;
+            chatElement.appendChild(messageElement);
+    
+            chatElement.scrollTop = chatElement.scrollHeight;
+        }
+
         this.socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
             if ( src == 'server' )
-                console.log( 'CLIENT: server', timestamp, '\t', ...message )
+                printLog( 'CLIENT: server', timestamp, '\t', ...message )
             else
-                console.log( 'CLIENT: client', timestamp, socket, id, name, '\t', ...message );
+                printLog( 'CLIENT: client', timestamp, socket, id, name, '\t', ...message );
         } );
 
         this.socket.on( 'draw', ( {src, timestamp, socket, id, name}, buffer ) => {
@@ -132,14 +143,16 @@ class Client {
             CONFIG = config;
         } )
 
-        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score } ) => {
+        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score }, clock ) => {
 
-            //console.log( "CLIENT: you", id, name, teamId, teamName, x, y, score )
+            // console.log( "CLIENT: you", id, name, teamId, teamName, x, y, score, clock )
 
             document.getElementById('agent.id').textContent = `agent.id ${id}`;
             document.getElementById('agent.name').textContent = `agent.name ${name}`;
             document.getElementById('agent.xy').textContent = `agent.xy ${x},${y}`;
             document.getElementById('agent.team').textContent = `agent.team ${teamName}`;
+            document.getElementById('clock.ms').textContent = `clock.ms ${clock.ms}`;
+            document.getElementById('clock.frame').textContent = `clock.frame ${clock.frame}`;
             
             this.game.me = this.game.getOrCreateAgent( id, name, teamId, teamName, x, y, score );
             this.game.gui.setTarget( this.game.me.mesh );

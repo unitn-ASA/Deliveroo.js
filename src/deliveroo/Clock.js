@@ -8,6 +8,7 @@ class Clock extends EventEmitter {
     #base = CLOCK; // 40ms are 25frame/s
     #id;
     #ms = 0;
+    #frame = 0;
     #isSynch = false;
     
     constructor () {
@@ -16,8 +17,18 @@ class Clock extends EventEmitter {
         this.start();
     }
     
+    /**
+     * @type {Number} ms
+     */
     get ms () {
         return this.#ms;
+    }
+
+    /**
+     * @type {Number} frame
+     */
+    get frame () {
+        return this.#frame;
     }
     
     stop () {
@@ -31,6 +42,7 @@ class Clock extends EventEmitter {
         this.#id = setInterval( () => {
             this.#isSynch = true;
             this.#ms += this.#base;
+            this.#frame += 1;
             /** always emit frame event */      this.emit( 'frame' );
             if ( this.#ms % 1000 == 0 ) {       this.emit( '1s' );
                 if ( this.#ms % 2000 == 0 )     this.emit( '2s' );

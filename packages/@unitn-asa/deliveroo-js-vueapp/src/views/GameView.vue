@@ -3,6 +3,7 @@
     import { onMounted, onUnmounted, ref } from 'vue';
     import Login from '../components/Login.vue';
     import Deliveroojs from '../components/Deliveroojs.vue';
+import Settings from '@/components/Settings.vue';
 
     const isOverlayVisible = ref(false); // Reactive variable for overlay visibility
     const deliverooKey = ref(0); // Key for Deliveroojs component
@@ -57,6 +58,8 @@
                     <div tabindex="0" class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox"/>
                         <div class="collapse-title">
+                            <span id="clock.frame"></span> <br>
+                            <span id="clock.ms"></span> <br>
                             <span id="socket.id"></span> <br>
                             <span id="agent.id"></span> <br>
                             <span id="agent.name"></span> <br>
@@ -66,6 +69,14 @@
                         <div class="collapse-content">
                             <pre id="config" class="text-xs"></pre>
                             <img id="canvas" width="200" height="200" style="position: relative; top: 0; left: 0; z-index: 1000;"></img>
+                        </div>
+                    </div>
+
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
+                        <input type="checkbox" />
+                        <div class="collapse-title font-medium">Settings</div>
+                        <div class="collapse-content overflow-hidden" style="min-height:auto!important">
+                            <Settings/>
                         </div>
                     </div>
                 
@@ -111,19 +122,15 @@
                     </div>
                     
                     <div class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90 min-h-16 max-h-64">
-                        <input type="checkbox" />
+                        <input type="checkbox"/>
                         <div class="collapse-title font-medium">Chat</div>
-                        <div class="collapse-content">
-                            <p>hello</p>
-                        </div>
+                        <div id="chat" class="collapse-content overflow-auto" style="min-height:auto!important"></div>
                     </div>
                     
                     <div class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90 min-h-16 max-h-96">
                         <input type="checkbox" />
                         <div class="collapse-title font-medium">Logs</div>
-                        <div class="collapse-content overflow-auto" style="min-height:auto!important">
-                            <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p> <p>hello</p>
-                        </div>
+                        <div id="logs" class="collapse-content overflow-auto" style="min-height:auto!important"></div>
                     </div>
                     
                 </div>

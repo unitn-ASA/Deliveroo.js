@@ -81,8 +81,7 @@ class Config {
 
 
     
-    /** @param {Config} config */
-    constructor ( config = {} ) {
+    async lazyLoading ( ) {
 
         // 1. default values
 
@@ -132,26 +131,21 @@ class Config {
                 this[key] = args[key];
         });
 
-        // 6. Overwriting with values specified from config.LEVEL
-        if ( config.LEVEL ) {
-            try {
-                const json = loadJavascript( config.LEVEL );
-                Object.assign( this, json );
-                this.LEVEL = config.LEVEL;
-                // console.log( 'Loaded custom level', config.LEVEL );
-            } catch (err) {
-                console.error( 'Error loading from custom', config.LEVEL );
-            }    
-        }
-                
-        // 7. Overwriting with values specified as config
-        Object.keys( config ).forEach( key => {
-            if ( config[key] != null && key != 'LEVEL' ){
-                this[key] = config[key];
-            }
-        });
-
+        console.log("Initial config:", config);
         
+    }
+
+
+    loadLevel ( ) {
+        
+        if (this.LEVEL) {
+            try {
+                const json = loadJavascript( this.LEVEL );
+                Object.assign( this, json );
+            } catch (err) {
+                console.error( 'Error loading from', this.LEVEL );
+            }
+        }
         
     }
 
@@ -235,6 +229,7 @@ function loadFromJson ( path ) {
 
 const config = new Config();
 // console.log("Initial config:", Object.keys(config.parameters).reduce( (obj,key) => { obj[key] = config[key]; return obj; } ,{}) );
-console.log("Initial config:", config);
 
 module.exports = config;
+
+config.lazyLoading();
