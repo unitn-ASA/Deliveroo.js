@@ -1,6 +1,7 @@
 import { default as io, Socket } from 'socket.io-client';
 import { Game } from './Game.js';
 import { Chat } from './Chat.js';
+import { settings } from '../states/settings.js';
 
 
 
@@ -137,10 +138,14 @@ class Client {
         });
 
         this.socket.on( "config", ( config ) => {
+            this.game.emit( 'config', config );
             document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
             AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
             PARCELS_OBSERVATION_DISTANCE = config.PARCELS_OBSERVATION_DISTANCE;
             CONFIG = config;
+            for ( let [key,value] of Object.entries(config) ) {
+                settings[key] = value;
+            }
         } )
 
         this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score }, clock ) => {
@@ -153,6 +158,8 @@ class Client {
             document.getElementById('agent.team').textContent = `agent.team ${teamName}`;
             document.getElementById('clock.ms').textContent = `clock.ms ${clock.ms}`;
             document.getElementById('clock.frame').textContent = `clock.frame ${clock.frame}`;
+
+            this.game.emit( 'clock.ms', clock.ms );
             
             this.game.me = this.game.getOrCreateAgent( id, name, teamId, teamName, x, y, score );
             this.game.gui.setTarget( this.game.me.mesh );

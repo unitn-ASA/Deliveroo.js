@@ -3,7 +3,15 @@
     import { onMounted, onUnmounted, ref } from 'vue';
     import Login from '../components/Login.vue';
     import Deliveroojs from '../components/Deliveroojs.vue';
-import Settings from '@/components/Settings.vue';
+    import Settings from '@/components/Settings.vue';
+    import Timer from '@/components/Timer.vue';
+
+    const config = ref(null); // Reactive variable for Deliveroojs config
+    const clockms = ref(0);
+
+    function setConfig(c) {
+        config.value = c;
+    }
 
     const isOverlayVisible = ref(false); // Reactive variable for overlay visibility
     const deliverooKey = ref(0); // Key for Deliveroojs component
@@ -31,7 +39,7 @@ import Settings from '@/components/Settings.vue';
             <div class="absolute w-full h-full pt-20">
                 <div class="w-2/3 mx-auto pb-10 grid grid-flow-row space-y-4">
                     <div id="login-titlebar" class="z-30 flex items-center space-x-4 float-right w-full">
-                        <div class="text-center text-xl bg-white rounded-lg py-2 flex-1 h-full">
+                        <div class="text-center text-xl bg-white/85 dark:bg-gray-700 rounded-lg py-2 flex-1 h-full">
                             Login / Signup
                         </div>
                         <button class="btn btn-square btn-error" @click="toggleOverlay">
@@ -41,9 +49,8 @@ import Settings from '@/components/Settings.vue';
                             </svg>
                         </button>
                     </div>
-                    <div class="z-30 bg-white rounded-lg">
+                    <div class="z-30 bg-white/85 dark:bg-gray-700 rounded-lg">
                         <Login @login="handleLogin"/>
-
                     </div>
                 </div>
             </div>
@@ -52,11 +59,13 @@ import Settings from '@/components/Settings.vue';
         <div id="dashboard" class="flex text-sm text-white">
             
             
-            <div id="info" class="fixed z-10 left-0 top-4 bottom-4 overflow-scroll" style="direction: rtl">
-                <div class="resize" style="direction: ltr">
+            <div id="info" class="fixed z-10 left-0 top-4 max-h-full overflow-scroll" style="direction: rtl">
+            <div class="resize" style="direction: ltr">
+
+                <div class="flex flex-col space-y-4">
                     
                     <div tabindex="0" class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90">
-                        <input type="checkbox"/>
+                        <input type="checkbox" />
                         <div class="collapse-title">
                             <span id="clock.frame"></span> <br>
                             <span id="clock.ms"></span> <br>
@@ -67,13 +76,14 @@ import Settings from '@/components/Settings.vue';
                             <span id="agent.xy"></span> <br>
                         </div>
                         <div class="collapse-content">
+                            <Settings/>
                             <pre id="config" class="text-xs"></pre>
                             <img id="canvas" width="200" height="200" style="position: relative; top: 0; left: 0; z-index: 1000;"></img>
                         </div>
                     </div>
 
                     <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
-                        <input type="checkbox" />
+                        <input type="checkbox" checked="checked"/>
                         <div class="collapse-title font-medium">Settings</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
                             <Settings/>
@@ -81,38 +91,15 @@ import Settings from '@/components/Settings.vue';
                     </div>
                 
                 </div>
+
+            </div>
             </div>
 
-            <div id="right-colum" class="fixed z-10 w-80 right-4 top-4 bottom-4 overflow-hidden">
+            <div id="right-colum" class="fixed z-10 w-80 right-4 top-4 max-h-full overflow-hidden">
                 <div class="flex flex-col h-full rounded-lg space-y-4">
 
                     
-                    <div class="z-10 grid grid-flow-col gap-5 text-center">
-                        <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
-                            <span class="countdown font-mono text-3xl mx-auto">
-                                <span style="--value:15;"></span>
-                            </span>
-                            days
-                        </div>
-                        <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
-                            <span class="countdown font-mono text-3xl mx-auto">
-                                <span style="--value:10;"></span>
-                            </span>
-                            hours
-                        </div>
-                        <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
-                            <span class="countdown font-mono text-3xl mx-auto">
-                                <span style="--value:24;"></span>
-                            </span>
-                            min
-                        </div>
-                        <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
-                            <span class="countdown font-mono text-3xl mx-auto">
-                                <span style="--value:${counter};"></span>
-                            </span>
-                            sec
-                        </div>
-                    </div>
+                    <Timer class="z-10" :timer="clockms"/>
                     
                     <div class="z-10 grid grid-flow-col gap-5 text-center">
                         <button class="btn btn-info btn-sm" @click="toggleOverlay">Login</button>
@@ -138,7 +125,7 @@ import Settings from '@/components/Settings.vue';
             
         </div>
 
-        <Deliveroojs :key="deliverooKey" /> <!-- Use the key to force reload -->
+        <Deliveroojs :key="deliverooKey" @clockms="(v)=>clockms=v"/> <!-- Use the key to force reload -->
 
     </main>
 </template>

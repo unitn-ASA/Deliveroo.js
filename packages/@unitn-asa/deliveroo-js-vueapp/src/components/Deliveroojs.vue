@@ -3,14 +3,26 @@
     import { Game } from '../deliveroo/Game.js';
     import { user } from '../states/user.js';
     import { onMounted, onUnmounted, ref } from 'vue';
+    
+    const emit = defineEmits(['config', 'clockms'])
 
     var game;
 
     onMounted(() => {
         if ( user && user.value ) {
             const token = user.value.token;
-            console.log('GameView deliveroo token:', token)
+            console.log('Deliveroojs.vue onMounted() Using token:', token)
             game = new Game( { token } );
+
+            // Ascolta gli eventi dall'istanza di Game e emetti eventi Vue
+            game.on('config', (data) => {
+                emit('config', data);
+            });
+
+            game.on('clock.ms', (data) => {
+                // console.log( 'clockms', data )
+                emit('clockms', data);
+            });
         }
     })
 

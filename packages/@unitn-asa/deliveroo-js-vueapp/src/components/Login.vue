@@ -1,6 +1,6 @@
 <script setup>
 
-    import { ref } from 'vue'
+    import { ref, defineEmits } from 'vue'
     import { richiediToken } from '../apiClient.js';
     import { user, myTokens } from '../states/user.js';
     import { useRoute, useRouter } from 'vue-router'
@@ -56,8 +56,6 @@
         emit('login', { token, payload });
     }
 
-
-
 </script>
 
 <template>
@@ -86,7 +84,9 @@
                     <div class="space-x-4">
                         <button class="btn btn-outline btn-info btn-sm" @click="copyToClipboard(token)">Copy</button>
                         <button class="btn btn-outline btn-error btn-sm" @click="removeToken(token)">X</button>
-                        <button class="btn btn-success btn-sm" @click="useToken(token, payload)">{{ user && token == user.token ? 'Logged' : 'Login' }}</button>
+                        <button class="btn btn-sm w-16" :class="[user && token == user.token ? 'btn-success' : 'btn-info']" @click="useToken(token, payload)">
+                            {{ user && token == user.token ? 'Logged' : 'Login' }}
+                        </button>
                     </div>
                 </div>
                 

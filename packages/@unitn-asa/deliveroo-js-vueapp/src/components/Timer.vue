@@ -1,64 +1,59 @@
 <script setup>
+        
+    import { watchEffect, computed, defineProps, onMounted } from 'vue';
 
-    import { ref, reactive, onMounted, defineProps, onUnmounted } from 'vue'
+    const { timer } = defineProps(['timer']);
 
-    const emit = defineEmits(['timer'])
-
-    const props = defineProps({
-        startTime: Date,
-        endTime: Date
-    });
+    // watchEffect( () => {
+    //     console.log('timer', timer);
+    // });
     
-    const timer = ref(0);              // negative,     positive,   zero
-    const status = ref('');            // not started,  started,    ended
-    const formattedhhmmss = ref(0);
-    
-    var intervalRef;
+    // const timer = ref(24721000); // ms
 
-    onMounted( async () => {
-        intervalRef = setInterval( () => {
+    // Funzioni di utilità per ottenere i valori rimanenti
+    const remainingSeconds = (value) => Math.floor((value / 1000) % 60);
+    const remainingMinutes = (value) => Math.floor((value / 60000) % 60);
+    const remainingHours = (value) => Math.floor((value / 3600000) % 24);
+    const remainingDays = (value) => Math.floor(value / 86400000);
 
-            const currentTime = new Date();
-            const startTime = new Date(props.startTime);
-            const endTime = new Date(props.endTime);
-            
-            // if not yet started
-            if ( currentTime < startTime ) {
-                status.value = 'not started';
-                // compute time left to start
-                timer.value = - new Date( startTime - currentTime ).getTime();
-            }
-            
-            // if not yet ended
-            else if ( currentTime < endTime ) {
-                status.value = 'started';            
-                // compute remaining time in ms
-                timer.value = new Date( endTime - currentTime ).getTime();
-            }
-            
-            // if ended
-            else {
-                status.value = 'ended';
-                timer.value = 0;
-            }
-            
-            formattedhhmmss.value = new Date( Math.abs(timer.value) ).toISOString().substr(11, 8);
-            emit('timer', timer.value);
+    // Proprietà calcolate per i valori convertiti
+    const seconds = computed(() => remainingSeconds(timer));
+    const minutes = computed(() => remainingMinutes(timer));
+    const hours = computed(() => remainingHours(timer));
+    const days = computed(() => remainingDays(timer));
 
-        }, 1000);
-    });
-
-    onUnmounted( () => {
-        clearInterval(intervalRef);
-    });
-    
 </script>
 
 <template>
-        <span v-if=" status == 'not started' "  style="color:blue" > Ready to start in {{ formattedhhmmss }}                    </span>
-        <span v-if=" status == 'started' "      style="color:red"  > Time left {{ formattedhhmmss }}                            </span>
-        <span v-if=" status == 'ended' "                           > Match ended {{ new Date(props.endTime).toLocaleString() }} </span>
+    <main>
+        <div class="grid grid-flow-col gap-5 text-center">
+            <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
+                <span class="countdown font-mono text-3xl mx-auto">
+                    <span :style="`--value: ${days};`"></span>
+                </span>
+                days
+            </div>
+            <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
+                <span class="countdown font-mono text-3xl mx-auto">
+                    <span :style="`--value: ${hours};`"></span>
+                </span>
+                hours
+            </div>
+            <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
+                <span class="countdown font-mono text-3xl mx-auto">
+                    <span :style="`--value: ${minutes};`"></span>
+                </span>
+                min
+            </div>
+            <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
+                <span class="countdown font-mono text-3xl mx-auto">
+                    <span :style="`--value: ${seconds};`"></span>
+                </span>
+                sec
+            </div>
+        </div>
+    </main>
 </template>
 
-<style scoped>
+<style>
 </style>

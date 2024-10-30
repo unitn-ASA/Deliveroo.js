@@ -6,8 +6,9 @@ import { Controller } from './Controller.js';
 import { Tile } from './Tile.js';
 
 import * as THREE from 'three';
+import EventEmitter from 'events';
 
-class Game {
+class Game extends EventEmitter {
     
     /** @type {Client} */
     client;
@@ -91,6 +92,8 @@ class Game {
      * @param {{token: string}} options
      */
     constructor ( options ) {
+
+        super();
         
         console.log('GAME: options:', options)        
 
