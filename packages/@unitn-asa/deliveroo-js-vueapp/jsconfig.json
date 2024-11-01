@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "sourceMap": true,
+    "allowJs": true,
+    "checkJs": true,
     "paths": {
       "@/*": ["./src/*"]
     }

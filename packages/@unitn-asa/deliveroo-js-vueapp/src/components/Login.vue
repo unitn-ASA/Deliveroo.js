@@ -2,13 +2,11 @@
 
     import { ref, defineEmits } from 'vue'
     import { richiediToken } from '../apiClient.js';
-    import { user, myTokens } from '../states/user.js';
-    import { useRoute, useRouter } from 'vue-router'
-    import { jwtDecode } from "jwt-decode";
+    import { myTokens } from '@/states/myTokens.js';
+    import LoginToken from './LoginToken.vue';
+    import { copyToClipboard, pasteFromClipboard } from '@/utils/copyPaste.js';
 
     const emit = defineEmits(['login']); // Define the emit for login
-    const router = useRouter();
-    const route = useRoute();  
 
     const name = ref('marco');
     const team = ref('disi');
@@ -17,42 +15,24 @@
 
     async function requestToken() {
         let {token, payload} = await richiediToken(name.value, team.value, password.value);
-        // console.log(token, payload);
-        myTokens.set( token, payload );
+        myTokens.push( token );
+        // getOrCreateConnection( token );
     }
 
     async function saveToken() {
-        try {
-            let payload = jwtDecode( token.value );
-            console.log( payload );
-            myTokens.set( token.value, payload );
-        } catch (error) {
-            console.error( 'Invalid token', token.value, error );
-        }
+        myTokens.push( token );
+        // getOrCreateConnection( token.value );
+        token.value = '';
     }
 
-    function copyToClipboard(text) {
-        var tempInput = document.createElement('textarea');
-        tempInput.value = text;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-    }
+    // function pasteFromClipboard() {
+    //     console.log(this)
+    //     navigator.clipboard.readText().then( text => {
+    //         token.value = text;
+    //     });
+    // }
 
-    function pasteFromClipboard() {
-        navigator.clipboard.readText().then( text => {
-            token.value = text;
-        });
-    }
-
-    function removeToken(token) {
-        myTokens.delete( token );
-    }
-
-    function useToken(token, payload) {
-        user.value = { token, payload };
-        router.push({ query: {name:payload.name} });
+    function login( { token, payload } ) {
         emit('login', { token, payload });
     }
 
@@ -69,26 +49,39 @@
         
         <div class="table">
             <div class="bg-black bg-opacity-25 max-h-75 box-border p-2 backdrop-blur-md items-center rounded-xl break-inside-avoid mb-2"
-                v-for="[token, payload] of myTokens.entries()">
+                v-for="token of myTokens">
                 
-                <div class="flex-1 flex justify-between text-sm">
+                <LoginToken :token="token" @login="login"/>
+                
+                <!-- <div class="flex-1 flex justify-between text-sm">
                     <div class="">
-                        <span class="text-sm">{{ payload.name }}</span>
-                        <span class="text-xs text-red-500 ml-1">({{ payload.id }})</span>
+                        <span class="text-sm">{{ connection.payload.name }}</span>
+                        <span class="text-xs text-red-500 ml-1">({{ connection.payload.id }})</span>
                     </div>
                     <div class="">
-                        <span class="text-sm">{{ payload.teamName }}</span>
-                        <span class="text-xs text-red-500 ml-1">({{ payload.teamId }})</span>
+                        <span class="text-sm">{{ connection.payload.teamName }}</span>
+                        <span class="text-xs text-red-500 ml-1">({{ connection.payload.teamId }})</span>
                     </div>
-                    <span class="text-sm">{{ payload.role }}</span>
+                    <span class="text-sm">{{ connection.payload.role }}</span>
                     <div class="space-x-4">
-                        <button class="btn btn-outline btn-info btn-sm" @click="copyToClipboard(token)">Copy</button>
-                        <button class="btn btn-outline btn-error btn-sm" @click="removeToken(token)">X</button>
-                        <button class="btn btn-sm w-16" :class="[user && token == user.token ? 'btn-success' : 'btn-info']" @click="useToken(token, payload)">
-                            {{ user && token == user.token ? 'Logged' : 'Login' }}
+                        <div class="tooltip" data-tip="Copy">
+                            <button class="btn btn-outline btn-info btn-sm" @click="copyToClipboard(token)">
+                                ...{{ token.slice(-10) }}
+                            </button>
+                        </div>
+                        <div class="tooltip" data-tip="Remove">
+                            <button class="btn btn-outline btn-error btn-sm" @click="removeToken(token)">
+                                X
+                            </button>
+                        </div>
+                        <button class="btn btn-sm w-24" :class="[connection.state.connected ? 'btn-success' : 'btn-info']" @click="connect(connection)">
+                            {{ connection.state.connected ? 'Disconnect' : 'Connect' }}
+                        </button>
+                        <button class="btn btn-sm w-16" :class="[user && token == user.token ? 'btn-success' : 'btn-info']" @click="play(connection)">
+                            {{ user && token == user.token ? 'Playing' : 'Play' }}
                         </button>
                     </div>
-                </div>
+                </div> -->
                 
             </div>
         </div>
@@ -97,13 +90,13 @@
             <input v-model="name" class="input bg-white btn-sm" type="text" placeholder="Name">
             <input v-model="team" class="input bg-white btn-sm" type="text" placeholder="Team">
             <input v-model="password" class="input bg-white btn-sm" type="password" placeholder="AdminPassword">
-            <button id="addButton" class="btn btn-primary btn-sm" @click="requestToken()">New token</button>
+            <button id="addButton" class="btn btn-primary btn-sm" @click="requestToken">New token</button>
         </div>
         
         <div class="flex text-black rounded space-x-4">
             <input v-model="token" class="input bg-white btn-sm" type="text" placeholder="Token">
-            <button class="btn btn-outline btn-info btn-sm" @click="pasteFromClipboard()">Paste</button>
-            <button id="saveButton" class="btn btn-primary btn-sm" @click="saveToken()">Save token</button>
+            <button class="btn btn-outline btn-info btn-sm" @click="async()=>token=await pasteFromClipboard()">Paste</button>
+            <button id="saveButton" class="btn btn-primary btn-sm" @click="saveToken">Save token</button>
         </div>
     
     </div>
