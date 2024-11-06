@@ -1,19 +1,19 @@
 <script setup>
 
-    import { computed, defineEmits } from 'vue';
-    import { user } from '../states/user.js';
+    import { computed, defineEmits, onMounted, inject } from 'vue';
     import { myConnections, getOrCreateConnection } from '../states/myConnections.js';
     import { myTokens, removeToken } from '@/states/myTokens.js';
     import { copyToClipboard, pasteFromClipboard } from '@/utils/copyPaste.js';
 
-    const emit = defineEmits(['login']); // Define the emit for login
+    const emit = defineEmits(['play']); // Define the emit for login
 
+    /** @type {import("vue").Ref<import("@/Connection").Connection>} */
+    const playedConnection = inject( "connection" );
+    
     const { token } = defineProps(['token']);
-
     const connection = getOrCreateConnection( token );
-
     const connected = computed( () => connection && connection.state && connection.state.connected ? connection.state.connected : false );
-
+    const played = computed( () => token == playedConnection.value?.token ? true : false );
     const payload = connection.payload
     const name = connection.payload.name
     const id = connection.payload.id
@@ -29,16 +29,18 @@
             // console.log( 'LoginToken.js connect() connecting', connection.token.slice(0,10)+'...' );
             connection.connect();
         }
-        // user.value = { token, payload };
-        // router.push({ query: {name:payload.name} });
-        // emit('login', { token, payload });
     }
 
     function play() {
         console.log( 'LoginToken.js play()', token.slice(0,10)+'...', payload.name );
-        user.value = { token, payload };
-        emit('login', { token, payload });
+        emit( 'play', token );
     }
+
+    onMounted (() => {
+        // console.log( 'LoginToken.js onMounted()', token.slice(0,10)+'...', payload.name );
+        // connect();
+        // play();
+    })
 
 
 </script>
@@ -69,8 +71,8 @@
                 <button class="btn btn-sm w-24" :class="[connected ? 'btn-success' : 'btn-info']" @click="connect">
                     {{ connected ? 'Disconnect' : 'Connect' }}
                 </button>
-                <button class="btn btn-sm w-16" :class="[user && token == user.token ? 'btn-success' : 'btn-info']" @click="play">
-                    {{ user && token == user.token ? 'Playing' : 'Play' }}
+                <button class="btn btn-sm w-16" :class="[played ? 'btn-success' : 'btn-info']" @click="play">
+                    {{ played ? 'Playing' : 'Play' }}
                 </button>
             </div>
         </div>

@@ -1,12 +1,15 @@
 <script setup>
 
-    import { ref, defineEmits } from 'vue'
+    import { ref, defineEmits, inject } from 'vue'
     import { richiediToken } from '../apiClient.js';
     import { myTokens } from '@/states/myTokens.js';
     import LoginToken from './LoginToken.vue';
     import { copyToClipboard, pasteFromClipboard } from '@/utils/copyPaste.js';
 
-    const emit = defineEmits(['login']); // Define the emit for login
+    const emit = defineEmits(['play']); // Define the emit for login
+
+    /** @type {import("vue").Ref<import("@/Connection").Connection>} */
+    const connection = inject( "connection" );
 
     const name = ref('marco');
     const team = ref('disi');
@@ -25,15 +28,8 @@
         token.value = '';
     }
 
-    // function pasteFromClipboard() {
-    //     console.log(this)
-    //     navigator.clipboard.readText().then( text => {
-    //         token.value = text;
-    //     });
-    // }
-
-    function login( { token, payload } ) {
-        emit('login', { token, payload });
+    function play( token ) {
+        emit('play', token );
     }
 
 </script>
@@ -51,7 +47,7 @@
             <div class="bg-black bg-opacity-25 max-h-75 box-border p-2 backdrop-blur-md items-center rounded-xl break-inside-avoid mb-2"
                 v-for="token of myTokens">
                 
-                <LoginToken :token="token" @login="login"/>
+                <LoginToken :token="token" @play="play"/>
                 
                 <!-- <div class="flex-1 flex justify-between text-sm">
                     <div class="">

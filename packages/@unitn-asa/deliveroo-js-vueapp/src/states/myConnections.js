@@ -1,5 +1,5 @@
 import { reactive, watch } from 'vue';
-import { Connection } from '../Connection';
+import { Connection } from '../Connection.js';
 import { jwtDecode } from "jwt-decode";
 
 /**
@@ -25,6 +25,12 @@ function getConnectionByName ( name ) {
         }
     }
     return null;
+}
+
+import { myTokens } from './myTokens.js';
+
+for (const token of myTokens) {
+    getOrCreateConnection( token );
 }
 
 export { myConnections, getOrCreateConnection, getConnectionByName };

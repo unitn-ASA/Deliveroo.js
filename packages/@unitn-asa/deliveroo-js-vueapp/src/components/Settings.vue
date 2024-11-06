@@ -1,15 +1,17 @@
 <script setup>
 
-    import { ref } from 'vue'
+    import { ref, inject } from 'vue'
     import { patchConfig } from '../apiClient.js';
-    import { settings } from '../states/settings.js';
+    
+    /** @type {import("@/Connection").Connection} */
+    const connection = inject( "connection" ).value;
+    const settings = connection.configs
 
-    const emit = defineEmits(['settings']); // Define the emit for settings
     const inputFocused = ref();
-
+    
     function setConfig(key, value) {
-        patchConfig( key, value );
-        emit('settings', { key, value });
+        patchConfig( connection.token, key, value );
+        inputFocused.value = undefined;
     }
 
 </script>
@@ -31,10 +33,10 @@
                     type="text" 
                     placeholder="Name"
                     @focus="inputFocused = key"
-                    @blur="inputFocused = undefined"
+                    @blur=""
                 >
                 <button 
-                    v-if="inputFocused == key" 
+                    v-show="inputFocused == key" 
                     class="flex-none btn btn-outline btn-error btn-xs" 
                     @click="setConfig(key, value)"
                 >

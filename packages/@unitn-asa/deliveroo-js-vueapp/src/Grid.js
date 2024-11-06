@@ -29,7 +29,7 @@ export class Grid {
     tiles = reactive (new Map());
 
     /** @type {function(number,number):Tile} */
-    getTile(x, y) {
+    getTile (x, y) {
         if ( !this.tiles.has(x + y*1000) ) {
             this.tiles.set( x + y*1000, {x, y, type: 0, opacity:1} );
         }
@@ -38,26 +38,27 @@ export class Grid {
 
     /**
      * @typedef Agent
-     * @type {{id:string,
-     *         name:string,
-     *         teamId:string
-     *         teamName:string,
-     *         x:number,y:number,
-     *         score:number,
-     *         opacity:number,
-     *         carrying:Set<string>
+     * @type {{id: string,
+     *         name: string,
+     *         teamId: string
+     *         teamName: string,
+     *         x: number,y: number,
+     *         score: number,
+     *         opacity?: number,
+     *         carrying?: Set<string>,
+     *         mesh?: import('three').Mesh
      * }}
      */
 
     /** 
-     * @type {ref<Agent>}
+     * @type {import("vue").Ref<Agent|string>}
      **/
-    me = ref();
+    me = ref('not known yet');
 
     /**
      * @type {Map<string,Agent>} agents
      */
-    agents = reactive (new Map());
+    agents = reactive ( new Map() );
 
     /**
      * @param {string} id

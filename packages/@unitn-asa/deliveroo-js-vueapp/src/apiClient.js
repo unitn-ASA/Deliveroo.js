@@ -1,7 +1,3 @@
-
-import { user } from './states/user.js';
-import { settings } from './states/settings.js';
-
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || 'http://localhost:8080';
 
 async function richiediToken(nome, team, password) {
@@ -36,31 +32,31 @@ async function richiediToken(nome, team, password) {
     });
 }
 
-async function patchConfig ( key, value ) {
+async function patchConfig ( token, key, value ) {
 
     const config = {}
     config[key] = value;
 
-    console.log(user, user.value, user.value.token);
+    console.log( "Patching config: ", config );
 
     return new Promise((resolve, reject) => {
         fetch(HOST+'/api/configs', {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                'x-token': user.value.token
+                'x-token': token
             },
             body: JSON.stringify(config)
         })
         // parsing response
         .then( JSON.stringify )
-        .then( response => {
-            console.log("config patched: " + response);
-            for ( let [key,value] of Object.entries(response) ) {
-                settings[key] = value;
-            }
-            resolve(settings);
-        })
+        // .then( response => {
+        //     console.log("config patched: " + response);
+        //     for ( let [key,value] of Object.entries(response) ) {
+        //         settings[key] = value;
+        //     }
+        //     resolve(settings);
+        // })
         .catch(error => {
             console.error('An error occurred:', error);
             reject('Error patching config');

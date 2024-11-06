@@ -1,16 +1,16 @@
 import { ref, reactive, watch } from 'vue';
 import { jwtDecode } from "jwt-decode";
 
+/** @type {import("vue").Reactive<Array<String>>} */
 const myTokens = reactive(new Array());
 
 function removeToken ( token ) {
     const index = myTokens.indexOf( token );
-    console.log( myTokens );
-    console.log( index );
+    // console.log( myTokens, index );
     if ( index > -1 ) {
         myTokens.splice( index, 1 );
     }
-    console.log( myTokens );
+    // console.log( myTokens );
 }
 
 if ( localStorage.getItem('myTokens') ) {
