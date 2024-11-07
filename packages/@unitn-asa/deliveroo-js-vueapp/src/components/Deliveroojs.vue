@@ -45,8 +45,8 @@
 <template>
     <main>
         <ThreeScene v-model="myMesh" class="fixed">
-            <Tile v-for="[key, t] in tiles.entries()" :key="key" :id="key" :x="t.x * 1.5" :y="0" :z="-t.y * 1.5" :color="t.type" />
-            <Agent v-for="[key, a] in agents.entries()" :key="key" :agent="a" />
+            <Tile v-for="[key, t] in tiles.entries()" :key="key" :id="key" :tile="t" />
+            <Agent v-for="[key, a] in agents.entries()" :key="key" :id="key" :agent="a" />
             <!-- <Agent v-model="me" :key="me.id" :id="me.id" /> -->
             <Parcel v-for="[key, p] in parcels.entries()" :key="key" :id="key" :x="p.x * 1.5" :y="0.5" :z="-p.y * 1.5" :color="p.color" :label="p.reward" />
         </ThreeScene>

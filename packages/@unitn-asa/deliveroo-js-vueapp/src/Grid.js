@@ -21,7 +21,11 @@ export class Grid {
 
     /**
      * @typedef Tile
-     * @type {{x:number,y:number,type:number,opacity:number}}
+     * @type {{
+     *         x: number,y: number,
+     *         type:number,
+     *         mesh?: import('three').Mesh
+     * }}
     */
     /**
      * @type {Map<number,Tile>} tiles
@@ -51,7 +55,7 @@ export class Grid {
      */
 
     /** 
-     * @type {import("vue").Ref<Agent|string>}
+     * @type {import("vue").Ref<Agent>}
      **/
     me = ref('not known yet');
 
@@ -78,8 +82,11 @@ export class Grid {
 
     /**
      * @typedef Parcel
-     * @type {{id:string,x:number,y:number,
-     *         carriedBy:string,reward:number
+     * @type {{id:string,
+     *         x:number,y:number,
+     *         reward:number,
+     *         carriedBy?:string,
+    *         mesh?: import('three').Mesh
      * }}
      */
 
@@ -178,6 +185,7 @@ export class Grid {
             for ( const [id, agent] of this.agents.entries() ) {
                 if ( id != this.me.value.id && ! sensed_ids.includes( id ) ) {
                     agent.opacity = 0;
+                    this.agents.delete( agent.id );
                 }
             }
 

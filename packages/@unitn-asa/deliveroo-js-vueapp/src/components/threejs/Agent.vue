@@ -39,20 +39,25 @@
 
     const labelContainer = useTemplateRef("labelContainer");
 
+    /** @type {CSS2DObject} */
+    var label;
+
     const scene = inject('scene');
     const camera = inject('camera');
 
     onMounted(() => {
         // Crea il cubo
         const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
-        const material = new THREE.MeshBasicMaterial( { color: 'white', transparent: true, opacity: 1 } );
+        var color = new THREE.Color( 0xffffff );
+        color.setHex( Math.random() * 0xffffff );
+        const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
         const mesh = new THREE.Mesh( geometry, material );
         mesh.position.set(agent.x*1.5, 0.5, -agent.y*1.5);
         scene.add(mesh);
         agent.mesh = mesh;
 
         // Aggiungi un'etichetta CSS2DObject
-        const label = new CSS2DObject(labelContainer.value);
+        label = new CSS2DObject(labelContainer.value);
         label.position.set(0, 1, 0);
         if (labelText.value) mesh.add(label);
 
@@ -62,8 +67,11 @@
     });
 
     onUnmounted(() => {
-        // Rimuovi il cubo dalla scena
+        // Remove mesh from scene 
+        agent.mesh.remove(label);
         scene.remove(agent.mesh);
+        agent.mesh.geometry.dispose();
+        console.log( 'Agent.vue onUnmounted() agent.mesh:', agent.mesh );
     });
 
     function animate () {

@@ -2,7 +2,7 @@
 
   
 <script setup>
-	import { ref, onMounted, onUnmounted, provide, defineProps, inject, watch } from 'vue';
+	import { ref, onMounted, onUnmounted, provide, computed, defineProps, inject, watch } from 'vue';
 	import * as THREE from 'three';
 	import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -34,6 +34,17 @@
 		// camTarget.copy( targetMesh.value.position );
 		// targetMesh.value.position.addScalar( 1 )
 	});
+
+	const hoverable = computed ( () => {
+		const objects = new Array();
+		for ( const { mesh } of connection.grid.agents.values() )
+			objects.push( mesh );
+		for ( const { mesh } of connection.grid.tiles.values() )
+			objects.push( mesh );
+		return objects;
+	});
+	const hovered = ref( {x:null, y:null, obj:null} );
+	const clicked = ref( {x:null, y:null, obj:null} );
 
 	onMounted(() => {
 
@@ -88,6 +99,46 @@
             const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, headLength, headWidth );
             scene.add( arrowHelper );
         }
+
+
+        const mouse = new THREE.Vector2();
+        const raycaster = new THREE.Raycaster();
+        // const drag_controls = new DragControls( clickables, camera, labelRenderer.domElement );
+        // drag_controls.addEventListener( 'hoveron', (event) => hovered = event.object );
+        // drag_controls.addEventListener( 'hoveroff', (event) => hovered = null );
+        // https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_drag.html
+		labelRenderer.domElement.addEventListener( 'mousemove', ( event ) => {
+			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+			mouse.y = - ( event.pageY / window.innerHeight ) * 2 + 1;
+			// console.log( 'mousemove', event, event.clientX, event.clientY, mouse );
+			raycaster.setFromCamera( mouse, camera );
+			const intersections = raycaster.intersectObjects( hoverable.value, true );
+			// if something different already hovered, then restore it
+			if ( hovered.value.obj && hovered.value.obj != intersections[ 0 ]?.object ) {
+				hovered.value.obj.material.opacity = 1;
+				hovered.value.obj.scale.set( 1, 1, 1 );
+				hovered.value.obj = null;
+			}
+			// if different than previously hovered
+			if ( intersections.length > 0 && hovered.value.obj != intersections[ 0 ]?.object ) {
+				let obj = hovered.value.obj = intersections[ 0 ].object;
+				let x = hovered.value.x = Math.round( obj.position.x / 1.5 );
+				let y = hovered.value.y = Math.round( - obj.position.z / 1.5 );
+				obj.material.opacity = 0.9;
+				obj.scale.set( 1.5, 1.5, 1.5 );
+				// console.log( "hovered on", x, y, clicked.value );
+			}
+		} );
+		labelRenderer.domElement.addEventListener( 'click', ( event ) => {
+			if ( hovered.value.obj ) {
+				let obj = clicked.value.obj = hovered.value.obj;
+				let x = clicked.value.x = Math.round( obj.position.x / 1.5 );
+				let y = clicked.value.y = Math.round( - obj.position.z / 1.5 );
+				// console.log( "clicked on", x, y, clicked.value );
+            }
+        } );
+
+
 
 		// Funzione di animazione
 		const animate = () => {
