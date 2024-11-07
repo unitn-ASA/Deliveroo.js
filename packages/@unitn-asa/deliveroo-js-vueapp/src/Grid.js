@@ -49,7 +49,7 @@ export class Grid {
      *         x: number,y: number,
      *         score: number,
      *         opacity?: number,
-     *         carrying?: Set<string>,
+     *         carrying?: Array<string>,
      *         mesh?: import('three').Mesh
      * }}
      */
@@ -69,10 +69,11 @@ export class Grid {
      * @returns {Agent}
      */
     getOrCreateAgent ( id ) {
+        // console.error( 'Grid.js getOrCreateAgent', id );
         var agent = this.agents.get(id);
         if ( ! agent ) {    
             agent = {id, name:'unknown', teamId:'unknown', teamName:'unknown',
-                x: -1, y: -1, score: -1, opacity: 1, carrying: new Set()
+                x: -1, y: -1, score: -1, opacity: 1, carrying: new Array()
             };
             this.agents.set( id, agent );
             // console.log('Grid.js getOrCreateAgent added agent', agent.id)
@@ -86,7 +87,7 @@ export class Grid {
      *         x:number,y:number,
      *         reward:number,
      *         carriedBy?:string,
-    *         mesh?: import('three').Mesh
+     *         mesh?: import('three').Mesh
      * }}
      */
 
@@ -100,12 +101,20 @@ export class Grid {
      * @returns {Parcel}
      */
     getOrCreateParcel ( id ) {
+        // console.debug( 'Grid.js getOrCreateParcel', id );
         var parcel = this.parcels.get(id);
         if ( ! parcel ) {
             parcel = {id, x:-1, y:-1, carriedBy:null, reward:-1};
             this.parcels.set( id, parcel );
         }
         return parcel;
+    }
+
+    /**
+     * @type {(x:number,y:number)=>Array<Parcel>}
+     */
+    getParcelsAt ( x, y ) {
+        return Array.from(this.parcels.values()).filter( parcel => parcel.x == x && parcel.y == y && parcel.carriedBy == null );
     }
 
     /**
@@ -184,7 +193,7 @@ export class Grid {
             var sensed_ids = sensed.map( ({id}) => id )
             for ( const [id, agent] of this.agents.entries() ) {
                 if ( id != this.me.value.id && ! sensed_ids.includes( id ) ) {
-                    agent.opacity = 0;
+                    // agent.opacity = 0;
                     this.agents.delete( agent.id );
                 }
             }
@@ -214,6 +223,11 @@ export class Grid {
                 if ( ! sensed_ids.includes( was.id ) ) {
                     // console.log('no more sensing parcel', knownId)
                     this.parcels.delete( was.id );
+                    if ( was.carriedBy ) {
+                        var agent = this.getOrCreateAgent( was.carriedBy );
+                        // agent.carrying.delete( id );
+                        agent.carrying.splice( agent.carrying.indexOf(id), 1 );
+                    }
                 }
             }
 
@@ -227,11 +241,11 @@ export class Grid {
                 if ( carriedBy != was.carriedBy ) {
                     if ( was.carriedBy ) {
                         var agent = this.getOrCreateAgent( was.carriedBy );
-                        agent.carrying.delete( id );
+                        agent.carrying.splice( agent.carrying.indexOf(id), 1 );
                     }
-                    if ( was.carriedBy ) {
-                        var agent = this.getOrCreateAgent( was.carriedBy.id || carriedBy );
-                        agent.carrying.add( id );
+                    if ( carriedBy ) {
+                        var agent = this.getOrCreateAgent( carriedBy );
+                        agent.carrying.push( id );
                     }
                     was.carriedBy = carriedBy;
                 }

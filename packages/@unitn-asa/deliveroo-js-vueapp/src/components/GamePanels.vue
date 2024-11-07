@@ -52,9 +52,27 @@
 
                     <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox" checked />
-                        <div class="collapse-title font-medium">Settings</div>
+                        <div class="collapse-title font-medium">Agents</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
-                            <Settings/>
+                            <table>
+                                <tr>
+                                    <th>name(id)</th>
+                                    <th>team(id)</th>
+                                    <th>score</th>
+                                </tr>
+                                <tr v-for="[key, agent] in connection.grid.agents.entries()" >
+                                    <td>{{ agent.name }}({{ agent.id }})</td>
+                                    <td>{{ agent.teamName }}({{ agent.teamId }})</td>
+                                    <td>{{ agent.score }}</td>
+                                </tr>
+                            </table>
+                            <!-- <div v-for="[key, agent] in connection.grid.agents.entries()" >
+                                <div class="flex flex-row space-x-2">
+                                    <span>{{ agent.name }}({{ agent.id }})</span>
+                                    <span>{{ agent.teamName }}({{ agent.teamId }})</span>
+                                    <span>{{ agent.x }},{{ agent.y }}</span>
+                                </div>
+                            </div> -->
                         </div>
                     </div>
                 

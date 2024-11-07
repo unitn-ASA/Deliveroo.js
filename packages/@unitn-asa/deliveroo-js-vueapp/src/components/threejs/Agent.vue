@@ -16,18 +16,6 @@
      *         mesh?: THREE.Mesh }}
      */
     
-    // const props = defineProps({
-    //     agent: Object,
-    //     id: String,
-    //     x: Number,
-    //     y: Number,
-    //     color: Number,
-    //     label: String
-    // });
-
-    // /** @type {AgentT} */
-    // const agent = defineModel();
-    
     /** @type {{agent?:AgentT}} */
     const props = defineProps(['agent']);
     
@@ -58,12 +46,8 @@
 
         // Aggiungi un'etichetta CSS2DObject
         label = new CSS2DObject(labelContainer.value);
-        label.position.set(0, 1, 0);
+        label.position.set(0, 0.5, 0);
         if (labelText.value) mesh.add(label);
-
-        // // Watch per monitorare le modifiche alle proprietà
-        // watch(() => [props.x, props.y], ([newX, newY]) => {
-        // });
     });
 
     onUnmounted(() => {
@@ -71,7 +55,7 @@
         agent.mesh.remove(label);
         scene.remove(agent.mesh);
         agent.mesh.geometry.dispose();
-        console.log( 'Agent.vue onUnmounted() agent.mesh:', agent.mesh );
+        // console.log( 'Agent.vue onUnmounted() agent.mesh:', agent.mesh );
     });
 
     function animate () {
@@ -101,11 +85,6 @@
   
 <style scoped>
 /* .label {
-    color: white;
-    font-family: sans-serif;
-    font-size: 12px;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 2px;
-    border-radius: 3px;
+    font-size: 2rem !important;
 } */
 </style>

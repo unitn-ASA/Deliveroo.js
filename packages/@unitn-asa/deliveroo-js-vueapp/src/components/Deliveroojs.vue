@@ -47,8 +47,7 @@
         <ThreeScene v-model="myMesh" class="fixed">
             <Tile v-for="[key, t] in tiles.entries()" :key="key" :id="key" :tile="t" />
             <Agent v-for="[key, a] in agents.entries()" :key="key" :id="key" :agent="a" />
-            <!-- <Agent v-model="me" :key="me.id" :id="me.id" /> -->
-            <Parcel v-for="[key, p] in parcels.entries()" :key="key" :id="key" :x="p.x * 1.5" :y="0.5" :z="-p.y * 1.5" :color="p.color" :label="p.reward" />
+            <Parcel v-for="[key, p] in parcels.entries()" :key="key" :id="key" :parcel="p" />
         </ThreeScene>
     </main>
 </template>
@@ -58,9 +57,9 @@
     .label {
         color: #FFF;
         font-family: sans-serif;
-        padding: 2px;
-        background: rgba( 0, 0, 0, .6 );
-        font-size: '12pt';
+        font-size: 1rem !important;
+        padding: 0px;
+        background: rgba( 0, 0, 0, .8 );
     }
 
 </style>
