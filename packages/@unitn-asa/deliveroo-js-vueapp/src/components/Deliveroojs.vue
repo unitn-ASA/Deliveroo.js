@@ -45,7 +45,7 @@
 <template>
     <main>
         <ThreeScene v-model="myMesh" class="fixed">
-            <Tile v-for="[key, t] in tiles.entries()" :key="key" :id="key" :tile="t" />
+            <Tile v-for="[key, t] in tiles.entries()" :key="key" :id="key" :tile="t" :me="me" :connection="connection"/>
             <Agent v-for="[key, a] in agents.entries()" :key="key" :id="key" :agent="a" />
             <Parcel v-for="[key, p] in parcels.entries()" :key="key" :id="key" :parcel="p" />
         </ThreeScene>
