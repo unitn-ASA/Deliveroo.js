@@ -2,7 +2,7 @@
 
   
 <script setup>
-	import { ref, onMounted, onUnmounted, provide, computed, defineProps, inject, watch } from 'vue';
+	import { ref, onMounted, onUnmounted, provide, computed, inject, watch } from 'vue';
 	import * as THREE from 'three';
 	import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -17,6 +17,10 @@
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 300 );
 	renderer = new THREE.WebGLRenderer();
+	// renderer.setClearColor('black');
+	// // Create a WebGLRenderer and turn on shadows in the renderer
+	// renderer.shadowMap.enabled = true;
+	// renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
 	
 	// Fornisci la scena e la camera ai componenti figli
 	provide('scene', scene);
@@ -29,11 +33,23 @@
 	/** @type {THREE.Vector3} */
 	const camTarget = new THREE.Vector3(0,0,0);
 
-	watch( () => targetMesh.value, (newVal) => {
-		console.log( 'ThreeScene.js watch targetMesh', newVal.position, targetMesh.value.position );
-		// camTarget.copy( targetMesh.value.position );
-		// targetMesh.value.position.addScalar( 1 )
+	/** @type {THREE.PointLight} */
+	const light = new THREE.PointLight( 0xffffff, 10, 1.5 * 1.2 * 5, 1.5 * 0.2 * 5 );
+	light.position.set( 0, 5, 0 );
+	// light.castShadow = true;
+
+	watch( () => connection.configs.AGENTS_OBSERVATION_DISTANCE, (newVal) => {
+		// console.log( 'ThreeScene.js watch AGENTS_OBSERVATION_DISTANCE', newVal );
+		const distance = Math.min( connection.configs.AGENTS_OBSERVATION_DISTANCE, connection.configs.PARCELS_OBSERVATION_DISTANCE );
+		light.distance = 1.5 * 1.2 * distance;
+		light.decay = 1.5 * 0.2 * distance;
 	});
+
+	watch( () => targetMesh.value, (newVal) => {
+		// console.log( 'ThreeScene.js watch targetMesh', newVal.position, targetMesh.value.position );
+		targetMesh.value.add( light );
+	});
+
 
 	const hoverable = computed ( () => {
 		const objects = new Array();
@@ -124,7 +140,9 @@
 				let obj = hovered.value.obj = intersections[ 0 ].object;
 				let x = hovered.value.x = Math.round( obj.position.x / 1.5 );
 				let y = hovered.value.y = Math.round( - obj.position.z / 1.5 );
-				obj.material.opacity = 0.9;
+				if (obj instanceof THREE.Mesh) {
+					obj.material.opacity = 0.9;
+				}
 				obj.scale.set( 1.5, 1.5, 1.5 );
 				// console.log( "hovered on", x, y, clicked.value );
 			}

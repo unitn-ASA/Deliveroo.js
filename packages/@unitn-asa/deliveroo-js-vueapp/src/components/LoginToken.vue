@@ -1,6 +1,6 @@
 <script setup>
 
-    import { computed, defineEmits, onMounted, inject } from 'vue';
+    import { computed, onMounted, inject } from 'vue';
     import { myConnections, getOrCreateConnection } from '../states/myConnections.js';
     import { myTokens, removeToken } from '@/states/myTokens.js';
     import { copyToClipboard, pasteFromClipboard } from '@/utils/copyPaste.js';

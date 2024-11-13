@@ -1,5 +1,5 @@
 <script setup>
-    import { onMounted, onUnmounted, defineModel, ref, inject, computed, useTemplateRef } from 'vue';
+    import { onMounted, onUnmounted, ref, inject, computed, useTemplateRef } from 'vue';
     import * as THREE from 'three';
     import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 

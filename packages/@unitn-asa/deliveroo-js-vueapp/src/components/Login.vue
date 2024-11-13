@@ -1,6 +1,6 @@
 <script setup>
 
-    import { ref, defineEmits, inject } from 'vue'
+    import { ref, inject } from 'vue'
     import { richiediToken } from '../apiClient.js';
     import { myTokens } from '@/states/myTokens.js';
     import LoginToken from './LoginToken.vue';

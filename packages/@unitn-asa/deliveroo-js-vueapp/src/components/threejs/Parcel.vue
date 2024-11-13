@@ -112,28 +112,6 @@
         }
     }
 
-    // Funzione per animare la posizione del cubo
-    const animatePosition = (mesh, x, y, z) => {
-        const duration = 1000; // Durata dell'animazione in millisecondi
-        const start = { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z };
-        const end = { x, y, z };
-        const startTime = performance.now();
-
-        const animate = (time) => {
-        const elapsed = time - startTime;
-        const t = Math.min(elapsed / duration, 1);
-
-        mesh.position.x = start.x + (end.x - start.x) * t;
-        mesh.position.y = start.y + (end.y - start.y) * t;
-        mesh.position.z = start.z + (end.z - start.z) * t;
-
-        if (t < 1) {
-            requestAnimationFrame(animate);
-        }
-        };
-
-        requestAnimationFrame(animate);
-    };
 </script>
 
 <template>

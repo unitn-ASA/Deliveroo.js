@@ -1,6 +1,6 @@
 <script setup>
         
-    import { watchEffect, computed, defineProps, onMounted } from 'vue';
+    import { watchEffect, computed, onMounted } from 'vue';
 
     const { timer } = defineProps(['timer']);
 

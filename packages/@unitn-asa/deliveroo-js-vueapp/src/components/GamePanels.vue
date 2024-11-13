@@ -55,16 +55,20 @@
                         <div class="collapse-title font-medium">Agents</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
                             <table>
-                                <tr>
-                                    <th>name(id)</th>
-                                    <th>team(id)</th>
-                                    <th>score</th>
-                                </tr>
-                                <tr v-for="[key, agent] in connection.grid.agents.entries()" >
-                                    <td>{{ agent.name }}({{ agent.id }})</td>
-                                    <td>{{ agent.teamName }}({{ agent.teamId }})</td>
-                                    <td>{{ agent.score }}</td>
-                                </tr>
+                                <thead>
+                                    <tr>
+                                        <th>name(id)</th>
+                                        <th>team(id)</th>
+                                        <th>score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="[key, agent] in connection.grid.agents.entries()" >
+                                        <td>{{ agent.name }}({{ agent.id }})</td>
+                                        <td>{{ agent.teamName }}({{ agent.teamId }})</td>
+                                        <td>{{ agent.score }}</td>
+                                    </tr>
+                                </tbody>
                             </table>
                             <!-- <div v-for="[key, agent] in connection.grid.agents.entries()" >
                                 <div class="flex flex-row space-x-2">
