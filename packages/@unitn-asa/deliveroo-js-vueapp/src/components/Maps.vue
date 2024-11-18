@@ -1,6 +1,10 @@
 <script setup>
 
     import { ref, inject } from 'vue'
+    import { patchConfig } from '../apiClient.js';
+
+    /** @type {import("@/Connection").Connection} */
+    const connection = inject( "connection" ).value;
 
     const emit = defineEmits(['loadMap']); // Define the emit for login
 
@@ -13,6 +17,7 @@
     })
 
     function loadMap( map ) {
+        patchConfig( connection.token, 'MAP_FILE', map.name[0] );
         emit('loadMap', map );
     }
 
@@ -22,10 +27,6 @@
     <main>
 
     <div class="w-6/8 mx-auto pb-10 space-y-4">
-        
-        <div class="text-center my-6 text-xl">
-            <h2>Maps</h2>
-        </div>
         
         <div class="flex flex-wrap justify-center">
 

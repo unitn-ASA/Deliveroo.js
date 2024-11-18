@@ -30,7 +30,7 @@
     const scene = inject('scene');
     const camera = inject('camera');
 
-    onMounted(() => {
+    function mount () {
 
         // Create mesh
         const geometry = new THREE.BoxGeometry( 1, ( tile.type == 0 ? 1 : 0.1 ), 1 );
@@ -73,13 +73,52 @@
         // Start animation
         requestAnimationFrame(animate);
 
-    });
+    }
 
-    onUnmounted(() => {
+    function unmount () {
 
         // Remove mesh from scene
         scene.remove(mesh);
 
+    }
+
+    onMounted(() => {
+        mount();
+    });
+
+    onUnmounted(() => {
+        unmount();
+    });
+
+    watch( () => tile.type, (newVal) => {
+        // Force UnMount and OnMount
+        unmount();
+        mount();
+
+        // // Update mesh color
+        // var color;
+        // switch (newVal) {
+        //     case 0: // Obstacle - Light Blue
+        //         color = 0x000055;
+        //         break;
+        //     case 1: // Spawning - Green
+        //         color = 0x00ff00;
+        //         break;
+        //     case 2: // Delivery - Red
+        //         color = 0xff0000;
+        //         break;
+        //     case 3: // Walkable - White
+        //         color = 0xffffff;
+        //         break;
+        //     case 4: // Base - Blue
+        //         color = 0x0000ff;
+        //         break;
+        //     default:
+        //         break;
+        // }
+        // mesh.material.color = new THREE.Color(color);
+        // mesh.material.emissive = new THREE.Color(color);
+        // mesh.material.emissiveIntensity = 0;
     });
 
     function animate () {

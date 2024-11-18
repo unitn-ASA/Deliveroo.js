@@ -12,7 +12,11 @@ const config =  require('../../config');
  */
 class Grid extends Observable {
 
-    /** @type {Array<Tile>} */
+    /** @property {number} X */
+    #X = 0;
+    /** @property {number} Y */
+    #Y = 0;
+    /** @type {Map<string, Tile>} */
     #tiles;
 
     /** @type {Map<string, Agent>} */
@@ -31,80 +35,100 @@ class Grid extends Observable {
         super();
         this.setMaxListeners(500);
         
+        this.#tiles = new Map();
+        this.#agents = new Map();
+        this.#parcels = new Map();
+
         var Xlength = map.length;
-        var Ylength = Array.from(map).reduce( (longest, current)=>(current.length>longest.length?current:longest) ).length;
-        this.#tiles = Array.from(map).map( (column, x) => {
-            return Array.from(column).map( (value, y) => new Tile(
+        var Ylength = Array.from(map).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
+
+        // Import map into #tiles
+        for (let x = 0; x < Xlength; x++) {
+            for (let y = 0; y < Ylength; y++) {
+                const value = map[x][y];
+                this.setTile( x, y, value );
+            }
+        }
+
+    }
+
+    loadMap ( map ) {
+        var Xlength = map.length;
+        var Ylength = Array.from(map).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
+
+        for (let x = 0; x < Math.max(Xlength,this.#X); x++) {
+            for (let y = 0; y < Math.max(Ylength,this.#Y); y++) {
+                if (x < Xlength && y < Ylength) {
+                    let value = map[x][y];
+                    this.setTile( x, y, value );
+                } else {
+                    this.setTile( x, y, 0 ); // needed to emit update, even if later deleted
+                    this.#tiles.delete(`${x}_${y}`);
+                }
+            }
+        }
+    }
+
+    /**
+     * @function setTile
+     * @param {number} x
+     * @param {number} y
+     * @param {number} value
+     * @returns {void}
+     */
+    setTile ( x, y, value ) {
+        var tile;
+        if ( this.#tiles.has(`${x}_${y}`) ) {
+            tile = this.#tiles.get(`${x}_${y}`);
+            value == 0 ? tile.block() : tile.unblock();
+            tile.delivery = value == 2;
+            tile.parcelSpawner = value == 1;
+        } else {
+            tile = new Tile(
                 this,       // grid
                 x, y,       // x, y
                 value == 0, // blocked
                 value == 2, // delivery // ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
                 value == 1  // parcelSpawner
-            ) )
-        } );
-        // console.log( this.#tiles.map( c=>c.map( t=>t.x+' '+t.y+' ' ) ) )
-        
-        // this.#tiles = [];
-        // for (let x = 0; x < 10; x++) {
-        //     let column = [];
-        //     for (var y = 0; y < 10; y++) {
-        //         column.push(new Tile(this, x, y))
-        //     }
-        //     this.#tiles.push(column);
-        // }
-
-        this.#agents = new Map();
-        this.#parcels = new Map();
-        
-        // for (let x = 0; x < map.length; x++) {
-        //     const column = map[x];
-        //     for (let y = 0; y < column.length; y++) {
-        //         const value = column[y];
-        //         if ( value > 2 )
-        //             this.createParcel( x, y, null, value );
-        //     }
-            
-        // }
-
+            );
+            this.#tiles.set(`${x}_${y}`, tile);
+            if ( x+1 > this.#X ) this.#X = x+1;
+            if ( y+1 > this.#Y ) this.#Y = y+1;
+        }
+        this.emit( 'tile', tile );
+        if ( value == 0 ) this.emit( 'not_tile', tile );
     }
 
     /**
      * @type {function():Generator<Tile, Tile, Tile>}
      */
     *getTiles ( [x1,x2,y1,y2]=[0,10000,0,10000] ) {
-        const xLength = ( this.#tiles.length ? this.#tiles.length : 0 );
-        const yLength = ( this.#tiles.length && this.#tiles[0].length ? this.#tiles[0].length : 0 );
         x1 = Math.max(0,x1)
-        x2 = Math.min(xLength,x2);
+        x2 = Math.min(this.#X,x2);
         y1 = Math.max(0,y1)
-        y2 = Math.min(yLength,y2);
+        y2 = Math.min(this.#Y,y2);
         // console.log(xLength, yLength, x1, x2, y1, y2)
-        for ( let x = x1; x < x2; x++ )
+        for ( let x = x1; x < x2; x++ ) {
             for ( let y = y1; y < y2; y++ ) {
-                var tile = this.#tiles.at(x).at(y);
+                var tile = this.#tiles.get(`${x}_${y}`);
                 if ( tile ) yield tile;
             }
-        // return Array.from(this.#tiles).flat();
+        }
     }
 
     getMapSize () {
-        return { width: this.#tiles.length, height:this.#tiles.reduce( (longest, current) => (current.length>longest.length?current:longest) ).length }
+        return { width: this.#X, height: this.#Y }
     }
 
     /**
      * @type {function(number,number): Tile}
      */
     getTile ( x, y ) {
-        if ( x < 0 || y < 0)
-            return null;
-        // x = Math.round(x)
-        // y = Math.round(y)
-        let column = this.#tiles.at(x)
-        return column ? column.at(y) : null;
+        return this.#tiles.get(`${x}_${y}`);
     }
 
     /**
-     * @type {function(): string[]}
+     * @type {function(): MapIterator<String>}
      */
     getAgentIds () {
         return this.#agents.keys();

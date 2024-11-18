@@ -27,8 +27,8 @@
 <template>
     <main>
 
-        <Modal v-model="mapsModal" title="Login / Signup">
-            <Maps/>
+        <Modal v-model="mapsModal" title="Change map">
+            <Maps @load-map="mapsModal=false;"/>
         </Modal>
 
         <div id="dashboard" class="flex text-sm text-white">

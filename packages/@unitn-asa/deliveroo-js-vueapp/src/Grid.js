@@ -127,9 +127,11 @@ export class Grid {
         
         socket.on( 'not_tile', (x, y) => {
             this.getTile(x, y).type = 0;
+            this.tiles.delete( x + y*1000 ); // delete to avoid blocks from old maps
         });
 
         socket.on( "tile", (x, y, delivery, parcelSpawner) => {
+            // console.log( 'Grid.js tile', x, y, delivery, parcelSpawner );
             if ( delivery )
                 this.getTile(x, y).type = 2;
             else if ( parcelSpawner )
