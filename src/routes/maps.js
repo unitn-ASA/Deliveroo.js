@@ -196,14 +196,14 @@ function generatePng( matrix ) {
             // set the color of the rectangle
             if ( value == 0 ) {
                 ctx.fillStyle = 'grey';
-                ctx.globalAlpha = 0.4;
+                ctx.globalAlpha = 0.1;
                 // continue;
             } else if ( value == 1 ) {
                 ctx.fillStyle = 'green';
             } else if ( value == 2 ) {
                 ctx.fillStyle = 'red';
             } else if ( value == 3 ){
-                ctx.fillStyle = 'yellow';
+                ctx.fillStyle = 'lightgreen';
             } else {
                 ctx.fillStyle = 'purple';
             }

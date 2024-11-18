@@ -1,0 +1,52 @@
+<script setup>
+
+    import { ref, inject } from 'vue'
+
+    const emit = defineEmits(['loadMap']); // Define the emit for login
+
+    const maps = ref([]);
+
+    fetch("http://localhost:8080/api/maps")
+    .then( res => res.json() )
+    .then( data => {
+        maps.value = data;
+    })
+
+    function loadMap( map ) {
+        emit('loadMap', map );
+    }
+
+</script>
+
+<template>
+    <main>
+
+    <div class="w-6/8 mx-auto pb-10 space-y-4">
+        
+        <div class="text-center my-6 text-xl">
+            <h2>Maps</h2>
+        </div>
+        
+        <div class="flex flex-wrap justify-center">
+
+            <div class="bg-black bg-opacity-25 box-border p-2 m-2 backdrop-blur-md rounded-xl break-inside-avoid"
+                v-for="map of maps">
+                
+                <button class="btn btn-info btn-sm" @click="loadMap(map)">
+                    Load Map <span>{{ map.name[0] }}</span>
+                </button>
+                {{ map.map[0].length }}x{{ map.map.length }}
+                
+                <img :src="'http://localhost:8080'+map.png" class="mt-2"/>
+                
+            </div>
+
+        </div>
+    
+    </div>
+
+    </main>
+</template>
+
+<style scoped>
+</style>

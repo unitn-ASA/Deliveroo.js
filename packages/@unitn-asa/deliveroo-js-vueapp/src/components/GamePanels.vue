@@ -3,6 +3,8 @@
     import { onMounted, onUnmounted, ref, inject, computed } from 'vue';
     import Settings from '@/components/Settings.vue';
     import Timer from '@/components/Timer.vue';
+    import Maps from './Maps.vue';
+    import Modal from './Modal.vue';
 
     const emit = defineEmits(['login']); // Define the emit for login
 
@@ -17,11 +19,17 @@
     const me = computed( () => connection.value.grid.me );
     
     const clock = connection.value.grid.clock;
+
+    const mapsModal = ref(false);
     
 </script>
 
 <template>
     <main>
+
+        <Modal v-model="mapsModal" title="Login / Signup">
+            <Maps/>
+        </Modal>
 
         <div id="dashboard" class="flex text-sm text-white">
             
@@ -44,6 +52,12 @@
                             <span id="agent.xy"></span>agent.xy {{me?.x}} {{me?.y}}<br>
                         </div>
                         <div class="collapse-content">
+                            <button 
+                                class="flex-none btn btn-outline btn-error btn-xs w-full" 
+                                @click="mapsModal=true;"
+                            >
+                                Change map
+                            </button>
                             <Settings/>
                             <pre id="config" class="text-xs"></pre>
                             <img id="canvas" width="200" height="200" style="position: relative; top: 0; left: 0; z-index: 1000;"></img>
