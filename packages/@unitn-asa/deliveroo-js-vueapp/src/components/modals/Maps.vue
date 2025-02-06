@@ -1,10 +1,8 @@
 <script setup>
 
     import { ref, inject } from 'vue'
-    import { patchConfig } from '../apiClient.js';
-
-    /** @type {import("@/Connection").Connection} */
-    const connection = inject( "connection" ).value;
+    import { patchConfig } from '../../apiClient.js';
+    import { connection } from '@/states/myConnection.js';
 
     const emit = defineEmits(['loadMap']); // Define the emit for login
 

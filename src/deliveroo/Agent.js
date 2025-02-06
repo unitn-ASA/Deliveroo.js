@@ -283,7 +283,7 @@ class Agent extends Xy {
             // parcel.x = this.x;
             // parcel.y = this.y;
             dropped.push( parcel );
-            if ( tile.delivery ) {
+            if ( tile?.delivery ) {
                 sc += parcel.reward;
                 this.#grid.deleteParcel( parcel.id );
             }

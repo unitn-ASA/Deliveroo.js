@@ -1,19 +1,17 @@
 <script setup>
 
     import { computed, onMounted, inject } from 'vue';
-    import { myConnections, getOrCreateConnection } from '../states/myConnections.js';
+    import { myConnections, getOrCreateConnection } from '../../states/myConnections.js';
     import { myTokens, removeToken } from '@/states/myTokens.js';
     import { copyToClipboard, pasteFromClipboard } from '@/utils/copyPaste.js';
+	import { connection as playedConnection, playToken } from '@/states/myConnection.js';
 
-    const emit = defineEmits(['play']); // Define the emit for login
+    // const emit = defineEmits(['play']); // Define the emit for login
 
-    /** @type {import("vue").Ref<import("@/Connection").Connection>} */
-    const playedConnection = inject( "connection" );
-    
     const { token } = defineProps(['token']);
     const connection = getOrCreateConnection( token );
     const connected = computed( () => connection && connection.state && connection.state.connected ? connection.state.connected : false );
-    const played = computed( () => token == playedConnection.value?.token ? true : false );
+    const played = computed( () => token == playedConnection?.token ? true : false );
     const payload = connection.payload
     const name = connection.payload.name
     const id = connection.payload.id
@@ -33,7 +31,8 @@
 
     function play() {
         console.log( 'LoginToken.js play()', token.slice(0,10)+'...', payload.name );
-        emit( 'play', token );
+        playToken( token );
+        // emit( 'play', token );
     }
 
     onMounted (() => {

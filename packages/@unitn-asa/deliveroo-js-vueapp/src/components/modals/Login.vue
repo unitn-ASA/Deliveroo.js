@@ -1,15 +1,13 @@
 <script setup>
 
     import { ref, inject } from 'vue'
-    import { richiediToken } from '../apiClient.js';
+    import { richiediToken } from '../../apiClient.js';
     import { myTokens } from '@/states/myTokens.js';
     import LoginToken from './LoginToken.vue';
     import { copyToClipboard, pasteFromClipboard } from '@/utils/copyPaste.js';
+	import { connection } from '@/states/myConnection.js';
 
     const emit = defineEmits(['play']); // Define the emit for login
-
-    /** @type {import("vue").Ref<import("@/Connection").Connection>} */
-    const connection = inject( "connection" );
 
     const name = ref('marco');
     const team = ref('disi');

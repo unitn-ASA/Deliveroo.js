@@ -1,31 +1,31 @@
 <script setup>
     
-    import { onMounted, onUnmounted, ref, inject, computed } from 'vue';
-    import Settings from '@/components/Settings.vue';
-    import Timer from '@/components/Timer.vue';
-    import Maps from './Maps.vue';
-    import Modal from './Modal.vue';
+    import { ref } from 'vue';
+    import Settings from './Settings.vue';
+    import Timer from './Timer.vue';
+    import Maps from '../modals/Maps.vue';
+    import Modal from '../modals/Modal.vue';
+    import Login from '../modals/Login.vue';
+    import { connection } from '../../states/myConnection.js';
 
-    const emit = defineEmits(['login']); // Define the emit for login
+    const mapsModal = ref(false); // Reactive variable for overlay visibility
+    const loginModal = ref(!connection); // Reactive variable for overlay visibility
 
-    function login () {
-        emit('login');
-    }
+    const grid = connection?.grid;
+    const me = grid?.me;
+    const clock = grid?.clock;
+    const selectedAgent = grid?.selectedAgent;
+    const selectedTile = grid?.selectedTile;
+    const selectedParcel = grid?.selectedParcel;
 
-    /** @type {import("vue").Ref<import("@/Connection").Connection>} */
-    const connection = inject( "connection" );
-
-    // compute me with Vue computed
-    const me = computed( () => connection.value.grid.me );
-    
-    const clock = connection.value.grid.clock;
-
-    const mapsModal = ref(false);
-    
 </script>
 
 <template>
     <main>
+
+        <Modal v-model="loginModal" title="Login / Signup">
+            <Login/>
+        </Modal>
 
         <Modal v-model="mapsModal" title="Change map">
             <Maps @load-map="mapsModal=false;"/>
@@ -42,9 +42,9 @@
                     <div tabindex="0" class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox" />
                         <div class="collapse-title">
-                            <span id="clock.frame"></span>clock.frame {{clock.frame}}<br>
-                            <span id="clock.ms"></span>clock.ms {{clock.ms}}<br>
-                            <span id="socket.id"></span>socket.id {{connection.socket.id}}<br>
+                            <span id="clock.frame"></span>clock.frame {{clock?.frame}}<br>
+                            <span id="clock.ms"></span>clock.ms {{clock?.ms}}<br>
+                            <span id="socket.id"></span>socket.id {{connection?.socket.id}}<br>
                             <span id="agent.id"></span>agent.id {{me?.id}}<br>
                             <span id="agent.name"></span>agent.name {{me?.name}}<br>
                             <span id="agent.teamId"></span>agent.team {{me?.teamId}}<br>
@@ -58,7 +58,7 @@
                             >
                                 Change map
                             </button>
-                            <Settings/>
+                            <Settings v-if="connection"/>
                             <pre id="config" class="text-xs"></pre>
                             <img id="canvas" width="200" height="200" style="position: relative; top: 0; left: 0; z-index: 1000;"></img>
                         </div>
@@ -77,7 +77,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="[key, agent] in connection.grid.agents.entries()" >
+                                    <tr v-for="[key, agent] in connection?.grid.agents.entries()" >
                                         <td>{{ agent.name }}({{ agent.id }})</td>
                                         <td>{{ agent.teamName }}({{ agent.teamId }})</td>
                                         <td>{{ agent.score }}</td>
@@ -93,6 +93,25 @@
                             </div> -->
                         </div>
                     </div>
+
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
+                        <input type="checkbox" checked />
+                        <div class="collapse-title font-medium">Inspect</div>
+                        <div class="collapse-content overflow-hidden" style="min-height:auto!important">
+                            <span>
+                                Tile in ({{ selectedTile?.x }}, {{ selectedTile?.y }})
+                                of type {{ selectedTile?.type }}
+                            </span><br>
+                            <span>
+                                Agent in ({{ selectedAgent?.x }}, {{ selectedAgent?.y }})
+                                is {{ selectedAgent?.name}} ( {{ selectedAgent?.id}} )
+                            </span><br>
+                            <span>
+                                Parcel in ({{ selectedParcel?.x }}, {{  selectedParcel?.y }})
+                                is {{ selectedParcel?.id }} with reward {{ selectedParcel?.reward }}
+                            </span><br>
+                        </div>
+                    </div>
                 
                 </div>
 
@@ -103,10 +122,10 @@
                 <div class="flex flex-col h-full rounded-lg space-y-4">
 
                     
-                    <Timer class="z-10" :timer="clock.ms"/>
+                    <Timer class="z-10" :timer="clock?.ms"/>
                     
                     <div class="z-10 grid grid-flow-col gap-5 text-center">
-                        <button class="btn btn-info btn-sm" @click="login">Login</button>
+                        <button class="btn btn-info btn-sm" @click="loginModal=true">Login</button>
                         <button class="btn btn-info btn-sm" @click="">...</button>
                         <button class="btn btn-info btn-sm" @click="">...</button>
                         <button class="btn btn-info btn-sm" @click="">...</button>
@@ -123,11 +142,11 @@
                         <div class="collapse-title font-medium">
                             Server Logs <br/>
                             <div class="text-xs pb-2">
-                                {{ connection.serverLogs[connection.serverLogs.length-1]?.message.join(" ") }} <br/>
+                                {{ connection?.serverLogs[connection.serverLogs.length-1]?.message.join(" ") }} <br/>
                             </div>
                         </div>
                         <div id="logs" class="collapse-content overflow-auto" style="min-height:auto!important">
-                            <div v-for="{timestamp, message} of connection.serverLogs" class="text-xs pb-2">
+                            <div v-for="{timestamp, message} of connection?.serverLogs" class="text-xs pb-2">
                                 <span v-for="m of message"> {{ m }} </span>
                                 <br/>
                             </div>

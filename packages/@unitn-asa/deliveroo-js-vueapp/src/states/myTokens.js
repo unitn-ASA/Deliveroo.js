@@ -1,10 +1,15 @@
 import { ref, reactive, watch } from 'vue';
 import { jwtDecode } from "jwt-decode";
 
-/** @type {import("vue").Reactive<Array<String>>} */
-const myTokens = reactive(new Array());
+/**
+ * @type {import("vue").Reactive<Array<String>>}
+ */
+export const myTokens = reactive(new Array());
 
-function removeToken ( token ) {
+/**
+ * @type {function(string):void}
+ */ 
+export function removeToken ( token ) {
     const index = myTokens.indexOf( token );
     // console.log( myTokens, index );
     if ( index > -1 ) {
@@ -13,6 +18,9 @@ function removeToken ( token ) {
     // console.log( myTokens );
 }
 
+/**
+ * Load tokens from local storage
+ */
 if ( localStorage.getItem('myTokens') ) {
     for (const token of JSON.parse( localStorage.getItem('myTokens') ) ) { // parse from array of entries
         try {
@@ -24,8 +32,9 @@ if ( localStorage.getItem('myTokens') ) {
     }
 }
 
+/**
+ * Sync with local storage when a new token is added
+ */
 watch( myTokens, (myTokens) => {
     localStorage.setItem( 'myTokens', JSON.stringify(myTokens)); // stringify as array of entries
 });
-
-export { myTokens, removeToken };

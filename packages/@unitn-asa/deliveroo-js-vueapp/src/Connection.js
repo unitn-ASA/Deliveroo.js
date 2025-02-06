@@ -26,8 +26,17 @@ export class Connection {
      * @type {{connected: boolean, events: Map<string,Array>}} state
      */
     state = reactive ({
-      connected: false,
-      events: new Map()
+
+        /**
+         * @type {boolean}
+         */
+        connected: false,
+
+        /**
+         * @type {Map<string,Array>}
+         */
+        events: new Map()
+
     });
 
     /**

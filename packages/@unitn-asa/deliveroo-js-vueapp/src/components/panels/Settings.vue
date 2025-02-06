@@ -1,11 +1,8 @@
 <script setup>
 
     import { ref, inject } from 'vue'
-    import { patchConfig } from '../apiClient.js';
-    
-    /** @type {import("@/Connection").Connection} */
-    const connection = inject( "connection" ).value;
-    const settings = connection.configs
+    import { patchConfig } from '../../apiClient.js';
+    import { connection } from '@/states/myConnection.js';
 
     const inputFocused = ref();
     
@@ -24,12 +21,12 @@
         <div class="flex flex-col space-y-1">
 
             <div class="items-center space-x-1 flex justify-between text-xs"
-            v-for="[key, value] of Object.entries(settings)">
+            v-for="[key, value] of Object.entries(connection.configs)">
                 <span class="flex-none inline-block align-middle">{{ key }}</span>
                 <input 
                     class="grow input input-ghost btn-xs text-right" 
                     size="2" 
-                    v-model="settings[key]" 
+                    v-model="connection.configs[key]" 
                     type="text" 
                     placeholder="Name"
                     @focus="inputFocused = key"

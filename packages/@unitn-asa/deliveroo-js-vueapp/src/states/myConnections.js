@@ -1,13 +1,15 @@
-import { reactive, watch } from 'vue';
 import { Connection } from '../Connection.js';
-import { jwtDecode } from "jwt-decode";
 
 /**
  * @type {Map<string,Connection>} Token to Connection
  */
-const myConnections = new Map();
+export const myConnections = new Map();
 
-function getOrCreateConnection ( token ) {
+/**
+ * @param {string} token 
+ * @returns Connection
+ */
+export function getOrCreateConnection ( token ) {
     // console.log( "getOrCreateConnection", token );
     let connection = myConnections.get( token );
     if ( ! connection ) {
@@ -18,7 +20,11 @@ function getOrCreateConnection ( token ) {
     return connection;
 }
 
-function getConnectionByName ( name ) {
+/**
+ * @param {string} name 
+ * @returns Connection
+ */
+export function getConnectionByName ( name ) {
     for (const connection of myConnections.values()) {
         if ( connection.payload.name === name ) {
             return connection;
@@ -27,10 +33,10 @@ function getConnectionByName ( name ) {
     return null;
 }
 
+/**
+ * Instantiate a new connection for each token
+ */
 import { myTokens } from './myTokens.js';
-
 for (const token of myTokens) {
     getOrCreateConnection( token );
 }
-
-export { myConnections, getOrCreateConnection, getConnectionByName };

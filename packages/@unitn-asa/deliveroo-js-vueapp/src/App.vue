@@ -10,7 +10,7 @@
             
             <RouterLink to="/" class="btn btn-ghost opacity-90 bg-neutral mx-2">Game</RouterLink>
             
-            <RouterLink to="/login" class="btn btn-ghost opacity-90 bg-neutral mx-2">Login</RouterLink>
+            <RouterLink to="/info" class="btn btn-ghost opacity-90 bg-neutral mx-2">Info</RouterLink>
             
         </nav>
         

@@ -7,9 +7,16 @@
 	import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 	import { Controller } from '../../utils/Controller.js'
+	import { connection } from '@/states/myConnection.js';
 
-    /** @type {import("@/Connection").Connection} */
-    const connection = inject( "connection" ).value;
+    /**
+     * @typedef Tile
+     * @type {import("@/Grid").Tile}
+     */
+
+    /** @typedef Agent
+     *  @type {import("@/Grid").Agent}
+     */
 
 	const threeContainer = ref(null);
 	let scene, camera, renderer, labelRenderer;
@@ -51,11 +58,34 @@
 	});
 
 
+	/**
+	 * @type {import("vue").ComputedRef<Map<import("three").Mesh,Agent>>}
+	 */
+	const agentsByMesh = computed ( () => {
+		const map = new Map();
+		for ( let agent of connection.grid.agents.values() )
+			map.set( agent.mesh, agent );
+		return map;
+	})
+	const tilesByMesh = computed ( () => {
+		const map = new Map();
+		for ( let tile of connection.grid.tiles.values() )
+			map.set( tile.mesh, tile );
+		return map;
+	})
+	const parcelsByMesh = computed ( () => {
+		const map = new Map();
+		for ( let parcel of connection.grid.parcels.values() )
+			map.set( parcel.mesh, parcel );
+		return map;
+	})
 	const hoverable = computed ( () => {
 		const objects = new Array();
 		for ( const { mesh } of connection.grid.agents.values() )
 			objects.push( mesh );
 		for ( const { mesh } of connection.grid.tiles.values() )
+			objects.push( mesh );
+		for ( const { mesh } of connection.grid.parcels.values() )
 			objects.push( mesh );
 		return objects;
 	});
@@ -153,6 +183,22 @@
 				let x = clicked.value.x = Math.round( obj.position.x / 1.5 );
 				let y = clicked.value.y = Math.round( - obj.position.z / 1.5 );
 				// console.log( "clicked on", x, y, clicked.value );
+				
+				if ( tilesByMesh.value.has( obj ) ) {
+					let tile = tilesByMesh.value.get( obj );
+					connection.grid.selectedTile.value = tile;
+				}
+
+				if ( agentsByMesh.value.has( obj ) ) {
+					let agent = agentsByMesh.value.get( obj );
+					connection.grid.selectedAgent.value = agent;
+				}
+
+				if ( parcelsByMesh.value.has( obj ) ) {
+					let parcel = parcelsByMesh.value.get( obj );
+					connection.grid.selectedParcel.value = parcel;
+				}
+
             }
         } );
 

@@ -1,13 +1,12 @@
-import { Connection } from "@/Connection.js";
 
 class Controller {
 
-    /** @type {Connection} */
+    /** @type {import("@/Connection.js").Connection} */
     connection;
 
     /**
      * Controller constructor
-     * @param {Connection} connection
+     * @param {import("@/Connection.js").Connection} connection
      */
     constructor( connection ) {
 

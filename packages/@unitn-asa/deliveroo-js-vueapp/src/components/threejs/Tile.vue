@@ -3,26 +3,28 @@
     import * as THREE from 'three';
     import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
     import { Connection } from '@/Connection';
+    import { connection } from '@/states/myConnection.js';
 
     /**
-     * @typedef TileT
-     * @type {{
-     *         x: number, y: number,
-     *         type: number,
-     *         mesh?: THREE.Mesh }}
+     * @typedef Tile
+     * @type {import("@/Grid").Tile}
+     */
+
+    /** @typedef Agent
+     *  @type {import("@/Grid").Agent}
      */
     
-    /** @type {{tile?:TileT,me?:{x,y},connection?:Connection}} */
+    /** @type {{tile?:Tile,me?:{x,y},connection?:Connection}} */
     const props = defineProps(['tile','me','connection']);
 
-    /** @type {TileT} */
+    /** @type {Tile} */
     const tile = props.tile;
 
-    /** @type {{x,y}} */
-    const me = props.me;
-
-    /** @type {Connection} */
-    const connection = props.connection;
+    /** @type {import("vue").Ref<Agent>} */
+    const me = connection.grid.me;
+    
+    // /** @type {Connection} */
+    // const connection = props.connection;
 
     /** @type {THREE.Mesh} */
     var mesh;
@@ -129,13 +131,13 @@
         if ( Math.abs( me.x - tile.x ) + Math.abs( me.y - tile.y ) >= d2 ) {
             if ( mesh.material instanceof THREE.MeshStandardMaterial ) {
                 mesh.material.opacity = 0.7;
-                mesh.material.emissiveIntensity = 0.1;
+                mesh.material.emissiveIntensity = 0.3;
             }
         }
         else if ( Math.abs( me.x - tile.x ) + Math.abs( me.y - tile.y ) >= d1 ) {
             if ( mesh.material instanceof THREE.MeshStandardMaterial ) {
                 mesh.material.opacity = 0.8;
-                mesh.material.emissiveIntensity = 0.3;
+                mesh.material.emissiveIntensity = 0.4;
             }
         }
         else {

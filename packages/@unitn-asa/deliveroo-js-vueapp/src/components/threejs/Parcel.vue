@@ -2,9 +2,7 @@
     import { onMounted, onUnmounted, watch, inject, computed, useTemplateRef } from 'vue';
     import * as THREE from 'three';
     import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-    
-    /** @type {import("@/Connection").Connection} */
-    const connection = inject( "connection" ).value;
+	import { connection } from '@/states/myConnection.js';
     
     /**
      * @typedef ParcelT

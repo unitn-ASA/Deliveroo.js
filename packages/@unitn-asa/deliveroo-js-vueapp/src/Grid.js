@@ -1,6 +1,43 @@
 import { ref, reactive, shallowReactive } from "vue";
 import { default as io, Socket } from 'socket.io-client';
 
+
+
+/**
+ * @typedef Tile
+ * @type {{
+*         x: number,y: number,
+*         type:number,
+*         mesh?: import('three').Mesh
+* }}
+*/
+
+/**
+ * @typedef Agent
+ * @type {{id: string,
+*         name: string,
+*         teamId: string
+*         teamName: string,
+*         x: number,y: number,
+*         score: number,
+*         opacity?: number,
+*         carrying?: Array<string>,
+*         mesh?: import('three').Mesh
+* }}
+*/
+
+/**
+ * @typedef Parcel
+ * @type {{id:string,
+*         x:number,y:number,
+*         reward:number,
+*         carriedBy?:string,
+*         mesh?: import('three').Mesh
+* }}
+*/
+
+
+
 export class Grid {
 
     /**
@@ -18,15 +55,6 @@ export class Grid {
         ms: 0,
         frame: 0
     };
-
-    /**
-     * @typedef Tile
-     * @type {{
-     *         x: number,y: number,
-     *         type:number,
-     *         mesh?: import('three').Mesh
-     * }}
-    */
     /**
      * @type {Map<number,Tile>} tiles
      */
@@ -40,24 +68,13 @@ export class Grid {
         return this.tiles.get( x + y*1000 );
     }
 
-    /**
-     * @typedef Agent
-     * @type {{id: string,
-     *         name: string,
-     *         teamId: string
-     *         teamName: string,
-     *         x: number,y: number,
-     *         score: number,
-     *         opacity?: number,
-     *         carrying?: Array<string>,
-     *         mesh?: import('three').Mesh
-     * }}
-     */
+    /** @type {import("vue").Ref<Tile>} */
+    selectedTile = ref();
 
     /** 
      * @type {import("vue").Ref<Agent>}
      **/
-    me = ref('not known yet');
+    me = ref(null);
 
     /**
      * @type {Map<string,Agent>} agents
@@ -81,15 +98,8 @@ export class Grid {
         return agent;
     }
 
-    /**
-     * @typedef Parcel
-     * @type {{id:string,
-     *         x:number,y:number,
-     *         reward:number,
-     *         carriedBy?:string,
-     *         mesh?: import('three').Mesh
-     * }}
-     */
+    /** @type {import("vue").Ref<Agent>} */
+    selectedAgent = ref();
 
     /**
      * @type {Map<string,Parcel>} parcels
@@ -116,6 +126,9 @@ export class Grid {
     getParcelsAt ( x, y ) {
         return Array.from(this.parcels.values()).filter( parcel => parcel.x == x && parcel.y == y && parcel.carriedBy == null );
     }
+
+    /** @type {import("vue").Ref<Parcel>} */
+    selectedParcel = ref();
 
     /**
      * Socket constructor
