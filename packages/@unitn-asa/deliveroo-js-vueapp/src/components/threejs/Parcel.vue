@@ -5,12 +5,8 @@
 	import { connection } from '@/states/myConnection.js';
     
     /**
-     * @typedef ParcelT
-     * @type {{id: String,
-     *         x: number, y: number,
-     *         reward?: number,
-     *         carriedBy?:string,
-     *         mesh?: THREE.Mesh }}
+     * @typedef Parcel
+     * @type {import("@/Grid").Parcel}
      */
 
     // const props = defineProps({
@@ -22,10 +18,10 @@
     //     label: Number
     // });
     
-    /** @type {{parcel?:ParcelT}} */
+    /** @type {{parcel?:Parcel}} */
     const props = defineProps(['parcel']);
     
-    /** @type {ParcelT} */
+    /** @type {Parcel} */
     const parcel = props.parcel;
 
     /** @type {import('vue').ComputedRef<string>} */
@@ -66,6 +62,10 @@
         // watch(() => [parcel.x, parcel.y], ([newX, newY]) => {
         //     animatePosition( mesh, parcel.x * 1.5, 0.5, - parcel.y * 1.5 );
         // });
+
+        // Start animation
+        requestAnimationFrame(animate);
+
     });
 
     onUnmounted(() => {
@@ -77,6 +77,19 @@
 
         // delete html from dom
         // labelRef.value.remove();
+    });
+
+    watch( [() => parcel.hoovered, () => parcel.selected ], ([hovered, selected]) => {
+        if ( hovered ) {
+            mesh.scale.set( 1.5, 1.5, 1.5 );
+            mesh.material.emissiveIntensity = 0.5;
+        } else if ( selected ) {
+            mesh.scale.set( 1.3, 1.3, 1.3 );
+            mesh.material.emissiveIntensity = 0.3;
+        } else {
+            mesh.scale.set( 1, 1, 1 );
+            mesh.material.emissiveIntensity = 0;
+        }
     });
 
     // When carriedBy changes, move the parcel to the agent or to the scene
@@ -108,6 +121,32 @@
                 if ( p.mesh) p.mesh.position.y = i * 0.8 + 0.5;
             });
         }
+    }
+
+
+    let raisingScale = true;
+
+    function animate () {
+
+        // slowly increase mesh scale when selected
+        if ( parcel.selected ) {
+            if ( raisingScale ) {
+                mesh.scale.x += ( 2 - mesh.scale.x ) * 0.05;
+                mesh.scale.z += ( 2 - mesh.scale.z ) * 0.05;
+            }
+            else {
+                mesh.scale.x -= 0.05;
+                mesh.scale.z -= 0.05;
+            }
+
+            if ( mesh.scale.x > 1.8 )
+                raisingScale = false;
+            else if ( mesh.scale.x < 1.3 )
+                raisingScale = true;
+        }
+    
+        requestAnimationFrame(animate);
+    
     }
 
 </script>

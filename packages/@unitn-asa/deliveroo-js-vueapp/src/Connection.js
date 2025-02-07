@@ -62,7 +62,7 @@ export class Connection {
     /**
      * @type {Object} configs
      */
-    configs = shallowReactive ({});
+    configs = reactive ({});
 
     /**
      * @type {Grid} grid

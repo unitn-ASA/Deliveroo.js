@@ -56,6 +56,7 @@ class Controller {
      * @returns {Promise}
      */
     async evaluateKeyAndDoAct ( evt ) {
+        // console.log( 'Evaluating key:', evt.code );
         const socket = this.connection.socket;
         switch ( evt.code ) {
             case 'KeyQ':// Q pickup
@@ -108,6 +109,24 @@ class Controller {
                         res(status);
                     } );
                 } );
+            case 'Digit0':// 0
+                socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 0 );
+                return;
+            case 'Digit1':// 1
+                socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 1 );
+                return;
+            case 'Digit2':// 2
+                socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 2 );
+                return;
+            case 'Digit3':// 3
+                socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 3 );
+                return;
+            case 'Digit4':// 4
+                socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value.y, 4 );
+                return;
+            case 'Digit5':// 5
+                socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 5 );
+                return;
             default:
                 break;
         }

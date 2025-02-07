@@ -1,4 +1,4 @@
-import { ref, reactive, shallowReactive } from "vue";
+import { ref, reactive, shallowReactive, watch } from "vue";
 import { default as io, Socket } from 'socket.io-client';
 
 
@@ -8,7 +8,9 @@ import { default as io, Socket } from 'socket.io-client';
  * @type {{
 *         x: number,y: number,
 *         type:number,
-*         mesh?: import('three').Mesh
+*         mesh?: import('three').Mesh,
+*         hoovered?: boolean,
+*         selected?: boolean,
 * }}
 */
 
@@ -22,7 +24,9 @@ import { default as io, Socket } from 'socket.io-client';
 *         score: number,
 *         opacity?: number,
 *         carrying?: Array<string>,
-*         mesh?: import('three').Mesh
+*         mesh?: import('three').Mesh,
+*         hoovered?: boolean,
+*         selected?: boolean
 * }}
 */
 
@@ -32,7 +36,9 @@ import { default as io, Socket } from 'socket.io-client';
 *         x:number,y:number,
 *         reward:number,
 *         carriedBy?:string,
-*         mesh?: import('three').Mesh
+*         mesh?: import('three').Mesh,
+*         hoovered?: boolean,
+*         selected?: boolean
 * }}
 */
 
@@ -68,9 +74,6 @@ export class Grid {
         return this.tiles.get( x + y*1000 );
     }
 
-    /** @type {import("vue").Ref<Tile>} */
-    selectedTile = ref();
-
     /** 
      * @type {import("vue").Ref<Agent>}
      **/
@@ -98,9 +101,6 @@ export class Grid {
         return agent;
     }
 
-    /** @type {import("vue").Ref<Agent>} */
-    selectedAgent = ref();
-
     /**
      * @type {Map<string,Parcel>} parcels
      */
@@ -127,8 +127,66 @@ export class Grid {
         return Array.from(this.parcels.values()).filter( parcel => parcel.x == x && parcel.y == y && parcel.carriedBy == null );
     }
 
+
+
+    /** @type {import("vue").Ref<Agent|Tile|Parcel>} */
+    hoovered = ref();
+
+    /** @type {import("vue").Ref<Tile>} */
+    selectedTile = ref();
+
+    /** @type {import("vue").Ref<Agent>} */
+    selectedAgent = ref();
+
     /** @type {import("vue").Ref<Parcel>} */
     selectedParcel = ref();
+
+    /**
+	 * @type {function(import('three').Mesh):Agent|Tile|Parcel}
+	 */
+	getByMesh ( mesh ) {
+        // console.log( 'Grid.js getByMesh', mesh, this.agents.values() );
+        let byMesh = Array.from(this.agents.values()).find( agent => agent.mesh == mesh )
+                    || Array.from(this.tiles.values()).find( tile => tile.mesh == mesh )
+                    || Array.from(this.parcels.values()).find( parcel => parcel.mesh == mesh );
+		return byMesh;
+	}
+
+    hooverByMesh ( mesh ) {
+        // console.log( 'Grid.js hooverByMesh', mesh );
+        let byMesh = this.getByMesh( mesh );
+        if ( byMesh?.hoovered ) return; // already hoovered, return
+        if ( this.hoovered.value ) this.hoovered.value.hoovered = false; // unhoover previous
+        this.hoovered.value = this.getByMesh( mesh ); // set newly hoovered
+        if ( this.hoovered.value ) this.hoovered.value.hoovered = true; // hoover new
+    }
+
+    selectByMesh ( mesh ) {
+
+        function setSelected ( s, ref ) {
+            if ( s && s.selected ) {
+                s.selected = false;
+                ref.value = undefined;
+            } else if ( s && ! s.selected ) {
+                if ( ref.value ) ref.value.selected = false;
+                ref.value = s;
+                if ( ref.value ) ref.value.selected = true;
+            }
+        }
+        
+        let tile = Array.from(this.tiles.values()).find( tile => tile.mesh == mesh )
+        setSelected( tile, this.selectedTile );
+        if ( tile ) return;
+
+        let agent = Array.from(this.agents.values()).find( agent => agent.mesh == mesh )
+        setSelected( agent, this.selectedAgent );
+        if ( agent ) return;
+
+        let parcel = Array.from(this.parcels.values()).find( parcel => parcel.mesh == mesh )
+        setSelected( parcel, this.selectedParcel );
+        if ( parcel ) return;
+        
+    }
 
     /**
      * Socket constructor
@@ -136,11 +194,37 @@ export class Grid {
      */
     constructor ( socket ) {
 
+        // watch ( this.hoovered, ( current, old ) => {
+        //     if ( current != old ) {
+        //         if ( current ) {
+        //             current.hoovered = true;
+        //         }
+        //         if ( old ) {
+        //             old.hoovered = false;
+        //         }
+        //     }
+        // } );
+
+        // function updateSelected ( current, old ) {
+        //     if ( old ) {
+        //         old.selected = false;
+        //         // old.mesh?.scale.set( 1, 1, 1 );
+        //     }
+        //     if ( current ) {
+        //         current.selected = true;
+        //         // current.mesh?.scale.set( 1.5, 1.5, 1.5 );
+        //     }
+        // }
+        
+        // watch ( this.selectedTile, updateSelected);
+        // watch ( this.selectedAgent, updateSelected);
+        // watch ( this.selectedParcel, updateSelected);
+
         this.socket = socket;
         
         socket.on( 'not_tile', (x, y) => {
             this.getTile(x, y).type = 0;
-            this.tiles.delete( x + y*1000 ); // delete to avoid blocks from old maps
+            // this.tiles.delete( x + y*1000 ); // delete to avoid blocks from old maps
         });
 
         socket.on( "tile", (x, y, delivery, parcelSpawner) => {
@@ -182,18 +266,18 @@ export class Grid {
             this.me.value.y = y
             this.me.value.score = score
 
-            // when arrived
-            if ( x % 1 == 0 && y % 1 == 0 ) {
-                for ( var tile of this.tiles.values() ) {
-                    var distance = Math.abs(x-tile.x) + Math.abs(y-tile.y);
-                    let opacity = 0.1;
-                    if ( !( distance >= PARCELS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
-                    if ( !( distance >= AGENTS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
-                    tile.opacity = ( opacity > 0.4 ? 1 : opacity );
-                }
-            } else { // when moving
-                // me.animateMove(x, y)
-            }
+            // // when arrived
+            // if ( x % 1 == 0 && y % 1 == 0 ) {
+            //     for ( var tile of this.tiles.values() ) {
+            //         var distance = Math.abs(x-tile.x) + Math.abs(y-tile.y);
+            //         let opacity = 0.1;
+            //         if ( !( distance >= PARCELS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
+            //         if ( !( distance >= AGENTS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
+            //         tile.opacity = ( opacity > 0.4 ? 1 : opacity );
+            //     }
+            // } else { // when moving
+            //     // me.animateMove(x, y)
+            // }
 
             //updateLeaderboard( me );
 

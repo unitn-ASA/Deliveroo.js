@@ -1,6 +1,6 @@
 <script setup>
     
-    import { ref } from 'vue';
+    import { ref, computed } from 'vue';
     import Settings from './Settings.vue';
     import Timer from './Timer.vue';
     import Maps from '../modals/Maps.vue';
@@ -16,7 +16,11 @@
     const clock = grid?.clock;
     const selectedAgent = grid?.selectedAgent;
     const selectedTile = grid?.selectedTile;
-    const selectedParcel = grid?.selectedParcel;
+    const selectedParcel = computed ( () => connection?.grid?.selectedParcel.value );
+
+    function change() {
+        connection.socket.emit( 'tile', selectedTile.value.x, selectedTile.value.y );
+    }
 
 </script>
 
@@ -96,16 +100,32 @@
 
                     <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox" checked />
-                        <div class="collapse-title font-medium">Inspect</div>
+                        <div class="collapse-title font-medium">Tools</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
+                            <button class="btn btn-outline btn btn-sm" @click="selectionTool()">
+                                Drag
+                            </button>
+                            <button class="btn btn-outline btn btn-sm" @click="selectionTool()">
+                                Select
+                            </button>
+                            <!-- <span>
+                                Inspect
+                            </span> -->
+                            <br>
                             <span>
                                 Tile in ({{ selectedTile?.x }}, {{ selectedTile?.y }})
-                                of type {{ selectedTile?.type }}
-                            </span><br>
+                                <div class="tooltip" data-tip="Click to change type">
+                                    <button v-if="selectedTile" class="btn btn-outline btn-error btn-sm" @click="change()">
+                                        Type {{ selectedTile?.type }}
+                                    </button>
+                                </div>
+                            </span>
+                            <br>
                             <span>
                                 Agent in ({{ selectedAgent?.x }}, {{ selectedAgent?.y }})
                                 is {{ selectedAgent?.name}} ( {{ selectedAgent?.id}} )
-                            </span><br>
+                            </span>
+                            <br>
                             <span>
                                 Parcel in ({{ selectedParcel?.x }}, {{  selectedParcel?.y }})
                                 is {{ selectedParcel?.id }} with reward {{ selectedParcel?.reward }}

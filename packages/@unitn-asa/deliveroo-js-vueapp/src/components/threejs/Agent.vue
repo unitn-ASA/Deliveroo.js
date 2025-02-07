@@ -1,25 +1,16 @@
 <script setup>
-    import { onMounted, onUnmounted, ref, inject, computed, useTemplateRef } from 'vue';
+    import { onMounted, onUnmounted, ref, inject, watch, useTemplateRef } from 'vue';
     import * as THREE from 'three';
     import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
-    /**
-     * @typedef AgentT
-     * @type {{id: String,
-     *         name: String,
-     *         teamId: string
-     *         teamName: string,
-     *         x: number, y: number,
-     *         score?: number,
-     *         color?: Number,
-     *         label?: String,
-     *         mesh?: THREE.Mesh }}
+    /** @typedef Agent
+     *  @type {import("@/Grid").Agent}
      */
     
-    /** @type {{agent?:AgentT}} */
+    /** @type {{agent?:Agent}} */
     const props = defineProps(['agent']);
     
-    /** @type {AgentT} */
+    /** @type {Agent} */
     const agent = props.agent;
 
     // /** @type {import('vue').ComputedRef<string>} */
@@ -54,6 +45,7 @@
         label = new CSS2DObject(labelContainer.value);
         label.position.set(0, 0.5, 0);
         mesh.add(label);
+
     });
 
     onUnmounted(() => {
@@ -62,6 +54,19 @@
         scene.remove(mesh);
         agent.mesh.geometry.dispose();
         // console.log( 'Agent.vue onUnmounted() agent.mesh:', agent.mesh );
+    });
+
+    watch( [() => agent.hoovered, () => agent.selected ], ([hovered, selected]) => {
+        if ( hovered ) {
+            mesh.scale.set( 1.5, 1.5, 1.5 );
+            mesh.material.emissiveIntensity = 0.5;
+        } else if ( selected ) {
+            mesh.scale.set( 1.3, 1.3, 1.3 );
+            mesh.material.emissiveIntensity = 0.3;
+        } else {
+            mesh.scale.set( 1, 1, 1 );
+            mesh.material.emissiveIntensity = 0;
+        }
     });
 
     function animate () {

@@ -6,15 +6,11 @@
     import Agent from './Agent.vue';
     import Parcel from './Parcel.vue';
     import { connection } from '@/states/myConnection';
+	import { Controller } from '@/utils/Controller.js'
 
     const tiles = computed ( () => connection.grid.tiles );
     const agents = computed ( () => connection.grid.agents );
     const parcels = computed ( () => connection.grid.parcels );
-     // me needs to be computed because me is initially a ref('') then reassigned to an Agent!
-    const me = computed ( () => connection.grid.me );
-
-    // const myMesh = ref(null);
-    const myMesh = computed( () => connection.grid?.me.value?.mesh );
 
 	// watch( () => connection.grid.me, (newVal) => {
 	// 	console.log( 'Deliveroojs.vue watch me', newVal.id );
@@ -31,18 +27,19 @@
     // })
     
     onMounted(() => {
-        console.log('Deliveroojs.vue onMounted() Using token:', connection?.token);
+        // console.log('Deliveroojs.vue onMounted() Using token:', connection?.token);
+		new Controller( connection );
     })
 
-    onUnmounted(() => {
-        console.log('Deliveroojs.vue onUnmounted()')
-    })
+    // onUnmounted(() => {
+    //     console.log('Deliveroojs.vue onUnmounted()')
+    // })
 
 </script>
 
 <template>
     <main>
-        <ThreeScene v-model="myMesh" class="fixed">
+        <ThreeScene class="fixed">
             <Tile v-for="[key, t] in tiles.entries()" :key="key" :id="key" :tile="t" />
             <Agent v-for="[key, a] in agents.entries()" :key="key" :id="key" :agent="a" />
             <Parcel v-for="[key, p] in parcels.entries()" :key="key" :id="key" :parcel="p" />

@@ -6,7 +6,6 @@
 	import * as THREE from 'three';
 	import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-	import { Controller } from '../../utils/Controller.js'
 	import { connection } from '@/states/myConnection.js';
 
     /**
@@ -24,7 +23,7 @@
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 300 );
 	renderer = new THREE.WebGLRenderer();
-	// renderer.setClearColor('black');
+	// renderer.setClearColor('white');
 	// // Create a WebGLRenderer and turn on shadows in the renderer
 	// renderer.shadowMap.enabled = true;
 	// renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
@@ -34,29 +33,62 @@
 	provide('camera', camera);
 
 	// const props = defineProps( ['targetMesh'] );
+    // const targetMesh = defineModel()
     /** @type {import('vue').Ref<THREE.Mesh>} */
-    const targetMesh = defineModel()
+    const targetMesh = computed( () => connection.grid?.me.value?.mesh );
 
 	/** @type {THREE.Vector3} */
 	const camTarget = new THREE.Vector3(0,0,0);
+	
+
+
+	/**
+	 * Add lights
+	 */
+	
+	 /** @type {THREE.AmbientLight} */
+	const ambientLight = new THREE.AmbientLight( 0x202020 ); // lighter if: connection.payload.role == "admin" ? 0xaaaaaa
+	scene.add( ambientLight );
 
 	/** @type {THREE.PointLight} */
-	const light = new THREE.PointLight( 0xffffff, 10, 1.5 * 1.2 * 5, 1.5 * 0.2 * 5 );
-	light.position.set( 0, 5, 0 );
+	const agentsLight = new THREE.PointLight( 0xffffff, 1, 1.5 * 1.2 * 5, 1.5 * 0.2 * 5 );
+	
+	/** @type {THREE.PointLight} */
+	const parcelsLight = new THREE.PointLight( 0xffffff, 1, 1.5 * 1.2 * 5, 1.5 * 0.2 * 5 );
 	// light.castShadow = true;
 
+	function computeLightDistanceAndDecay( light, distance ) {
+		if ( isNaN( distance ) ) {
+			light.position.set( 0, 20, 0 );
+			light.distance = 0;
+			light.decay = 0;
+		} else {
+			console.log( 'ThreeScene.js computeLightDistanceAndDecay', distance );
+			light.position.set( 0, 5, 0 );
+			light.distance = 0.9 * distance + 4;
+			light.decay = 0.4;
+		}
+	}
+
 	watch( () => connection.configs.AGENTS_OBSERVATION_DISTANCE, (newVal) => {
-		// console.log( 'ThreeScene.js watch AGENTS_OBSERVATION_DISTANCE', newVal );
-		const distance = Math.min( connection.configs.AGENTS_OBSERVATION_DISTANCE, connection.configs.PARCELS_OBSERVATION_DISTANCE );
-		light.distance = 1.5 * 1.2 * distance;
-		light.decay = 1.5 * 0.2 * distance;
-	});
+		computeLightDistanceAndDecay( agentsLight, newVal );
+	}, { immediate: true } );
+
+	watch( () => connection.configs.PARCELS_OBSERVATION_DISTANCE, (newVal) => {
+		computeLightDistanceAndDecay( parcelsLight, newVal);
+	}, { immediate: true } );
 
 	watch( () => targetMesh.value, (newVal) => {
 		// console.log( 'ThreeScene.js watch targetMesh', newVal.position, targetMesh.value.position );
-		targetMesh.value.add( light );
-	});
+		targetMesh.value?.add( agentsLight );
+		targetMesh.value?.add( parcelsLight );
+	}, { immediate: true } );
 
+
+
+	/*
+	 * Mouse Over and Click
+	 */
 
 	/**
 	 * @type {import("vue").ComputedRef<Map<import("three").Mesh,Agent>>}
@@ -147,64 +179,44 @@
         }
 
 
+		/**
+		 * Mouse hoover and click events
+		 * 
+		 * https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_drag.html
+		 * const drag_controls = new DragControls( clickables, camera, labelRenderer.domElement );
+		 * drag_controls.addEventListener( 'hoveron', (event) => hovered = event.object );
+		 * drag_controls.addEventListener( 'hoveroff', (event) => hovered = null );
+		 */
+
         const mouse = new THREE.Vector2();
         const raycaster = new THREE.Raycaster();
-        // const drag_controls = new DragControls( clickables, camera, labelRenderer.domElement );
-        // drag_controls.addEventListener( 'hoveron', (event) => hovered = event.object );
-        // drag_controls.addEventListener( 'hoveroff', (event) => hovered = null );
-        // https://github.com/mrdoob/three.js/blob/master/examples/misc_controls_drag.html
+		let hoveredObj = null;
+		// let x = Math.round( hoveredObj.position.x / 1.5 );
+		// let y = Math.round( - hoveredObj.position.z / 1.5 );
+
 		labelRenderer.domElement.addEventListener( 'mousemove', ( event ) => {
+			// console.log( 'mousemove', event, event.clientX, event.clientY, mouse );
 			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 			mouse.y = - ( event.pageY / window.innerHeight ) * 2 + 1;
-			// console.log( 'mousemove', event, event.clientX, event.clientY, mouse );
 			raycaster.setFromCamera( mouse, camera );
 			const intersections = raycaster.intersectObjects( hoverable.value, true );
-			// if something different already hovered, then restore it
-			if ( hovered.value.obj && hovered.value.obj != intersections[ 0 ]?.object ) {
-				hovered.value.obj.material.opacity = 1;
-				hovered.value.obj.scale.set( 1, 1, 1 );
-				hovered.value.obj = null;
-			}
-			// if different than previously hovered
-			if ( intersections.length > 0 && hovered.value.obj != intersections[ 0 ]?.object ) {
-				let obj = hovered.value.obj = intersections[ 0 ].object;
-				let x = hovered.value.x = Math.round( obj.position.x / 1.5 );
-				let y = hovered.value.y = Math.round( - obj.position.z / 1.5 );
-				if (obj instanceof THREE.Mesh) {
-					obj.material.opacity = 0.9;
-				}
-				obj.scale.set( 1.5, 1.5, 1.5 );
-				// console.log( "hovered on", x, y, clicked.value );
-			}
+			hoveredObj = intersections[ 0 ]?.object;
+			// if (hoveredObj instanceof THREE.Mesh)
+			connection.grid.hooverByMesh( hoveredObj );
 		} );
+
 		labelRenderer.domElement.addEventListener( 'click', ( event ) => {
-			if ( hovered.value.obj ) {
-				let obj = clicked.value.obj = hovered.value.obj;
-				let x = clicked.value.x = Math.round( obj.position.x / 1.5 );
-				let y = clicked.value.y = Math.round( - obj.position.z / 1.5 );
-				// console.log( "clicked on", x, y, clicked.value );
-				
-				if ( tilesByMesh.value.has( obj ) ) {
-					let tile = tilesByMesh.value.get( obj );
-					connection.grid.selectedTile.value = tile;
-				}
-
-				if ( agentsByMesh.value.has( obj ) ) {
-					let agent = agentsByMesh.value.get( obj );
-					connection.grid.selectedAgent.value = agent;
-				}
-
-				if ( parcelsByMesh.value.has( obj ) ) {
-					let parcel = parcelsByMesh.value.get( obj );
-					connection.grid.selectedParcel.value = parcel;
-				}
-
-            }
+			// console.log( "clicked on", hoveredObj, x, y );
+			if ( hoveredObj )
+				connection.grid.selectByMesh( hoveredObj );
         } );
 
 
 
-		// Funzione di animazione
+		/**
+		 * Camera following target
+		 */
+
 		const animate = () => {
 			
 			if ( targetMesh.value ) {
@@ -234,7 +246,6 @@
 		// Gestisci il ridimensionamento della finestra
 		window.addEventListener('resize', onWindowResize);
 
-		new Controller( connection );
 	});
 
 	onUnmounted(() => {

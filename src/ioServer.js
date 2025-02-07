@@ -302,27 +302,30 @@ io.on('connection', async (socket) => {
             myGrid.emit( 'parcel' );
         } );
 
-        socket.on( 'tile', async (x, y) => {
+        socket.on( 'tile', async (x, y, type) => {
             console.log( 'create/dispose tile', x, y )
             let tile = myGrid.getTile(x, y)
             
             if ( !tile ) return;
 
-            if ( tile.blocked ) {
+            if ( (type === undefined && tile.blocked) || type == 1 ) {
                 tile.delivery = false;
                 tile.parcelSpawner = true;
                 tile.unblock();
-            } else if ( tile.parcelSpawner ) {
+            } else if ( (type === undefined && tile.parcelSpawner) || type == 2 ) {
                 tile.delivery = true;
                 tile.parcelSpawner = false;
-            } else if ( tile.delivery ) {
+                tile.unblock();
+            } else if ( (type === undefined && tile.delivery) || type == 3 ) {
                 tile.delivery = false;
                 tile.parcelSpawner = false;
-            } else {
+                tile.unblock();
+            } else if ( type === undefined || type == 0 ) {
                 tile.delivery = false;
                 tile.parcelSpawner = false;
                 tile.block();
             }
+
         } );
 
     }
