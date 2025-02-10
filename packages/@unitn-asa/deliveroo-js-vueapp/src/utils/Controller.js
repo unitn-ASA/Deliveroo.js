@@ -125,7 +125,7 @@ class Controller {
                 socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 3 );
                 return;
             case 'Digit4':// 4
-                socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value.y, 4 );
+                socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 4 );
                 return;
             case 'Digit5':// 5
                 socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 5 );

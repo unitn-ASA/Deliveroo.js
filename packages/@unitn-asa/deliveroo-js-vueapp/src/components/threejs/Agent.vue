@@ -56,8 +56,8 @@
             for ( let i = - AOD; i < AOD; i ++ ) {
                 for ( let j = - AOD; j < AOD; j ++ ) {
                     if ( Math.abs(i) + Math.abs(j) < AOD ) {
-                        const light = new THREE.PointLight( 0xffffff, 8, 2.2, 0.7 );
-                        light.position.set( i*1.5, 1.5, j*1.5 );
+                        const light = new THREE.PointLight( 0xffffff, 8, 1.4, 0.9 );
+                        light.position.set( i*1.5, 1, j*1.5 );
                         lightRoot.add( light );
                     }
                 }
@@ -82,11 +82,11 @@
 
     watch( [() => agent.hoovered, () => agent.selected ], ([hovered, selected]) => {
         if ( hovered ) {
-            mesh.scale.set( 1.5, 1.5, 1.5 );
+            mesh.scale.set( 1.3, 1.3, 1.3 );
             mesh.position.y = 0.7;
             mesh.material.emissiveIntensity = 0.5;
         } else if ( selected ) {
-            mesh.scale.set( 1.3, 1.3, 1.3 );
+            mesh.scale.set( 1.2, 1.2, 1.2 );
             mesh.position.y = 0.7;
             mesh.material.emissiveIntensity = 0.3;
         } else {
@@ -98,15 +98,16 @@
 
     function animate () {
 
-        let targetVector3 = new THREE.Vector3( Math.round(agent.x) * 1.5, agent.mesh.position.y, - Math.round(agent.y) * 1.5 );
+        let agentTargetVector3 = new THREE.Vector3( Math.round(agent.x) * 1.5, agent.mesh.position.y, - Math.round(agent.y) * 1.5 );
+        let lightTargetVector3 = new THREE.Vector3( Math.round(agent.x) * 1.5, lightRoot.position.y, - Math.round(agent.y) * 1.5 );
 
         if ( agent.x == Math.round(agent.x) && agent.y == Math.round(agent.y) ) { // if arrived
-            agent.mesh.position.lerp( targetVector3, 0.5 );
-            lightRoot?.position.lerp( targetVector3, 0.5 );
+            agent.mesh.position.lerp( agentTargetVector3, 0.5 );
+            lightRoot?.position.lerp( lightTargetVector3, 0.5 );
         } else { // if still moving
             // targetVector3 = new THREE.Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
-            agent.mesh.position.lerp( targetVector3, 0.08 );
-            lightRoot?.position.lerp( targetVector3, 0.08 );
+            agent.mesh.position.lerp( agentTargetVector3, 0.08 );
+            lightRoot?.position.lerp( lightTargetVector3, 0.08 );
         }
 
         requestAnimationFrame(animate);
