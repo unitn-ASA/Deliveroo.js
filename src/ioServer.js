@@ -72,7 +72,7 @@ io.on('connection', async (socket) => {
         me.x = -1;
         me.y = -1;
         myGrid.agents.delete( me.id );
-        myGrid.emit( 'agent deleted', me );
+        // myGrid.emit( 'agent deleted', me );
     }
 
 

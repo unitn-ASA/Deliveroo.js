@@ -7,6 +7,7 @@
     import Modal from '../modals/Modal.vue';
     import Login from '../modals/Login.vue';
     import { connection } from '../../states/myConnection.js';
+    import AgentsPanels from './AgentsPanels.vue';
 
     const mapsModal = ref(false); // Reactive variable for overlay visibility
     const loginModal = ref(!connection); // Reactive variable for overlay visibility
@@ -78,7 +79,10 @@
                         <input type="checkbox" checked />
                         <div class="collapse-title font-medium">Agents</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
-                            <table>
+
+                            <AgentsPanels/>
+
+                            <!-- <table>
                                 <thead>
                                     <tr>
                                         <th></th>
@@ -90,49 +94,44 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="[key, agent] in connection?.grid.agents.entries()" class="text-center">
-                                        <td class="p-1">
-                                            <input type="checkbox" v-model="agent.selected" :checked="agent.selected.value" class="checkbox checkbox-info" />
-                                        </td>
-                                        <td class="p-1">
-                                            <div class="tooltip" :data-tip="agent.id">
-                                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
-                                                    {{ agent.name }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="p-1">
-                                            <div class="tooltip" :data-tip="agent.teamId">
-                                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
-                                                    {{ agent.teamName }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="p-1">
-                                            <div class="tooltip" :data-tip="agent.status">
-                                                <span class="font-mono text-sm mx-auto" :class="{
+                                        <template v-if="agent.status != 'offline'">
+                                            <td class="p-1">
+                                                <input type="checkbox" v-model="agent.selected" :checked="agent.selected.value" class="checkbox checkbox-info" />
+                                            </td>
+                                            <td class="p-1">
+                                                <div class="tooltip" :data-tip="agent.id">
+                                                    <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
+                                                        {{ agent.name }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="p-1">
+                                                <div class="tooltip" :data-tip="agent.teamId">
+                                                    <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
+                                                        {{ agent.teamName }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="p-1">
+                                                <div class="tooltip" :data-tip="agent.status">
+                                                    <span class="font-mono text-sm mx-auto" :class="{
                                                         'text-green-500': agent.status == 'online',
                                                         'text-yellow-500': agent.status == 'out of range',
                                                         'text-red-500': agent.status == 'offline'
-                                                        }">
-                                                    {{ agent.status == 'offline' ? '🔴' : agent.status == 'out of range' ? '🟡' : agent.id==grid.me.value.id ? "-" : '🟢' }}
+                                                    }">
+                                                        {{ agent.status == 'offline' ? '🔴' : agent.status == 'out of range' ? '🟡' : agent.id==grid.me.value.id ? "-" : '🟢' }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="">
+                                                <span class="text-2xl text-white ml-1">
+                                                    {{ agent.score }}
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td class="">
-                                            <span class="text-2xl text-white ml-1">
-                                                {{ agent.score }}
-                                            </span>
-                                        </td>
+                                            </td>
+                                        </template>
                                     </tr>
                                 </tbody>
                             </table>
-                            <!-- <div v-for="[key, agent] in connection.grid.agents.entries()" >
-                                <div class="flex flex-row space-x-2">
-                                    <span>{{ agent.name }}({{ agent.id }})</span>
-                                    <span>{{ agent.teamName }}({{ agent.teamId }})</span>
-                                    <span>{{ agent.x }},{{ agent.y }}</span>
-                                </div>
-                            </div> -->
                             <button class="m-1 btn btn-outline btn-error btn-sm" @click="kick()">
                                 Kick
                             </button>
@@ -141,7 +140,7 @@
                             </button>
                             <button class="m-1 btn btn-outline btn-error btn-sm" @click="resetScore()">
                                 Reset score
-                            </button>
+                            </button> -->
                         </div>
                     </div>
 
