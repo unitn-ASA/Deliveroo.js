@@ -23,8 +23,7 @@
     }
 
     function removeParcel(parcel) {
-        console.log('removeParcel', parcel);
-        // connection.socket.emit( 'removeParcel', selectedParcel.value.x, selectedParcel.value.y );
+        // console.log('removeParcel', parcel.id);
         connection.socket.emit( 'dispose parcel', parcel.id );
     }
 
@@ -60,6 +59,7 @@
                             <span id="agent.teamId"></span>agent.team {{me?.teamId}}<br>
                             <span id="agent.teamName"></span>agent.team {{me?.teamName}}<br>
                             <span id="agent.xy"></span>agent.xy {{me?.x}} {{me?.y}}<br>
+                            <span id="grid"></span>grid {{grid?.width}}x{{grid?.height}}<br>
                         </div>
                         <div class="collapse-content">
                             <button 
@@ -91,7 +91,7 @@
                                 <tbody>
                                     <tr v-for="[key, agent] in connection?.grid.agents.entries()" class="text-center">
                                         <td class="p-1">
-                                            <input type="checkbox" :checked="agent.selected" class="checkbox checkbox-info" />
+                                            <input type="checkbox" v-model="agent.selected" :checked="agent.selected.value" class="checkbox checkbox-info" />
                                         </td>
                                         <td class="p-1">
                                             <div class="tooltip" :data-tip="agent.id">
@@ -108,9 +108,13 @@
                                             </div>
                                         </td>
                                         <td class="p-1">
-                                            <div class="tooltip" :data-tip="agent.x+', '+agent.y">
-                                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
-                                                    online
+                                            <div class="tooltip" :data-tip="agent.status">
+                                                <span class="font-mono text-sm mx-auto" :class="{
+                                                        'text-green-500': agent.status == 'online',
+                                                        'text-yellow-500': agent.status == 'out of range',
+                                                        'text-red-500': agent.status == 'offline'
+                                                        }">
+                                                    {{ agent.status == 'offline' ? '🔴' : agent.status == 'out of range' ? '🟡' : agent.id==grid.me.value.id ? "-" : '🟢' }}
                                                 </span>
                                             </div>
                                         </td>
@@ -143,7 +147,7 @@
 
                     <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox" checked />
-                        <div class="collapse-title font-medium">Parcels ({{ connection?.grid.parcels.size }} of a maximum of {{ connection.configs.PARCELS_MAX }})</div>
+                        <div class="collapse-title font-medium">Parcels ({{ connection?.grid.parcels.size }} of a maximum of {{ connection?.configs.PARCELS_MAX }})</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
 
                             <table>

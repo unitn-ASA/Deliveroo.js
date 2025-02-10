@@ -75,6 +75,8 @@ class Agent extends Xy {
             super(x, y);
         }
 
+        grid.getTile( this.x, this.y ).lock();
+
         Object.assign( this.config, require('../../config') );
         
         Object.defineProperty (this, 'carrying', {

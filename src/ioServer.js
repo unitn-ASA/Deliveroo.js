@@ -141,6 +141,27 @@ io.on('connection', async (socket) => {
     }
     let {width, height} = myGrid.getMapSize()
     socket.emit( 'map', width, height, tiles )
+
+
+    
+    /**
+     * Emit agents connecting/disconnecting
+     */
+    myGrid.agents.forEach( agent => {
+        if ( ! agent.id ) return;
+        let {id, name, teamName, teamId, score} = agent;
+        socket.emit( 'agent connected', {id, name, teamName, teamId, score} );
+    } );
+    myGrid.on( 'agent created', (agent) => {
+        if ( ! agent.id ) return;
+        let {id, name, teamName, teamId, score} = agent;
+        socket.emit( 'agent connected', {id, name, teamName, teamId, score} );
+    } );
+    myGrid.on( 'agent deleted', (agent) => {
+        if ( ! agent.id ) return;
+        let {id, name, teamName, teamId, score} = agent;
+        socket.emit( 'agent disconnected', {id, name, teamName, teamId, score} );
+    } );
     
 
     

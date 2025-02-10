@@ -49,16 +49,16 @@ const urlParams = new URLSearchParams(window.location.search);
 const name = urlParams.get('name');
 const token = urlParams.get('token');
 if ( token ) {
-    console.log( 'myGame.js token in URL:', token );
+    // console.log( 'myGame.js token in URL:', token );
     if ( ! myTokens.includes(token) )
         // store new token
         myTokens.push( token );
     playToken( token );
 } else if ( name ) {
-    console.log( 'myGame.js name in URL:', name );
+    // console.log( 'myGame.js name in URL:', name );
     connection = getConnectionByName( name );
     playToken( connection.token );
 } else {
-    console.log( 'myGame.js no token nor name in URL' );
+    // console.log( 'myGame.js no token nor name in URL' );
 }
 

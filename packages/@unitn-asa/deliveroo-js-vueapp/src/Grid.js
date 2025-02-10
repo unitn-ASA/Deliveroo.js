@@ -1,4 +1,4 @@
-import { ref, reactive, shallowReactive, watch } from "vue";
+import { ref, reactive, shallowReactive, watch, computed } from "vue";
 import { default as io, Socket } from 'socket.io-client';
 
 
@@ -22,11 +22,12 @@ import { default as io, Socket } from 'socket.io-client';
 *         teamName: string,
 *         x: number,y: number,
 *         score: number,
-*         opacity?: number,
 *         carrying?: Array<string>,
 *         mesh?: import('three').Mesh,
+*         opacity?: number,
+*         status?: string,
 *         hoovered?: boolean,
-*         selected?: boolean
+*         selected?: import('vue').ComputedRef<boolean>
 * }}
 */
 
@@ -61,6 +62,12 @@ export class Grid {
         ms: 0,
         frame: 0
     };
+
+    /** @type {number} */
+    width = 0;
+    /** @type {number} */
+    height = 0;
+
     /**
      * @type {Map<number,Tile>} tiles
      */
@@ -92,8 +99,18 @@ export class Grid {
         // console.error( 'Grid.js getOrCreateAgent', id );
         var agent = this.agents.get(id);
         if ( ! agent ) {    
-            agent = {id, name:'unknown', teamId:'unknown', teamName:'unknown',
-                x: -1, y: -1, score: -1, opacity: 1, carrying: new Array()
+            agent = {
+                id,
+                name:'unknown',
+                teamId:'unknown',
+                teamName:'unknown',
+                x: -1, y: -1, score: -1,
+                carrying: new Array(),
+                hoovered: false,
+                selected: computed({
+                    get: () => this.selectedAgent.value?.id == id,
+                    set: (value) => (value ? this.selectedAgent.value = agent : this.selectedAgent.value = undefined)
+                })
             };
             this.agents.set( id, agent );
             // console.log('Grid.js getOrCreateAgent added agent', agent.id)
@@ -173,14 +190,14 @@ export class Grid {
                 if ( ref.value ) ref.value.selected = true;
             }
         }
+
+        let agent = Array.from(this.agents.values()).find( agent => agent.mesh == mesh )
+        this.selectedAgent.value = this.selectedAgent.value == agent ? undefined : agent;
+        if ( agent ) return;
         
         let tile = Array.from(this.tiles.values()).find( tile => tile.mesh == mesh )
         setSelected( tile, this.selectedTile );
         if ( tile ) return;
-
-        let agent = Array.from(this.agents.values()).find( agent => agent.mesh == mesh )
-        setSelected( agent, this.selectedAgent );
-        if ( agent ) return;
 
         let parcel = Array.from(this.parcels.values()).find( parcel => parcel.mesh == mesh )
         setSelected( parcel, this.selectedParcel );
@@ -238,7 +255,9 @@ export class Grid {
         });
 
         socket.on( "map", (width, height, tiles) => {
-            console.log( 'Grid.js map: width', width, 'height', height );
+            // console.log( 'Grid.js map: width', width, 'height', height );
+            this.width = width;
+            this.height = height;
         });
 
         let PARCELS_OBSERVATION_DISTANCE;
@@ -255,16 +274,13 @@ export class Grid {
             this.clock.ms = clock.ms;
             this.clock.frame = clock.frame;
 
-            let me = this.getOrCreateAgent( id );
-            if ( me.name != name ) {
-                me.name = name;
-                me.teamId = teamId;
-                me.teamName = teamName;
-                this.me.value = me
-            }
-            this.me.value.x = x
-            this.me.value.y = y
-            this.me.value.score = score
+            let me = this.me.value = this.getOrCreateAgent( id );
+            me.name = name;
+            me.teamId = teamId;
+            me.teamName = teamName;
+            me.x = x
+            me.y = y
+            me.score = score
 
             // // when arrived
             // if ( x % 1 == 0 && y % 1 == 0 ) {
@@ -283,6 +299,21 @@ export class Grid {
 
         });
 
+        socket.on( "agent connected", ( {id, name, teamId, teamName, score} ) => {
+            // console.log( "Grid.js socket.on(agent connected)", agent )
+            var agent = this.getOrCreateAgent( id );
+            agent.name = name;
+            agent.teamId = teamId;
+            agent.teamName = teamName;
+            agent.score = score;
+            agent.status = "online";
+        });
+        this.socket.on( "agent disconnected", (agent) => {
+            // console.log( "Grid.js socket.on(agent disconnected)", agent )
+            this.getOrCreateAgent(agent.id).status = "offline";
+        });
+
+
         socket.on("agents sensing", (sensedReceived) => {
 
             //console.log("agents sensing", ...sensed)//, sensed.length)
@@ -293,7 +324,8 @@ export class Grid {
             for ( const [id, agent] of this.agents.entries() ) {
                 if ( id != this.me.value.id && ! sensed_ids.includes( id ) ) {
                     // agent.opacity = 0;
-                    this.agents.delete( agent.id );
+                    // this.agents.delete( agent.id );
+                    if ( agent.status == 'online' ) agent.status = 'out of range';
                 }
             }
 
@@ -307,6 +339,7 @@ export class Grid {
                 agent.y = y;
                 agent.score = score;
                 agent.opacity = 1;
+                agent.status = 'online';
             }
 
         });

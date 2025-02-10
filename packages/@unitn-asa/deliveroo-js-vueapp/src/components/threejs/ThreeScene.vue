@@ -35,7 +35,7 @@
 	// const props = defineProps( ['targetMesh'] );
     // const targetMesh = defineModel()
     /** @type {import('vue').Ref<THREE.Mesh>} */
-    const targetMesh = computed( () => connection.grid?.me.value?.mesh );
+    const targetMesh = computed( () => connection.grid.selectedAgent.value ? connection.grid?.selectedAgent.value?.mesh : connection.grid?.me.value?.mesh );
 
 	/** @type {THREE.Vector3} */
 	const camTarget = new THREE.Vector3(0,0,0);

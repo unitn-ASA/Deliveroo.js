@@ -113,7 +113,7 @@ export class Connection {
         this.grid = new Grid( socket );
 
         socket.on( "connect", () => {
-            console.log( "Connection.js Socket.on('connect') CONNECTED!" );
+            // console.log( "Connection.js Socket.on('connect') CONNECTED!" );
             this.state.connected = true;
             // document.getElementById('socket.id').textContent = `socket.id ${this.socket.id}`
         } );
