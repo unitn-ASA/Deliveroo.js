@@ -237,6 +237,13 @@ class Grid extends Observable {
     }
 
     /**
+     * @type {function(string): Parcel}
+     */
+    getParcel (id) {
+        return this.#parcels.get(id);
+    }
+
+    /**
      * @type {function(): IterableIterator<Parcel>}
      */
     getParcels () {

@@ -18,7 +18,7 @@ router.patch('/', async (req, res) => {
         config.LEVEL = req['LEVEL'];
         config.loadLevel();
     }
-    if ( config.MAP_FILE != req.body['MAP_FILE'] ) {
+    if ( req.body['MAP_FILE'] && config.MAP_FILE != req.body['MAP_FILE'] ) {
         config.MAP_FILE = req['MAP_FILE'];
         const map = require( '../../levels/maps/' + req.body['MAP_FILE'] + '.js' );
         myGrid.loadMap( map );

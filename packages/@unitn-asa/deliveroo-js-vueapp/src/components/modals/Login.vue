@@ -81,10 +81,12 @@
         </div>
         
         <div class="flex text-black rounded space-x-4">
-            <input v-model="name" class="input bg-white btn-sm" type="text" placeholder="Name">
-            <input v-model="team" class="input bg-white btn-sm" type="text" placeholder="Team">
-            <input v-model="password" class="input bg-white btn-sm" type="password" placeholder="AdminPassword">
-            <button id="addButton" class="btn btn-primary btn-sm" @click="requestToken">New token</button>
+            <form>
+                <input v-model="name" class="input bg-white btn-sm" type="text" placeholder="Name">
+                <input v-model="team" class="input bg-white btn-sm" type="text" placeholder="Team">
+                <input v-model="password" class="input bg-white btn-sm" autocomplete="current-password" type="password" placeholder="AdminPassword">
+                <button id="addButton" class="btn btn-primary btn-sm" @click="requestToken">New token</button>
+            </form>
         </div>
         
         <div class="flex text-black rounded space-x-4">

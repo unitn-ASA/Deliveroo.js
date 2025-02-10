@@ -58,15 +58,17 @@
 	// light.castShadow = true;
 
 	function computeLightDistanceAndDecay( light, distance ) {
+		// console.log( 'ThreeScene.js computeLightDistanceAndDecay', distance );
 		if ( isNaN( distance ) ) {
 			light.position.set( 0, 20, 0 );
 			light.distance = 0;
 			light.decay = 0;
+			targetMesh.value?.add( light );
 		} else {
-			console.log( 'ThreeScene.js computeLightDistanceAndDecay', distance );
-			light.position.set( 0, 5, 0 );
-			light.distance = 0.9 * distance + 4;
-			light.decay = 0.4;
+			// light.position.set( 0, 5, 0 );
+			// light.distance = 0.9 * distance + 4;
+			// light.decay = 0.4;
+			// targetMesh.value?.add( light );
 		}
 	}
 
@@ -80,8 +82,12 @@
 
 	watch( () => targetMesh.value, (newVal) => {
 		// console.log( 'ThreeScene.js watch targetMesh', newVal.position, targetMesh.value.position );
-		targetMesh.value?.add( agentsLight );
-		targetMesh.value?.add( parcelsLight );
+		targetMesh.value?.remove( agentsLight );
+		targetMesh.value?.remove( parcelsLight );
+		// targetMesh.value?.add( agentsLight );
+		// targetMesh.value?.add( parcelsLight );
+		computeLightDistanceAndDecay( agentsLight, connection.configs.AGENTS_OBSERVATION_DISTANCE );
+		computeLightDistanceAndDecay( parcelsLight, connection.configs.PARCELS_OBSERVATION_DISTANCE);
 	}, { immediate: true } );
 
 
@@ -121,8 +127,6 @@
 			objects.push( mesh );
 		return objects;
 	});
-	const hovered = ref( {x:null, y:null, obj:null} );
-	const clicked = ref( {x:null, y:null, obj:null} );
 
 	onMounted(() => {
 

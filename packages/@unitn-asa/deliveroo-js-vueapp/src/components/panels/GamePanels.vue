@@ -22,6 +22,12 @@
         connection.socket.emit( 'tile', selectedTile.value.x, selectedTile.value.y );
     }
 
+    function removeParcel(parcel) {
+        console.log('removeParcel', parcel);
+        // connection.socket.emit( 'removeParcel', selectedParcel.value.x, selectedParcel.value.y );
+        connection.socket.emit( 'dispose parcel', parcel.id );
+    }
+
 </script>
 
 <template>
@@ -75,16 +81,44 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>name(id)</th>
-                                        <th>team(id)</th>
-                                        <th>score</th>
+                                        <th></th>
+                                        <th>Agent</th>
+                                        <th>Team</th>
+                                        <th>Status</th>
+                                        <th class="px-2">Score</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="[key, agent] in connection?.grid.agents.entries()" >
-                                        <td>{{ agent.name }}({{ agent.id }})</td>
-                                        <td>{{ agent.teamName }}({{ agent.teamId }})</td>
-                                        <td>{{ agent.score }}</td>
+                                    <tr v-for="[key, agent] in connection?.grid.agents.entries()" class="text-center">
+                                        <td class="p-1">
+                                            <input type="checkbox" :checked="agent.selected" class="checkbox checkbox-info" />
+                                        </td>
+                                        <td class="p-1">
+                                            <div class="tooltip" :data-tip="agent.id">
+                                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
+                                                    {{ agent.name }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="p-1">
+                                            <div class="tooltip" :data-tip="agent.teamId">
+                                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
+                                                    {{ agent.teamName }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="p-1">
+                                            <div class="tooltip" :data-tip="agent.x+', '+agent.y">
+                                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
+                                                    online
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="">
+                                            <span class="text-2xl text-white ml-1">
+                                                {{ agent.score }}
+                                            </span>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -95,6 +129,64 @@
                                     <span>{{ agent.x }},{{ agent.y }}</span>
                                 </div>
                             </div> -->
+                            <button class="m-1 btn btn-outline btn-error btn-sm" @click="kick()">
+                                Kick
+                            </button>
+                            <button class="m-1 btn btn-outline btn-error btn-sm" @click="respawn()">
+                                Respawn
+                            </button>
+                            <button class="m-1 btn btn-outline btn-error btn-sm" @click="resetScore()">
+                                Reset score
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
+                        <input type="checkbox" checked />
+                        <div class="collapse-title font-medium">Parcels ({{ connection?.grid.parcels.size }} of a maximum of {{ connection.configs.PARCELS_MAX }})</div>
+                        <div class="collapse-content overflow-hidden" style="min-height:auto!important">
+
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="px-2"></th>
+                                        <th class="px-2">Parcel</th>
+                                        <th class="px-2">Reward</th>
+                                        <th class="px-2"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="[key, parcel] in connection?.grid.parcels.entries()" class="text-center">
+                                        <td class="p-0">
+                                            <input type="checkbox" :checked="parcel.selected" class="checkbox checkbox-info" />
+                                        </td>
+                                        <td>
+                                            <div class="tooltip" :data-tip="parcel.x+','+parcel.y">
+                                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': parcel.selected }">
+                                                    {{ parcel.id }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="text-xl text-white ml-1">
+                                                {{ parcel.reward }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-outline btn-error btn-xs" @click="removeParcel(parcel)">
+                                                X
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- <div v-for="[key, parcel] in connection.grid.parcels.entries()" >
+                                <div class="flex flex-row space-x-2 space-y-2">
+                                    <input type="checkbox" :checked="parcel.selected" class="checkbox checkbox-info" />
+                                    <span>{{ parcel.id }}({{ parcel.x }}, {{ parcel.y }})</span>
+                                    <span>{{ parcel.reward }}</span>
+                                </div>
+                            </div> -->
                         </div>
                     </div>
 
@@ -102,10 +194,10 @@
                         <input type="checkbox" checked />
                         <div class="collapse-title font-medium">Tools</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
-                            <button class="btn btn-outline btn btn-sm" @click="selectionTool()">
+                            <button class="m-1 btn btn-outline btn-info btn-sm" @click="selectionTool()">
                                 Drag
                             </button>
-                            <button class="btn btn-outline btn btn-sm" @click="selectionTool()">
+                            <button class="m-1 btn btn-outline btn-info btn-sm" @click="selectionTool()">
                                 Select
                             </button>
                             <!-- <span>

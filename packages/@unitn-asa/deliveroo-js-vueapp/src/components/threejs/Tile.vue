@@ -83,9 +83,6 @@
         // Save mesh on tile
         tile.mesh = mesh;
 
-        // Start animation
-        requestAnimationFrame(animate);
-
     }
 
     function unmount () {
@@ -166,6 +163,9 @@
         requestAnimationFrame(animate);
 
     };
+    
+    // Start animation
+    requestAnimationFrame(animate);
 
 </script>
 

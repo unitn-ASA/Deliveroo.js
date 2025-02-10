@@ -294,11 +294,21 @@ io.on('connection', async (socket) => {
             myGrid.createParcel(x, y)
         } );
 
+        socket.on( 'parcel set reward', async (id, reward) => {
+            // console.log( 'parcel set reward', id, reward )
+            myGrid.getParcel(id).reward = reward;
+        } );
+
         socket.on( 'dispose parcel', async (x, y) => {
             console.log( 'dispose parcel', x, y )
-            let parcels = Array.from(myGrid.getParcels()).filter( p => p.x == x && p.y == y );
-            for ( p of parcels)
-                myGrid.deleteParcel( p.id )
+            if ( ! y ) {
+                let id = x;
+                myGrid.deleteParcel( id )
+            } else {
+                let parcels = Array.from(myGrid.getParcels()).filter( p => p.x == x && p.y == y );
+                for ( let p of parcels)
+                    myGrid.deleteParcel( p.id )
+            }
             myGrid.emit( 'parcel' );
         } );
 

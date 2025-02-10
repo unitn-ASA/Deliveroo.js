@@ -2,6 +2,7 @@
     import { onMounted, onUnmounted, ref, inject, watch, useTemplateRef } from 'vue';
     import * as THREE from 'three';
     import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+    import { connection } from '@/states/myConnection';
 
     /** @typedef Agent
      *  @type {import("@/Grid").Agent}
@@ -22,6 +23,8 @@
     var mesh;
     /** @type {CSS2DObject} */
     var label;
+    /** @type {THREE.Mesh} */
+    var lightRoot;
 
     const scene = inject('scene');
     const camera = inject('camera');
@@ -46,6 +49,22 @@
         label.position.set(0, 0.5, 0);
         mesh.add(label);
 
+        // Add lights
+        if ( connection.payload.id == agent.id ) {
+            lightRoot = new THREE.Mesh();
+            let AOD = connection.configs.AGENTS_OBSERVATION_DISTANCE
+            for ( let i = - AOD; i < AOD; i ++ ) {
+                for ( let j = - AOD; j < AOD; j ++ ) {
+                    if ( Math.abs(i) + Math.abs(j) < AOD ) {
+                        const light = new THREE.PointLight( 0xffffff, 8, 2.2, 0.7 );
+                        light.position.set( i*1.5, 1.5, j*1.5 );
+                        lightRoot.add( light );
+                    }
+                }
+            }
+            scene.add( lightRoot );
+        }
+
     });
 
     onUnmounted(() => {
@@ -53,18 +72,26 @@
         agent.mesh.remove(label);
         scene.remove(mesh);
         agent.mesh.geometry.dispose();
+        if ( lightRoot ) {
+            scene.remove(lightRoot);
+            lightRoot.children.forEach( light => light.dispose() );
+            lightRoot.geometry.dispose();
+        }
         // console.log( 'Agent.vue onUnmounted() agent.mesh:', agent.mesh );
     });
 
     watch( [() => agent.hoovered, () => agent.selected ], ([hovered, selected]) => {
         if ( hovered ) {
             mesh.scale.set( 1.5, 1.5, 1.5 );
+            mesh.position.y = 0.7;
             mesh.material.emissiveIntensity = 0.5;
         } else if ( selected ) {
             mesh.scale.set( 1.3, 1.3, 1.3 );
+            mesh.position.y = 0.7;
             mesh.material.emissiveIntensity = 0.3;
         } else {
             mesh.scale.set( 1, 1, 1 );
+            mesh.position.y = 0.5;
             mesh.material.emissiveIntensity = 0;
         }
     });
@@ -75,9 +102,11 @@
 
         if ( agent.x == Math.round(agent.x) && agent.y == Math.round(agent.y) ) { // if arrived
             agent.mesh.position.lerp( targetVector3, 0.5 );
+            lightRoot?.position.lerp( targetVector3, 0.5 );
         } else { // if still moving
             // targetVector3 = new THREE.Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
             agent.mesh.position.lerp( targetVector3, 0.08 );
+            lightRoot?.position.lerp( targetVector3, 0.08 );
         }
 
         requestAnimationFrame(animate);

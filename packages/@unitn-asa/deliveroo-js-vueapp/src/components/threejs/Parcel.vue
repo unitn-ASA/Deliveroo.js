@@ -55,7 +55,7 @@
 
         // Aggiungi un'etichetta CSS2DObject
         label = new CSS2DObject(labelContainer.value);
-        label.position.set(0, 0.1, 0);
+        label.position.set(0, 0.3, 0);
         if (labelText) mesh.add(label);
 
         // Watch per monitorare le modifiche alle proprietà

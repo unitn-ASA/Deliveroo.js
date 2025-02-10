@@ -109,6 +109,9 @@ class Controller {
                         res(status);
                     } );
                 } );
+            case 'Space':// Space
+                socket.emit('create parcel', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y);
+                return;
             case 'Digit0':// 0
                 socket.emit( 'tile', this.connection.grid.hoovered.value?.x, this.connection.grid.hoovered.value?.y, 0 );
                 return;
