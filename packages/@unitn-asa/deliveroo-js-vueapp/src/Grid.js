@@ -104,7 +104,7 @@ export class Grid {
                 name:'unknown',
                 teamId:'unknown',
                 teamName:'unknown',
-                x: -1, y: -1, score: -1,
+                x: undefined, y: undefined, score: -1,
                 carrying: new Array(),
                 hoovered: false,
                 selected: computed({

@@ -47,17 +47,22 @@
         // Add lights
         if ( connection.payload.id == agent.id ) {
             lightRoot = new THREE.Mesh();
-            let AOD = connection.configs.AGENTS_OBSERVATION_DISTANCE
-            for ( let i = - AOD; i < AOD; i ++ ) {
-                for ( let j = - AOD; j < AOD; j ++ ) {
-                    if ( Math.abs(i) + Math.abs(j) < AOD ) {
-                        const light = new THREE.PointLight( 0xffffff, 8, 1.4, 0.9 );
+            scene.add( lightRoot );
+            // AGENTS lights
+            let AOD = connection.configs.AGENTS_OBSERVATION_DISTANCE;
+            let POD = connection.configs.PARCELS_OBSERVATION_DISTANCE;
+            let MinOD = Math.min( AOD, POD );
+            let MaxOD = Math.max( AOD, POD );
+            for ( let i = - MaxOD; i < MaxOD; i ++ ) {
+                for ( let j = - MaxOD; j < MaxOD; j ++ ) {
+                    if ( Math.abs(i) + Math.abs(j) < MaxOD ) {
+                        let intensity = ( Math.abs(i) + Math.abs(j) ) >= MinOD ? 1 : 8;
+                        const light = new THREE.PointLight( 0xffffff, intensity, 1.4, 0.9 );
                         light.position.set( i*1.5, 1, j*1.5 );
                         lightRoot.add( light );
                     }
                 }
             }
-            scene.add( lightRoot );
         }
 
     });
@@ -108,6 +113,18 @@
         }
     });
 
+    /*
+     * Sync Mesh Position at beginning when still undefined
+     */
+    watch( [ () => agent.x, () => agent.y ], ([x, y], [oldX, oldY]) => {
+        if ( oldX == undefined || oldY == undefined ) {
+            mesh.position.set( x * 1.5, 0.5, - y * 1.5 );
+        }
+    });
+
+    /*
+     * Follow x and y with lerp()
+     */
     function animate () {
 
         let agentTargetVector3 = new THREE.Vector3( Math.round(agent.x) * 1.5, agent.mesh.position.y, - Math.round(agent.y) * 1.5 );

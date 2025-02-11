@@ -32,10 +32,21 @@
 	provide('scene', scene);
 	provide('camera', camera);
 
-	// const props = defineProps( ['targetMesh'] );
-    // const targetMesh = defineModel()
-    /** @type {import('vue').Ref<THREE.Mesh>} */
-    const targetMesh = computed( () => connection.grid.selectedAgent.value ? connection.grid?.selectedAgent.value?.mesh : connection.grid?.me.value?.mesh );
+	/** @type {import('vue').Ref<THREE.Mesh>} */
+    const targetMesh = computed( () => {
+		// if x is a number
+		if ( ! isNaN( connection.grid.selectedAgent.value?.mesh?.position.x ) && ! isNaN( connection.grid.selectedAgent.value?.mesh?.position.y ) )
+			return connection.grid.selectedAgent.value?.mesh
+		if ( ! isNaN( connection.grid.me.value?.mesh?.position.x ) && ! isNaN( connection.grid.me.value?.mesh?.position.y ) )
+			return connection.grid.me.value.mesh
+		// pick central tile in connection.grid.tiles
+		const midX = connection.grid.width / 2 - 2;
+		const midY = connection.grid.height / 2 - 2;
+		const targetMesh = new THREE.Mesh();
+		targetMesh.position.set( midX * 1.5, 0, - midY * 1.5 );
+		// scene.add( targetMesh );
+		return targetMesh;
+	});
 
 	/** @type {THREE.Vector3} */
 	const camTarget = new THREE.Vector3(0,0,0);
@@ -59,12 +70,7 @@
 
 	function computeLightDistanceAndDecay( light, distance ) {
 		// console.log( 'ThreeScene.js computeLightDistanceAndDecay', distance );
-		if ( isNaN( distance ) ) {
-			light.position.set( 0, 20, 0 );
-			light.distance = 0;
-			light.decay = 0;
-			targetMesh.value?.add( light );
-		} else {
+		if ( ! isNaN( distance ) ) {
 			// light.position.set( 0, 5, 0 );
 			// light.distance = 0.9 * distance + 4;
 			// light.decay = 0.4;
@@ -72,12 +78,10 @@
 		}
 	}
 
-	watch( () => connection.configs.AGENTS_OBSERVATION_DISTANCE, (newVal) => {
-		computeLightDistanceAndDecay( agentsLight, newVal );
-	}, { immediate: true } );
-
-	watch( () => connection.configs.PARCELS_OBSERVATION_DISTANCE, (newVal) => {
-		computeLightDistanceAndDecay( parcelsLight, newVal);
+	watch( [ () => connection.configs.AGENTS_OBSERVATION_DISTANCE, () => connection.configs.PARCELS_OBSERVATION_DISTANCE ], ([AOD, POD]) => {
+		ambientLight.intensity = isNaN( AOD ) || isNaN( POD) ? 8 : 1;
+		computeLightDistanceAndDecay( agentsLight, AOD );
+		computeLightDistanceAndDecay( parcelsLight, POD);
 	}, { immediate: true } );
 
 	watch( () => targetMesh.value, (newVal) => {

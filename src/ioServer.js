@@ -69,8 +69,8 @@ io.on('connection', async (socket) => {
         // await me.putDown();
         if  (me && me.tile && me.tile.unlock )
             me.tile.unlock();
-        me.x = -1;
-        me.y = -1;
+        me.x = undefined;
+        me.y = undefined;
         myGrid.agents.delete( me.id );
         // myGrid.emit( 'agent deleted', me );
     }
