@@ -8,26 +8,17 @@
     import Login from '../modals/Login.vue';
     import Keyboard from './Keyboard.vue';
     import { connection } from '../../states/myConnection.js';
-    import AgentsPanels from './AgentsPanels.vue';
+    import AgentsPanels from './AgentsPanel.vue';
+    import ParcelsPanels from './ParcelsPanel.vue';
+    import ToolsPanel from './ToolsPanel.vue';
 
     const mapsModal = ref(false); // Reactive variable for overlay visibility
     const loginModal = ref(!connection); // Reactive variable for overlay visibility
+    const settingsModal = ref(false); // Reactive variable for overlay visibility
 
     const grid = connection?.grid;
     const me = grid?.me;
     const clock = grid?.clock;
-    const selectedAgent = grid?.selectedAgent;
-    const selectedTile = grid?.selectedTile;
-    const selectedParcel = computed ( () => connection?.grid?.selectedParcel.value );
-
-    function change() {
-        connection.socket.emit( 'tile', selectedTile.value.x, selectedTile.value.y );
-    }
-
-    function removeParcel(parcel) {
-        // console.log('removeParcel', parcel.id);
-        connection.socket.emit( 'dispose parcel', parcel.id );
-    }
 
 </script>
 
@@ -40,6 +31,12 @@
 
         <Modal v-model="mapsModal" title="Change map">
             <Maps @load-map="mapsModal=false;"/>
+        </Modal>
+
+        <Modal v-model="settingsModal" title="Server settings">
+            <div class="px-40 py-10">
+                <Settings v-if="connection"/>
+            </div>
         </Modal>
 
         <div id="dashboard" class="flex text-sm text-white">
@@ -68,7 +65,7 @@
                                 class="flex-none btn btn-outline btn-error btn-xs w-full" 
                                 @click="mapsModal=true;"
                             >
-                                Change map
+                                Change Map
                             </button>
                             <Settings v-if="connection"/>
                             <pre id="config" class="text-xs"></pre>
@@ -83,65 +80,6 @@
 
                             <AgentsPanels/>
 
-                            <!-- <table>
-                                <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Agent</th>
-                                        <th>Team</th>
-                                        <th>Status</th>
-                                        <th class="px-2">Score</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="[key, agent] in connection?.grid.agents.entries()" class="text-center">
-                                        <template v-if="agent.status != 'offline'">
-                                            <td class="p-1">
-                                                <input type="checkbox" v-model="agent.selected" :checked="agent.selected.value" class="checkbox checkbox-info" />
-                                            </td>
-                                            <td class="p-1">
-                                                <div class="tooltip" :data-tip="agent.id">
-                                                    <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
-                                                        {{ agent.name }}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="p-1">
-                                                <div class="tooltip" :data-tip="agent.teamId">
-                                                    <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
-                                                        {{ agent.teamName }}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="p-1">
-                                                <div class="tooltip" :data-tip="agent.status">
-                                                    <span class="font-mono text-sm mx-auto" :class="{
-                                                        'text-green-500': agent.status == 'online',
-                                                        'text-yellow-500': agent.status == 'out of range',
-                                                        'text-red-500': agent.status == 'offline'
-                                                    }">
-                                                        {{ agent.status == 'offline' ? '🔴' : agent.status == 'out of range' ? '🟡' : agent.id==grid.me.value.id ? "-" : '🟢' }}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="">
-                                                <span class="text-2xl text-white ml-1">
-                                                    {{ agent.score }}
-                                                </span>
-                                            </td>
-                                        </template>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <button class="m-1 btn btn-outline btn-error btn-sm" @click="kick()">
-                                Kick
-                            </button>
-                            <button class="m-1 btn btn-outline btn-error btn-sm" @click="respawn()">
-                                Respawn
-                            </button>
-                            <button class="m-1 btn btn-outline btn-error btn-sm" @click="resetScore()">
-                                Reset score
-                            </button> -->
                         </div>
                     </div>
 
@@ -150,47 +88,8 @@
                         <div class="collapse-title font-medium">Parcels ({{ connection?.grid.parcels.size }} of a maximum of {{ connection?.configs.PARCELS_MAX }})</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
 
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th class="px-2"></th>
-                                        <th class="px-2">Parcel</th>
-                                        <th class="px-2">Reward</th>
-                                        <th class="px-2"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="[key, parcel] in connection?.grid.parcels.entries()" class="text-center">
-                                        <td class="p-0">
-                                            <input type="checkbox" :checked="parcel.selected" class="checkbox checkbox-info" />
-                                        </td>
-                                        <td>
-                                            <div class="tooltip" :data-tip="parcel.x+','+parcel.y">
-                                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': parcel.selected }">
-                                                    {{ parcel.id }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="text-xl text-white ml-1">
-                                                {{ parcel.reward }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-outline btn-error btn-xs" @click="removeParcel(parcel)">
-                                                X
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <!-- <div v-for="[key, parcel] in connection.grid.parcels.entries()" >
-                                <div class="flex flex-row space-x-2 space-y-2">
-                                    <input type="checkbox" :checked="parcel.selected" class="checkbox checkbox-info" />
-                                    <span>{{ parcel.id }}({{ parcel.x }}, {{ parcel.y }})</span>
-                                    <span>{{ parcel.reward }}</span>
-                                </div>
-                            </div> -->
+                            <ParcelsPanels/>
+                            
                         </div>
                     </div>
 
@@ -198,34 +97,9 @@
                         <input type="checkbox" checked />
                         <div class="collapse-title font-medium">Tools</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
-                            <button class="m-1 btn btn-outline btn-info btn-sm" @click="selectionTool()">
-                                Drag
-                            </button>
-                            <button class="m-1 btn btn-outline btn-info btn-sm" @click="selectionTool()">
-                                Select
-                            </button>
-                            <!-- <span>
-                                Inspect
-                            </span> -->
-                            <br>
-                            <span>
-                                Tile in ({{ selectedTile?.x }}, {{ selectedTile?.y }})
-                                <div class="tooltip" data-tip="Click to change type">
-                                    <button v-if="selectedTile" class="btn btn-outline btn-error btn-sm" @click="change()">
-                                        Type {{ selectedTile?.type }}
-                                    </button>
-                                </div>
-                            </span>
-                            <br>
-                            <span>
-                                Agent in ({{ selectedAgent?.x }}, {{ selectedAgent?.y }})
-                                is {{ selectedAgent?.name}} ( {{ selectedAgent?.id}} )
-                            </span>
-                            <br>
-                            <span>
-                                Parcel in ({{ selectedParcel?.x }}, {{  selectedParcel?.y }})
-                                is {{ selectedParcel?.id }} with reward {{ selectedParcel?.reward }}
-                            </span><br>
+
+                            <ToolsPanel/>
+
                         </div>
                     </div>
                 
@@ -238,13 +112,21 @@
                 <div class="flex flex-col h-full rounded-lg space-y-4">
 
                     
-                    <Timer class="z-10" :timer="clock?.ms"/>
+                    <Timer class="z-10" :timer="clock?.ms" :frames="clock?.frame"/>
                     
                     <div class="z-10 grid grid-flow-col gap-5 text-center">
                         <button class="btn btn-info btn-sm" @click="loginModal=true">Login</button>
+                        <button class="btn btn-info btn-sm" @click="mapsModal=true;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                <path fill-rule="evenodd" d="M8.157 2.176a1.5 1.5 0 0 0-1.147 0l-4.084 1.69A1.5 1.5 0 0 0 2 5.25v10.877a1.5 1.5 0 0 0 2.074 1.386l3.51-1.452 4.26 1.762a1.5 1.5 0 0 0 1.146 0l4.083-1.69A1.5 1.5 0 0 0 18 14.75V3.872a1.5 1.5 0 0 0-2.073-1.386l-3.51 1.452-4.26-1.762ZM7.58 5a.75.75 0 0 1 .75.75v6.5a.75.75 0 0 1-1.5 0v-6.5A.75.75 0 0 1 7.58 5Zm5.59 2.75a.75.75 0 0 0-1.5 0v6.5a.75.75 0 0 0 1.5 0v-6.5Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                         <button class="btn btn-info btn-sm" @click="">...</button>
-                        <button class="btn btn-info btn-sm" @click="">...</button>
-                        <button class="btn btn-info btn-sm" @click="">...</button>
+                        <button class="btn btn-info btn-sm" @click="settingsModal=true;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                <path fill-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
 
                     <Keyboard class="z-10"/>

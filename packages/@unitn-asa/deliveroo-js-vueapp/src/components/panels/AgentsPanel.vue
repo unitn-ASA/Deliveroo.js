@@ -21,14 +21,14 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="[key, agent] in connection?.grid.agents.entries()" class="text-center">
+                <tr v-for="[key, agent] in connection?.grid.agents.entries()" class="text-center" @mouseover="agent.hoovered=true" @mouseleave="agent.hoovered=false">
                     <template v-if="agent.status != 'offline'">
                         <td class="px-1">
                             <input type="checkbox" v-model="agent.selected" :checked="agent.selected.value" class="checkbox checkbox-info" />
                         </td>
                         <td class="px-1">
                             <div class="tooltip" :data-tip="agent.id">
-                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected }">
+                                <span class="font-mono text-sm mx-auto" :class="{ 'font-medium': agent.selected, 'font-bold': agent.hoovered }">
                                     {{ agent.name }}
                                 </span>
                             </div>

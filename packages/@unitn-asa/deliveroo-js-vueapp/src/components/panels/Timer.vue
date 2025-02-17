@@ -2,7 +2,7 @@
         
     import { watchEffect, computed, onMounted } from 'vue';
 
-    const { timer } = defineProps(['timer']);
+    const { timer, frames } = defineProps(['timer', 'frames']);
 
     // watchEffect( () => {
     //     console.log('timer', timer);
@@ -26,30 +26,36 @@
 
 <template>
     <main>
-        <div class="grid grid-flow-col gap-5 text-center">
+        <div class="grid grid-flow-col gap-2 text-center">
             <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
-                <span class="countdown font-mono text-3xl mx-auto">
+                <span class="countdown font-mono text-xl mx-auto">
                     <span :style="`--value: ${days};`"></span>
                 </span>
                 days
             </div>
             <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
-                <span class="countdown font-mono text-3xl mx-auto">
+                <span class="countdown font-mono text-xl mx-auto">
                     <span :style="`--value: ${hours};`"></span>
                 </span>
                 hours
             </div>
             <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
-                <span class="countdown font-mono text-3xl mx-auto">
+                <span class="countdown font-mono text-xl mx-auto">
                     <span :style="`--value: ${minutes};`"></span>
                 </span>
                 min
             </div>
             <div class="bg-neutral rounded-box text-neutral-content flex flex-col p-2">
-                <span class="countdown font-mono text-3xl mx-auto">
+                <span class="countdown font-mono text-xl mx-auto">
                     <span :style="`--value: ${seconds};`"></span>
                 </span>
                 sec
+            </div>
+            <div class="bg-neutral rounded-box text-neutral-content text-center flex flex-col p-2">
+                <span class="countdown font-mono text-xl mx-auto">
+                    {{ frames }}
+                </span>
+                frames
             </div>
         </div>
     </main>
