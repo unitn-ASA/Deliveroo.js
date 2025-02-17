@@ -6,6 +6,7 @@
     import Maps from '../modals/Maps.vue';
     import Modal from '../modals/Modal.vue';
     import Login from '../modals/Login.vue';
+    import Keyboard from './Keyboard.vue';
     import { connection } from '../../states/myConnection.js';
     import AgentsPanels from './AgentsPanels.vue';
 
@@ -245,6 +246,8 @@
                         <button class="btn btn-info btn-sm" @click="">...</button>
                         <button class="btn btn-info btn-sm" @click="">...</button>
                     </div>
+
+                    <Keyboard class="z-10"/>
                     
                     <div class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90 min-h-16 max-h-64">
                         <input type="checkbox"/>
