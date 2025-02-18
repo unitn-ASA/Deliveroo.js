@@ -320,8 +320,8 @@ io.on('connection', async (socket) => {
             myGrid.getParcel(id).reward = reward;
         } );
 
-        socket.on( 'dispose parcel', async (x, y) => {
-            console.log( 'dispose parcel', x, y )
+        socket.on( 'dispose parcel', async (x, y, ack) => {
+            console.log( 'dispose parcel', x, y, ack )
             if ( ! y ) {
                 let id = x;
                 myGrid.deleteParcel( id )
@@ -331,6 +331,9 @@ io.on('connection', async (socket) => {
                     myGrid.deleteParcel( p.id )
             }
             myGrid.emit( 'parcel' );
+            // if ack is a funtion
+            if ( ack && typeof ack === 'function' )
+                ack();
         } );
 
         socket.on( 'tile', async (x, y, type) => {

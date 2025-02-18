@@ -23,7 +23,7 @@
 </script>
 
 <template>
-    <main>
+    <main class="text-sm text-neutral-content">
 
         <Modal v-model="loginModal" title="Login / Signup">
             <Login/>
@@ -39,7 +39,7 @@
             </div>
         </Modal>
 
-        <div id="dashboard" class="flex text-sm text-white">
+        <div id="dashboard" class="flex text-sm">
             
             
             <div id="info" class="fixed z-10 left-0 top-4 max-h-full overflow-scroll" style="direction: rtl">

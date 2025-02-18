@@ -85,21 +85,24 @@ export class Controller {
 
         watch ( () => keys.Digit0, async () => {
             while ( keys.Digit0 ) {
-                emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 0 );
+                if ( connection.grid.hoovered.value )
+                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 0 );
                 await new Promise( res => setTimeout(res) );
             }
         } );
 
         watch ( () => keys.Digit1, async () => {
             while ( keys.Digit1 ) {
-                emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 1 );
+                if ( connection.grid.hoovered.value )
+                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 1 );
                 await new Promise( res => setTimeout(res) );
             }
         } );
 
         watch ( () => keys.Digit2, async () => {
             while ( keys.Digit2 ) {
-                emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 2 );
+                if ( connection.grid.hoovered.value )
+                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 2 );
                 await new Promise( res => setTimeout(res) );
             }
         } );
@@ -113,14 +116,16 @@ export class Controller {
 
         watch ( () => keys.Digit4, async () => {
             while ( keys.Digit4 ) {
-                emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 4 );
+                if ( connection.grid.hoovered.value )
+                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 4 );
                 await new Promise( res => setTimeout(res) );
             }
         } );
 
         watch ( () => keys.Digit5, async () => {
             while ( keys.Digit5 ) {
-                emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 5 );
+                if ( connection.grid.hoovered.value )
+                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 5 );
                 await new Promise( res => setTimeout(res) );
             }
         } );

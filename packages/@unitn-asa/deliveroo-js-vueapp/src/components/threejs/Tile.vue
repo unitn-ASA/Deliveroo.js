@@ -60,10 +60,12 @@
     watch( () => tile.type, (newVal) => {
         var color = 0x000000; // black
         var emissiveColor;
+        var opacity = 1;
         switch (tile.type) {
             case 0: // None - Black
-                emissiveColor = 0x505050; // grey
-                // height = 1;
+                // color = 0x111111
+                emissiveColor = 0xffffff;
+                opacity = 0.3;
                 break;
             case 1: // Spawning - Green
                 color = 0x00ff00;
@@ -89,6 +91,7 @@
         // Set color and emissive color
         material.color = new THREE.Color( color );
         material.emissive = new THREE.Color( emissiveColor || color );
+        material.opacity = opacity;
     }, { immediate: true });
 
 

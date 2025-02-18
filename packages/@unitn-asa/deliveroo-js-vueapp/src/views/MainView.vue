@@ -11,7 +11,7 @@
 
         <div :key="connectionKey" > <!-- Use the key to force reload -->
 
-            <GamePanels class="flex text-sm text-white" />
+            <GamePanels/>
     
             <Deliveroojs v-if="connection"/>
         

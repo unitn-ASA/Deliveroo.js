@@ -1,17 +1,37 @@
 <script setup>
     
     import { ref, computed } from 'vue';
+    import Modal from '@/components/modals/Modal.vue';
     import { connection } from '../../states/myConnection.js';
+
+    const my_modal_3 = ref(null);
 
     function removeParcel(parcel) {
         // console.log('removeParcel', parcel.id);
-        connection.socket.emit( 'dispose parcel', parcel.id );
+        const timeout = setTimeout( () => {
+            // console.log('removeParcel FAIL', parcel.id);
+            my_modal_3.value.showModal();
+        }, 1000 );
+        connection.socket.emit( 'dispose parcel', parcel.id, null, () => {
+            // console.log('removeParcel, emit dispose parcel', parcel.id);
+            clearTimeout(timeout);
+        } );
     }
 
 </script>
 
 <template>
     <main>
+
+        <dialog ref="my_modal_3" id="my_modal_3" class="modal text-base-content">
+            <div class="modal-box">
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </form>
+                <h3 class="text-lg font-bold text-red-500">Action not permitted! Please login as admin.</h3>
+                <p class="py-4">Press ESC key or click on ✕ button to close</p>
+            </div>
+        </dialog>
         
         <table>
             <thead>
