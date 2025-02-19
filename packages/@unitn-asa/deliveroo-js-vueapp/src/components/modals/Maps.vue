@@ -4,11 +4,13 @@
     import { patchConfig } from '../../apiClient.js';
     import { connection } from '@/states/myConnection.js';
 
+    var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
+
     const emit = defineEmits(['loadMap']); // Define the emit for login
 
     const maps = ref([]);
 
-    fetch("http://localhost:8080/api/maps")
+    fetch(HOST + "/api/maps")
     .then( res => res.json() )
     .then( data => {
         maps.value = data;
@@ -36,7 +38,7 @@
                 </button>
                 {{ map.map[0].length }}x{{ map.map.length }}
                 
-                <img :src="'http://localhost:8080'+map.png" class="mt-2"/>
+                <img :src="HOST+map.png" class="mt-2"/>
                 
             </div>
 
