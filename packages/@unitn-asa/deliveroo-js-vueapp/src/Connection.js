@@ -3,7 +3,7 @@ import { default as io, Socket } from 'socket.io-client';
 import { jwtDecode } from "jwt-decode";
 import { Grid } from "./Grid.js";
 
-var HOST = import.meta.env.VITE_SOCKET_IO_HOST || 'http://localhost:8080';
+var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
 export class Connection {
 

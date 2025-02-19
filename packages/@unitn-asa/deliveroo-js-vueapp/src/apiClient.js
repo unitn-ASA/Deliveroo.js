@@ -1,4 +1,4 @@
-var HOST = import.meta.env.VITE_SOCKET_IO_HOST || 'http://localhost:8080';
+var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
 async function richiediToken(nome, team, password) {
     
