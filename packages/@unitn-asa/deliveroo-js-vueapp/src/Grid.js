@@ -1,5 +1,6 @@
 import { ref, reactive, shallowReactive, watch, computed } from "vue";
 import { default as io, Socket } from 'socket.io-client';
+import ioClientSocket from "../../deliveroo-js-client/lib/ioClientSocket.js";
 
 
 
@@ -7,7 +8,7 @@ import { default as io, Socket } from 'socket.io-client';
  * @typedef Tile
  * @type {{
 *         x: number,y: number,
-*         type:number,
+*         type: string,
 *         mesh?: import('three').Mesh,
 *         hoovered?: boolean,
 *         selected?: boolean,
@@ -48,7 +49,7 @@ import { default as io, Socket } from 'socket.io-client';
 export class Grid {
 
     /**
-     * @type {Socket} socket
+     * @type {ioClientSocket} socket
      */
     socket;
 
@@ -76,7 +77,7 @@ export class Grid {
     /** @type {function(number,number):Tile} */
     getTile (x, y) {
         if ( !this.tiles.has(x + y*1000) ) {
-            this.tiles.set( x + y*1000, {x, y, type: 0, opacity:1} );
+            this.tiles.set( x + y*1000, {x, y, type: '0'} );
         }
         return this.tiles.get( x + y*1000 );
     }
@@ -207,7 +208,7 @@ export class Grid {
 
     /**
      * Socket constructor
-     * @param {Socket} socket
+     * @param {ioClientSocket} socket
      */
     constructor ( socket ) {
 
@@ -239,19 +240,20 @@ export class Grid {
 
         this.socket = socket;
         
-        socket.on( 'not_tile', (x, y) => {
-            this.getTile(x, y).type = 0;
-            // this.tiles.delete( x + y*1000 ); // delete to avoid blocks from old maps
-        });
+        // socket.on( 'not_tile', (x, y) => {
+        //     this.getTile(x, y).type = 0;
+        //     // this.tiles.delete( x + y*1000 ); // delete to avoid blocks from old maps
+        // });
 
-        socket.on( "tile", (x, y, delivery, parcelSpawner) => {
-            // console.log( 'Grid.js tile', x, y, delivery, parcelSpawner );
-            if ( delivery )
-                this.getTile(x, y).type = 2;
-            else if ( parcelSpawner )
-                this.getTile(x, y).type = 1;
-            else
-                this.getTile(x, y).type = 3;
+        socket.on( "tile", ({x, y, type}, {ms, frame}) => {
+            console.log( 'Grid.js tile', x, y, type );
+            this.getTile(x, y).type = type;
+            // if ( delivery )
+            //     this.getTile(x, y).type = 2;
+            // else if ( parcelSpawner )
+            //     this.getTile(x, y).type = 1;
+            // else
+            //     this.getTile(x, y).type = 3;
         });
 
         socket.on( "map", (width, height, tiles) => {
@@ -299,19 +301,19 @@ export class Grid {
 
         });
 
-        socket.on( "agent connected", ( {id, name, teamId, teamName, score} ) => {
-            // console.log( "Grid.js socket.on(agent connected)", agent )
+        socket.on( "controller", ( action, {id, name, teamId, teamName, score} ) => {
+            // console.log( "Grid.js socket.on(agent", action, agent )
             var agent = this.getOrCreateAgent( id );
             agent.name = name;
             agent.teamId = teamId;
             agent.teamName = teamName;
             agent.score = score;
-            agent.status = "online";
+            agent.status = action == 'connected' ? "online" : "offline";
         });
-        this.socket.on( "agent disconnected", (agent) => {
-            // console.log( "Grid.js socket.on(agent disconnected)", agent )
-            this.getOrCreateAgent(agent.id).status = "offline";
-        });
+        // this.socket.on( "agent disconnected", (agent) => {
+        //     // console.log( "Grid.js socket.on(agent disconnected)", agent )
+        //     this.getOrCreateAgent(agent.id).status = "offline";
+        // });
 
 
         socket.on("agents sensing", (sensedReceived) => {

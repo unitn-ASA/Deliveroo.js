@@ -1,49 +1,80 @@
-const Observable =  require('./Observable')
+
+
 
 /**
  * @class Xy
  */
- class Xy extends Observable {
+ class Xy {
     
-    /** @attribute {Number} x */
-    x;
-    /** @attribute {Number} y */
-    y;
+    #x;
+    /** @type {Number} x */
+    get x () { return this.#x }
+    
+    #y;
+    /** @type {Number} y */
+    get y () { return this.#y }
     
     /**
      * @constructor Xy
-     * @param {Number} x
-     * @param {Number} y
+     * @param { {x:number, y:number} | number } xy
+     * @param { number } y
      */
-    constructor ( x, y ) {
-        super();
-        this.x = x;
-        this.y = y;
-        // group 'x' and 'y' into 'xy'
-        this.interceptValueSet('x', 'xy')
-        this.interceptValueSet('y', 'xy')
+    constructor ( xy, y = undefined ) {
+        if ( typeof xy === 'object' ) {
+            this.#x = xy.x;
+            this.#y = xy.y;
+        } else {
+            this.#x = xy;
+            this.#y = y;
+        }
     }
-
-    // get x () { return this.#x }
-    // get y () { return this.#y }
 
     /**
-     * rectanguralDistanceTo
+     * @returns { Xy }
      */
-    static distance ( a = {x, y}, b = {x, y} ) {
+    get rounded () {
+        return new Xy( Math.round(this.x), Math.round(this.y) );
+    }
+
+    /**
+     * @param { {x:number, y:number} } a
+     * @param { {x:number, y:number} } b
+     * @returns { number}
+     */
+    static distance ( a, b ) {
         return Math.abs( b.x - a.x ) +  Math.abs( b.y - a.y )
     }
-
-    distance ( other = {x, y} ) {
-        return Xy.distance(this, other)
+    
+    /**
+     * @param { {x:number, y:number} } other 
+     * @returns { number }
+    */
+   distance ( other ) {
+       return Xy.distance(this, other)
     }
-
-    static equals ( a = {x, y}, b = {x, y} ) {
+    
+    /**
+     * @param { {x:number, y:number} } a
+     * @param { {x:number, y:number} } b
+     * @returns { boolean}
+     */
+    static equals ( a, b ) {
         return b.x == a.x && b.y == a.y;
     }
 
-    equals ( other = {x, y} ) {
+    /**
+     * @param { {x:number, y:number} } other 
+     * @returns { boolean }
+    */
+    equals ( other ) {
         return Xy.equals(this, other)
+    }
+
+    /**
+     * @returns { String }
+    */
+    toString () {
+        return `${this.x}_${this.y}`
     }
 
 }

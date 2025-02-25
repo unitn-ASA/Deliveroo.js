@@ -23,8 +23,8 @@ class Config {
     MAP_FILE = this.set('MAP_FILE', 'default_map',
         '-m', '--map', 'Specify name of map file (without .json) from those in ./levels/maps folder');
 
-    /** @type {string} */
-    PARCELS_GENERATION_INTERVAL = this.set('PARCELS_GENERATION_INTERVAL', '2s',
+    /** @type {import("./src/deliveroo/Clock").ClockEvents} */
+    PARCELS_GENERATION_INTERVAL = this.setClockEvent('PARCELS_GENERATION_INTERVAL', '2s',
         '-i', '--parcels-interval', "Specify the interval for parcels generation, options are '1s', '2s', '5s', '10s', default is '2s'");
 
     /** @type {number} */
@@ -39,8 +39,8 @@ class Config {
     PARCEL_REWARD_VARIANCE = this.setNumber('PARCEL_REWARD_VARIANCE', 10,
         '-v', '--reward-variance', "Specify the variance for parcels, default is 10");
 
-    /** @type {string} */
-    PARCEL_DECADING_INTERVAL = this.set('PARCEL_DECADING_INTERVAL', '1s',
+    /** @type {import("./src/deliveroo/Clock").ClockEvents} */
+    PARCEL_DECADING_INTERVAL = this.setClockEvent('PARCEL_DECADING_INTERVAL', '1s',
         '-c', '--decading-interval', "Specify the decading interval for parcels, options are '1s', '2s', '5s', '10s', 'infinite', default is '1s'");
 
     /** @type {number} */
@@ -67,8 +67,8 @@ class Config {
     RANDOMLY_MOVING_AGENTS = this.setNumber('RANDOMLY_MOVING_AGENTS', 2,
         '-z', '--npc-num', "Specify the number of randomly moving agents, default is 2");
 
-    /** @type {string} */
-    RANDOM_AGENT_SPEED = this.set('RANDOM_AGENT_SPEED', '2s',
+    /** @type {import("./src/deliveroo/Clock").ClockEvents} */
+    RANDOM_AGENT_SPEED = this.setClockEvent('RANDOM_AGENT_SPEED', '2s',
         '-y', '--npc-speed', "Specify the speed for randomly moving agents, options are '1s', '2s', '5s', '10s', default is '2s'");
 
     /** @type {number} */
@@ -182,7 +182,16 @@ class Config {
         return Boolean( process.env[key] || defaultValue );
     }
 
-
+    /**
+     * @param {string} key
+     * @param {import("./src/deliveroo/Clock").ClockEvents} defaultValue
+     * @param {string} shortOpt @param {string} longOpt @param {string} helpText
+     * @returns {import("./src/deliveroo/Clock").ClockEvents}
+     */
+    setClockEvent (key, defaultValue, shortOpt, longOpt, helpText) {
+        this.#parameters[key] = {defaultValue, shortOpt, longOpt, helpText};
+        return process.env[key] || defaultValue;
+    }
 }
 
 

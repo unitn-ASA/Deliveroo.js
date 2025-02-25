@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const myClock = require('./Clock');
+const myClock = require('../deliveroo/Clock');
 
 /**
  * Observer callback function
@@ -83,7 +83,11 @@ function accumulate ( finallyDo ) {
 
 
 
-class Observable extends EventEmitter {
+/**
+ * @template { string | number | symbol } K
+ * @extends { EventEmitter<Record<K, any>> }
+ */
+class PostponerEventEmitter extends EventEmitter {
 
 
 
@@ -101,37 +105,12 @@ class Observable extends EventEmitter {
     constructor () {
         super();
     }
-    
-
-
-    /**
-     * @function string
-     * @returns true if created, false if already exists
-     */
-    interceptValueSet (field, emitEvent = undefined) {
-        var descriptor = Object.getOwnPropertyDescriptor(this, field)
-        if (!descriptor || !descriptor.set) {
-            var value = descriptor.value;
-            Object.defineProperty (this, field, {
-                get: () => value,
-                set: (v) => {
-                    // console.log('setting field', key, 'of', this.toString(), 'to', v)
-                    if ( v != value )
-                        this.emitOnePerTick( ( emitEvent ? emitEvent : field ), this);
-                    value = v;
-                },
-                configurable: false
-            });
-            return true;
-        }
-        return false;
-    }
 
 
 
     #postponer = new Map()
     /**
-     * @type {function(string,[]):boolean} Returns true if event triggered, false if event was already triggered before
+     * @type {function(K,...any):void} Returns true if event triggered, false if event was already triggered before
      */ 
     emitOnePerTick (event, ...args) {
         if ( !this.#postponer.has(event) )
@@ -143,6 +122,9 @@ class Observable extends EventEmitter {
 
 
     #postponerAtFrame = new Map()
+    /**
+     * @type {function(K,...any):void}
+     */
     emitOnePerFrame (event, ...args) {
         if ( !this.#postponerAtFrame.has(event) )
             this.#postponerAtFrame.set( event, postponeAtNextFrame( this.emit.bind(this) ) );
@@ -155,7 +137,7 @@ class Observable extends EventEmitter {
     #accumulator = new Map()
     /**
      * emitAccumulatedAtNextTick (event, ...args)
-     * @type {function(string,[]):void}
+     * @type {function(K,[]):void}
      */ 
     emitAccumulatedAtNextTick (event, ...args) {
         if ( !this.#accumulator.has(event) )
@@ -170,4 +152,4 @@ class Observable extends EventEmitter {
 
 
 
-module.exports = Observable
+module.exports = PostponerEventEmitter

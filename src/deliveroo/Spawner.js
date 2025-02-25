@@ -1,5 +1,6 @@
 const myClock = require('./Clock');
 const config = require('../../config');
+const Grid = require('./Grid');
 
 
 /**
@@ -8,6 +9,7 @@ const config = require('../../config');
  */
 class Spawner {
 
+    /** @type {Grid} */
     #grid;
     
     constructor ( grid ) {
@@ -31,7 +33,7 @@ class Spawner {
         if ( tiles_with_no_parcels.length > 0 ) {
             let i = Math.floor( Math.random() * tiles_with_no_parcels.length - 1 )
             let tile = tiles_with_no_parcels.at( i )
-            let parcel = grid.createParcel( tile.x, tile.y );
+            let parcel = grid.createParcel( tile.xy );
         }
     }
 

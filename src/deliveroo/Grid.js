@@ -1,28 +1,43 @@
-const Observable =  require('./Observable')
 const Tile =  require('./Tile')
 const Agent =  require('./Agent')
 const Parcel = require('./Parcel');
 const Xy = require('./Xy');
 const config =  require('../../config');
+const GridEventEmitter = require('./GridEventEmitter');
+const Sensor = require('./Sensor');
+const Identity = require('./Identity');
 
 
+
+// @extends { ObservableMulti< {tiles:Map<String,Tile>, agents:Map<String, Agent>, parcels:Map<String, Parcel>} > }
 
 /**
  * @class Grid
+ * @extends GridEventEmitter
  */
-class Grid extends Observable {
+class Grid extends GridEventEmitter {
 
     /** @property {number} X */
     #X = 0;
+
     /** @property {number} Y */
     #Y = 0;
+    
     /** @type {Map<string, Tile>} */
     #tiles;
 
     /** @type {Map<string, Agent>} */
     #agents;
+    
     get agents () {
         return this.#agents;
+    }
+
+    /** @type {Map<string, Sensor>} */
+    #sensors;
+
+    get sensors () {
+        return this.#sensors;
     }
 
     /** @type {Map<string, Parcel>} */
@@ -33,10 +48,10 @@ class Grid extends Observable {
      */
     constructor ( map = new Array(10).map( c=>new Array(10) ) ) {
         super();
-        this.setMaxListeners(500);
         
         this.#tiles = new Map();
         this.#agents = new Map();
+        this.#sensors = new Map();
         this.#parcels = new Map();
 
         var Xlength = map.length;
@@ -46,7 +61,7 @@ class Grid extends Observable {
         for (let x = 0; x < Xlength; x++) {
             for (let y = 0; y < Ylength; y++) {
                 const value = map[x][y];
-                this.setTile( x, y, value );
+                this.setTile( new Xy( {x,y}), value );
             }
         }
 
@@ -58,12 +73,13 @@ class Grid extends Observable {
 
         for (let x = 0; x < Math.max(Xlength,this.#X); x++) {
             for (let y = 0; y < Math.max(Ylength,this.#Y); y++) {
+                let xy = new Xy( {x,y});
                 if (x < Xlength && y < Ylength) {
                     let value = map[x][y];
-                    this.setTile( x, y, value );
+                    this.setTile( xy, value );
                 } else {
-                    this.setTile( x, y, 0 ); // needed to emit update, even if later deleted
-                    this.#tiles.delete(`${x}_${y}`);
+                    this.setTile( xy, '0' ); // needed to emit update, even if later deleted
+                    this.#tiles.delete( xy.toString() );
                 }
             }
         }
@@ -71,36 +87,26 @@ class Grid extends Observable {
 
     /**
      * @function setTile
-     * @param {number} x
-     * @param {number} y
-     * @param {number} value
+     * @param {Xy} xy
+     * @param {string} type
      * @returns {void}
      */
-    setTile ( x, y, value ) {
-        var tile;
-        if ( this.#tiles.has(`${x}_${y}`) ) {
-            tile = this.#tiles.get(`${x}_${y}`);
-            value == 0 ? tile.block() : tile.unblock();
-            tile.delivery = value == 2;
-            tile.parcelSpawner = value == 1;
+    setTile ( xy, type ) {
+        var tile = this.#tiles.get( xy.toString() );
+        if ( tile ) {
+            tile.type = type;
         } else {
-            tile = new Tile(
-                this,       // grid
-                x, y,       // x, y
-                value == 0, // blocked
-                value == 2, // delivery // ( x==0 || x==Xlength-1 || y==0 || y==Ylength-1 ? true : false )
-                value == 1  // parcelSpawner
-            );
-            this.#tiles.set(`${x}_${y}`, tile);
-            if ( x+1 > this.#X ) this.#X = x+1;
-            if ( y+1 > this.#Y ) this.#Y = y+1;
+            tile = new Tile( xy, type );
+            this.#tiles.set( xy.toString(), tile );
+            if ( xy.x + 1 > this.#X ) this.#X = xy.x + 1;
+            if ( xy.y + 1 > this.#Y ) this.#Y = xy.y + 1;
+            tile.on( 'type' , () => this.emitTile( tile ) ); // not needed, ObservableMulti deep Track Map
         }
-        this.emit( 'tile', tile );
-        if ( value == 0 ) this.emit( 'not_tile', tile );
+        this.emitTile( tile );
     }
 
     /**
-     * @type {function():Generator<Tile, Tile, Tile>}
+     * @type {function():Generator<Tile, void, Tile>}
      */
     *getTiles ( [x1,x2,y1,y2]=[0,10000,0,10000] ) {
         x1 = Math.max(0,x1)
@@ -121,70 +127,43 @@ class Grid extends Observable {
     }
 
     /**
-     * @type {function(number,number): Tile}
+     * @type {function({x:number,y:number}): Tile}
      */
-    getTile ( x, y ) {
+    getTile ( {x, y} ) {
         return this.#tiles.get(`${x}_${y}`);
     }
 
-    /**
-     * @type {function(): MapIterator<String>}
-     */
-    getAgentIds () {
-        return this.#agents.keys();
-    }
+    // /**
+    //  * @type {function(): MapIterator<String>}
+    //  */
+    // getAgentIds () {
+    //     return this.#agents.keys();
+    // }
     
-    getAgents () {
-        return this.#agents.values();
-    }
+    // getAgents () {
+    //     return this.#agents.values();
+    // }
 
-    getAgent ( id ) {
-        return this.#agents.get( id );
-    }
+    // getAgent ( id ) {
+    //     return this.#agents.get( id );
+    // }
 
     /**
-     * @type {function({id:string,name:string,teamName:string}): Agent}
+     * @type {function( Identity ): Agent}
      */
-    createAgent ( options ) {
-        
+    createAgent ( identity ) {
+
         // Instantiate
-        var me = new (global.Agent || Agent)( this, options );
-        this.emit( 'agent created', me );
+        /** @type {Agent} */
+        var me = new (global.Agent || Agent)( this, identity );
+        this.emitAgent( 'created', me );
 
         // Register
         this.#agents.set(me.id, me);
 
         // Grid scoped events propagation
-        me.on( 'xy', this.emit.bind(this, 'agent xy') );
-        me.on( 'score', this.emit.bind(this, 'agent score') );
-        // me.on( 'pickup', this.emit.bind(this, 'agent pickup') );
-        // me.on( 'putdown', this.emit.bind(this, 'agent putdown') );
-        // me.on( 'agent', this.emit.bind(this, 'agent') );
-
-        // On mine or others movement emit SensendAgents
-        this.on( 'agent xy', ( who ) => {
-            if ( me.id == who.id || !( Xy.distance(me, who) > me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
-            }
-        } )
-        
-        // On agent deleted emit agentSensing
-        this.on( 'agent deleted', ( who ) => {
-            if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
-            }
-        } )
-
-        // On others score emit SensendAgents
-        this.on( 'agent score', ( who ) => {
-            if ( me.id != who.id && !( Xy.distance(me, who) >= me.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                me.emitAgentSensing()
-            }
-        } )
-
-        // On parcel and my movements emit parcels sensing
-        this.on( 'parcel', () => me.emitParcelSensing() );
-        me.on( 'xy', () => me.emitParcelSensing() );
+        me.on( 'xy', () => this.emitAgent( 'xy', me ) );
+        me.on( 'score', () => this.emitAgent( 'score', me ) );
 
         return me;
     }
@@ -194,32 +173,38 @@ class Grid extends Observable {
      * @param {Agent} agent 
      */
     deleteAgent ( agent ) {
+
         if ( agent.tile )
             agent.tile.unlock();
+
         agent.putDown();
-        agent.x = undefined;
-        agent.y = undefined;
+        
+        agent.xy = undefined;
+
         agent.removeAllListeners('xy');
         agent.removeAllListeners('score');
-        agent.removeAllListeners('agent');
-        agent.removeAllListeners('agents sensing');
-        agent.removeAllListeners('parcels sensing');
+        // agent.removeAllListeners('agent');
+        // agent.removeAllListeners('agents sensing');
+        // agent.removeAllListeners('parcels sensing');
+        
         this.#agents.delete( agent.id );
-        this.emit( 'agent deleted', agent );
+        
+        this.emitAgent( 'deleted', agent );
+
     }
 
 
 
     /**
-     * @type {function(Number, Number): Parcel}
+     * @type {function(Xy): Parcel}
      */
-    createParcel ( x, y ) {
-        var tile = this.getTile( x, y );
+    createParcel ( xy ) {
+        var tile = this.getTile( xy );
         if ( !tile || tile.blocked )
-            return false;
+            return undefined;
         
         // Instantiate and add to Tile
-        var parcel = new Parcel( x, y );
+        var parcel = new Parcel( xy );
         // tile.addParcel( parcel );
         this.#parcels.set( parcel.id, parcel )
 
@@ -228,10 +213,10 @@ class Grid extends Observable {
         } );
 
         // Grid scoped event propagation
-        this.emit( 'parcel', parcel )
-        parcel.on( 'reward', this.emit.bind(this, 'parcel') );
-        parcel.on( 'carriedBy', this.emit.bind(this, 'parcel') );
-        parcel.on( 'xy', this.emit.bind(this, 'parcel') );
+        this.emitParcel( parcel )
+        parcel.on( 'reward', () => this.emitParcel( parcel ) );
+        parcel.on( 'carriedBy', () => this.emitParcel( parcel ) );
+        parcel.on( 'xy', () => this.emitParcel( parcel ) );
 
         return parcel;
     }

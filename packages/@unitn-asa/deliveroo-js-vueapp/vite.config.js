@@ -2,9 +2,19 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import commonjs from 'vite-plugin-commonjs'
 
 // https://vitejs.dev/config/
+// https://vite.dev/guide/dep-pre-bundling#monorepos-and-linked-dependencies
 export default defineConfig({
+  optimizeDeps: {
+    include: ['@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs'],
+  },
+  build: {
+    commonjsOptions: {
+      include: ["@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs"],
+    },
+  },
   plugins: [
     vue(),
   ],

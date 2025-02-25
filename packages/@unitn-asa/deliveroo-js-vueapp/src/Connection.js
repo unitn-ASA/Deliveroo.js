@@ -2,6 +2,7 @@ import { ref, reactive, shallowReactive } from "vue";
 import { default as io, Socket } from 'socket.io-client';
 import { jwtDecode } from "jwt-decode";
 import { Grid } from "./Grid.js";
+import ioClientSocket from "../../deliveroo-js-client/lib/ioClientSocket.js";
 
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
@@ -18,7 +19,7 @@ export class Connection {
     payload;
 
     /**
-     * @type {Socket} socket
+     * @type {ioClientSocket} socket
      */
     socket;
 
@@ -40,12 +41,12 @@ export class Connection {
     });
 
     /**
-     * @type {Array<{timestamp:string, message:string[]}>} serverLog
+     * @type {Array<{ms:number, frame:number, message:string[]}>} serverLog
      */
     serverLogs = shallowReactive (new Array());
 
     /**
-     * @type {Array<{timestamp:string, socket:string, id:string, name:string, message:string[]}>} clientLogs
+     * @type {Array<{ms:number, frame:number, socket:string, id:string, name:string, message:string[]}>} clientLogs
      */
     clientLogs = shallowReactive (new Array());
 
@@ -102,13 +103,15 @@ export class Connection {
             console.error( 'Connection.js Invalid token', token, error );
         }
 
-        const socket = this.socket = io( HOST, {
-            autoConnect: false,
-            withCredentials: false,
-            extraHeaders: { 'x-token': token }
-            // query: { name: name }
-            // path: '/'
-        } );
+        const socket = this.socket = new ioClientSocket (
+            io( HOST, {
+                autoConnect: false,
+                withCredentials: false,
+                extraHeaders: { 'x-token': token }
+                // query: { name: name }
+                // path: '/'
+            } )
+        );
 
         this.grid = new Grid( socket );
 
@@ -140,16 +143,11 @@ export class Connection {
         this.listenAndRegister( "agents sensing" );
         this.listenAndRegister( "parcels sensing" );
 
-        socket.on( 'log', ( {src, timestamp, socket, id, name}, ...message ) => {
+        socket.on( 'log', ( {src, ms, frame, socket, id, name}, ...message ) => {
             if ( src == 'server' )
-                this.serverLogs.push( {timestamp, message} );
+                this.serverLogs.push( { ms, frame, message } );
             else
-                this.clientLogs.push( {timestamp, socket, id, name, message} );
-        } );
-
-        this.socket.on( 'draw', ( {src, timestamp, socket, id, name}, buffer ) => {
-            // console.log( 'draw', {src, timestamp, socket, id, name}, buffer )
-            this.draw.value = buffer;
+                this.clientLogs.push( { ms, frame, socket, id, name, message} );
         } );
 
         this.socket.on( "msg", ( id, name, teamId, msg, reply ) => {

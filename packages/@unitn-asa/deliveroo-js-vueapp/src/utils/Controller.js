@@ -13,18 +13,25 @@ export class Controller {
     constructor( connection ) {
 
         this.connection = connection;
+
+        const socket = connection.socket;
         
-        async function emit( ...args ) {
-            return new Promise( (res, rej) => {
-                connection.socket.emit( ...args, (status) => {
-                    res(status);
-                } );
-            } );
-        }
+        // async function emit( ...args ) {
+        //     return new Promise( (res, rej) => {
+        //         connection.socket.emit( ...args, (status) => {
+        //             res(status);
+        //         } );
+        //     } );
+        // }
         
         var moving = Promise.resolve(true);
 
-        async function waitAndDo ( ...args ) {
+        /**
+         * @param  { 'move'|'pickup'|'putdown' } action
+         * @param  { 'up'|'down'|'left'|'right' = } direction 
+         * @returns 
+         */
+        async function waitAndDo ( action, direction ) {
             // console.log(direction);
             let previous = moving;
             do {
@@ -36,7 +43,7 @@ export class Controller {
             // check if no one else already setup another move
             } while ( moving != previous );
             // start and set new move
-            moving = emit( ...args );
+            moving = action == 'move' ? socket.emit( action, direction ) : socket.emit( action );
             return moving;
         } 
 
@@ -72,60 +79,75 @@ export class Controller {
 
         watch ( () => keys.KeyE, async () => {
             if ( keys.KeyE )
-                emit('putdown');
+                socket.emit( 'putdown' );
             // postpone so to read other keyboard events
             await new Promise( res => setTimeout(res, 50) );
             keys.KeyE = false;
         } );
 
         watch ( () => keys.Space, async () => {
-            if ( keys.Space )
-                emit('create parcel', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y);
+            if ( keys.Space && connection.grid.hoovered.value )
+                var { x, y } = connection.grid.hoovered.value;
+                socket.emit( 'parcel', 'create', { x, y } );
         } );
 
         watch ( () => keys.Digit0, async () => {
             while ( keys.Digit0 ) {
-                if ( connection.grid.hoovered.value )
-                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 0 );
+                if ( connection.grid.hoovered.value ) {
+                    var { x, y } = connection.grid.hoovered.value;
+                    socket.emit( 'tile', { x, y, type: '0' } );
+                }
                 await new Promise( res => setTimeout(res) );
             }
         } );
 
         watch ( () => keys.Digit1, async () => {
             while ( keys.Digit1 ) {
-                if ( connection.grid.hoovered.value )
-                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 1 );
+                if ( connection.grid.hoovered.value ) {
+                    var { x, y } = connection.grid.hoovered.value;
+                    socket.emit( 'tile', { x, y, type: '1' } );
+                }
                 await new Promise( res => setTimeout(res) );
             }
         } );
 
         watch ( () => keys.Digit2, async () => {
             while ( keys.Digit2 ) {
-                if ( connection.grid.hoovered.value )
-                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 2 );
+                if ( connection.grid.hoovered.value ) {
+                    var { x, y } = connection.grid.hoovered.value;
+                    // console.log( 'emit tile', { x, y, type: '2' });
+                    socket.emit( 'tile', { x, y, type: '2' } );
+                }
                 await new Promise( res => setTimeout(res) );
             }
         } );
 
         watch ( () => keys.Digit3, async () => {
             while ( keys.Digit3 ) {
-                emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 3 );
+                if ( connection.grid.hoovered.value ) {
+                    var { x, y } = connection.grid.hoovered.value;
+                    socket.emit( 'tile', { x, y, type: '3' } );
+                }
                 await new Promise( res => setTimeout(res) );
             }
         } );
 
         watch ( () => keys.Digit4, async () => {
             while ( keys.Digit4 ) {
-                if ( connection.grid.hoovered.value )
-                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 4 );
+                if ( connection.grid.hoovered.value ) {
+                    var { x, y } = connection.grid.hoovered.value;
+                    socket.emit( 'tile', { x, y, type: '4' } );
+                }
                 await new Promise( res => setTimeout(res) );
             }
         } );
 
         watch ( () => keys.Digit5, async () => {
             while ( keys.Digit5 ) {
-                if ( connection.grid.hoovered.value )
-                    emit( 'tile', connection.grid.hoovered.value?.x, connection.grid.hoovered.value?.y, 5 );
+                if ( connection.grid.hoovered.value ) {
+                    var { x, y } = connection.grid.hoovered.value;
+                    socket.emit( 'tile', { x, y, type: '5' } );
+                }
                 await new Promise( res => setTimeout(res) );
             }
         } );

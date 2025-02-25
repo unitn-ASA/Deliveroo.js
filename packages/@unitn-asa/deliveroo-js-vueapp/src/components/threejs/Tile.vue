@@ -61,28 +61,28 @@
         var color = 0x000000; // black
         var emissiveColor;
         var opacity = 1;
-        switch (tile.type) {
-            case 0: // None - Black
+        switch (tile.type.toString()) {
+            case "0": // None - Black
                 // color = 0x111111
                 emissiveColor = 0xffffff;
                 opacity = 0.3;
                 break;
-            case 1: // Spawning - Green
+            case "1": // Spawning - Green
                 color = 0x00ff00;
                 break;
-            case 2: // Delivery - Red
+            case "2": // Delivery - Red
                 color = 0xff0000;
                 break;
-            case 3: // Walkable - White
+            case "3": // Walkable - White
                 color = 0xffffff;
                 break;
-            case 4: // Base - Blue
+            case "4": // Base - Blue
                 color = 0x0000ff;
                 break;
-            case 5: // Obstacle - Light Blue
+            case '5': // Obstacle - Light Blue
                 color = 0x000055;
                 break;
-            case 6: // Yellow
+            case '6': // Yellow
                 color = 0xffff00;
                 break;
             default:
