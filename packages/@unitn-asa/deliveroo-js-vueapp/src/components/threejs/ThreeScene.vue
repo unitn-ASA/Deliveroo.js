@@ -7,6 +7,7 @@
 	import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 	import { connection } from '@/states/myConnection.js';
+	import Stats from 'three/examples/jsm/libs/stats.module.js'; //import Stats from 'three/addons/libs/stats.module.js';
 
     /**
      * @typedef Tile
@@ -80,7 +81,7 @@
 	}
 
 	watch( [ () => connection.configs.AGENTS_OBSERVATION_DISTANCE, () => connection.configs.PARCELS_OBSERVATION_DISTANCE ], ([AOD, POD]) => {
-		ambientLight.intensity = isNaN( AOD ) || isNaN( POD) ? 8 : 1;
+		ambientLight.intensity = isNaN( AOD ) || isNaN( POD) ? 8 : 6;
 		computeLightDistanceAndDecay( agentsLight, AOD );
 		computeLightDistanceAndDecay( parcelsLight, POD);
 	}, { immediate: true } );
@@ -138,6 +139,11 @@
 		// Initialize Three.js scene 
 		renderer.setSize(window.innerWidth, window.innerHeight);
 		threeContainer.value.appendChild(renderer.domElement);
+
+		// Initialize Clock and Stats
+		const clock = new THREE.Clock();
+		const stats = new Stats();
+		threeContainer.value.appendChild( stats.dom );
 
 		// Initialize CSS2DRenderer
 		labelRenderer = new CSS2DRenderer();
@@ -207,11 +213,6 @@
 			// console.log( 'mousemove', event, event.clientX, event.clientY, mouse );
 			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 			mouse.y = - ( event.pageY / window.innerHeight ) * 2 + 1;
-			raycaster.setFromCamera( mouse, camera );
-			const intersections = raycaster.intersectObjects( hoverable.value, true );
-			hoveredObj = intersections[ 0 ]?.object;
-			// if (hoveredObj instanceof THREE.Mesh)
-			connection.grid.hooverByMesh( hoveredObj );
 		} );
 
 		labelRenderer.domElement.addEventListener( 'click', ( event ) => {
@@ -228,6 +229,14 @@
 
 		const animate = () => {
 			
+			raycaster.setFromCamera( mouse, camera );
+			const intersections = raycaster.intersectObjects( hoverable.value, true );
+			if ( hoveredObj != intersections[ 0 ]?.object ) {
+				hoveredObj = intersections[ 0 ]?.object;
+				connection.grid.hooverByMesh( hoveredObj );
+				// if ( hoveredObj instanceof THREE.Mesh )
+			}
+			
 			if ( targetMesh.value ) {
 				// current cam target
 				let current = new THREE.Vector3().copy( camTarget );
@@ -243,6 +252,8 @@
 			}
 			// required if controls.enableDamping or controls.autoRotate are set to true
 			controls.update();
+
+			stats.update();
 
 			renderer.render(scene, camera);
 			labelRenderer.render(scene, camera);

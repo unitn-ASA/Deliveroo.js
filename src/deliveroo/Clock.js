@@ -18,14 +18,15 @@ class Clock {
     /** @type {EventEmitter} */
     #eventEmitter = new EventEmitter();
 
-    #base = CLOCK; // 40ms are 25frame/s
+    #base = Number( CLOCK ); // 40ms are 25frame/s
     #id;
     #ms = 0;
     #frame = 0;
+    #startTime = 0;
     #isSynch = false;
     
     constructor () {
-        this.#eventEmitter.setMaxListeners(5000);
+        this.#eventEmitter.setMaxListeners(8000);
         this.start();
     }
     
@@ -75,12 +76,15 @@ class Clock {
     start () {
         if ( this.#id )
             return;
+        this.#startTime = Date.now();
         this.#id = setInterval( () => {
             this.#isSynch = true;
             this.#ms += this.#base;
             this.#frame += 1;
+            this.sample();
             /** always emit frame event */      this.#eventEmitter.emit( 'frame' );
             if ( this.#ms % 1000 == 0 ) {       this.#eventEmitter.emit( '1s' );
+                                                console.log( 'FRAME', `#${this.#frame}`, `@${this.#base}ms`, this.fps(), `fps` );
                 if ( this.#ms % 2000 == 0 )     this.#eventEmitter.emit( '2s' );
                 if ( this.#ms % 5000 == 0 ) {   this.#eventEmitter.emit( '5s' );
                     if ( this.#ms % 10000 == 0 )this.#eventEmitter.emit( '10s' );
@@ -88,6 +92,25 @@ class Clock {
             }
             setImmediate( () => this.#isSynch = false );
         }, this.#base )
+    }
+
+    #samples = [];
+
+    sample () {
+        this.#samples.push( {
+            frame: this.frame,
+            time: Date.now()
+        } );
+    }
+
+    fps ( back = 10 ) {
+        if ( this.#samples.length < 1 )
+            return Math.round( this.#frame / ( Date.now() - this.#startTime ) * 1000 * 10 ) / 10;
+        let lastI = this.#samples.length - 1;
+        let firstI = lastI - back < 0 ? 0 : lastI - back;
+        const last = this.#samples[ lastI ];
+        const first = this.#samples[ firstI ];
+        return Math.round( ( last.frame - first.frame ) / ( last.time - first.time ) * 1000 * 10 ) / 10;
     }
 
     async synch ( delay = 0 ) {

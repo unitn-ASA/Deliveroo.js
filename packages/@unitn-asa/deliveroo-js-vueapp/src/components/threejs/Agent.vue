@@ -4,8 +4,9 @@
     import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
     import { connection } from '@/states/myConnection';
 
-    /** @typedef Agent
-     *  @type {import("@/Grid").Agent}
+    /**
+     * @typedef Agent
+     * @type {import("@/Grid").Agent}
      */
     
     /** @type {{agent?:Agent}} */
@@ -29,10 +30,6 @@
     const labelContainer = useTemplateRef("labelContainer");
     /** @type {CSS2DObject} */
     var label;
-    
-    // Create lights
-    /** @type {THREE.Mesh} */
-    var lightRoot;
 
 
     onMounted(() => {
@@ -44,27 +41,6 @@
         label.position.set(0, 0.5, 0);
         mesh.add(label);
 
-        // Add lights
-        if ( connection.payload.id == agent.id ) {
-            lightRoot = new THREE.Mesh();
-            scene.add( lightRoot );
-            // AGENTS lights
-            let AOD = connection.configs.AGENTS_OBSERVATION_DISTANCE;
-            let POD = connection.configs.PARCELS_OBSERVATION_DISTANCE;
-            let MinOD = Math.min( AOD, POD );
-            let MaxOD = Math.max( AOD, POD );
-            for ( let i = - MaxOD; i < MaxOD; i ++ ) {
-                for ( let j = - MaxOD; j < MaxOD; j ++ ) {
-                    if ( Math.abs(i) + Math.abs(j) < MaxOD ) {
-                        let intensity = ( Math.abs(i) + Math.abs(j) ) >= MinOD ? 1 : 8;
-                        const light = new THREE.PointLight( 0xffffff, intensity, 1.4, 0.9 );
-                        light.position.set( i*1.5, 1, j*1.5 );
-                        lightRoot.add( light );
-                    }
-                }
-            }
-        }
-
     });
 
     onUnmounted(() => {
@@ -72,11 +48,6 @@
         agent.mesh.remove(label);
         scene.remove(mesh);
         agent.mesh.geometry.dispose();
-        if ( lightRoot ) {
-            scene.remove(lightRoot);
-            lightRoot.children.forEach( light => light.dispose() );
-            lightRoot.geometry.dispose();
-        }
         // console.log( 'Agent.vue onUnmounted() agent.mesh:', agent.mesh );
     });
 
@@ -128,15 +99,11 @@
     function animate () {
 
         let agentTargetVector3 = new THREE.Vector3( Math.round(agent.x) * 1.5, agent.mesh.position.y, - Math.round(agent.y) * 1.5 );
-        let lightTargetVector3 = new THREE.Vector3( Math.round(agent.x) * 1.5, lightRoot?.position.y, - Math.round(agent.y) * 1.5 );
 
         if ( agent.x == Math.round(agent.x) && agent.y == Math.round(agent.y) ) { // if arrived
             agent.mesh.position.lerp( agentTargetVector3, 0.5 );
-            lightRoot?.position.lerp( lightTargetVector3, 0.5 );
         } else { // if still moving
-            // targetVector3 = new THREE.Vector3( this.x * 1.5, this.#mesh.position.y, - this.y * 1.5 );
             agent.mesh.position.lerp( agentTargetVector3, 0.08 );
-            lightRoot?.position.lerp( lightTargetVector3, 0.08 );
         }
 
         requestAnimationFrame(animate);

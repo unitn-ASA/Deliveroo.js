@@ -20,7 +20,7 @@
     const tile = props.tile;
 
     /** @type {THREE.MeshStandardMaterial} */
-    const material = new THREE.MeshStandardMaterial( { color: 0x000000, transparent: true, opacity: 0.8 } );
+    const material = new THREE.MeshStandardMaterial( { color: 0x000000, transparent: true, opacity: 0.3 } );
     material.emissiveIntensity = 0;
 
     /** @type {THREE.BoxGeometry} */
@@ -46,15 +46,36 @@
     watch( [() => tile.hoovered, () => tile.selected ], ([hovered, selected]) => {
         if ( hovered ) {
             mesh.scale.set( 1.5, 1.5, 1.5 );
-            material.emissiveIntensity = 0.5;
+            material.emissiveIntensity = 1;
         } else if ( selected ) {
             mesh.scale.set( 1.3, 1.3, 1.3 );
-            material.emissiveIntensity = 0.3;
+            material.emissiveIntensity = 1;
         } else {
             mesh.scale.set( 1, 1, 1 );
             material.emissiveIntensity = 0;
         }
     });
+
+    watch( [ () => connection.grid.me.value.x, () => connection.grid.me.value.y, () => connection.configs ], ( [ x, y ] ) => {
+
+        let AOD = connection.configs.AGENTS_OBSERVATION_DISTANCE;
+        let POD = connection.configs.PARCELS_OBSERVATION_DISTANCE;
+        let MinOD = Math.min( AOD, POD );
+        let MaxOD = Math.max( AOD, POD );
+
+        let dist = Math.abs( x - tile.x ) + Math.abs( y - tile.y );
+
+        if ( dist < MinOD ) {
+            material.opacity = 1;
+        }
+        else if ( dist < MaxOD ) {
+            material.opacity = 0.6;
+        }
+        else {
+            material.opacity = 0.1;
+        }
+
+    }, { immediate: true } );
 
     // Set color and emissive color based on type
     watch( () => tile.type, (newVal) => {
@@ -63,27 +84,29 @@
         var opacity = 1;
         switch (tile.type.toString()) {
             case "0": // None - Black
-                // color = 0x111111
-                emissiveColor = 0xffffff;
-                opacity = 0.3;
+                color = 0x000000;
+                emissiveColor = 0x444444;
+                // opacity = 0.3;
                 break;
             case "1": // Spawning - Green
                 color = 0x00ff00;
+                emissiveColor = 0x44ff44;
                 break;
             case "2": // Delivery - Red
                 color = 0xff0000;
+                emissiveColor = 0xff4444;
                 break;
             case "3": // Walkable - White
                 color = 0xffffff;
+                emissiveColor = 0xff99ff;
                 break;
             case "4": // Base - Blue
                 color = 0x0000ff;
+                emissiveColor = 0x4444ff;
                 break;
-            case '5': // Obstacle - Light Blue
-                color = 0x000055;
-                break;
-            case '6': // Yellow
+            case '5': // Obstacle - Yellow
                 color = 0xffff00;
+                emissiveColor = 0xffff44;
                 break;
             default:
                 break;
@@ -119,7 +142,7 @@
     };
     
     // Start animation
-    requestAnimationFrame(animate);
+    // requestAnimationFrame(animate); // commented out to improve performances
 
 </script>
 

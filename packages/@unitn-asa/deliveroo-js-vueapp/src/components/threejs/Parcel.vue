@@ -64,7 +64,7 @@
         // });
 
         // Start animation
-        requestAnimationFrame(animate);
+        // requestAnimationFrame(animate);
 
     });
 

@@ -74,6 +74,7 @@ export class Connection {
         this.state.events.set(event, []);
         this.socket.on( event, (...args) => {
             this.state.events.get(event).push(args);
+            // console.log( `Connection.js Socket.on('${event}')`, args );
         });
     }
 
@@ -132,8 +133,6 @@ export class Connection {
         } );
         
         this.listenAndRegister( "log" );
-        this.listenAndRegister( "draw" );
-        this.listenAndRegister( "not_tile" );
         this.listenAndRegister( "tile" );
         this.listenAndRegister( "map" );
         this.listenAndRegister( "msg" );

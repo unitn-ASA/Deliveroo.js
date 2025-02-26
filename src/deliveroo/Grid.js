@@ -100,9 +100,9 @@ class Grid extends GridEventEmitter {
             this.#tiles.set( xy.toString(), tile );
             if ( xy.x + 1 > this.#X ) this.#X = xy.x + 1;
             if ( xy.y + 1 > this.#Y ) this.#Y = xy.y + 1;
-            tile.on( 'type' , () => this.emitTile( tile ) ); // not needed, ObservableMulti deep Track Map
+            tile.on( 'type' , () => this.emitTile( tile ) );
         }
-        this.emitTile( tile );
+        this.emitTile( tile ); // not needed, ObservableMulti deep Track Map
     }
 
     /**

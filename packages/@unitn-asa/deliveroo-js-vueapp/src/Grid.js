@@ -1,6 +1,7 @@
 import { ref, reactive, shallowReactive, watch, computed } from "vue";
 import { default as io, Socket } from 'socket.io-client';
 import ioClientSocket from "../../deliveroo-js-client/lib/ioClientSocket.js";
+import { connection } from "./states/myConnection.js";
 
 
 
@@ -12,6 +13,8 @@ import ioClientSocket from "../../deliveroo-js-client/lib/ioClientSocket.js";
 *         mesh?: import('three').Mesh,
 *         hoovered?: boolean,
 *         selected?: boolean,
+*         perceivingAgents?: import('vue').ComputedRef<boolean>,
+*         perceivingParcels?: import('vue').ComputedRef<boolean>
 * }}
 */
 
@@ -77,7 +80,19 @@ export class Grid {
     /** @type {function(number,number):Tile} */
     getTile (x, y) {
         if ( !this.tiles.has(x + y*1000) ) {
-            this.tiles.set( x + y*1000, {x, y, type: '0'} );
+            this.tiles.set( x + y*1000, {
+                x,
+                y,
+                type: '0',
+                hoovered: false,
+                selected: false,
+                perceivingAgents: computed( () => {
+                    return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.AGENTS_OBSERVATION_DISTANCE ) ? true : false;
+                } ),
+                perceivingParcels: computed( () => {
+                    return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.PARCELS_OBSERVATION_DISTANCE ) ? true : false;
+                } )
+            } );
         }
         return this.tiles.get( x + y*1000 );
     }
@@ -246,7 +261,7 @@ export class Grid {
         // });
 
         socket.on( "tile", ({x, y, type}, {ms, frame}) => {
-            console.log( 'Grid.js tile', x, y, type );
+            // console.log( 'Grid.js tile', x, y, type );
             this.getTile(x, y).type = type;
             // if ( delivery )
             //     this.getTile(x, y).type = 2;
@@ -262,13 +277,13 @@ export class Grid {
             this.height = height;
         });
 
-        let PARCELS_OBSERVATION_DISTANCE;
-        let AGENTS_OBSERVATION_DISTANCE;
+        // let PARCELS_OBSERVATION_DISTANCE;
+        // let AGENTS_OBSERVATION_DISTANCE;
 
-        this.socket.on( "config", ( config ) => {
-            PARCELS_OBSERVATION_DISTANCE = config.PARCELS_OBSERVATION_DISTANCE;
-            AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
-        } )
+        // this.socket.on( "config", ( config ) => {
+        //     PARCELS_OBSERVATION_DISTANCE = config.PARCELS_OBSERVATION_DISTANCE;
+        //     AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
+        // } )
 
         this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score }, clock ) => {
             // console.log( "Grid.js socket.on(you)", id, name, teamId, teamName, x, y, score, clock )
