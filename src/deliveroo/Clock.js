@@ -26,7 +26,9 @@ class Clock {
     #isSynch = false;
     
     constructor () {
-        this.#eventEmitter.setMaxListeners(8000);
+        // (node:77250) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 5001 frame listeners added to [EventEmitter]. Use emitter.setMaxListeners() to increase limit
+        // (Use `node --trace-warnings ...` to show where the warning was created)
+        this.#eventEmitter.setMaxListeners(20000);
         this.start();
     }
     
@@ -54,10 +56,13 @@ class Clock {
     
     /**
      * @arg { ClockEvents } event
-     * @arg { function(...any) : void } cb
+     * @arg { ? function(...any) : void } cb
      */
-    once ( event, cb ) {
-        this.#eventEmitter.once( event, cb );
+    async once ( event, cb = undefined ) {
+        if ( cb )
+            this.#eventEmitter.once( event, cb );
+        else
+            return new Promise( res => this.#eventEmitter.once( event, res ) );
     }
 
     /**
@@ -82,15 +87,19 @@ class Clock {
             this.#ms += this.#base;
             this.#frame += 1;
             this.sample();
+            const memoryUsage = process.memoryUsage();
             /** always emit frame event */      this.#eventEmitter.emit( 'frame' );
             if ( this.#ms % 1000 == 0 ) {       this.#eventEmitter.emit( '1s' );
-                                                console.log( 'FRAME', `#${this.#frame}`, `@${this.#base}ms`, this.fps(), `fps` );
+                                                console.log( 'FRAME', `#${this.#frame}`, `@${this.#base}ms`, this.fps(), `fps`, `HeapUsed: ${memoryUsage.heapUsed/1000000}MB`);
                 if ( this.#ms % 2000 == 0 )     this.#eventEmitter.emit( '2s' );
                 if ( this.#ms % 5000 == 0 ) {   this.#eventEmitter.emit( '5s' );
                     if ( this.#ms % 10000 == 0 )this.#eventEmitter.emit( '10s' );
                 }
             }
-            setImmediate( () => this.#isSynch = false );
+            // Esegui immediatamente dopo che l'attuale ciclo di eventi è completato
+            setImmediate( () => {
+                this.#isSynch = false;
+            });
         }, this.#base )
     }
 
@@ -119,7 +128,7 @@ class Clock {
             await new Promise( res => this.#eventEmitter.once('frame', res) );
 
         const initial = this.#ms
-        while ( delay > this.#ms - initial ) {
+        while ( delay > ( this.#ms - initial ) ) {
             await new Promise( res => this.#eventEmitter.once('frame', res) )
         }
         

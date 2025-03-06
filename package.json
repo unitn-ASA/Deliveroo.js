@@ -18,7 +18,7 @@
     "test": "jest",
     "start": "node index.js",
     "build": "npm run build --workspace=packages/@unitn-asa/deliveroo-js-vueapp/",
-    "dev": "nodemon -r dotenv/config index.js"
+    "dev": "nodemon --inspect -r dotenv/config index.js"
   },
   "repository": {
     "type": "git",

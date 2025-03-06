@@ -65,11 +65,13 @@ class Parcel extends ObservableMulti {
         this.watch('expired');
         this.expired = false;
 
-        this.on( 'reward', () => {
+        const rewardListener = () => {
             if ( this.reward <= 0 ) {
                 this.expired = true;
+                this.off( 'reward', rewardListener );
             }
-        } )
+        }
+        this.on( 'reward', rewardListener );
 
         const decay = () => {
             this.reward = Math.floor( this.reward - 1 );

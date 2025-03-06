@@ -3,7 +3,6 @@ const Xy =  require('./Xy')
 const Grid =  require('./Grid')
 const Tile =  require('./Tile');
 const Parcel =  require('./Parcel');
-const { MOVEMENT_STEPS } =  require('../../config');
 const myClock = require('./Clock');
 const ObservableMulti = require('../reactivity/ObservableMulti');
 const Sensor = require('./Sensor');
@@ -16,8 +15,6 @@ const Identity = require('./Identity');
  * @extends { ObservableMulti< {xy:Xy, score:number, carryingParcels:Set<Parcel>} > }
  */
 class Agent extends ObservableMulti {
-
-    static #lastId = 0;
     
     /** @type {Grid} #grid */
     #grid;
@@ -126,22 +123,22 @@ class Agent extends ObservableMulti {
     async stepByStep ( incr_x, incr_y ) {
         var init_x = this.x
         var init_y = this.y
-        if ( MOVEMENT_STEPS ) {
+        if ( this.config.MOVEMENT_STEPS ) {
             // Immediate offset by 0.6*step
             this.xy = new Xy ( {
-                x: ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS * 12/20 ) / 100,
-                y: ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS * 12/20 ) / 100
+                x: ( 100 * this.x + 100 * incr_x / this.config.MOVEMENT_STEPS * 12/20 ) / 100,
+                y: ( 100 * this.y + 100 * incr_y / this.config.MOVEMENT_STEPS * 12/20 ) / 100
             } )
         }
-        for ( let i = 0; i < MOVEMENT_STEPS; i++ ) {
+        for ( let i = 0; i < this.config.MOVEMENT_STEPS; i++ ) {
             // Wait for next step timeout = this.config.MOVEMENT_DURATION / MOVEMENT_STEPS
             // await new Promise( res => setTimeout(res, this.config.MOVEMENT_DURATION / MOVEMENT_STEPS ) )
-            await myClock.synch( this.config.MOVEMENT_DURATION / MOVEMENT_STEPS );
-            if ( i < MOVEMENT_STEPS - 1 ) {
+            await myClock.synch( this.config.MOVEMENT_DURATION / this.config.MOVEMENT_STEPS );
+            if ( i < this.config.MOVEMENT_STEPS - 1 ) {
                 // Move by one step = 1 / MOVEMENT_STEPS
                 this.xy = new Xy({
-                    x: ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS ) / 100,
-                    y: ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS ) / 100
+                    x: ( 100 * this.x + 100 * incr_x / this.config.MOVEMENT_STEPS ) / 100,
+                    y: ( 100 * this.y + 100 * incr_y / this.config.MOVEMENT_STEPS ) / 100
                 });
             }
         }

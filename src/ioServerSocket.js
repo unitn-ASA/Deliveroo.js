@@ -201,10 +201,10 @@ class ioServerSocket extends ioTypedSocket {
 
     /**
      * @param { any } msg
-     * @returns { Promise < any > } reply
+     * @returns { void } reply
      */
-    async broadcastMsg ( me, msg ) {
-        return this.broadcast.emit( 'msg', me.id, me.name, msg );
+    broadcastMsg ( me, msg ) {
+        this.broadcast.emit( 'msg', me.id, me.name, msg );
     }
 
     /**

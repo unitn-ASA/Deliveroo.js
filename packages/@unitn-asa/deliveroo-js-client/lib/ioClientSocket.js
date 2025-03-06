@@ -229,7 +229,7 @@ export default class ioClientInterface extends ioTypedSocket {
      * @returns { Promise < { x:number, y:number } | 'false' > }
      */
     async emitMove ( directionOrXy ) {
-        return this.emit( 'move', directionOrXy );
+        return this.emitAndRosolveOnAck( 'move', directionOrXy );
     }
 
     /**
@@ -238,7 +238,7 @@ export default class ioClientInterface extends ioTypedSocket {
      * @returns { Promise < { id:string } [] > } array of picked up parcels
      */
     async emitPickup (  ) {
-        return this.emit( 'pickup' );
+        return this.emitAndRosolveOnAck( 'pickup' );
     }
 
     /**
@@ -250,7 +250,7 @@ export default class ioClientInterface extends ioTypedSocket {
      * @returns { Promise < { id:string } [] >}
      */
     async emitPutdown ( selected = null ) {
-        return this.emit( 'putdown', selected );
+        return this.emitAndRosolveOnAck( 'putdown', selected );
     }
 
     /**

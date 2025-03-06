@@ -41,7 +41,7 @@
  *      'say':          function ( string, any, function( 'successful' ) : void ) : void,
  *      'ask':          function ( string, any, function( any ) : void ) : void,
  *      'shout':        function ( any, function( any ) : void ) : void,
- *      'parcel':       function ( 'create' | 'dispose' | 'set', { x:number, y:number } ) : void,
+ *      'parcel':       function ( 'create' | 'dispose' | 'set', { x:number, y:number } | { id:string, reward?:number } ) : void,
  *      'tile':         function ( tile ) : void,
  *      'log':          function ( ...any ) : void
  * }} clientEvents
@@ -106,10 +106,21 @@ class ioTypedSocket {
      * @template { keyof emitEv } K
      * @param { K } event
      * @param { Parameters<emitEv[K]> } args
+     * @returns { void }
+     */
+    emit ( event, ...args ) {
+        this.#socket.emit( event.toString(), ...args );
+    }
+    
+    /**
+     * @template { keyof emitEv } K
+     * @param { K } event
+     * @param { Parameters<emitEv[K]> } args
      * @returns { Promise < any > }
      */
-    async emit ( event, ...args ) {
-        return new Promise(  (resolve) => {
+    async emitAndRosolveOnAck ( event, ...args ) {
+        return new Promise( (resolve) => {
+            setTimeout( resolve, 50 );
             this.#socket.emit( event.toString(), ...args, reply =>
                 resolve( reply )
             );

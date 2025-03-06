@@ -246,6 +246,10 @@ class Grid extends GridEventEmitter {
      * @type {function(String):boolean}
      */
     deleteParcel ( id ) {
+        var parcel = this.getParcel( id );
+        parcel.removeAllListeners('reward');
+        parcel.removeAllListeners('carriedBy');
+        parcel.removeAllListeners('xy');
         return this.#parcels.delete( id );
     }
 

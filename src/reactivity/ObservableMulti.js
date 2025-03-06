@@ -1,4 +1,5 @@
 const PostponerEventEmitter = require('./PostponerEventEmitter');
+const EventEmitter = require('events');
 
 /**
  * @template { Record<keyof T,T[keyof T]> } T
@@ -46,7 +47,7 @@ class ObservableMulti {
 
             if ( immediately ) {
                 // immediately fire already registered listeners 
-                this.#eventEmitter.emit( key.toString(), this );
+                this.emit( key );
                 // will immediately fire new listeners when registered
                 this.#immediately.set( key, true );
             }
@@ -96,18 +97,18 @@ class ObservableMulti {
                     // console.log('ObservableMulti Proxy on', target, property);
                     if (property === 'set') {
                         // Intercetta il metodo 'set'
-                        return function(key, value) {
+                        return function(mapKey, value) {
                             // console.log('ObservableMulti', `Setting: ${key} to ${value}`);
                             _this.emit( key );
-                            return target.set(key, value);
+                            return target.set(mapKey, value);
                         };
                     }
                     if (property === 'delete') {
                         // Intercetta il metodo 'delete'
-                        return function(key) {
+                        return function(mapKey) {
                             // console.log('ObservableMulti', `Deleting: ${key}`);
                             _this.emit( key );
-                            return target.delete(key);
+                            return target.delete(mapKey);
                         };
                     }
                     else {
@@ -197,7 +198,7 @@ class ObservableMulti {
      * @param { function( T ) : void } callback
      */
     off ( key, callback ) {
-        this.#eventEmitter.off( key.toString() + '.immediate', callback );
+        this.#eventEmitter.off( key.toString(), callback );
         this.#eventEmitter.off( key.toString() + '.tick', callback );
         this.#eventEmitter.off( key.toString() + '.frame', callback );
     }
@@ -206,7 +207,7 @@ class ObservableMulti {
      * @param { keyof T } key
      */
     removeAllListeners ( key ) {
-        this.#eventEmitter.removeAllListeners( key.toString() + '.immediate' );
+        this.#eventEmitter.removeAllListeners( key.toString() );
         this.#eventEmitter.removeAllListeners( key.toString() + '.tick' );
         this.#eventEmitter.removeAllListeners( key.toString() + '.frame' );
     }

@@ -6,16 +6,15 @@
 
     const my_modal_3 = ref(null);
 
-    function removeParcel(parcel) {
+    async function removeParcel(parcel) {
         // console.log('removeParcel', parcel.id);
         const timeout = setTimeout( () => {
             // console.log('removeParcel FAIL', parcel.id);
             my_modal_3.value.showModal();
         }, 1000 );
-        connection.socket.emit( 'dispose parcel', parcel.id, null, () => {
-            // console.log('removeParcel, emit dispose parcel', parcel.id);
-            clearTimeout(timeout);
-        } );
+        await connection.socket.emit( 'parcel', 'dispose', { id: parcel.id } );
+        // console.log('removeParcel, emit dispose parcel', parcel.id);
+        clearTimeout(timeout);
     }
 
 </script>
