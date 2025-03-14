@@ -194,7 +194,8 @@ class ioServer {
             id: me.id, name: me.name,
             teamId: me.teamId, teamName: me.teamName,
             x: me.x, y: me.y,
-            score: me.score
+            score: me.score,
+            penalty: me.penalty
         } );
         
 
@@ -349,6 +350,11 @@ class ioServer {
                 // } catch (error) {
                 //     console.warn( `WARN ${me.name}(${me.id}) on('tile', ${t}).`, error.message );
                 // }
+            } );
+
+            socket.onRestart( () => {
+                console.log( 'Restart' );
+                myGrid.restart();
             } );
 
         }

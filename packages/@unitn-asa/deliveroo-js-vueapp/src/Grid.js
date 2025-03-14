@@ -26,6 +26,7 @@ import { connection } from "./states/myConnection.js";
 *         teamName: string,
 *         x: number,y: number,
 *         score: number,
+*         penalty: number,
 *         carrying?: Array<string>,
 *         mesh?: import('three').Mesh,
 *         opacity?: number,
@@ -120,7 +121,7 @@ export class Grid {
                 name:'unknown',
                 teamId:'unknown',
                 teamName:'unknown',
-                x: undefined, y: undefined, score: -1,
+                x: undefined, y: undefined, score: -1, penalty: 0,
                 carrying: new Array(),
                 hoovered: false,
                 selected: computed({
@@ -285,7 +286,7 @@ export class Grid {
         //     AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
         // } )
 
-        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score }, clock ) => {
+        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty }, clock ) => {
             // console.log( "Grid.js socket.on(you)", id, name, teamId, teamName, x, y, score, clock )
 
             this.clock.ms = clock.ms;
@@ -298,6 +299,7 @@ export class Grid {
             me.x = x
             me.y = y
             me.score = score
+            me.penalty = penalty
 
             // // when arrived
             // if ( x % 1 == 0 && y % 1 == 0 ) {
@@ -331,9 +333,12 @@ export class Grid {
         // });
 
 
-        socket.on("agents sensing", (sensedReceived) => {
+        socket.on("agents sensing", (sensedReceived, clock) => {
 
             //console.log("agents sensing", ...sensed)//, sensed.length)
+
+            this.clock.ms = clock.ms;
+            this.clock.frame = clock.frame;
 
             var sensed = Array.from(sensedReceived)
             
@@ -347,7 +352,7 @@ export class Grid {
             }
 
             for ( const sensed_agent of sensed ) {
-                const {id, name, teamId, teamName, x, y, score} = sensed_agent;
+                const {id, name, teamId, teamName, x, y, score, penalty} = sensed_agent;
                 var agent = this.getOrCreateAgent( id )
                 agent.name = name;
                 agent.teamId = teamId
@@ -355,15 +360,19 @@ export class Grid {
                 agent.x = x;
                 agent.y = y;
                 agent.score = score;
+                agent.penalty = penalty;
                 agent.opacity = 1;
                 agent.status = 'online';
             }
 
         });
 
-        socket.on("parcels sensing", (sensedReceived) => {
+        socket.on("parcels sensing", (sensedReceived, clock) => {
 
             // console.log("parcels sensing", ...sensed)//, sensed.length)
+
+            this.clock.ms = clock.ms;
+            this.clock.frame = clock.frame;
 
             var sensed = Array.from(sensedReceived)
 

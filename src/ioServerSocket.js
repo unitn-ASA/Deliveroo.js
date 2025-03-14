@@ -111,8 +111,8 @@ class ioServerSocket extends ioTypedSocket {
     /**
      * @param { agent } you
      */
-    emitYou ( {id, name, teamId, teamName, x, y, score} ) {
-        this.emit( 'you', {id, name, teamId, teamName, x, y, score}, {ms: myClock.ms, frame: myClock.frame} );
+    emitYou ( {id, name, teamId, teamName, x, y, score, penalty} ) {
+        this.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty}, {ms: myClock.ms, frame: myClock.frame} );
     }
 
     /**
@@ -123,7 +123,7 @@ class ioServerSocket extends ioTypedSocket {
     }
     
     /**
-     * @param { { id:string, x:number, y:number, carriedBy:string, reward:number } [] } parcels
+     * @param { parcel [] } parcels
      */
     emitParcelSensing ( parcels ) {
         this.emit( 'parcels sensing', parcels, {ms: myClock.ms, frame: myClock.frame} );
@@ -247,6 +247,14 @@ class ioServerSocket extends ioTypedSocket {
      */
     onTile ( callback ) {
         this.on( 'tile', callback );
+    }
+
+    /**
+     * Process request for restarting the game
+     * @param { function () : void } callback
+     */
+    onRestart ( callback ) {
+        this.on( 'restart', callback );
     }
 
 }

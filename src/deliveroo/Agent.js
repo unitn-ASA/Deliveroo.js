@@ -12,7 +12,7 @@ const Identity = require('./Identity');
 
 /**
  * @class Agent
- * @extends { ObservableMulti< {xy:Xy, score:number, carryingParcels:Set<Parcel>} > }
+ * @extends { ObservableMulti< {xy:Xy, score:number, penalty:number, carryingParcels:Set<Parcel>} > }
  */
 class Agent extends ObservableMulti {
     
@@ -47,6 +47,9 @@ class Agent extends ObservableMulti {
     
     /** @type {Number} score */
     score;
+
+    /** @type {Number} */
+    penalty = 0;
     
     /** @type {Set<Parcel>} #carryingParcels */
     carryingParcels = new Set();
@@ -73,12 +76,14 @@ class Agent extends ObservableMulti {
         
         this.watch('score', true); // immediate=true to emit agent when spawning
 
+        this.watch('penalty', true); // immediate=true to emit agent when spawning
+
         this.watch('carryingParcels', true); // immediate=true to emit agent when spawning
         
         let tiles_unlocked =
             Array.from( grid.getTiles() )
-            // not locked
-            .filter( t => ! t.blocked )
+            // walkable
+            .filter( t => t.walkable )
             // not locked
             .filter( t => ! t.locked )
 
@@ -149,50 +154,59 @@ class Agent extends ObservableMulti {
         } );
     }
 
-    moving = false;
-    async move ( incr_x, incr_y ) {
-        if ( this.moving ) // incr_x%1!=0 || incr_y%1!=0 ) // if still moving
+    doing = false;
+    async exclusivelyDo ( actionFn ) {
+        // if still doing
+        if ( this.doing ) {
+            this.penalty -= this.config.PENALTY;
             return false;
-        this.moving = true;
-        await myClock.synch();
-        this.moving = false;
+        }
+        else {
+            this.doing = true;
+            await myClock.synch();
+            let outcome = await actionFn();
+            this.doing = false;
+            return outcome;
+        }
+    }
+
+    async move ( incr_x, incr_y ) {
         let fromTile = this.tile;
         if (!fromTile)
             return false;
         let toTile = this.#grid.getTile( { x: this.x + incr_x, y: this.y + incr_y } );
-        if ( toTile && !toTile.blocked && ! toTile.locked ) {
+        if ( toTile && toTile.walkable && ! toTile.locked ) {
             toTile.lock();
             // console.log(this.id, 'start move in', this.x+incr_x, this.y+incr_y)
-            this.moving = true;
             await this.stepByStep( incr_x, incr_y );
             // console.log(this.id, 'done move in', this.x, this.y)
-            this.moving = false;
             fromTile.unlock();
             // this.emitParcelSensing(); // NO! this is done outside
             return this.xy;
         }
         // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
+        this.penalty -= this.config.PENALTY;
         return false;
     }
 
     async up () {
         // console.log(this.id + ' move up')
-        return this.move(0, 1);
+        return this.exclusivelyDo( () => this.move(0, 1) );
     }
 
     async down () {
         // console.log(this.id + ' move down')
-        return this.move(0, -1);
+        return this.exclusivelyDo( () => this.move(0, -1) );
     }
 
     async left () {
         // console.log(this.id + ' move left')
-        return this.move(-1, 0);
+        return this.exclusivelyDo( () => this.move(-1, 0) );
     }
 
     async right () {
         // console.log(this.id + ' move right')
-        return this.move(1, 0);
+        return this.exclusivelyDo( () => this.move(1, 0) );
     }
 
     /**
@@ -201,27 +215,23 @@ class Agent extends ObservableMulti {
      * @returns {Promise<Parcel[]>} An array of parcels that have been picked up
      */
     async pickUp () {
-        if ( this.moving )
-            return [];
-        this.moving = true;
-        await myClock.synch();
-        this.moving = false;
-        const picked = new Array();
-        var counter = 0;
-        for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcels() ) {
-            if ( parcel.x == this.x && parcel.y == this.y && parcel.carriedBy == null ) {
-                this.carryingParcels.add(parcel);
-                parcel.carriedBy = this;
-                // parcel.x = 0;
-                // parcel.y = 0;
-                picked.push( parcel );
-                counter++;
+        let exclusivelyDoResult = await this.exclusivelyDo( () => {
+            // return [];
+            const picked = new Array();
+            var counter = 0;
+            for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcels() ) {
+                if ( parcel.x == this.x && parcel.y == this.y && parcel.carriedBy == null ) {
+                    this.carryingParcels.add(parcel);
+                    parcel.carriedBy = this;
+                    picked.push( parcel );
+                    counter++;
+                }
             }
-        }
-        // console.log(this.id, 'pickUp', counter, 'parcels')
-        // if ( picked.length > 0 )
-        //     this.emit( 'pickup', this, picked );
-        return picked; // Array.from(this.#carryingParcels);
+            // console.log(this.id, 'pickUp', counter, 'parcels')
+            return picked; // Array.from(this.#carryingParcels);
+
+        } );
+        return exclusivelyDoResult || [];
     }
 
     /**
@@ -233,36 +243,34 @@ class Agent extends ObservableMulti {
      * @returns {Promise<Parcel[]>} An array of parcels that have been put down
      */
     async putDown ( ids = [] ) {
-        if ( this.moving )
-            return [];
-        this.moving = true;
-        await myClock.synch();
-        this.moving = false;
-        var tile = this.tile
-        var sc = 0;
-        var dropped = new Array();
-        var toPutDown = Array.from( this.carryingParcels.values() );    // put down all parcels
-        if ( ids && ids.length && ids.length > 0 )              // put down specified parcels
-            toPutDown = toPutDown.filter( p => ids.includes( p.id ) );
-        for ( const parcel of this.carryingParcels ) {
-            this.carryingParcels.delete(parcel);
-            parcel.carriedBy = null;
-            // parcel.x = this.x;
-            // parcel.y = this.y;
-            dropped.push( parcel );
-            if ( tile?.delivery ) {
-                sc += parcel.reward;
-                this.#grid.deleteParcel( parcel.id );
+        let exclusivelyDoResult = await this.exclusivelyDo( () => {
+            var tile = this.tile
+            var sc = 0;
+            var dropped = new Array();
+            var toPutDown = Array.from( this.carryingParcels.values() );    // put down all parcels
+            if ( ids && ids.length && ids.length > 0 )              // put down specified parcels
+                toPutDown = toPutDown.filter( p => ids.includes( p.id ) );
+            for ( const parcel of this.carryingParcels ) {
+                this.carryingParcels.delete(parcel);
+                parcel.carriedBy = null;
+                // parcel.x = this.x;
+                // parcel.y = this.y;
+                dropped.push( parcel );
+                if ( tile?.delivery ) {
+                    sc += parcel.reward;
+                    this.#grid.deleteParcel( parcel.id );
+                }
             }
-        }
-        this.score += sc;
-        if ( sc > 0 ) {
-            console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti -> ${this.score} pti)` );
-            console.log( Array.from(this.#grid.agents.values()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
-        }
-        // if ( dropped.length > 0 )
-        //     this.emitOnePerTick( 'putdown', this, dropped );
-        return dropped;
+            this.score += sc;
+            if ( sc > 0 ) {
+                console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti -> ${this.score} pti)` );
+                console.log( Array.from(this.#grid.agents.values()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
+            }
+            // if ( dropped.length > 0 )
+            //     this.emitOnePerTick( 'putdown', this, dropped );
+            return dropped;
+        } );
+        return exclusivelyDoResult || [];
     }
 }
 

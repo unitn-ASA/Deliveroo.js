@@ -8,6 +8,7 @@
  * @property {number} x
  * @property {number} y
  * @property {number} score
+ * @property {number} penalty
  */
 
 /**
@@ -42,6 +43,7 @@
  *      'ask':          function ( string, any, function( any ) : void ) : void,
  *      'shout':        function ( any, function( any ) : void ) : void,
  *      'parcel':       function ( 'create' | 'dispose' | 'set', { x:number, y:number } | { id:string, reward?:number } ) : void,
+ *      'restart':      function () : void,
  *      'tile':         function ( tile ) : void,
  *      'log':          function ( ...any ) : void
  * }} clientEvents

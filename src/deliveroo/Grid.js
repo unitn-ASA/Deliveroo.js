@@ -33,13 +33,6 @@ class Grid extends GridEventEmitter {
         return this.#agents;
     }
 
-    /** @type {Map<string, Sensor>} */
-    #sensors;
-
-    get sensors () {
-        return this.#sensors;
-    }
-
     /** @type {Map<string, Parcel>} */
     #parcels;
     
@@ -51,7 +44,6 @@ class Grid extends GridEventEmitter {
         
         this.#tiles = new Map();
         this.#agents = new Map();
-        this.#sensors = new Map();
         this.#parcels = new Map();
 
         var Xlength = map.length;
@@ -200,7 +192,7 @@ class Grid extends GridEventEmitter {
      */
     createParcel ( xy ) {
         var tile = this.getTile( xy );
-        if ( !tile || tile.blocked )
+        if ( ! tile || ! tile.walkable )
             return undefined;
         
         // Instantiate and add to Tile
@@ -247,10 +239,24 @@ class Grid extends GridEventEmitter {
      */
     deleteParcel ( id ) {
         var parcel = this.getParcel( id );
+        if ( ! parcel ) return false
         parcel.removeAllListeners('reward');
         parcel.removeAllListeners('carriedBy');
         parcel.removeAllListeners('xy');
         return this.#parcels.delete( id );
+    }
+
+    /**
+     * @type {function(): void}
+     */
+    restart() {
+        // console.log('Grid is restarting...');
+        for ( const agent of this.#agents.values() ) {
+            this.deleteAgent( agent );
+        }
+        for ( const parcel of this.#parcels.values() ) {
+            this.deleteParcel( parcel.id );
+        }
     }
 
 }

@@ -44,6 +44,10 @@ class Config {
         '-c', '--decading-interval', "Specify the decading interval for parcels, options are '1s', '2s', '5s', '10s', 'infinite', default is '1s'");
 
     /** @type {number} */
+    PENALTY = this.setNumber('PENALTY', 1,
+        '-pp', '--penalty', "Specify penalty in case of invalid aciton, default is 0");
+
+    /** @type {number} */
     MOVEMENT_STEPS = this.setNumber('MOVEMENT_STEPS', 1,
         '-s', '--mov-steps', "Specify the number of steps for each movement, default is 1");
 

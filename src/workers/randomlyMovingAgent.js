@@ -6,6 +6,7 @@ const timersPromises = require('timers/promises'); // await timersPromises.setIm
 const Agent = require('../deliveroo/Agent');
         
 const actions = [ 'up', 'right', 'down', 'left' ];
+const relPos = [ {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0} ];
 
 /**
  * @param {Grid} myGrid
@@ -21,7 +22,11 @@ module.exports = function ( myGrid ) {
 
         while ( true ) {
 
-            const moved = await agent[ actions[index] ](); // try moving
+            let tile = agent.grid.getTile( { x: agent.x + relPos[index].x, y: agent.y + relPos[index].y } );
+            let moved = false;
+            if ( tile?.walkable && ! tile?.locked ) {
+                moved = await agent[ actions[index] ](); // try moving
+            }
             if (moved)
                 // wait before continue
                 await new Promise( res => myClock.once( RANDOM_AGENT_SPEED, res ) );

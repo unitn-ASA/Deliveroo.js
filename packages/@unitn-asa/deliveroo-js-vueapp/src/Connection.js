@@ -143,6 +143,10 @@ export class Connection {
         this.listenAndRegister( "parcels sensing" );
 
         socket.on( 'log', ( {src, ms, frame, socket, id, name}, ...message ) => {
+
+            // this.grid.clock.ms = ms;
+            // this.grid.clock.frame = frame;
+
             if ( src == 'server' )
                 this.serverLogs.push( { ms, frame, message } );
             else

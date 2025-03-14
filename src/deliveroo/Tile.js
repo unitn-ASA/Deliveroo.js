@@ -28,8 +28,8 @@ const ObservableMulti = require('../reactivity/ObservableMulti');
     type;
     
     /** @property {boolean} */
-    get blocked () {
-        return this.type == '0';
+    get walkable () {
+        return this.type != '0';
     }
 
     get delivery () {

@@ -18,6 +18,7 @@
                     <th>Team</th>
                     <th>Status</th>
                     <th class="px-2">Score</th>
+                    <th class="px-2">Penalty</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,6 +55,11 @@
                         <td class="">
                             <span class="text-2xl text-white ml-1">
                                 {{ agent.score }}
+                            </span>
+                        </td>
+                        <td class="">
+                            <span class="text-2xl text-white ml-1">
+                                {{ agent.penalty }}
                             </span>
                         </td>
                     </template>

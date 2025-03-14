@@ -10,22 +10,12 @@ const myClock = require('./Clock');
 
 /**
  * @typedef SensedAgent
- * @property {string} id
- * @property {string} name
- * @property {string} teamId
- * @property {string} teamName
- * @property {number} x
- * @property {number} y
- * @property {number} score
+ * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").agent}
  */
 
 /**
  * @typedef SensedParcel
- * @property {string} id
- * @property {number} x
- * @property {number} y
- * @property {string} carriedBy
- * @property {number} reward
+ * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
  */
 
 /**
@@ -117,8 +107,8 @@ class Sensor extends ObservableMulti {
         let sensedAgents = [];
         for ( let sensedAgent of this.#grid.agents.values() ) {
             if ( sensedAgent != this.#agent && !( Xy.distance(sensedAgent, this.#agent) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                const {id, name, teamId, teamName, x: x, y: y, score} = sensedAgent
-                sensedAgents.push( {id, name, teamId, teamName, x, y, score} )
+                const {id, name, teamId, teamName, x: x, y: y, score, penalty} = sensedAgent
+                sensedAgents.push( {id, name, teamId, teamName, x, y, score, penalty} )
             }
         }
         this.sensedAgents = sensedAgents;
