@@ -15,7 +15,6 @@
   "scripts": {
     "prepublishOnly": "",
     "prepare": "",
-    "test": "jest",
     "start": "node index.js",
     "build": "npm run build --workspace=packages/@unitn-asa/deliveroo-js-vueapp/",
     "dev": "nodemon --inspect -r dotenv/config index.js"
