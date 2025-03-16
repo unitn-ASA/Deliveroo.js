@@ -43,8 +43,10 @@ export class Controller {
             // check if no one else already setup another move
             } while ( moving != previous );
             // start and set new move
-            moving = action == 'move' ? socket.emit( action, direction ) : socket.emit( action );
-            return moving;
+            moving = action == 'move' ? socket.emitAndResolveOnAck( action, direction ) : socket.emitAndResolveOnAck( action );
+            let movingResult = await moving;
+            // console.log( moving, movingResult );
+            return movingResult;
         } 
 
         watch ( () => keys.KeyW, async () => {

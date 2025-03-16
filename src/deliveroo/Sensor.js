@@ -10,12 +10,12 @@ const myClock = require('./Clock');
 
 /**
  * @typedef SensedAgent
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").agent}
+ * @type {import("../../packages/@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").agent}
  */
 
 /**
  * @typedef SensedParcel
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
+ * @type {import("../../packages/@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
  */
 
 /**

@@ -1,4 +1,4 @@
-FROM node:21.1.0
+FROM node:22.14.0
 MAINTAINER Marco Robol <marco.robol@unitn.it>
 
 # Install dependencies
@@ -10,10 +10,11 @@ RUN apt-get update && apt-get install -y \
     libgif-dev \
     librsvg2-dev
 
-RUN mkdir -p /usr/api
-COPY . /usr/api
-WORKDIR /usr/api
+RUN mkdir -p /app
+COPY . /app
+WORKDIR /app
 RUN npm install
+RUN npm run build
 
 EXPOSE  $PORT
 

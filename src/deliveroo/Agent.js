@@ -191,22 +191,22 @@ class Agent extends ObservableMulti {
 
     async up () {
         // console.log(this.id + ' move up')
-        return this.exclusivelyDo( () => this.move(0, 1) );
+        return await this.exclusivelyDo( () => this.move(0, 1) );
     }
 
     async down () {
         // console.log(this.id + ' move down')
-        return this.exclusivelyDo( () => this.move(0, -1) );
+        return await this.exclusivelyDo( () => this.move(0, -1) );
     }
 
     async left () {
         // console.log(this.id + ' move left')
-        return this.exclusivelyDo( () => this.move(-1, 0) );
+        return await this.exclusivelyDo( () => this.move(-1, 0) );
     }
 
     async right () {
         // console.log(this.id + ' move right')
-        return this.exclusivelyDo( () => this.move(1, 0) );
+        return await this.exclusivelyDo( () => this.move(1, 0) );
     }
 
     /**

@@ -7,32 +7,32 @@ import ioTypedSocket from '@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cj
 
 /**
  * @typedef agent
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").agent}
+ * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").agent}
  */
 
 /**
  * @typedef parcel
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
+ * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
  */
 
 /**
  * @typedef tile
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").tile}
+ * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").tile}
  */
 
 /**
  * @typedef timestamp
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").timestamp}
+ * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").timestamp}
  */
 
 /**
  * @typedef clientEvents on the client side these are to be emitted with .emit
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").clientEvents}
+ * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").clientEvents}
  */
 
 /**
  * @typedef serverEvents on the client side these are to be listened with .on
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").serverEvents}
+ * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").serverEvents}
  */
 
 
@@ -229,7 +229,7 @@ export default class ioClientInterface extends ioTypedSocket {
      * @returns { Promise < { x:number, y:number } | 'false' > }
      */
     async emitMove ( directionOrXy ) {
-        return this.emitAndRosolveOnAck( 'move', directionOrXy );
+        return this.emitAndResolveOnAck( 'move', directionOrXy );
     }
 
     /**
@@ -238,7 +238,7 @@ export default class ioClientInterface extends ioTypedSocket {
      * @returns { Promise < { id:string } [] > } array of picked up parcels
      */
     async emitPickup (  ) {
-        return this.emitAndRosolveOnAck( 'pickup' );
+        return this.emitAndResolveOnAck( 'pickup' );
     }
 
     /**
@@ -250,7 +250,7 @@ export default class ioClientInterface extends ioTypedSocket {
      * @returns { Promise < { id:string } [] >}
      */
     async emitPutdown ( selected = null ) {
-        return this.emitAndRosolveOnAck( 'putdown', selected );
+        return this.emitAndResolveOnAck( 'putdown', selected );
     }
 
     /**

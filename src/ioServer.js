@@ -227,9 +227,9 @@ class ioServer {
         socket.onMove( async (direction, acknowledgementCallback) => {
             // console.log(me.id, me.x, me.y, direction);
             try {
-                const moving = me[direction.toString()]();
+                const moving = await me[direction.toString()]();
                 if ( acknowledgementCallback )
-                    acknowledgementCallback( await moving ); //.bind(me)()
+                    acknowledgementCallback( moving ); //.bind(me)()
             } catch (error) { console.error(direction, 'is not a method of agent'); console.error(error) }
         });
 

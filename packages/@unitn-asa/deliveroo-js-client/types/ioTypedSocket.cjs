@@ -120,9 +120,10 @@ class ioTypedSocket {
      * @param { Parameters<emitEv[K]> } args
      * @returns { Promise < any > }
      */
-    async emitAndRosolveOnAck ( event, ...args ) {
+    async emitAndResolveOnAck ( event, ...args ) {
+        // console.log( 'emitAndResolveOnAck', event.toString(), ...args );
         return new Promise( (resolve) => {
-            setTimeout( resolve, 50 );
+            setTimeout( () => resolve( false ), 200 );
             this.#socket.emit( event.toString(), ...args, reply =>
                 resolve( reply )
             );

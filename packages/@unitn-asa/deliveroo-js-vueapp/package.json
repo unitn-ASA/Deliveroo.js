@@ -7,6 +7,9 @@
     "type": "git",
     "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
   },
+  "workspaces": [
+    "../*"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -15,6 +18,7 @@
   "dependencies": {
     "events": "^3.3.0",
     "jwt-decode": "^4.0.0",
+    "lerna": "8.2.1",
     "node-fetch": "^3.3.2",
     "socket.io-client": "^4.7.2",
     "three": "^0.151.3",
@@ -27,7 +31,7 @@
     "daisyui": "^4.12.13",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
-    "vite": "^5.2.8",
+    "vite": "^6.2.2",
     "vite-plugin-commonjs": "^0.10.4"
   }
 }

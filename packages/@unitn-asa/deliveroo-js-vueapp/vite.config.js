@@ -8,11 +8,20 @@ import commonjs from 'vite-plugin-commonjs'
 // https://vite.dev/guide/dep-pre-bundling#monorepos-and-linked-dependencies
 export default defineConfig({
   optimizeDeps: {
-    include: ['@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs'],
+    include: [
+      '@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs',
+      '@unitn-asa/deliveroo-js-client/*',
+      '../deliveroo-js-client/types/ioTypedSocket.cjs',
+      '../deliveroo-js-client/*'
+    ],
   },
   build: {
     commonjsOptions: {
-      include: ["@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs"],
+      include: [
+        '@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs',
+        '../deliveroo-js-client/types/ioTypedSocket.cjs',
+        '../deliveroo-js-client/ioClientSocket.js'
+      ],
     },
   },
   plugins: [
