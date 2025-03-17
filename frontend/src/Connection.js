@@ -101,7 +101,7 @@ export class Connection {
             this.token = token;
             this.payload = jwtDecode( token );
         } catch (error) {
-            console.error( 'Connection.js Invalid token', token, error );
+            console.error( 'Connection.js Invalid token specified:', token, error );
         }
 
         const socket = this.socket = new ioClientSocket (

@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import { default as argsParser } from "args-parser";
-import ioClientSocket from "./ioClientSocket";
+import ioClientSocket from "./ioClientSocket.js";
 
 
 
@@ -20,20 +20,25 @@ let HOST = args['host'];
 
 export default class DeliverooApi extends ioClientSocket {
 
-    constructor ( host, token ) {
+    constructor ( host, token = null, autoconnect = true ) {
 
         {
             let opts = {
                 autoConnect: false,
                 withCredentials: false,
-                extraHeaders: { 'x-token': TOKEN || token }
+                // extraHeaders: { 'x-token': TOKEN || token }
                 // query: { name: NAME }
                 // path: '/'
             };
-            if (NAME)
+            if ( TOKEN || token )
+                opts.extraHeaders = { 'x-token': TOKEN || token }
+            else if ( NAME )
                 opts.query = { name: NAME }
             
             super( io( HOST || host, opts ) );
+
+            if ( autoconnect )
+                this.connect();
         }
 
         /**

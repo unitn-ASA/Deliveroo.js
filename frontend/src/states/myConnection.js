@@ -25,7 +25,7 @@ export const connectionKey = ref(0);
  */
 export function playToken ( token ) {
     connection = getOrCreateConnection( token );
-    if ( connection ) {
+    if ( connection?.payload ) {
         connection.connect();
 
         // set query param to payload.name e.g. ?name=marco
@@ -57,7 +57,8 @@ if ( token ) {
 } else if ( name ) {
     // console.log( 'myGame.js name in URL:', name );
     connection = getConnectionByName( name );
-    playToken( connection.token );
+    if ( connection )
+        playToken( connection.token );
 } else {
     // console.log( 'myGame.js no token nor name in URL' );
 }

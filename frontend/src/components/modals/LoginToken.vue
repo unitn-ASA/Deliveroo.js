@@ -13,11 +13,11 @@
     const connected = computed( () => connection && connection.state && connection.state.connected ? connection.state.connected : false );
     const played = computed( () => token == playedConnection?.token ? true : false );
     const payload = connection.payload
-    const name = connection.payload.name
-    const id = connection.payload.id
-    const teamName = connection.payload.teamName
-    const teamId = connection.payload.teamId
-    const role = connection.payload.role
+    const name = connection.payload?.name
+    const id = connection.payload?.id
+    const teamName = connection.payload?.teamName
+    const teamId = connection.payload?.teamId
+    const role = connection.payload?.role
 
     function connect() {
         if ( connection.connected() ) {

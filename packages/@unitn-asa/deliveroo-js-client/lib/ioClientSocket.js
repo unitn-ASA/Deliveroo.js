@@ -115,7 +115,7 @@ export default class ioClientInterface extends ioTypedSocket {
     }
 
     /**
-     * @param { function({}) : void } callback
+     * @param { function(any) : void } callback
      */
     onConfig ( callback ) {
         this.on( "config", callback )
@@ -226,7 +226,7 @@ export default class ioClientInterface extends ioTypedSocket {
      * When movement completes, it resolves to true.
      * In case of failure when moving, it resolves to false
      * @param { 'up' | 'right' | 'left' | 'down' | { x:number, y:number } } directionOrXy It can be either: 'up', 'right', 'left', 'down', or destination Xy
-     * @returns { Promise < { x:number, y:number } | 'false' > }
+     * @returns { Promise < { x:number, y:number } | false > }
      */
     async emitMove ( directionOrXy ) {
         return this.emitAndResolveOnAck( 'move', directionOrXy );

@@ -27,6 +27,14 @@
             this.#x = xy;
             this.#y = y;
         }
+        Object.defineProperty (this, 'x', {
+            get: () => this.#x,
+            enumerable: true
+        });
+        Object.defineProperty (this, 'y', {
+            get: () => this.#y,
+            enumerable: true
+        });
     }
 
     /**

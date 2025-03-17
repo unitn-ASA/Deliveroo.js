@@ -27,7 +27,8 @@ if ( localStorage.getItem('myTokens') ) {
             jwtDecode( token );
             myTokens.push( token );
         } catch (error) {
-            console.error( 'Invalid token', token.value, error );
+            removeToken( token );
+            console.warn( 'Invalid token', token, 'removed' );
         }
     }
 }

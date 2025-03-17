@@ -36,7 +36,7 @@
 /**
  * @typedef {{
  *      'disconnect':   function () : void,
- *      'move':         function ( 'up' | 'right' | 'left' | 'down' | { x:number, y:number }, function ( { x:number, y:number } | 'false' ) : void = ) : { x:number, y:number } | 'false',
+ *      'move':         function ( 'up' | 'right' | 'left' | 'down' | { x:number, y:number }, function ( { x:number, y:number } | false ) : void = ) : { x:number, y:number } | false,
  *      'pickup':       function ( function ( { id:string } [] ) : void = ) : { id:string } [],
  *      'putdown':      function ( string [] =, function ( { id:string } [] ) : void = ) : { id:string } [],
  *      'say':          function ( string, any, function( 'successful' ) : void ) : void,
@@ -123,7 +123,7 @@ class ioTypedSocket {
     async emitAndResolveOnAck ( event, ...args ) {
         // console.log( 'emitAndResolveOnAck', event.toString(), ...args );
         return new Promise( (resolve) => {
-            setTimeout( () => resolve( false ), 200 );
+            setTimeout( () => resolve( false ), 1000 );
             this.#socket.emit( event.toString(), ...args, reply =>
                 resolve( reply )
             );
