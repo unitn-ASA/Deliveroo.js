@@ -1,6 +1,6 @@
 import { ref, reactive, shallowReactive, watch, computed } from "vue";
 import { default as io, Socket } from 'socket.io-client';
-import ioClientSocket from "../../deliveroo-js-client/lib/ioClientSocket.js";
+import ioClientSocket from "../../packages/@unitn-asa/deliveroo-js-client/lib/ioClientSocket.js";
 import { connection } from "./states/myConnection.js";
 
 

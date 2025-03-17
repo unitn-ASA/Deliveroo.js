@@ -1,5 +1,3 @@
-version: "1"
-
 name: deliveroojs
 
 services:
@@ -17,10 +15,10 @@ services:
 
     environment:
       - LEVEL=24c1_1
-      - PORT=8080
+      - PORT=4001
 
     ports: # not needed if proxied by caddy
-      - "4001:8080"
+      - "4001:4001"
 
     labels: # https://github.com/lucaslorentz/caddy-docker-proxy?tab=readme-ov-file#services
       caddy: "deliveroojs24c1_1.rtibdi.disi.unitn.it"

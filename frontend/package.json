@@ -1,5 +1,5 @@
 {
-  "name": "@unitn-asa/vue-project",
+  "name": "@unitn-asa/deliveroojs-frontend",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,12 +7,11 @@
     "type": "git",
     "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
   },
-  "workspaces": [
-    "../*"
-  ],
   "scripts": {
     "dev": "vite",
+    "prebuild": "rm -rf node_modules && npm install && rm -rf dist",
     "build": "vite build",
+    "postbuild": "rm -rf node_modules",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -2,7 +2,7 @@ import { ref, reactive, shallowReactive } from "vue";
 import { default as io, Socket } from 'socket.io-client';
 import { jwtDecode } from "jwt-decode";
 import { Grid } from "./Grid.js";
-import ioClientSocket from "../../deliveroo-js-client/lib/ioClientSocket.js";
+import ioClientSocket from "../../packages/@unitn-asa/deliveroo-js-client/lib/ioClientSocket.js";
 
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 

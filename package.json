@@ -4,41 +4,20 @@
   "description": "Deliveroo.js Development Kit - Autonomous Software Agents - 2023",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "license": "ISC",
+  "private": true,
   "workspaces": [
     "packages/@unitn-asa/*"
   ],
-  "main": "index.js",
-  "bin": {
-    "deliveroo-js-server": "./cli.js"
-  },
   "scripts": {
     "prepublishOnly": "",
-    "prepare": "",
-    "start": "node index.js",
-    "build": "npm run build --workspace=packages/@unitn-asa/deliveroo-js-vueapp/",
-    "dev": "nodemon --inspect -r dotenv/config index.js"
+    "start": "cd backend && npm start",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "postbuild": "",
+    "dev": "cd backend && npm run dev",
+    "dev-ui": "cd frontend && npm run dev"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
-  },
-  "devDependencies": {
-    "dotenv": "^16.0.3",
-    "jest": "^27.5.1",
-    "lerna": "^8.2.1",
-    "nodemon": "^3.1.9"
-  },
-  "dependencies": {
-    "argparse": "^2.0.1",
-    "canvas": "^3.1.0",
-    "express": "^4.17.3",
-    "jsonwebtoken": "^9.0.0",
-    "redis": "^4.6.4",
-    "socket.io": "^4.4.1",
-    "uid": "^2.0.1"
-  },
-  "engines": {
-    "node": "22.x"
-  },
-  "type": "commonjs"
+  }
 }

@@ -1,5 +1,5 @@
 FROM node:22.14.0
-MAINTAINER Marco Robol <marco.robol@unitn.it>
+LABEL author="Marco Robol <marco.robol@unitn.it>"
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -15,6 +15,8 @@ COPY . /app
 WORKDIR /app
 RUN npm install
 RUN npm run build
+RUN npm prune --production
+RUN cd backend && npm prune --production
 
 EXPOSE  $PORT
 

@@ -13,7 +13,7 @@ const { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware } = require(
 /**
  * Serve front-end static files
  */
-app.use('/', express.static( Path.join(__dirname, '..', 'packages', '\@unitn-asa', 'deliveroo-js-vueapp', 'dist') ));
+app.use('/', express.static( Path.join(__dirname, '..', '..', 'frontend', 'dist') ));
 
 
 // Middleware per gestire i dati JSON
