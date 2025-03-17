@@ -5,8 +5,7 @@
   "author": "Marco Robol <marco.robol@unitn.it>",
   "license": "ISC",
   "workspaces": [
-    "packages/@unitn-asa/*",
-    "."
+    "packages/@unitn-asa/*"
   ],
   "main": "index.js",
   "bin": {
@@ -26,7 +25,8 @@
   "devDependencies": {
     "dotenv": "^16.0.3",
     "jest": "^27.5.1",
-    "lerna": "^8.2.1"
+    "lerna": "^8.2.1",
+    "nodemon": "^3.1.9"
   },
   "dependencies": {
     "argparse": "^2.0.1",

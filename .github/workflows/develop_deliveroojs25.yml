@@ -29,6 +29,9 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
+      - name: Prune dev dependencies
+        run: npm prune --production
+
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
