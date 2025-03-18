@@ -213,7 +213,7 @@ function loadJavascript ( path ) {
             console.log( 'Javascript loaded from:', './levels/' + path );
             return js;
         } catch ( err ) {
-            console.warn( 'Not even from ./levels/' + path,  "was possible" )
+            console.warn( 'Js not found in either ./' + path, 'or ./levels/' + path )
             throw err;
         }
     }

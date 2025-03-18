@@ -6,6 +6,7 @@ const app = express();
 const configRoutes = require('./routes/configs');
 const mapsRoutes = require('./routes/maps');
 const agentsRoutes = require('./routes/agents');
+const levelsRoutes = require('./routes/levels');
 const { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware } = require('./middlewares/token');
 
 
@@ -61,6 +62,7 @@ app.use('/api/tokens', signTokenMiddleware, (req, res) => {
 app.use('/api/configs', configRoutes);          // api/configs      GET config by roomId
 app.use('/api/maps', mapsRoutes);               // api/maps         GET, POST, GET/:id as json, GET/:id.png as png
 app.use('/api/agents', agentsRoutes);           // api/agents       GET agents on the grid
+app.use('/api/levels', levelsRoutes);           // api/levels       GET levels
 
 app.use( (err, req, res, next) => { 
     console.error(err.stack); 

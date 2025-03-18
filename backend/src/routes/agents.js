@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
 
     console.log( `GET /agents` );
 
-    const agents = Array.from( await grid.getAgents() ).map( agent => {
+    const agents = Array.from( await grid.agents.values() ).map( agent => {
         return {
             id: agent.id,
             name: agent.name
@@ -18,6 +18,8 @@ router.get('/', async (req, res) => {
     res.status(200).json( agents );
   
 });
+
+
 
 
 
