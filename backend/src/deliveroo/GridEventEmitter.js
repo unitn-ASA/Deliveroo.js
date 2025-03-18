@@ -24,7 +24,7 @@ class GridEventEmitter {
      * @param { Tile } tile 
      */
     emitTile ( tile ) {
-        this.#eventEmitter.emitOnePerFrame('tile', tile);
+        this.#eventEmitter.emit('tile', tile);
     }
 
     /**
@@ -40,7 +40,7 @@ class GridEventEmitter {
      * @param { Parcel } parcel 
      */
     emitParcel ( parcel ) {
-        this.#eventEmitter.emitOnePerFrame('parcel', parcel);
+        this.#eventEmitter.emit('parcel', parcel);
     }
 
     /**
@@ -61,8 +61,8 @@ class GridEventEmitter {
      * @param { Agent } agent
      */
     emitAgent ( agentEvent, agent ) {
-        this.#eventEmitter.emitOnePerFrame('agent', agentEvent, agent);
-        this.#eventEmitter.emitOnePerFrame('agent ' + agentEvent, agentEvent, agent);
+        this.#eventEmitter.emit('agent', agentEvent, agent);
+        this.#eventEmitter.emit('agent ' + agentEvent, agentEvent, agent);
     }
 
     /**

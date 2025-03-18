@@ -84,6 +84,10 @@ class ioTypedSocket {
      */
     get id () { return this.#socket.id }
 
+    disconnect () {
+        this.#socket.disconnect();
+    }
+
     /**
      * @template {keyof onEv} K
      * @param {K} event

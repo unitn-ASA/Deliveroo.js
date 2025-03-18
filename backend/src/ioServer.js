@@ -129,6 +129,18 @@ class ioServer {
         });
 
 
+        
+        /**
+         * Kick agent
+         */
+        me.on( 'penalty', () => {
+            if ( me.penalty < -1000 ) {
+                console.log( `${me.name}-${me.teamName}-${me.id} is behaving too bad, automatically kicked with penalty ${me.penalty}` );
+                socket.disconnect();
+            }
+        } );
+
+
 
         /**
          * Config
@@ -145,7 +157,6 @@ class ioServer {
          * Emit map (tiles)
          */
         myGrid.onTile( ( { xy: {x,y}, type } ) => {
-            // console.log( 'emit tile', x, y, type );
             socket.emitTile( {x, y, type} );
         } );
         let tiles = []

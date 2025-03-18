@@ -30,7 +30,7 @@ export default class DeliverooApi extends ioClientSocket {
                 // query: { name: NAME }
                 // path: '/'
             };
-            if ( TOKEN || token )
+            if ( TOKEN || ( token && token != '') )
                 opts.extraHeaders = { 'x-token': TOKEN || token }
             else if ( NAME )
                 opts.query = { name: NAME }
