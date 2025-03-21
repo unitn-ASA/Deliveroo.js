@@ -9,7 +9,7 @@
     const selectedParcel = grid?.selectedParcel;
 
     function change() {
-        connection.socket.emit( 'tile', selectedTile.value.x, selectedTile.value.y );
+        connection.socket.emit( 'tile', selectedTile.value );
     }
 
 </script>
@@ -36,7 +36,7 @@
             <br>
             Parcel in ({{ selectedParcel?.x }}, {{  selectedParcel?.y }})
             is {{ selectedParcel?.id }} with reward {{ selectedParcel?.reward }}
-        </span><br>
+        </span>
 
     </main>
 </template>

@@ -16,7 +16,7 @@
 <template>
     <main>
 
-    <div class="mx-auto pb-10 space-y-1">
+    <div class="mx-auto space-y-1">
         
         <div class="flex flex-col space-y-1">
 

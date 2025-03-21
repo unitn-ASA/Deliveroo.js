@@ -29,15 +29,15 @@ const ObservableMulti = require('../reactivity/ObservableMulti');
     
     /** @property {boolean} */
     get walkable () {
-        return this.type != '0';
+        return this.type != "0";
     }
 
     get delivery () {
-        return this.type == '2';
+        return this.type == "2";
     }
 
     get parcelSpawner () {
-        return this.type == '1';
+        return this.type == "1";
     }
     
     /** @property {boolean} */

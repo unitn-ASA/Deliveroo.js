@@ -68,8 +68,8 @@ class Config {
         '-t', '--timeout', "Specify the timeout for agents, default is 10000");
 
     /** @type {number} */
-    RANDOMLY_MOVING_AGENTS = this.setNumber('RANDOMLY_MOVING_AGENTS', 2,
-        '-z', '--npc-num', "Specify the number of randomly moving agents, default is 2");
+    RANDOMLY_MOVING_AGENTS = this.setNumber('RANDOMLY_MOVING_AGENTS', 0,
+        '-z', '--npc-num', "Specify the number of randomly moving agents, default is 0");
 
     /** @type {import("./src/deliveroo/Clock").ClockEvents} */
     RANDOM_AGENT_SPEED = this.setClockEvent('RANDOM_AGENT_SPEED', '2s',

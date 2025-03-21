@@ -176,26 +176,35 @@ export class Grid {
     selectedParcel = ref();
 
     /**
-	 * @type {function(import('three').Mesh):Agent|Tile|Parcel}
+	 * @type {function(String):Agent}
 	 */
-	getByMesh ( mesh ) {
-        // console.log( 'Grid.js getByMesh', mesh, this.agents.values() );
-        let byMesh = Array.from(this.agents.values()).find( agent => agent.mesh == mesh )
-                    || Array.from(this.tiles.values()).find( tile => tile.mesh == mesh )
-                    || Array.from(this.parcels.values()).find( parcel => parcel.mesh == mesh );
-		return byMesh;
+	getAgentByMeshUUID ( uuid ) {
+        return Array.from(this.agents.values()).find( agent => agent.mesh.uuid == uuid );
 	}
+    /**
+	 * @type {function(String):Parcel}
+	 */
+	getParcelByMeshUUID ( uuid ) {
+        return Array.from(this.parcels.values()).find( parcel => parcel.mesh.uuid == uuid );
+	}
+    /**
+     * @type {function(String):Tile}
+    */
+    getTileByMeshUUID ( uuid ) {
+        return Array.from(this.tiles.values()).find( tile => tile.mesh.uuid == uuid )
+    }
 
     hooverByMesh ( mesh ) {
         // console.log( 'Grid.js hooverByMesh', mesh );
-        let byMesh = this.getByMesh( mesh );
-        if ( byMesh?.hoovered ) return; // already hoovered, return
+        let byMesh = this.getAgentByMeshUUID( mesh?.uuid ) || this.getParcelByMeshUUID( mesh?.uuid ) || this.getTileByMeshUUID( mesh?.uuid );
+        if ( byMesh?.hoovered ) return; // null or already hoovered, return
         if ( this.hoovered.value ) this.hoovered.value.hoovered = false; // unhoover previous
-        this.hoovered.value = this.getByMesh( mesh ); // set newly hoovered
+        this.hoovered.value = byMesh; // set newly hoovered
         if ( this.hoovered.value ) this.hoovered.value.hoovered = true; // hoover new
     }
 
     selectByMesh ( mesh ) {
+        // console.log( 'Grid.js selectByMesh', mesh );        
 
         function setSelected ( s, ref ) {
             if ( s && s.selected ) {
@@ -208,15 +217,15 @@ export class Grid {
             }
         }
 
-        let agent = Array.from(this.agents.values()).find( agent => agent.mesh == mesh )
+        let agent = this.getAgentByMeshUUID( mesh?.uuid );
         this.selectedAgent.value = this.selectedAgent.value == agent ? undefined : agent;
         if ( agent ) return;
-        
-        let tile = Array.from(this.tiles.values()).find( tile => tile.mesh == mesh )
+
+        let tile = this.getTileByMeshUUID( mesh?.uuid );
         setSelected( tile, this.selectedTile );
         if ( tile ) return;
 
-        let parcel = Array.from(this.parcels.values()).find( parcel => parcel.mesh == mesh )
+        let parcel = this.getParcelByMeshUUID( mesh?.uuid );
         setSelected( parcel, this.selectedParcel );
         if ( parcel ) return;
         

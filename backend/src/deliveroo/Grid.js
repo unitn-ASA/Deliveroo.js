@@ -75,6 +75,9 @@ class Grid extends GridEventEmitter {
                 }
             }
         }
+
+        this.#X = Xlength;
+        this.#Y = Ylength;
     }
 
     /**

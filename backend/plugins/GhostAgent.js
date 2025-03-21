@@ -18,14 +18,14 @@ class GhostAgent extends Agent {
             return false;
         this.moving = true;
         await myClock.synch();
-        let toTile = this.grid.getTile( this.#x+incr_x, this.#y+incr_y );
+        let toTile = this.grid.getTile( {x: this.x + incr_x, y: this.y + incr_y } );
         if ( toTile ) {
             // console.log(this.id, 'start move in', this.x+incr_x, this.y+incr_y)
             this.moving = true;
             await this.stepByStep( incr_x, incr_y );
             // console.log(this.id, 'done move in', this.x, this.y)
             this.moving = false;
-            return { x: this.#x, y: this.#y };
+            return this.xy;
         }
         // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
         this.moving = false;

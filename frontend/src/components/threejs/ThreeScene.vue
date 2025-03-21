@@ -123,14 +123,16 @@
 			map.set( parcel.mesh, parcel );
 		return map;
 	})
+	/**
+	 * @type { import("vue").ComputedRef< import("three").Mesh [] > }
+	 */
 	const hoverable = computed ( () => {
-		const objects = new Array();
-		for ( const { mesh } of connection.grid.agents.values() )
-			objects.push( mesh );
-		for ( const { mesh } of connection.grid.tiles.values() )
-			objects.push( mesh );
-		for ( const { mesh } of connection.grid.parcels.values() )
-			objects.push( mesh );
+		// console.log( 'ThreeScene.js hoverable = computed()' );
+		const objects = [
+			...connection.grid.agents.values(),
+			...connection.grid.tiles.values(),
+			...connection.grid.parcels.values()
+		].map( ({ mesh }) => mesh );
 		return objects;
 	});
 
@@ -205,6 +207,7 @@
 
         const mouse = new THREE.Vector2();
         const raycaster = new THREE.Raycaster();
+		var intersections = []
 		let hoveredObj = null;
 		// let x = Math.round( hoveredObj.position.x / 1.5 );
 		// let y = Math.round( - hoveredObj.position.z / 1.5 );
@@ -226,16 +229,13 @@
 		/**
 		 * Camera following target
 		 */
-
 		const animate = () => {
 			
+			intersections.length = 0;
 			raycaster.setFromCamera( mouse, camera );
-			const intersections = raycaster.intersectObjects( hoverable.value, true );
-			if ( hoveredObj != intersections[ 0 ]?.object ) {
-				hoveredObj = intersections[ 0 ]?.object;
-				connection.grid.hooverByMesh( hoveredObj );
-				// if ( hoveredObj instanceof THREE.Mesh )
-			}
+			raycaster.intersectObject( scene, true, intersections ); // intersectObject( scene ) improves performance w.r.t. intersectObjects( hoverables[] );
+			hoveredObj = intersections[ 0 ]?.object;
+			connection.grid.hooverByMesh( intersections[ 0 ]?.object );
 			
 			if ( targetMesh.value ) {
 				// current cam target

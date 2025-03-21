@@ -60,7 +60,13 @@ class Parcel extends ObservableMulti {
         } )
 
         this.watch('reward');
-        this.reward = reward || Math.floor( Math.random()*config.PARCEL_REWARD_VARIANCE*2 + config.PARCEL_REWARD_AVG-config.PARCEL_REWARD_VARIANCE );
+        {
+            let random = Math.random();
+            let va = config.PARCEL_REWARD_VARIANCE;
+            let avg = config.PARCEL_REWARD_AVG;
+            this.reward = reward || Math.floor( (random * va * 2) + (avg - va) ); // FIXED formulae; the +avg was being concatenated instead of summed. Still make no sense, who knows...
+            // console.log( "Parcel.js reward:",  `${reward} || ${random} * ${va} * 2 + ${avg} - ${va} = ${random * va * 2} + ${avg} - ${va} = ${random * va * 2 + avg} - ${va} =Floor(${random * va * 2 + avg - va}) = ${this.reward}` ); // + avg were being concatenated instead of summed. who knows?
+        }
 
         this.watch('expired');
         this.expired = false;

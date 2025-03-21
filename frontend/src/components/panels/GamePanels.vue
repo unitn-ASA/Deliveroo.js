@@ -12,6 +12,7 @@
     import AgentsPanels from './AgentsPanel.vue';
     import ParcelsPanels from './ParcelsPanel.vue';
     import ToolsPanel from './ToolsPanel.vue';
+    import Spawner from './Spawner.vue';
 
     const levelsModal = ref(false); // Reactive variable for overlay visibility
     const mapsModal = ref(false); // Reactive variable for overlay visibility
@@ -78,8 +79,6 @@
                                 Change Map
                             </button>
                             <Settings v-if="connection"/>
-                            <pre id="config" class="text-xs"></pre>
-                            <img id="canvas" width="200" height="200" style="position: relative; top: 0; left: 0; z-index: 1000;"></img>
                         </div>
                     </div>
 
@@ -109,6 +108,16 @@
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
 
                             <ToolsPanel/>
+
+                        </div>
+                    </div>
+
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
+                        <input type="checkbox" checked />
+                        <div class="collapse-title font-medium">Parcel spawner settings</div>
+                        <div class="collapse-content overflow-hidden" style="min-height:auto!important">
+
+                            <Spawner/>
 
                         </div>
                     </div>
