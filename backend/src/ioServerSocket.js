@@ -1,4 +1,4 @@
-const myClock = require('./deliveroo/Clock');
+const myClock = require('./myClock');
 const ioTypedSocket = require('@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs');
 
 /**
@@ -134,7 +134,7 @@ class ioServerSocket extends ioTypedSocket {
     /**
      * @callback onMoveCallback
      * @param { 'up' | 'right' | 'left' | 'down' | { x:number, y:number } } directionOrXy
-     * @param { function( { x:number, y:number } | 'false' ) : void } replyAcknowledgmentCallback ( reply )
+     * @param { function( { x:number, y:number } | false ) : void } replyAcknowledgmentCallback ( reply )
      */
     /**
      * @param { onMoveCallback } callback ( direction, acknowledgementCallback )

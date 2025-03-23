@@ -9,30 +9,24 @@ class Identity {
     /** @type {number} lastId */
     static #lastId = 0;
     
-    #id;
-    /** @type {string} id */
-    get id () { return this.#id; };
+    /** @readonly @property {string} id */
+    id;
     
-    #name;
-    /** @type {string} name */
-    get name () { return this.#name; };
+    /** @readonly @property {string} name */
+    name;
     
-    #teamId
-    /** @type {string} teamId */
-    get teamId () { return this.#teamId; };
+    /** @readonly @property {string} teamId */
+    teamId;
 
-    #teamName;
-    /** @type {string} teamName */
-    get teamName () { return this.#teamName; };
-
-    #role;
-    /** @type {string} role */
-    get role () { return this.#role; };
-
-    #socketId;
-    /** @type {string} socketId */
-    get socketId () { return this.#socketId; };
-
+    /** @readonly @property {string} teamName */
+    teamName;
+    
+    /** @readonly @property {string} role */
+    role;
+    
+    /** @readonly @property {string} socketId */
+    socketId;
+    
 
 
     /**
@@ -46,13 +40,19 @@ class Identity {
      */
     constructor ( id = undefined, name = undefined, teamId = undefined, teamName = undefined, role = undefined, socketId = undefined ) {
 
-        this.#id = id || 'a' + Identity.#lastId++;
-        this.#name = name || this.id;
-        this.#teamId = teamId;
-        this.#teamName = teamName;
-        this.#role = role || 'user';
-        this.#socketId = socketId;
+        this.id = id || 'a' + Identity.#lastId++;
+        this.name = name || this.id;
+        this.teamId = teamId;
+        this.teamName = teamName;
+        this.role = role || 'user';
+        this.socketId = socketId;
 
+    }
+
+
+
+    toString () {
+        return `${this.name} (${this.id}) of ${this.teamName} (${this.teamId}) as ${this.role} from socket ${this.socketId}`;
     }
 
 }

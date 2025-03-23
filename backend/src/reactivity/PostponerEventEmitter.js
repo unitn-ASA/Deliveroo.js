@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const myClock = require('../deliveroo/Clock');
+const myClock = require('../myClock');
 
 /**
  * Observer callback function

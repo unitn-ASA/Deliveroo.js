@@ -15,7 +15,7 @@ const ObservableMulti = require('../reactivity/ObservableMulti');
     /** @type {Xy} */
     #xy;
 
-    /** @property {Xy} xy */
+    /** @type {Xy} xy */
     get xy () {
         return this.#xy;
     }
@@ -24,10 +24,10 @@ const ObservableMulti = require('../reactivity/ObservableMulti');
     /** @type {number} */
     get y () { return this.xy.y }
 
-    /** @property {string} */
+    /** @type {string} */
     type;
     
-    /** @property {boolean} */
+    /** @type {boolean} */
     get walkable () {
         return this.type != "0";
     }
@@ -40,7 +40,7 @@ const ObservableMulti = require('../reactivity/ObservableMulti');
         return this.type == "1";
     }
     
-    /** @property {boolean} */
+    /** @type {boolean} */
     locked;
     
     lock() {
@@ -51,7 +51,7 @@ const ObservableMulti = require('../reactivity/ObservableMulti');
         this.locked = false;
     }
     
-    // /** @property {Set<Parcel>} parcel */
+    // /** @type {Set<Parcel>} parcel */
     // #parcels = new Set();
     
     /**

@@ -17,7 +17,7 @@
     })
 
     function loadMap( map ) {
-        patchConfig( connection.token, 'MAP_FILE', map.name[0] );
+        patchConfig( connection.token, { 'MAP_FILE': map.name[0] } );
         emit('loadMap', map );
     }
 

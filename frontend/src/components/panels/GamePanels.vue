@@ -37,7 +37,7 @@
         </Modal>
 
         <Modal v-model="levelsModal" title="Load level">
-            <Levels @load-level="mapsModal=false;"/>
+            <Levels @load-level="levelsModal=false;"/>
         </Modal>
 
         <Modal v-model="mapsModal" title="Change map">

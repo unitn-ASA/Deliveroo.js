@@ -1,6 +1,6 @@
 const ObservableValue =  require('../reactivity/ObservableValue')
 const Xy =  require('./Xy')
-const myClock =  require('./Clock')
+const myClock =  require('../myClock')
 const config =  require('../../config')
 const Agent =  require('./Agent')
 const ObservableMulti = require('../reactivity/ObservableMulti')

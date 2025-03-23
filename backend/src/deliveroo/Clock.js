@@ -1,10 +1,11 @@
 const EventEmitter = require('events');
 const {CLOCK} = require('../../config');
+const Types = require('./Types');
 
 
 
 /**
- * @typedef { 'frame' | '1s' | '2s' | '5s' | '10s' } ClockEvents
+ * @typedef { Types.ClockEvent } ClockEvent
  */
 
 
@@ -13,7 +14,6 @@ const {CLOCK} = require('../../config');
  * @class Clock
  */
 class Clock {
-
 
     /** @type {EventEmitter} */
     #eventEmitter = new EventEmitter();
@@ -47,7 +47,7 @@ class Clock {
     }
 
     /**
-     * @arg { ClockEvents } event
+     * @arg { ClockEvent } event
      * @arg { function(...any) : void } cb
      */
     on ( event, cb ) {
@@ -55,7 +55,7 @@ class Clock {
     }
     
     /**
-     * @arg { ClockEvents } event
+     * @arg { ClockEvent } event
      * @arg { ? function(...any) : void } cb
      */
     async once ( event, cb = undefined ) {
@@ -66,7 +66,7 @@ class Clock {
     }
 
     /**
-     * @arg { ClockEvents } event
+     * @arg { ClockEvent } event
      * @arg { function(...any) : void } cb
      */
     off ( event, cb ) {
@@ -138,8 +138,6 @@ class Clock {
 
 }
 
-const myClock = new Clock();
 
 
-
-module.exports = myClock;
+module.exports = Clock ;

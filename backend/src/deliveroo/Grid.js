@@ -6,6 +6,7 @@ const config =  require('../../config');
 const GridEventEmitter = require('./GridEventEmitter');
 const Sensor = require('./Sensor');
 const Identity = require('./Identity');
+const Factory = require('./Factory');
 
 
 
@@ -150,7 +151,7 @@ class Grid extends GridEventEmitter {
 
         // Instantiate
         /** @type {Agent} */
-        var me = new (global.Agent || Agent)( this, identity );
+        var me = Factory.createAgent( this, identity );
         this.emitAgent( 'created', me );
 
         // Register

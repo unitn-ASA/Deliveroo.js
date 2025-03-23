@@ -1,7 +1,7 @@
 require('dotenv').config();
 const timersPromises = require('timers/promises')
 const ObservableMulti = require('./ObservableMulti');
-const myClock = require('../deliveroo/Clock');
+const myClock = require('../myClock');
 myClock.start();
 
 

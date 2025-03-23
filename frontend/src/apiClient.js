@@ -32,10 +32,30 @@ async function richiediToken(nome, team, password) {
     });
 }
 
-async function patchConfig ( token, key, value ) {
+async function getConfig ( token ) {
+    return new Promise((resolve, reject) => {
+        fetch(HOST+'/api/configs', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-token': token
+            }
+        })
+        .then( JSON.stringify )
+        .catch(error => {
+            console.error('An error occurred:', error);
+            reject('Error getting config');
+        });
+    });
+}
 
-    const config = {}
-    config[key] = value;
+/**
+ * 
+ * @param {string} token 
+ * @param {{}} config 
+ * @returns 
+ */
+async function patchConfig ( token, config ) {
 
     console.log( "Patching config: ", config );
 
@@ -64,4 +84,4 @@ async function patchConfig ( token, key, value ) {
     });
 }
 
-export { richiediToken, patchConfig }
+export { richiediToken, getConfig, patchConfig }

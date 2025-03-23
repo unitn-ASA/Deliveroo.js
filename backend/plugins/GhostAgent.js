@@ -1,8 +1,9 @@
-var Agent =  require('../src/deliveroo/Agent');
-const myClock = require('../src/deliveroo/Clock');
+const Agent = require('../src/deliveroo/Agent');
+const myClock = require('../src/myClock');
+const config = require('../config');
 
 /**
- * @class GhostAgent
+ * @class
  * @extends Agent
 */
 class GhostAgent extends Agent {
@@ -34,8 +35,12 @@ class GhostAgent extends Agent {
     
 }
 
-global.Agent = GhostAgent;
-// const oldLogger = console.log;
-// global.console.log = (...data) => oldLogger('MY LOGGER', ...data)
+
 
 module.exports = GhostAgent;
+
+
+
+// Lazy plugin installation
+global.GhostAgent = GhostAgent;
+config.AGENT_TYPE = 'GhostAgent';

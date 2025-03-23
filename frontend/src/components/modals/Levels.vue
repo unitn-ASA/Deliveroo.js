@@ -17,9 +17,7 @@
     })
 
     function loadLevel( level ) {
-        for ( let [key, value] of Object.entries(level) ) {
-            patchConfig( connection.token, key, value );
-        }
+        patchConfig( connection.token, level );
         emit('loadLevel', level );
     }
 

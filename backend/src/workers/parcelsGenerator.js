@@ -1,6 +1,6 @@
 const Grid = require('../deliveroo/Grid');
 const Tile =  require('../deliveroo/Tile');
-const myClock =  require('../deliveroo/Clock');
+const myClock =  require('../myClock');
 const {PARCELS_GENERATION_INTERVAL, PARCELS_MAX} =  require('../../config');
 
 

@@ -1,5 +1,5 @@
 const Grid = require('../deliveroo/Grid');
-const myClock =  require('../deliveroo/Clock');
+const myClock =  require('../myClock');
 const {RANDOM_AGENT_SPEED} =  require('../../config');
 const Identity = require('../deliveroo/Identity');
 const timersPromises = require('timers/promises'); // await timersPromises.setImmediate();

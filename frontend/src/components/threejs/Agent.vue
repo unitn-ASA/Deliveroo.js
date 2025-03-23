@@ -103,7 +103,7 @@
         if ( agent.x == Math.round(agent.x) && agent.y == Math.round(agent.y) ) { // if arrived
             agent.mesh.position.lerp( agentTargetVector3, 0.5 );
         } else { // if still moving
-            agent.mesh.position.lerp( agentTargetVector3, 0.08 );
+            agent.mesh.position.lerp( agentTargetVector3, 12 / connection.configs.MOVEMENT_DURATION );
         }
 
         requestAnimationFrame(animate);

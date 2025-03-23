@@ -4,18 +4,18 @@ const Grid =  require('./Grid')
 const Agent = require('./Agent');
 const Parcel = require('./Parcel');
 const Postponer = require('../reactivity/Postponer');
-const myClock = require('./Clock');
+const myClock = require('../myClock');
 
 
 
 /**
  * @typedef SensedAgent
- * @type {import("../../packages/@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").agent}
+ * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").agent}
  */
 
 /**
  * @typedef SensedParcel
- * @type {import("../../packages/@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
+ * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
  */
 
 /**

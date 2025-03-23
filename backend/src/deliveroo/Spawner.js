@@ -1,4 +1,4 @@
-const myClock = require('./Clock');
+const myClock = require('../myClock');
 const config = require('../../config');
 const Grid = require('./Grid');
 
