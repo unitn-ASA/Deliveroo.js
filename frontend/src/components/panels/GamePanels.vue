@@ -2,6 +2,7 @@
     
     import { ref, computed } from 'vue';
     import Settings from './Settings.vue';
+    import ParcelSpawner from './ParcelSpawner.vue';
     import Timer from './Timer.vue';
     import Levels from '../modals/Levels.vue';
     import Maps from '../modals/Maps.vue';
@@ -12,7 +13,6 @@
     import AgentsPanels from './AgentsPanel.vue';
     import ParcelsPanels from './ParcelsPanel.vue';
     import ToolsPanel from './ToolsPanel.vue';
-    import Spawner from './Spawner.vue';
 
     const levelsModal = ref(false); // Reactive variable for overlay visibility
     const mapsModal = ref(false); // Reactive variable for overlay visibility
@@ -45,8 +45,9 @@
         </Modal>
 
         <Modal v-model="settingsModal" title="Server settings">
-            <div class="px-40 py-10">
+            <div class="px-40 py-10 space-y-4">
                 <Settings v-if="connection"/>
+                <ParcelSpawner v-if="connection"/>
             </div>
         </Modal>
 
@@ -108,16 +109,6 @@
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
 
                             <ToolsPanel/>
-
-                        </div>
-                    </div>
-
-                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
-                        <input type="checkbox" checked />
-                        <div class="collapse-title font-medium">Parcel spawner settings</div>
-                        <div class="collapse-content overflow-hidden" style="min-height:auto!important">
-
-                            <Spawner/>
 
                         </div>
                     </div>
