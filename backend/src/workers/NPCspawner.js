@@ -25,7 +25,7 @@ class NPCspawner {
         this.#grid = grid;
 
 
-        myClock.on( '10s', () => {
+        myClock.on( '2s', () => {
 
             while ( this.NPCs.size != config.RANDOMLY_MOVING_AGENTS ) {
                 
@@ -51,6 +51,11 @@ class NPCspawner {
     createNPC () {
         let NPC = new randomlyMovingAgent( this.#grid );
         this.NPCs.set( NPC.agent.identity.id, NPC );
+        this.#grid.onAgent( "deleted" , (ev, agent) => {
+            if ( agent.id == NPC.agent.id ) {
+                this.removeNPC( NPC.agent.identity.id );
+            }
+        } );
         NPC.start();
         return NPC;
     }

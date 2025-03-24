@@ -2,6 +2,7 @@
     
     import { ref, computed } from 'vue';
     import { connection } from '../../states/myConnection.js';
+    import { deleteAgent } from '../../apiClient.js';
 
     const grid = connection?.grid;
 
@@ -66,13 +67,13 @@
                 </tr>
             </tbody>
         </table>
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="kick()">
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="deleteAgent(connection?.token, connection?.grid.selectedAgent.value.id)" >
             Kick
         </button>
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="respawn()">
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="respawn()" disabled >
             Respawn
         </button>
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="resetScore()">
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="resetScore()" disabled >
             Reset score
         </button>
         <table>

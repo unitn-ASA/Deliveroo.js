@@ -7,6 +7,7 @@ const configRoutes = require('./routes/configs');
 const mapsRoutes = require('./routes/maps');
 const agentsRoutes = require('./routes/agents');
 const levelsRoutes = require('./routes/levels');
+const npcsRoutes = require('./routes/npcs');
 const { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware } = require('./middlewares/token');
 
 
@@ -63,6 +64,7 @@ app.use('/api/configs', configRoutes);          // api/configs      GET config b
 app.use('/api/maps', mapsRoutes);               // api/maps         GET, POST, GET/:id as json, GET/:id.png as png
 app.use('/api/agents', agentsRoutes);           // api/agents       GET agents on the grid
 app.use('/api/levels', levelsRoutes);           // api/levels       GET levels
+app.use('/api/npcs', npcsRoutes);               // api/npcs         GET, GET/:id, PATCH, POST
 
 app.use( (err, req, res, next) => { 
     console.error(err.stack); 

@@ -84,4 +84,34 @@ async function patchConfig ( token, config ) {
     });
 }
 
-export { richiediToken, getConfig, patchConfig }
+/**
+ * @param {string} id 
+ * @returns 
+ */
+async function deleteAgent ( token, id ) {
+    return new Promise((resolve, reject) => {
+        fetch(HOST+'/api/agents/'+id, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-token': token
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(`Error deleting agent, Status code: ${response.status}`);
+        })
+        .then(data => {
+            console.log("agent deleted: " + data);
+            resolve(data);
+        })
+        .catch(error => {
+            console.error('An error occurred:', error);
+            reject('Error deleting agent');
+        });
+    });
+}
+
+export { richiediToken, getConfig, patchConfig, deleteAgent }
