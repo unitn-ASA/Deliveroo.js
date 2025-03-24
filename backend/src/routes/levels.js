@@ -2,8 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const router = express.Router();
-const config = require('../../config');
-const myGrid = require('../grid');
 
 // GET /all levels
 router.get('/', async (req, res) => {

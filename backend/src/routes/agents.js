@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const grid = require('../grid');
+const { myGrid } = require('../grid');
 
 
 
@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
 
     console.log( `GET /agents` );
 
-    const agents = Array.from( await grid.agents.values() ).map( agent => {
+    const agents = Array.from( await myGrid.agents.values() ).map( agent => {
         return {
             id: agent.id,
             name: agent.name

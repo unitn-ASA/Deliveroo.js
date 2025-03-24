@@ -1,7 +1,7 @@
 const { Server } = require('socket.io');
 const httpServer = require('./httpServer');
-const myGrid = require('./grid');
-const {BROADCAST_LOGS, AGENT_TIMEOUT} = require('../config');
+const { myGrid } = require('./grid');
+const config = require('../config');
 const myClock = require('./myClock');
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 const {tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware} = require('./middlewares/token');
@@ -108,16 +108,16 @@ class ioServer {
                 console.log( `${me.name}-${me.teamName}-${me.id} Socket disconnected.`,
                     socketsLeft ?
                     `Other ${socketsLeft} connections to the agent.` :
-                    `No other connections, agent will be removed in ${AGENT_TIMEOUT/1000} seconds.`
+                    `No other connections, agent will be removed in ${config.AGENT_TIMEOUT/1000} seconds.`
                 );
                 if ( socketsLeft == 0 && me.xy ) {
                     
-                    // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${AGENT_TIMEOUT/1000} seconds agent will be removed.` );
-                    await new Promise( res => setTimeout(res, AGENT_TIMEOUT) );
+                    // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
+                    await new Promise( res => setTimeout(res, config.AGENT_TIMEOUT) );
                     
                     let socketsLeft = (await ioAgent.fetchSockets()).length;
                     if ( socketsLeft == 0 && me.xy ) {
-                        console.log( `${me.name}-${me.teamName}-${me.id} Agent deleted after ${AGENT_TIMEOUT/1000} seconds of no connections` );
+                        console.log( `${me.name}-${me.teamName}-${me.id} Agent deleted after ${config.AGENT_TIMEOUT/1000} seconds of no connections` );
                         myGrid.deleteAgent ( me );
                     };
                 }
@@ -310,7 +310,7 @@ class ioServer {
         /**
          * Bradcast client log
          */
-        if ( BROADCAST_LOGS ) {
+        if ( config.BROADCAST_LOGS ) {
             socket.onLog( ( ...message ) => {
                 socket.broadcast.emit( 'log', {src: 'client', ms: myClock.ms, frame: myClock.frame, socket: socket.id, id: me.id, name: me.name}, ...message )
             } )
@@ -379,12 +379,12 @@ class ioServer {
 /**
  * Broadcast server log
  */
-if ( BROADCAST_LOGS ) {
-    const oldLog = console.log;
-    global.console.log = function ( ...message ) {
+const oldLog = console.log;
+global.console.log = function ( ...message ) {
+    if ( config.BROADCAST_LOGS ) {
         io.emit( 'log', {src: 'server', timestamp: {ms: myClock.ms, frame: myClock.frame}}, ...message );
-        oldLog.apply( console, message );
     };
+    oldLog.apply( console, message );
 }
 
 

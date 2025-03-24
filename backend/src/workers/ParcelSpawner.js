@@ -1,6 +1,6 @@
 const myClock = require('../myClock');
 const config = require('../../config');
-const Grid = require('./Grid');
+const Grid = require('../deliveroo/Grid');
 
 
 /**

@@ -1,35 +1,43 @@
-const Grid = require('../deliveroo/Grid');
 const myClock =  require('../myClock');
-const {RANDOM_AGENT_SPEED} =  require('../../config');
-const Identity = require('../deliveroo/Identity');
+const config =  require('../../config');
 const timersPromises = require('timers/promises'); // await timersPromises.setImmediate();
-const Agent = require('../deliveroo/Agent');
+const NPC = require('./NPC'); 
         
 const actions = [ 'up', 'right', 'down', 'left' ];
 const relPos = [ {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0} ];
 
+
+
 /**
- * @param {Grid} myGrid
+ * Timeline of RandomlyMovingAgent
+ * 
+ * Events:                start()      stop()      stopped      start()
+ * runningPromise          | pending                | res/rej   | pending
+ * running                 | true                   | false     | true
+ * stopRequested    false               | true      | false     
+ * 
+ * @class
+ * @extends { NPC }
  */
-module.exports = function ( myGrid ) {
+class RandomlyMovingAgent extends NPC {
 
     /**
-     * @param {Agent} agent 
+     * @returns {Promise} Resolves when it stops
      */
-    async function randomlyMove ( agent ) {
+    async moveUntilStopRequested ( ) {
     
         let index =  Math.floor( Math.random()*4 );
 
-        while ( true ) {
+        while ( ! this.stopRequested ) {
 
-            let tile = agent.grid.getTile( { x: agent.x + relPos[index].x, y: agent.y + relPos[index].y } );
+            let tile = this.agent.grid.getTile( { x: this.agent.x + relPos[index].x, y: this.agent.y + relPos[index].y } );
             let moved = false;
             if ( tile?.walkable && ! tile?.locked ) {
-                moved = await agent[ actions[index] ](); // try moving
+                moved = await this.agent[ actions[index] ](); // try moving
             }
             if (moved)
                 // wait before continue
-                await new Promise( res => myClock.once( RANDOM_AGENT_SPEED, res ) );
+                await new Promise( res => myClock.once( config.RANDOM_AGENT_SPEED, res ) );
             else
                 // if agent is stucked, this avoid blocking the whole program
                 await timersPromises.setImmediate();
@@ -45,9 +53,7 @@ module.exports = function ( myGrid ) {
 
     }
 
-    const myAgent = myGrid.createAgent( new Identity() );
-    
-    randomlyMove( myAgent );
-
 }
 
+
+module.exports = RandomlyMovingAgent;

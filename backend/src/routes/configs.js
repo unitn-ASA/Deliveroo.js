@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const config = require('../../config');
-const myGrid = require('../grid');
+const { myGrid } = require('../grid');
 
 // GET /configs 
 router.get('/', async (req, res) => {
