@@ -23,6 +23,9 @@
     const me = grid?.me;
     const clock = grid?.clock;
 
+    /** @type {string} */
+    const commitHash = __COMMIT_HASH__;
+
     function restartGame() {
         connection.socket.emit('restart');
     }
@@ -58,6 +61,13 @@
             <div class="resize" style="direction: ltr">
 
                 <div class="flex flex-col space-y-4">
+
+                    <div class="text-center">
+                        commit
+                        <a v-bind:href="'https://github.com/unitn-ASA/Deliveroo.js/commit/'+commitHash">
+                            {{commitHash?.slice(0,7)}}
+                        </a>
+                    </div>
                     
                     <div tabindex="0" class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox" />
