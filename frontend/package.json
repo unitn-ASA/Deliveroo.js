@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "prebuild": "rm -rf node_modules && npm install && rm -rf dist",
+    "prebuild": "rm -rf node_modules && npm install --include=dev && rm -rf dist",
     "build": "vite build",
     "postbuild": "rm -rf node_modules",
     "preview": "vite preview"

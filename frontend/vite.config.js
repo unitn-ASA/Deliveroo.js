@@ -9,7 +9,12 @@ import { execSync } from 'child_process';
  * https://v2.vitejs.dev/config/#define
  * Starting from 2.0.0-beta.70, string values will be used as raw expressions, so if defining a string constant, it needs to be explicitly quoted (e.g. with JSON.stringify).
  */
-const commitHash = execSync('git rev-parse HEAD').toString().trim();
+var commitHash = "";
+try {
+  commitHash = execSync('git rev-parse HEAD').toString().trim();
+} catch (error) {
+  console.warn( error )
+}
 
 // https://vitejs.dev/config/
 // https://vite.dev/guide/dep-pre-bundling#monorepos-and-linked-dependencies
