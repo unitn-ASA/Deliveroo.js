@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import { default as argsParser } from "args-parser";
-import ioClientSocket from "./ioClientSocket.js";
+import { default as ioClientSocket } from "./ioClientSocket.js";
 
 
 
