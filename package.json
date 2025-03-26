@@ -19,5 +19,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
+  },
+  "devDependencies": {
+    "lerna": "^8.2.1"
   }
 }

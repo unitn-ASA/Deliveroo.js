@@ -14,7 +14,7 @@
     "prepublishOnly": "",
     "prepare": "",
     "start": "node index.js",
-    "prebuild": "rm -rf node_modules && npm install",
+    "prebuild": "npm install",
     "build": "",
     "dev": "nodemon --inspect -r dotenv/config index.js"
   },
