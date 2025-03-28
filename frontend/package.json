@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-webapp",
-  "version": "2.0.0",
+  "version": "2.0.8",
   "private": true,
   "type": "module",
   "repository": {
@@ -11,7 +11,8 @@
     "dev": "vite",
     "prebuild": "npm install --include=dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postbuild": "jq '. | del(.dependencies, .devDependencies, .scripts, .private) | .name=\"@unitn-asa/deliveroo-js-webapp-dist\" | .private=false' package.json > dist/package.json; cp README.md dist/"
   },
   "dependencies": {
     "events": "^3.3.0",
@@ -34,5 +35,8 @@
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.6.1"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

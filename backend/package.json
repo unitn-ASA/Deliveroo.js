@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-backend",
-  "version": "2.0.0",
+  "version": "2.0.8",
   "description": "Deliveroo.js Development Kit - Autonomous Software Agents - 2023",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "license": "ISC",
@@ -8,14 +8,14 @@
   "type": "commonjs",
   "main": "index.js",
   "bin": {
-    "deliveroo-js-server": "./cli.js"
+    "deliveroo-js-server": "./scripts/cli.js"
   },
   "scripts": {
     "prepublishOnly": "",
     "prepare": "",
     "start": "node index.js",
     "prebuild": "npm install",
-    "build": "",
+    "build": "node scripts/build.js",
     "dev": "nodemon --inspect -r dotenv/config index.js"
   },
   "repository": {
@@ -29,6 +29,7 @@
     "nodemon": "^3.1.9"
   },
   "dependencies": {
+    "@unitn-asa/deliveroo-js-webapp-dist": "^2.0.7",
     "argparse": "^2.0.1",
     "canvas": "^3.1.0",
     "express": "^4.17.3",

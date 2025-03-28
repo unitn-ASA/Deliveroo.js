@@ -1,14 +1,10 @@
-# vue-project
+Marco Robol - marco.robol@unitn.it - University of Trento - 2024/2025
 
-This template should help get you started developing with Vue 3 in Vite.
+# Frontend for Deliveroo.js - @unitn-asa/deliveroo-js-webapp
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+Deliveroo.js it's an **Educational Game**, developed by *Marco Robol* for the course on **Autonomous Software Agents** (ASA) by Prof. *Paolo Giorgini*.
+It is a **Grid-Based** parcel collection videogame.
+You can play in **Multi-Player** from your browser or develop your own Autonomous Agent that plays in your place.
 
 ## Project Setup
 

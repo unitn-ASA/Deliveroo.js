@@ -13,6 +13,7 @@
     import AgentsPanels from './AgentsPanel.vue';
     import ParcelsPanels from './ParcelsPanel.vue';
     import ToolsPanel from './ToolsPanel.vue';
+    import VersionPanel from './VersionPanel.vue';
 
     const levelsModal = ref(false); // Reactive variable for overlay visibility
     const mapsModal = ref(false); // Reactive variable for overlay visibility
@@ -22,9 +23,6 @@
     const grid = connection?.grid;
     const me = grid?.me;
     const clock = grid?.clock;
-
-    /** @type {string} */
-    const commitHash = __COMMIT_HASH__;
 
     function restartGame() {
         connection.socket.emit('restart');
@@ -53,21 +51,17 @@
                 <ParcelSpawner v-if="connection"/>
             </div>
         </Modal>
+            
+        <div class="fixed z-10 left-0 top-1 max-h-full ml-20 px-2 text-neutral-content">
+            <VersionPanel/>
+        </div>
 
         <div id="dashboard" class="flex text-sm">
-            
-            
-            <div id="info" class="fixed z-10 left-0 top-4 max-h-full overflow-scroll" style="direction: rtl">
+
+            <div id="info" class="fixed z-10 left-0 top-14 max-h-full overflow-scroll" style="direction: rtl">
             <div class="resize" style="direction: ltr">
 
                 <div class="flex flex-col space-y-4">
-
-                    <div class="text-center">
-                        commit
-                        <a v-bind:href="'https://github.com/unitn-ASA/Deliveroo.js/commit/'+commitHash">
-                            {{commitHash?.slice(0,7)}}
-                        </a>
-                    </div>
                     
                     <div tabindex="0" class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox" />

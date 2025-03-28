@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import commonjs from 'vite-plugin-commonjs'
 import { execSync } from 'child_process';
+import fs from 'fs';
 
 /**
  * https://v2.vitejs.dev/config/#define
@@ -15,6 +16,7 @@ try {
 } catch (error) {
   console.warn( error )
 }
+const packageVersion = JSON.parse( fs.readFileSync('./package.json', 'utf8') ).version;
 
 // https://vitejs.dev/config/
 // https://vite.dev/guide/dep-pre-bundling#monorepos-and-linked-dependencies
@@ -51,6 +53,7 @@ export default defineConfig( () => {
     },
     define: {
       '__COMMIT_HASH__': JSON.stringify( commitHash ),
+      '__PACKAGE_VERSION__': JSON.stringify( packageVersion )
     }
   };
 })

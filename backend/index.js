@@ -1,3 +1,4 @@
+require('./scripts/generateGitRevision.js');
 const httpServer = require('./src/httpServer.js');
 const ioServer = require('./src/ioServer');
 const {PORT} = require('./config');

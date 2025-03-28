@@ -8,7 +8,7 @@ You can play in **Multi-Player** from your browser or develop your own Autonomou
 
 ## How to play
 
-Play online from your browser at [deliveroojs.onrender.com/](https://deliveroojs.onrender.com/)
+Play online from your browser at [deliveroojs.onrender.com/](https://deliveroojs.onrender.com/) or at [https://deliveroojs25.azurewebsites.net/](https://deliveroojs25.azurewebsites.net/)
 
 `a`: left, `s`: down, `d`: right, `w`: up,
 `q`: pickup, `e`: putdown
@@ -20,7 +20,7 @@ Or run locally:
 
 1. `npm install`
 
-2. `node index.js level_1`
+2. `npm start`
 
 ## How to develop your own autonomous agents
 

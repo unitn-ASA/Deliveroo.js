@@ -22,3 +22,5 @@ logs
 bin
 
 .DS_Store
+
+**/.git-revision
