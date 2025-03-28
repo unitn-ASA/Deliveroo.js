@@ -50,7 +50,7 @@
                     >
                 </div>
                 
-                <img :src="HOST+'/api/maps/'+level.MAP_FILE+'.png'" class="mt-2"/>
+                <img v-if="level.MAP_FILE" :src="HOST+'/api/maps/'+level.MAP_FILE+'.png'" class="mt-2"/>
                 
             </div>
 

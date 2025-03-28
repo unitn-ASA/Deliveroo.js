@@ -8,15 +8,16 @@
   "type": "commonjs",
   "main": "index.js",
   "bin": {
-    "deliveroo-js-server": "./cli.js"
+    "deliveroo-js-server": "./scripts/cli.js"
   },
   "scripts": {
+    "git-rev": "node scripts/generateGitRevision.js",
     "prepublishOnly": "",
     "prepare": "",
     "start": "node index.js",
     "prebuild": "npm install",
-    "build": "",
-    "dev": "nodemon --inspect -r dotenv/config index.js"
+    "build": "npm run git-rev",
+    "dev": "npm run git-rev && nodemon --inspect -r dotenv/config index.js"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "nodemon": "^3.1.9"
   },
   "dependencies": {
+    "@unitn-asa/deliveroo-js-webapp": "^2.0.7",
     "argparse": "^2.0.1",
     "canvas": "^3.1.0",
     "express": "^4.17.3",

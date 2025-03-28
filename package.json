@@ -22,5 +22,8 @@
   },
   "devDependencies": {
     "lerna": "^8.2.1"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }
