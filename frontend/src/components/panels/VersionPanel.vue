@@ -5,9 +5,6 @@ import { ref, onMounted, computed } from 'vue';
     /** @type {string} */
     const frontendCommitHash = __COMMIT_HASH__;
 
-    /** @type {import('vue').Ref<string>} */
-    const frontendHashCompare = ref("");
-    
     /** @type {string} */
     const frontendPackageVersion = __PACKAGE_VERSION__;
 
@@ -17,8 +14,8 @@ import { ref, onMounted, computed } from 'vue';
     /** @type {import('vue').Ref<string>} */
     const backendPackageVersion = ref("");
 
-    /** @type {import('vue').Ref<string>} */
-    const backendHashCompare = ref("");
+    /** @type {import('vue').Ref<{}>} */
+    const backendHashCompare = ref({});
 
     const HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
@@ -36,17 +33,8 @@ import { ref, onMounted, computed } from 'vue';
                 backendHashCompare.value = data;
             } )
             .catch( err => {
-                console.error(err);
+                // console.error(err);
             } );
-        } );
-
-        fetch( `https://api.github.com/repos/unitn-asa/Deliveroo.js/compare/HEAD...${frontendCommitHash}` )
-        .then( res => res.json() )
-        .then( data => {
-            frontendHashCompare.value = data;
-        } )
-        .catch( err => {
-            console.error(err);
         } );
     
     })
@@ -77,17 +65,20 @@ import { ref, onMounted, computed } from 'vue';
         </div>
 
         <div class="">
-            <span v-if="backendHashCompare.behind_by">
-                {{backendHashCompare.behind_by}} commit(s) behind
-            </span>
-            <span v-if="backendHashCompare.behind_by || frontendHashCompare.ahead_by">
-                {{backendHashCompare.ahead_by}} commit(s) ahead of
-            </span>
-            <span v-if="backendHashCompare.behind_by || frontendHashCompare.ahead_by">
+            <span v-if="backendHashCompare?.behind_by || backendHashCompare?.ahead_by">
+                <span v-if="backendHashCompare?.behind_by">
+                    {{backendHashCompare?.behind_by}} commit(s) behind
+                </span>
+                <span v-if="backendHashCompare?.ahead_by">
+                    {{backendHashCompare?.ahead_by}} commit(s) ahead of
+                </span>
                 main
             </span>
-            <span v-else>
-                up to date with main
+            <span v-else-if="backendHashCompare?.url">
+                Up to date with main
+            </span>
+            <span v-else class="tooltip tooltip-error" :data-tip="backendHashCompare.message">
+                Cannot verify possible updates
             </span>
             
         </div>

@@ -55,9 +55,11 @@
             <h2>Tokens</h2>
         </div>
         
-        <div class="table">
+        <div class="table" >
             <div class="bg-black bg-opacity-25 max-h-75 box-border p-2 backdrop-blur-md items-center rounded-xl break-inside-avoid mb-2"
-                v-for="token of myTokens">
+                v-for="token of myTokens"
+                :key="myTokens.length"
+            >
 
                 <LoginToken :token="token" @play="play"/>
 

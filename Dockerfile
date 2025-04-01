@@ -8,15 +8,17 @@ RUN apt-get update && apt-get install -y \
     libpango1.0-dev \
     libjpeg-dev \
     libgif-dev \
-    librsvg2-dev
+    librsvg2-dev \
+    jq # Aggiunge jq per elaborare file JSON
 
 RUN mkdir -p /app
 COPY . /app
 WORKDIR /app
-RUN npm install
-RUN npm run build
-RUN npm prune --production
-RUN cd backend && npm prune --production
+RUN npm install && \
+    npm run build && \
+    cd frontend && rm -rf node_modules &&  cd .. \
+    npm prune --production && \
+    cd backend && npm prune --production
 
 EXPOSE  $PORT
 

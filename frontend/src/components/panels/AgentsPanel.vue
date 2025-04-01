@@ -49,7 +49,7 @@
                                     'text-green-500': agent.status == 'online',
                                     'text-yellow-500': agent.status == 'out of range',
                                     'text-red-500': agent.status == 'offline',
-                                    'text-2xl': agent.id==grid.me.value.id
+                                    'text-2xl': agent.id==connection.payload.id
                                 }">
                                     {{ agent.status == 'offline' ? '🔴' : agent.status == 'out of range' ? '🟡' : '🟢' }}
                                 </span>
