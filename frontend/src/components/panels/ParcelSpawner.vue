@@ -32,18 +32,18 @@
 
     const PARCEL_DECADING_INTERVAL_index = computed( {
         get: () => {
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == '1s' ) return 1;
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == '2s' ) return 2;
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == '5s' ) return 3;
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == '10s' ) return 4;
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == 'infinite' ) return 5;
+            if ( connection.configs.PARCEL_DECADING_INTERVAL == '1s' ) return 0;
+            if ( connection.configs.PARCEL_DECADING_INTERVAL == '2s' ) return 1;
+            if ( connection.configs.PARCEL_DECADING_INTERVAL == '5s' ) return 2;
+            if ( connection.configs.PARCEL_DECADING_INTERVAL == '10s' ) return 3;
+            if ( connection.configs.PARCEL_DECADING_INTERVAL == 'infinite' ) return 4;
         },
         set: (value) => {
-            if ( value == 1 ) connection.configs.PARCEL_DECADING_INTERVAL = '1s';
-            if ( value == 2 ) connection.configs.PARCEL_DECADING_INTERVAL = '2s';
-            if ( value == 3 ) connection.configs.PARCEL_DECADING_INTERVAL = '5s';
-            if ( value == 4 ) connection.configs.PARCEL_DECADING_INTERVAL = '10s';
-            if ( value == 5 ) connection.configs.PARCEL_DECADING_INTERVAL = 'infinite';
+            if ( value == 0 ) connection.configs.PARCEL_DECADING_INTERVAL = '1s';
+            if ( value == 1 ) connection.configs.PARCEL_DECADING_INTERVAL = '2s';
+            if ( value == 2 ) connection.configs.PARCEL_DECADING_INTERVAL = '5s';
+            if ( value == 3 ) connection.configs.PARCEL_DECADING_INTERVAL = '10s';
+            if ( value == 4 ) connection.configs.PARCEL_DECADING_INTERVAL = 'infinite';
         }
     } );
 

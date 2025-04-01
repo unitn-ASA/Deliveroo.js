@@ -1,6 +1,5 @@
 <script setup>
     import VersionPanel from '@/components/panels/VersionPanel.vue';
-import { ref, provide } from 'vue';
     import { useRouter } from 'vue-router';
 
     const router = useRouter();
@@ -9,7 +8,7 @@ import { ref, provide } from 'vue';
 
 <template>
 
-    <main class="w-3/4 m-auto bg-slate-200 min-h-screen" >
+    <main class="w-3/4 m-auto text-base-content bg-base-300 min-h-screen" >
 
         <div class="pt-20 px-20 pb-10">
 
@@ -35,7 +34,7 @@ import { ref, provide } from 'vue';
 
         </div>
 
-        <div class="sticky top-[100vh] px-20 py-10 text-xs bg-slate-300">
+        <div class="sticky top-[100vh] px-20 py-10 text-xs text-neutral-content bg-neutral">
             Marco Robol - marco.robol@unitn.it - University of Trento
             <VersionPanel class="my-2"/>
         </div>

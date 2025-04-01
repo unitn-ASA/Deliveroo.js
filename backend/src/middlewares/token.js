@@ -150,8 +150,9 @@ async function signTokenMiddleware ( req, res, next ) {
         const id = uid(6);
         const password = req.headers['password'] || req.query.passsword;
         const role = password == ADMIN_PASSWORD ? 'admin' : 'user';
-        const teamId = req['user']?.teamId || uid(6); // hinerit team from provided token
-        const teamName = ( req['user']?.teamName || req.headers['team'] || req.query.teamName || name ).toString(); // hinerit team from provided token
+        let teamName = req['user']?.teamName || req.headers['team'] || req.query.teamName; // hinerit team from provided token
+        if ( teamName ) teamName = teamName.toString();
+        const teamId = req['user']?.teamId || teamName ? uid(6) : undefined; // hinerit team from provided token
 
         // generate a new token
         try {

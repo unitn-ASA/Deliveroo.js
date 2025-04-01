@@ -27,7 +27,7 @@ import { ref, onMounted, computed } from 'vue';
         fetch( HOST+'/api' )
         .then( res => res.json() )
         .then( data => {
-            console.log(data);
+            // console.log(data);
             backendCommitHash.value = data.commitHash;
             backendPackageVersion.value = data.packageVersion;
             fetch( `https://api.github.com/repos/unitn-asa/Deliveroo.js/compare/HEAD...${data.commitHash}` )
@@ -60,7 +60,7 @@ import { ref, onMounted, computed } from 'vue';
 <template>
     <main class="text-sm text-left">
 
-        <div class="tooltip tooltip-bottom" :data-tip="toolTip">
+        <div class="tooltip tooltip-bottom tooltip-info" :data-tip="toolTip">
 
             Build
             <a v-bind:href="'https://github.com/unitn-ASA/Deliveroo.js/commit/'+backendCommitHash">

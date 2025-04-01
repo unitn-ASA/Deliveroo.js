@@ -10,8 +10,8 @@
 
     const emit = defineEmits(['play']); // Define the emit for login
 
-    const name = ref('marco');
-    const team = ref('disi');
+    const name = ref('anonymous');
+    const team = ref('');
     const password = ref('');
     const token = ref('');
 

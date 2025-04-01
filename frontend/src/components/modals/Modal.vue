@@ -1,6 +1,6 @@
 <script setup>
     
-    import { ref } from 'vue';
+    import { ref, onMounted, onBeforeUnmount } from 'vue';
 
     const props = defineProps({
         title: {
@@ -17,12 +17,29 @@
         isModalVisible.value = !isModalVisible.value; // Toggle modal visibility
     };
 
+    // Funzione per chiudere il modal quando si preme "Esc"
+    const handleKeydown = (event) => {
+        if (event.key === 'Escape' && isModalVisible.value) {
+            isModalVisible.value = false;
+        }
+    };
+
+    // Aggiungi il listener per "keydown" quando il componente è montato
+    onMounted(() => {
+        window.addEventListener('keydown', handleKeydown);
+    });
+
+    // Rimuovi il listener per "keydown" quando il componente viene smontato
+    onBeforeUnmount(() => {
+        window.removeEventListener('keydown', handleKeydown);
+    });
+
 </script>
 
 <template>
 
         <div v-show="isModalVisible">
-            <div class="absolute w-screen h-screen pt-20">
+            <div class="absolute w-full h-screen pt-20">
                 <div class="w-2/3 mx-auto pb-10 grid grid-flow-row space-y-4">
                     <div class="z-30 flex items-center space-x-4 float-right w-full">
                         <div class="text-center text-xl bg-neutral/85 dark:bg-gray-700 rounded-lg py-2 flex-1 h-full">
@@ -48,6 +65,7 @@
                 isModalVisible ? 'bg-black bg-opacity-50' : 'opacity-0 pointer-events-none'
             ]"
             class="fixed z-20 top-0 bottom-0 right-0 left-0 backdrop-blur-md transition-all duration-300"
+            @click="toggleModal"
             >
         </div>
 

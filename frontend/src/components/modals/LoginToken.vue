@@ -47,15 +47,21 @@
 <template>
     <main>
         <div class="flex-1 flex justify-between text-sm">
+
             <div class="">
                 <span class="text-sm">{{ name }}</span>
                 <span class="text-xs text-red-500 ml-1">({{ id }})</span>
             </div>
+
             <div class="">
-                <span class="text-sm">{{ teamName }}</span>
-                <span class="text-xs text-red-500 ml-1">({{ teamId }})</span>
+                <span class="text-sm">{{ teamName || '-' }}</span>
+                <span v-if="teamId" class="text-xs text-red-500 ml-1">({{ teamId }})</span>
             </div>
-            <span class="text-sm">{{ role }}</span>
+
+            <span class="text-sm" :class="{ 'font-bold text-warning': role == 'admin' }" >
+                {{ role }}
+            </span>
+
             <div class="space-x-4">
                 <div class="tooltip" data-tip="Copy">
                     <button class="btn btn-outline btn-info btn-sm" @click="copyToClipboard(token)">
@@ -74,6 +80,7 @@
                     {{ played ? 'Playing' : 'Play' }}
                 </button>
             </div>
+            
         </div>
     </main>
 </template>

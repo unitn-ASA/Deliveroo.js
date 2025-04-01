@@ -52,16 +52,13 @@
             </div>
         </Modal>
             
-        <div class="fixed z-10 left-0 top-1 max-h-full ml-20 px-2 text-neutral-content">
+        <div class="fixed z-10 left-0 top-1 ml-20 px-2 text-neutral-content">
             <VersionPanel/>
         </div>
 
-        <div id="dashboard" class="flex text-sm">
-
-            <div id="info" class="fixed z-10 left-0 top-14 max-h-full overflow-scroll" style="direction: rtl">
-            <div class="resize" style="direction: ltr">
-
-                <div class="flex flex-col space-y-4">
+        <div id="left-dashboard" class="fixed z-10 top-14 max-h-screen text-sm">
+            <div class="overflow-scroll" style="max-height: calc(100vh - 3.5rem); direction: rtl">
+                <div class="flex flex-col space-y-4" style="direction: ltr">
                     
                     <div tabindex="0" class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox" />
@@ -97,7 +94,7 @@
                         </div>
                     </div>
 
-                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90" v-if="connection?.payload.role == 'admin'">
                         <input type="checkbox" checked />
                         <div class="collapse-title font-medium">Parcels ({{ connection?.grid.parcels.size }} of a maximum of {{ connection?.configs.PARCELS_MAX }})</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
@@ -107,24 +104,23 @@
                         </div>
                     </div>
 
-                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90" v-if="connection?.payload.role == 'admin'">
                         <input type="checkbox" checked />
                         <div class="collapse-title font-medium">Tools</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
 
-                            <ToolsPanel/>
+                            <ToolsPanel />
 
                         </div>
                     </div>
                 
                 </div>
-
             </div>
-            </div>
-
-            <div id="right-colum" class="fixed z-10 w-80 right-4 top-4 max-h-full overflow-hidden">
+        </div>
+        
+        <div id="right-dashboard" class="text-sm">
+            <div class="fixed z-10 w-80 right-4 top-4 max-h-full overflow-hidden">
                 <div class="flex flex-col h-full rounded-lg space-y-4">
-
                     
                     <Timer class="z-10" :timer="clock?.ms" :frames="clock?.frame"/>
                     
@@ -159,8 +155,8 @@
                     <div class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90 min-h-16 max-h-96">
                         <input type="checkbox" />
                         <div class="collapse-title font-medium">
-                            Server Logs <br/>
-                            <div class="text-xs pb-2">
+                            Server Logs
+                            <div class="text-xs pb-2" v-if="connection?.serverLogs.length > 0">
                                 {{ connection?.serverLogs[connection.serverLogs.length-1]?.message.join(" ") }} <br/>
                             </div>
                         </div>
@@ -174,7 +170,6 @@
                     
                 </div>
             </div>
-            
         </div>
 
     </main>
