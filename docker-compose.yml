@@ -21,8 +21,8 @@ services:
       - "4001:4001"
 
     labels: # https://github.com/lucaslorentz/caddy-docker-proxy?tab=readme-ov-file#services
-      caddy: "deliveroojs24c1_1.rtibdi.disi.unitn.it"
-      caddy.reverse_proxy: "{{ upstreams 4001 }}"
+      caddy: 'deliveroojs.rtibdi.disi.unitn.it'
+      caddy.reverse_proxy: '{{upstreams 4001}}'
 
 
 
