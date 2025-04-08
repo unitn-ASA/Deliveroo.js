@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const config = require('../../config');
 const { myGrid } = require('../grid');
+const { authorizeAdmin } = require('../middlewares/token');
 
 // GET /configs 
 router.get('/', async (req, res) => {
@@ -11,7 +12,7 @@ router.get('/', async (req, res) => {
 
 })
 
-router.patch('/', async (req, res) => {
+router.patch('/', authorizeAdmin, async (req, res) => {
     
     console.log(`PATCH /configs`, req.body);
 

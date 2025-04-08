@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { myGrid } = require('../grid');
+const { authorizeAdmin } = require('../middlewares/token');
 
 
 
@@ -22,7 +23,7 @@ router.get('/', async (req, res) => {
 
 
 // DELETE /agents/:id delete an agent from the grid
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorizeAdmin, async (req, res) => {
 
     console.log( `DELETE /api/agents/${req.params.id}` );
 

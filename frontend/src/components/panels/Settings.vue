@@ -4,6 +4,10 @@
     import { patchConfig } from '../../apiClient.js';
     import { connection } from '@/states/myConnection.js';
 
+    const admin = computed(() => {
+        return connection?.payload?.role == 'admin';
+    });
+
     const inputFocused = ref();
     
     function setConfig(key, value) {
@@ -33,11 +37,12 @@
                     placeholder="Name"
                     @focus="inputFocused = key"
                     @blur=""
+                    v-bind:disabled="!admin"
                 >
                 <button 
                     v-show="inputFocused == key" 
                     class="flex-none btn btn-outline btn-error btn-xs" 
-                    @click="setConfig(key, value)"
+                    @click="setConfig(key, value)" v-if="admin"
                 >
                     Set
                 </button>

@@ -4,6 +4,10 @@
     import { patchConfig } from '../../apiClient.js';
     import { connection } from '@/states/myConnection.js';
 
+    const admin = computed(() => {
+        return connection?.payload?.role == 'admin';
+    });
+
     const inputFocused = ref();
 
     function setConfig(key, value) {
@@ -85,6 +89,7 @@
                     v-model="PARCELS_GENERATION_INTERVAL_index"
                     class="range range-xs range-info"
                     @focus="inputFocused = 'PARCELS_GENERATION_INTERVAL'"
+                    v-bind:disabled="!admin"
                 />
                 <div class="flex w-full justify-between px-2 text-xs">
                     <span class="w-0">|frame</span>
@@ -118,6 +123,7 @@
                     v-model="connection.configs.PARCELS_MAX"
                     class="range range-xs range-info"
                     @focus="inputFocused = 'PARCELS_MAX'"
+                    v-bind:disabled="!admin"
                 />
                 <div class="flex w-full justify-between px-2 text-xs">
                     <span class="w-0">|0</span>
@@ -151,6 +157,7 @@
                     v-model="connection.configs.PARCEL_REWARD_AVG"
                     class="range range-xs range-info"
                     @focus="inputFocused = 'PARCEL_REWARD_AVG'"
+                    v-bind:disabled="!admin"
                 />
                 <div class="flex w-full justify-between px-2 text-xs">
                     <span class="w-0">|0</span>
@@ -184,6 +191,7 @@
                     v-model="connection.configs.PARCEL_REWARD_VARIANCE"
                     class="range range-xs range-info"
                     @focus="inputFocused = 'PARCEL_REWARD_VARIANCE'"
+                    v-bind:disabled="!admin"
                 />
                 <div class="flex w-full justify-between px-2 text-xs">
                     <span class="w-0">|0</span>
@@ -217,6 +225,7 @@
                     v-model="PARCEL_DECADING_INTERVAL_index"
                     class="range range-xs range-info"
                     @focus="inputFocused = 'PARCEL_DECADING_INTERVAL'"
+                    v-bind:disabled="!admin"
                 />
                 <div class="flex w-full justify-between px-2 text-xs">
                     <span class="w-0">|1s</span>

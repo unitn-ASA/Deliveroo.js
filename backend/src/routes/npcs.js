@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { myNPCSpawner } = require('../grid');
+const { authorizeAdmin } = require('../middlewares/token');
 
 
 
@@ -48,7 +49,7 @@ router.get('/:id', async (req, res) => {
 
 
 // PATCH /npcs/:id start or stop the npc with id
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', authorizeAdmin, async (req, res) => {
 
     console.log( `PATCH /api/npcs/${req.params.id}`, req.body );
 
@@ -77,7 +78,7 @@ router.patch('/:id', async (req, res) => {
 
 
 // POST /npcs create a new npc
-router.post('/', async (req, res) => {
+router.post('/', authorizeAdmin, async (req, res) => {
 
     console.log( `POST /api/npcs`, req.body );
 

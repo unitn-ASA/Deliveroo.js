@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { createCanvas } = require('canvas');
+const { authorizeAdmin } = require('../middlewares/token');
 
 // Maps directory
 const mapsDirectory = path.join(__dirname, '..','..','levels','maps')
@@ -33,7 +34,7 @@ router.get('/', (req, res) => {
 });
 
 // Upload a new map. receive a json matrix and savo to a json file locally
-router.post('/', (req, res) => {
+router.post('/', authorizeAdmin, (req, res) => {
     const mapName = req.body.name;
     const mapMap = req.body.map;
 

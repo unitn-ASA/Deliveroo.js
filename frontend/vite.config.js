@@ -10,7 +10,7 @@ import fs from 'fs';
  * https://v2.vitejs.dev/config/#define
  * Starting from 2.0.0-beta.70, string values will be used as raw expressions, so if defining a string constant, it needs to be explicitly quoted (e.g. with JSON.stringify).
  */
-var commitHash = "";
+var commitHash = "no git";
 try {
   commitHash = execSync('git rev-parse HEAD').toString().trim();
 } catch (error) {

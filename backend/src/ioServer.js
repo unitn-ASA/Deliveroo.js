@@ -145,7 +145,7 @@ class ioServer {
         /**
          * Config
          */
-        if ( me.name == 'god' ) { // 'god' mod
+        if ( me.identity.role == 'admin' ) { // former 'god' mod
             me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite'
             me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite'
         }
@@ -321,7 +321,7 @@ class ioServer {
         /**
          * GOD mod
          */
-        if ( me.name == 'god' ) {
+        if ( me.identity.role == 'admin' ) { // former 'god' mod
 
             socket.on( 'parcel', async (action, parcel, ack) => {
                 console.log( 'parcel', action, parcel )

@@ -50,6 +50,8 @@ const authorizeAdmin = express.Router().use( authorizeUser, (req, res, next) => 
         
     } else {
 
+        console.log( `${req.method} ${req.originalUrl} Authorization denied. Admin priviledges required.` );
+
         res.status(500).json( {
 
             message: 'Authorization denied.',
