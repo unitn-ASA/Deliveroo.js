@@ -6,7 +6,7 @@ const { myGrid } = require('../grid');
 // GET /configs 
 router.get('/', async (req, res) => {
     
-    console.log(`GET /configs`)
+    console.log(`GET /api/configs`)
     res.status(200).json( config );
 
 })

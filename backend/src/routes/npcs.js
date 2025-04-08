@@ -7,7 +7,7 @@ const { myNPCSpawner } = require('../grid');
 // GET /npcs get the list of all npcs on the grid
 router.get('/', async (req, res) => {
 
-    console.log( `GET /npcs` );
+    console.log( `GET /api/npcs` );
 
     const agents = Array.from( await myNPCSpawner.NPCs.values() ).map( npc => {
         return {
@@ -50,7 +50,7 @@ router.get('/:id', async (req, res) => {
 // PATCH /npcs/:id start or stop the npc with id
 router.patch('/:id', async (req, res) => {
 
-    console.log( `PATCH /npcs/${req.params.id}`, req.body );
+    console.log( `PATCH /api/npcs/${req.params.id}`, req.body );
 
     const npc = myNPCSpawner.NPCs.get( req.params.id );
     if ( npc ) {
@@ -79,7 +79,7 @@ router.patch('/:id', async (req, res) => {
 // POST /npcs create a new npc
 router.post('/', async (req, res) => {
 
-    console.log( `POST /npcs`, req.body );
+    console.log( `POST /api/npcs`, req.body );
 
     const npc = myNPCSpawner.createNPC();
     res.status(200).json( {

@@ -6,7 +6,7 @@ const router = express.Router();
 // GET /all levels
 router.get('/', async (req, res) => {
 
-    console.log(`GET /levels`);
+    console.log(`GET /api/levels`);
 
     // load all .js files from levels directory
     fs.readdir( './levels', (err, files) => {
@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
 router.get('/:levelName', async (req, res) => {
     const levelName = req.params.levelName;
 
-    console.log(`GET /levels/${levelName}`);
+    console.log(`GET /api/levels/${levelName}`);
     
     const level = { self: '/api/levels/' + levelName };
     try {

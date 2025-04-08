@@ -7,7 +7,7 @@ const { myGrid } = require('../grid');
 // GET /agents get the list of all the agents on the grid
 router.get('/', async (req, res) => {
 
-    console.log( `GET /agents` );
+    console.log( `GET /api/agents` );
 
     const agents = Array.from( await myGrid.agents.values() ).map( agent => {
         return {
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
 // DELETE /agents/:id delete an agent from the grid
 router.delete('/:id', async (req, res) => {
 
-    console.log( `DELETE /agents/${req.params.id}` );
+    console.log( `DELETE /api/agents/${req.params.id}` );
 
     const id = req.params.id;
     const agent = myGrid.agents.get( id );
