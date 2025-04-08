@@ -3,6 +3,7 @@
     import { connection } from '../../states/myConnection.js';
     import { deleteAgent } from '../../apiClient.js';
 
+    const admin = connection?.payload.role == 'admin';
     const grid = connection?.grid;
 
 </script>
@@ -70,15 +71,15 @@
             </tbody>
         </table>
 
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="deleteAgent(connection?.token, connection?.grid.selectedAgent.value.id)" >
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="deleteAgent(connection?.token, connection?.grid.selectedAgent.value.id)" v-if="admin" >
             Kick
         </button>
 
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="respawn()" disabled >
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="respawn()" v-if="false" >
             Respawn
         </button>
         
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="resetScore()" disabled >
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="resetScore()" v-if="false" disabled >
             Reset score
         </button>
                 
