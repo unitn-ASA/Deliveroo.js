@@ -48,7 +48,7 @@ ${PADDING}:effect (${this.effect})
 
 
     /**
-     * @param {'(not (verb ?arg1 ?arg2)) (verb ?arg1)'} literals e.g. '(not (lighton ?l))'
+     * @param {string} string literals in the form '(not (verb ?arg1 ?arg2)) (verb ?arg1)', e.g. '(not (lighton ?l))'
      * @returns { [ true | false, predicate:string] [] } tokenized e.g. [ [false, 'lighton ?l'] ]
      */
     static tokenize ( string ) {
@@ -95,7 +95,7 @@ ${PADDING}:effect (${this.effect})
     }
 
     getGroundedTokenizedEffect (parameterValueMap) {
-        return PddlAction.ground( PddlAction.tokenize( effect ), parameterValueMap )
+        return PddlAction.ground( PddlAction.tokenize( this.effect ), parameterValueMap )
     }
     
 }

@@ -11,7 +11,7 @@ export default class PddlExecutor {
     
     /**
      * 
-     * @param { ...{pddlAction} } } actions 
+     * @param { ...{pddlAction} } actions 
      */
     constructor ( ...actions ) {
         this.addAction(...actions);

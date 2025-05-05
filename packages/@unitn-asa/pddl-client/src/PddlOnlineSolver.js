@@ -27,10 +27,10 @@ export default async function onlineSolver (pddlDomain, pddlProblem) {
 
 async function postRequest (pddlDomain, pddlProblem) {
 
-    if ( typeof pddlDomain !== 'string' && ! pddlDomain instanceof String )
+    if ( typeof pddlDomain !== 'string' && ! (pddlDomain instanceof String) )
         throw new Error( 'pddlDomain is not a string' );
 
-    if ( typeof pddlProblem !== 'string' && ! pddlProblem instanceof String )
+    if ( typeof pddlProblem !== 'string' && ! (pddlProblem instanceof String) )
         throw new Error( 'pddlProblem is not a string' );
 
     
@@ -112,10 +112,12 @@ async function getResult (responseCheckUrl) {
 
 }
 
-
+/**
+ * @returns {Promise<pddlPlanStep[]>}
+ */
 async function parsePlan (json) {
 
-    /**@type {[string]}*/
+    /**@type {Array<String|String[]>}*/
     var lines = [];
     if ( json.result.output.plan )
         lines = json.result.output.plan.split('\n');

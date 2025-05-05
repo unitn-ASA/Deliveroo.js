@@ -15,7 +15,7 @@ export default class PddlDomain {
     /**
      * 
      * @param {string} name 
-     * @param {PddlAction} actions 
+     * @param {PddlAction[]} actions 
      */
     constructor ( name, ...actions ) {
         
@@ -41,7 +41,7 @@ export default class PddlDomain {
 
         for ( let action of actions ) {
             
-            /** @argument {array<array|string>} tokenized e.g. [ 'and', [ 'switched-on', '?l' ], [ 'not', [ 'switched-off', '?l' ] ] ] */
+            /** @argument {Array<array|string>} tokenized e.g. [ 'and', [ 'switched-on', '?l' ], [ 'not', [ 'switched-off', '?l' ] ] ] */
             const recursiveNavigateTokenized = ( tokenized ) => {
                 if ( tokenized[1] && Array.isArray(tokenized[1]) ) {
                     for ( let subtokenized of tokenized.slice(1) )
