@@ -154,19 +154,26 @@ class Agent extends ObservableMulti {
         } );
     }
 
-    doing = false;
+    /** @type {Promise} */
+    doing;
+    /** @type {boolean} */
+    isDoing = false;
+    /** @type {function(function):Promise}*/
     async exclusivelyDo ( actionFn ) {
-        // if still doing
-        if ( this.doing ) {
+        // if still pending
+        if ( this.isDoing ) {
             this.penalty -= this.config.PENALTY;
             return false;
         }
         else {
-            this.doing = true;
-            await myClock.synch();
-            let outcome = await actionFn();
-            this.doing = false;
-            return outcome;
+            this.doing = (async () => {
+                this.isDoing = true;
+                await myClock.synch();
+                let outcome = await actionFn();
+                this.isDoing = false;
+                return outcome;
+            }) ();
+            return this.doing;
         }
     }
 

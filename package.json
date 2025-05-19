@@ -10,6 +10,7 @@
   "scripts": {
     "prepublishOnly": "",
     "start": "cd backend && npm start",
+    "prebuild": "npm install",
     "build": "cd frontend && npm run build && cd ../backend && npm run build",
     "postbuild": "",
     "dev": "cd backend && npm run dev",

@@ -168,10 +168,15 @@ class Grid extends GridEventEmitter {
      * 
      * @param {Agent} agent 
      */
-    deleteAgent ( agent ) {
+    async deleteAgent ( agent ) {
+
+        await agent.doing;
 
         if ( agent.tile )
             agent.tile.unlock();
+
+        // if ( agent.xy?.roundedFrom )
+        //     this.getTile(agent.xy.roundedFrom).unlock();
 
         agent.putDown();
         

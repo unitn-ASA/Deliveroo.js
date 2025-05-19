@@ -14,6 +14,7 @@
     import ParcelsPanels from './ParcelsPanel.vue';
     import ToolsPanel from './ToolsPanel.vue';
     import VersionPanel from './VersionPanel.vue';
+    import ChatPanel from './ChatPanel.vue';
 
     const levelsModal = ref(false); // Reactive variable for overlay visibility
     const mapsModal = ref(false); // Reactive variable for overlay visibility
@@ -30,6 +31,8 @@
     function restartGame() {
         connection.socket.emit('restart');
     }
+
+    const chatOpen = ref(false);
 
 </script>
 
@@ -150,9 +153,19 @@
                     <Keyboard class="z-10"/>
                     
                     <div class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90 min-h-16 max-h-64">
-                        <input type="checkbox"/>
-                        <div class="collapse-title font-medium">Chat</div>
-                        <div id="chat" class="collapse-content overflow-auto" style="min-height:auto!important"></div>
+                        <input type="checkbox" v-model="chatOpen"/>
+                        <div class="collapse-title font-medium pb-0">
+                            Chat
+                            <div class="text-xs" v-if="connection?.msgs.length > 0 && ! chatOpen">
+                                {{ connection?.msgs[connection.msgs.length-1]?.name }}: {{ connection?.msgs[connection.msgs.length-1]?.msg }} <br/>
+                            </div>
+                            <div class="text-xs" v-if="connection?.msgs.length == 0">
+                                No messages yet
+                            </div>
+                        </div>
+                        <div id="chat" class="collapse-content">
+                            <ChatPanel />
+                        </div>
                     </div>
                     
                     <div class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90 min-h-16 max-h-96">
@@ -164,7 +177,7 @@
                             </div>
                         </div>
                         <div id="logs" class="collapse-content overflow-auto" style="min-height:auto!important">
-                            <div v-for="{timestamp, message} of connection?.serverLogs" class="text-xs pb-2">
+                            <div v-for="{ms, frame, message} of connection?.serverLogs" class="text-xs pb-2">
                                 <span v-for="m of message"> {{ m }} </span>
                                 <br/>
                             </div>

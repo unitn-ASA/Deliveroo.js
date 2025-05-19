@@ -137,10 +137,10 @@ class Config {
         });
 
         /** @type {boolean} */
-        this.BROADCAST_LOGS = Boolean(process.env.BROADCAST_LOGS) || false;
+        this.BROADCAST_LOGS = Boolean(process.env.BROADCAST_LOGS) || true;
         parser.add_argument('--broadcast-logs', {
-            dest: 'BROADCAST_LOGS', action: 'store_true',
-            help: "Broadcast logs to all clients, default is false"
+            dest: 'BROADCAST_LOGS', type: Boolean,
+            help: "Broadcast logs to all clients, default is true"
         });
 
         /** @type {String[]} */

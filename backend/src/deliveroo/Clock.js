@@ -90,9 +90,9 @@ class Clock {
             const memoryUsage = process.memoryUsage();
             /** always emit frame event */      this.#eventEmitter.emit( 'frame' );
             if ( this.#ms % 1000 == 0 ) {       this.#eventEmitter.emit( '1s' );
-                                                console.log( 'FRAME', `#${this.#frame}`, `@${this.#base}ms`, this.fps(), `fps`, `Heap: ${Math.round(memoryUsage.heapUsed/1000000)}MB used of ${Math.round(memoryUsage.heapTotal/1000000)}MB total` );
                 if ( this.#ms % 2000 == 0 )     this.#eventEmitter.emit( '2s' );
                 if ( this.#ms % 5000 == 0 ) {   this.#eventEmitter.emit( '5s' );
+                    console.log( 'FRAME', `#${this.#frame}`, `@${this.#base}ms`, this.fps(), `fps`, `Heap: ${Math.round(memoryUsage.heapUsed/1000000)}MB used of ${Math.round(memoryUsage.heapTotal/1000000)}MB total` );
                     if ( this.#ms % 10000 == 0 )this.#eventEmitter.emit( '10s' );
                 }
             }

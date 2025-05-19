@@ -1,5 +1,5 @@
 const myClock = require('./myClock');
-const ioTypedSocket = require('@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs');
+const ioTypedSocket = require('../../packages/@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs');
 
 /**
  * @typedef agent
@@ -197,6 +197,36 @@ class ioServerSocket extends ioTypedSocket {
      */
     async emitMsg ( me, toId, msg ) {
         return this.to( "agent:" + toId ).emit( 'msg', me.id, me.name, msg );
+    }
+
+    /**
+     * @param { agent } me
+     * @param { string } toId
+     * @param { {} } msg
+     * @returns { Promise < any > } reply
+     */
+    async emitAsk ( me, toId, msg ) {
+        
+        // Currently, acks is awaited from all clients when .emit(), otherwise callback gets an error
+        // https://github.com/socketio/socket.io/discussions/5062
+        const sockets = await this.to( "agent:" + toId ).fetchSockets();
+        const emissionPromises = sockets.map( socket => {
+            return new Promise( (res) => {
+                socket.timeout(1000).emit( 'msg', me.id, me.name, msg, (err, response) => {
+                    if (err)
+                        res('timeout');
+                    else
+                        res(response);
+                } );
+            } );
+        } );
+
+        // wait for first promise to resolve and ensure a timeout resolution in case all the responses are invalid
+        const response = await Promise.race(
+            emissionPromises.concat(new Promise(res => setTimeout(() => res('timeout'), 1000)))
+        );
+
+        return response;
     }
 
     /**

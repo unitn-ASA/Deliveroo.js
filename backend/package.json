@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-backend",
-  "version": "2.0.9",
+  "version": "2.1.0",
   "description": "Deliveroo.js Development Kit - Autonomous Software Agents - 2023",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "license": "ISC",
@@ -29,7 +29,7 @@
     "nodemon": "^3.1.9"
   },
   "dependencies": {
-    "@unitn-asa/deliveroo-js-webapp-dist": "^2.0.13",
+    "@unitn-asa/deliveroo-js-webapp-dist": "^2.0.15",
     "argparse": "^2.0.1",
     "canvas": "^3.1.0",
     "express": "^4.17.3",

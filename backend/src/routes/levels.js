@@ -35,6 +35,31 @@ router.get('/', async (req, res) => {
 
 } )
 
+// POST /levels
+router.post('/', async (req, res) => {
+    const levelData = req.body;
+    const { levelName } = req.body;
+
+    console.log(`POST /api/levels - Creating or updating level: ${levelName}`);
+
+    if ( ! levelName ) {
+        return res.status(400).send('Missing levelName in request body');
+    }
+
+    const filePath = path.join(__dirname, '../../levels', `${levelName}.js`);
+
+    try {
+        // Write file
+        const fileContent = `module.exports = ${JSON.stringify(levelData, null, 4)};`;
+        fs.writeFileSync(filePath, fileContent, 'utf8');
+        console.log(`Level ${levelName} saved successfully.`);
+        res.status(201).send(`Level ${levelName} created or updated successfully`);
+    } catch (err) {
+        console.error(`POST /levels Error while saving level:`, err);
+        res.status(500).send('Error while saving level');
+    }
+} );
+
 // GET /levels/:levelName
 router.get('/:levelName', async (req, res) => {
     const levelName = req.params.levelName;

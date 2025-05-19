@@ -45,6 +45,15 @@
     }
 
     /**
+     * @returns { Xy }
+     */
+    get roundedFrom () {
+        const floored = new Xy( Math.floor(this.x), Math.floor(this.y) );
+        const ceiled = new Xy( Math.ceil(this.x), Math.ceil(this.y) );
+        return ( this.rounded.equals(floored) ? ceiled : floored );
+    }
+
+    /**
      * @param { {x:number, y:number} } a
      * @param { {x:number, y:number} } b
      * @returns { number}

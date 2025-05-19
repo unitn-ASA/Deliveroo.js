@@ -56,7 +56,7 @@ export class Connection {
     draw = ref();
 
     /**
-     * @type {Array<{timestamp:string, socket:string, id:string, name:string, teamId:string, msg:string}>} clientLogs
+     * @type {Array<{timestamp:string, socket:string, id:string, name:string, msg:string}>} clientLogs
      */
     msgs = shallowReactive (new Array());
 
@@ -114,6 +114,10 @@ export class Connection {
             } )
         );
 
+        // socket.onAny( ( event, ...args ) => {
+        //     console.log( `on('${event}')`, ...args );
+        // } );
+
         this.grid = new Grid( socket );
 
         socket.on( "connect", () => {
@@ -153,8 +157,8 @@ export class Connection {
                 this.clientLogs.push( { ms, frame, socket, id, name, message} );
         } );
 
-        this.socket.on( "msg", ( id, name, teamId, msg, reply ) => {
-            // console.log( 'CLIENT: msg', {id, name, teamId, msg, reply} )
+        socket.on( "msg", ( id, name, msg, reply ) => {
+            // console.log( 'CLIENT: msg', {id, name, msg, reply} )
             if ( msg == 'who are you?' && reply ) reply('I am the web app')
 
             this.msgs.push( {
@@ -162,7 +166,6 @@ export class Connection {
                 socket: this.socket.id,
                 id,
                 name,
-                teamId,
                 msg
             } );
 

@@ -99,6 +99,14 @@ class ioTypedSocket {
     }
 
     /**
+     * @param {(event:string, ...any)=>void} listener
+     * @returns {void}
+     */
+    onAny ( listener ) {
+        this.#socket.onAny( listener );
+    }
+
+    /**
      * @template {keyof onEv} K
      * @param {K} event
      * @param {onEv[K]} listener
@@ -163,9 +171,9 @@ class ioTypedSocket {
              * @template {keyof emitEv} K
              * @param {K} event
              * @param {Parameters<emitEv[K]>} args
-             * @returns {void}
+             * @returns {boolean}
              */
-            emit: ( event, ...args ) => this.#socket.broadcast.emit.call( this.#socket, event, ...args )
+            emit: ( event, ...args ) => this.#socket.broadcast.emit( event.toString(), ...args )
         }
     }
 
