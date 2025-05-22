@@ -7,7 +7,7 @@ module.exports = {
     PARCELS_MAX: '10',                  // 'infinite' (DEFAULT)
 
     MOVEMENT_STEPS: 1,                  // default is 1
-    MOVEMENT_DURATION: 20,              // default is 500
+    MOVEMENT_DURATION: 50,              // default is 500
     AGENTS_OBSERVATION_DISTANCE: 10,     // default is 5
     PARCELS_OBSERVATION_DISTANCE: 10,    // default is 5
 
@@ -18,7 +18,7 @@ module.exports = {
     RANDOMLY_MOVING_AGENTS: 0,  // default is 2
     RANDOM_AGENT_SPEED: '5s',   // options are '1s', '2s' (DEFAULT), '5s', '10s'
 
-    CLOCK: 20,  // default is 50 (50ms are 20frame/s)
+    CLOCK: 50,  // default is 50 (50ms are 20frame/s)
 
 }
 
