@@ -63,32 +63,25 @@
         </div>
 
         <div id="left-dashboard" class="fixed z-10 top-14 max-h-screen text-sm">
-            <div class="overflow-scroll" style="max-height: calc(100vh - 3.5rem); direction: rtl">
-                <div class="flex flex-col space-y-4" style="direction: ltr">
-                    
-                    <div tabindex="0" class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90">
-                        <input type="checkbox" />
-                        <div class="collapse-title">
-                            <span id="clock.frame"></span>clock.frame {{clock?.frame}}<br>
-                            <span id="clock.ms"></span>clock.ms {{clock?.ms}}<br>
-                            <span id="socket.id"></span>socket.id {{connection?.socket.id}}<br>
-                            <span id="agent.id"></span>agent.id {{me?.id}}<br>
-                            <span id="agent.name"></span>agent.name {{me?.name}}<br>
-                            <span id="agent.teamId"></span>agent.team {{me?.teamId}}<br>
-                            <span id="agent.teamName"></span>agent.team {{me?.teamName}}<br>
-                            <span id="agent.xy"></span>agent.xy {{me?.x}} {{me?.y}}<br>
-                            <span id="grid"></span>grid {{grid?.width}}x{{grid?.height}}<br>
-                        </div>
-                        <div class="collapse-content">
-                            <button 
-                                class="flex-none btn btn-outline btn-error btn-xs w-full" 
-                                @click="mapsModal=true;"
-                            >
-                                Change Map
-                            </button>
-                            <Settings v-if="connection"/>
-                        </div>
-                    </div>
+
+            <div class="ml-4 mb-2 z-10 grid grid-flow-col gap-2 font-mono text-center text-xs w-80" style="overflow: visible;">
+                <div class="bg-neutral rounded-lg flex flex-col p-1 tooltip tooltip-info tooltip-right"
+                     :data-tip="`${me?.name}(${me?.id})
+                                 ${me?.teamName?me.teamName+'('+me?.teamId+')':''}
+                                 socket=${connection?.socket.id}
+                                 xy=${ me?.x ? me?.x+','+me?.y : 'unknown' }
+                                `">
+                    <span class=""> {{ me?.name }}({{ me?.id }}) </span>
+                    <span class=""> {{ me?.x ? 'xy '+Math.floor(me?.x)+','+Math.floor(me?.y) : '' }} </span>
+                </div>
+                <!-- <div class="bg-neutral rounded-xl flex flex-col p-1">
+                    <span class=""> {{ me?.x }}{{ me?.x ? ',' : 'unknown' }}{{ me?.y }} </span>
+                    <span class=""> {{grid?.width}}x{{grid?.height}}Grid</span>
+                </div> -->
+            </div>
+
+            <div class="overflow-scroll" style="max-height: calc(100vh - 5rem); direction: rtl">
+                <div class="flex flex-col space-y-2" style="direction: ltr; overflow: unset;">
 
                     <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
                         <input type="checkbox" checked />
@@ -101,7 +94,7 @@
                     </div>
 
                     <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90" v-if="connection?.payload.role == 'admin'">
-                        <input type="checkbox" checked />
+                        <input type="checkbox" />
                         <div class="collapse-title font-medium">Parcels ({{ connection?.grid.parcels.size }} of a maximum of {{ connection?.configs.PARCELS_MAX }})</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
 
@@ -110,7 +103,7 @@
                         </div>
                     </div>
 
-                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90" v-if="connection?.payload.role == 'admin'">
+                    <!-- <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90" v-if="connection?.payload.role == 'admin'">
                         <input type="checkbox" checked />
                         <div class="collapse-title font-medium">Tools</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
@@ -118,7 +111,7 @@
                             <ToolsPanel />
 
                         </div>
-                    </div>
+                    </div> -->
                 
                 </div>
             </div>
