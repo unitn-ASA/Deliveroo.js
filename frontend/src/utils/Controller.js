@@ -88,9 +88,17 @@ export class Controller {
         } );
 
         watch ( () => keys.Space, async () => {
-            if ( keys.Space && connection.grid.hoovered.value )
-                var { x, y } = connection.grid.hoovered.value;
-                socket.emit( 'parcel', 'create', { x, y } );
+            if ( keys.Space && connection.grid.hoovered.value ) {
+                const hoovered = connection.grid.hoovered.value;
+                const parcel = connection.grid.getParcelByMeshUUID( hoovered.mesh.uuid );
+                if ( parcel ) {
+                    socket.emit( 'parcel', 'dispose', parcel );
+                }
+                else {
+                    var { x, y } = connection.grid.hoovered.value;
+                    socket.emit( 'parcel', 'create', { x, y } );
+                }
+            }
         } );
 
         watch ( () => keys.Digit0, async () => {
