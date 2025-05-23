@@ -21,6 +21,13 @@
             } else {
                 connection.socket.emitSay(selectedAgent.value, input.value);
             }
+            connection?.msgs.push({
+                timestamp: new Date().toLocaleTimeString(),
+                socket: connection.socket.id,
+                id: me.value.id,
+                msg: input.value,
+                name: me.value.name
+            });
             input.value = '';
         }
     }
@@ -45,8 +52,12 @@
         <div class="text-xs mb-8 sticky bottom-0 overflow-auto max-h-40"
              ref="messagesEnd">
             <div v-for="{timestamp, socket, id, msg, name} of connection?.msgs" class="text-xs pb-0">
-                <span> {{ name }}: {{ msg }} </span>
-                <br/>
+                <div v-if="id == me.id" class="text-xs text-right">
+                    <span> {{ name }}: {{ msg }} </span>
+                </div>
+                <div v-else class="text-xs text-left">
+                    <span> {{ name }}: {{ msg }} </span>
+                </div>
             </div>
         </div>
             
