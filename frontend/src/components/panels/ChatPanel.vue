@@ -68,7 +68,7 @@
                 <select
                     id="agent-select"
                     v-model="selectedAgent"
-                    class="select select-xs select-bordered w-20 max-w-xs"
+                    class="select input-ghost select-xs select-bordered w-20 max-w-xs"
                 >
                     <option value="All">All</option>
                     <option
@@ -83,7 +83,7 @@
             </div>
             <input
                 type="text"
-                class="input input-bordered input-xs w-full max-w-xs"
+                class="input input-ghost input-xs w-full max-w-xs"
                 placeholder="Type a message..."
                 v-model="input"
                 @keyup.enter="sendMsg()"
