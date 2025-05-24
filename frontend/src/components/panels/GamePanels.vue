@@ -66,24 +66,24 @@
 
         <div id="left-dashboard" class="fixed z-10 top-14 max-h-screen text-sm">
 
-            <div class="ml-4 mb-2 z-10 grid grid-flow-col gap-2 font-mono text-center text-xs w-80" style="overflow: visible;">
+            <div class="ml-4 mb-2 z-10 grid grid-flow-col gap-2 font-mono text-center text-xs w-80" style="overflow: visible;" v-if="connection?.payload.role == 'admin'">
                 <Chrono />
             </div>
 
             <div class="overflow-scroll" style="max-height: calc(100vh - 5rem); direction: rtl">
                 <div class="flex flex-col space-y-2" style="direction: ltr; overflow: unset;">
 
-                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral" v-if="connection?.payload.role == 'admin'">
                         <input type="checkbox" checked />
                         <div class="collapse-title font-medium">Tournament</div>
-                        <div class="collapse-content overflow-hidden" style="min-height:auto!important">
+                        <div class="collapse-content overflow-hidden p-0" style="min-height:auto!important">
 
                             <Tournament/>
                             
                         </div>
                     </div>
 
-                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-50 hover:opacity-90">
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-80 hover:opacity-100">
                         <input type="checkbox" />
                         <div class="collapse-title font-medium">Agents</div>
                         <div class="collapse-content overflow-hidden" style="min-height:auto!important">
@@ -171,7 +171,7 @@
 
                     <Keyboard class="z-10"/>
                     
-                    <div class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90 min-h-16 max-h-64">
+                    <div class="z-10 collapse collapse-arrow bg-neutral opacity-80 hover:opacity-100 min-h-16 max-h-64">
                         <input type="checkbox" v-model="chatOpen"/>
                         <div class="collapse-title font-medium pb-0">
                             Chat
@@ -187,7 +187,7 @@
                         </div>
                     </div>
                     
-                    <div class="z-10 collapse collapse-arrow bg-neutral opacity-50 hover:opacity-90 min-h-16 max-h-96">
+                    <div class="z-10 collapse collapse-arrow bg-neutral opacity-80 hover:opacity-100 min-h-16 max-h-96">
                         <input type="checkbox" />
                         <div class="collapse-title font-medium">
                             Server Logs
