@@ -1,8 +1,9 @@
 <script setup>
         
-        import { watchEffect, ref, computed, onMounted } from 'vue';
+    import { watchEffect, ref, computed, onMounted } from 'vue';
     import { saveRound } from '@/states/myTournament';
     import { connection } from '../../states/myConnection.js';
+    import { patchAgent, deleteParcel } from '../../apiClient.js';
     
     function restartGame() {
         connection.socket.emit('restart');
@@ -18,8 +19,23 @@
 
     var interval;
     
-    function start() {
-        restartGame();
+    async function start() {
+        // restartGame();
+        for ( let agent of connection.grid.agents.values() ) {
+            try {
+                agent.score = 0;
+                await patchAgent( connection.token, agent.id, { score: 0 } );
+            } catch (error) {
+                console.error("Error updating agent score:", error);
+            }
+        }
+        for ( let parcels of connection.grid.parcels.values() ) {
+            try {
+                await deleteParcel( connection.token, parcels.id );
+            } catch (error) {
+                console.error("Error deleting parcel:", error);
+            }
+        }
         interval = setInterval(() => {
             if (timer.value <= 0) {
                 saveRound();

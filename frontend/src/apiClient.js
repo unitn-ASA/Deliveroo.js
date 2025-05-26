@@ -85,6 +85,7 @@ async function patchConfig ( token, config ) {
 }
 
 /**
+ * @param {string} token
  * @param {string} id 
  * @returns 
  */
@@ -114,4 +115,69 @@ async function deleteAgent ( token, id ) {
     });
 }
 
-export { richiediToken, getConfig, patchConfig, deleteAgent }
+/**
+ * @param {string} token 
+ * @param {string} id 
+ * @param {{score:number}} agent
+ * @returns 
+ */
+async function patchAgent ( token, id, agent ) {
+    return new Promise((resolve, reject) => {
+        fetch(HOST+'/api/agents/'+id, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-token': token
+            },
+            body: JSON.stringify(agent)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(`Error patching agent, Status code: ${response.status}`);
+        })
+        .then(data => {
+            console.log("agent patched: " + data);
+            resolve(data);
+        })
+        .catch(error => {
+            console.warn('An error occurred:', error);
+            reject('Error patching agent');
+        });
+    });
+}
+
+/**
+ * 
+ * @param {string} token
+ * @param {string} id
+ * @returns
+ */
+async function deleteParcel( token, id ) {
+    return new Promise((resolve, reject) => {
+        fetch(HOST+'/api/parcels/'+id, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-token': token
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error(`Error deleting parcel, Status code: ${response.status}`);
+        })
+        .then(data => {
+            console.log("parcel deleted: " + data);
+            resolve(data);
+        })
+        .catch(error => {
+            console.warn('An error occurred:', error);
+            reject('Error deleting parcel');
+        });
+    });
+}
+
+export { richiediToken, getConfig, patchConfig, deleteAgent, patchAgent, deleteParcel }

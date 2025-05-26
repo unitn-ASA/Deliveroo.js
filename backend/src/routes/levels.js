@@ -22,6 +22,7 @@ router.get('/', async (req, res) => {
         levelsFileNames.forEach( (name, index) => {
             try {
                 const level = { self: '/api/levels/' + name };
+                level.LEVEL = './levels/' + name; // add LEVEL property to the level object
                 // copy everything in file object
                 Object.assign( level, require( '../../levels/' + name ) );
                 levels.push( level );
@@ -43,7 +44,8 @@ router.post('/', async (req, res) => {
     console.log(`POST /api/levels - Creating or updating level: ${levelName}`);
 
     if ( ! levelName ) {
-        return res.status(400).send('Missing levelName in request body');
+        res.status(400).send('Missing levelName in request body');
+        return;
     }
 
     const filePath = path.join(__dirname, '../../levels', `${levelName}.js`);
@@ -67,6 +69,7 @@ router.get('/:levelName', async (req, res) => {
     console.log(`GET /api/levels/${levelName}`);
     
     const level = { self: '/api/levels/' + levelName };
+    level.LEVEL = levelName; // add LEVEL property to the level object
     try {
         // load and copy everything in the level
         Object.assign( level, require( '../../levels/' + levelName + '.js' ) );

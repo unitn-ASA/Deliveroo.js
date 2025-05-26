@@ -55,7 +55,9 @@ router.patch('/', authorizeAdmin, async (req, res) => {
             console.log(`PATCH /configs set ${key} =`, req.body[key]);
         }
     }
-    
+
+    const io = require('../ioServer');
+    io.emit('config', config);
     
     res.status(200).json( config );
 

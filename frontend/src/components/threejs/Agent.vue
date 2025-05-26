@@ -121,7 +121,15 @@
              :class="{
                 'opacity-20': agent.status == 'out of range',
              }" >
-            {{ agent.name }}
+            <span v-if="agent.teamName" class="text-xs align-baseline">
+                {{ agent.name }}@
+            </span>
+            <span class="align-baseline">
+                {{ agent.teamName ? agent.teamName : agent.name }}
+            </span>
+            <span class="pl-1 text-sm">
+                ({{agent.score}})
+            </span>
         </div>
     </div>
 </template>
