@@ -11,6 +11,9 @@
     const inputFocused = ref();
     
     function setConfig(key, value) {
+        if ( value == "true" || value == "false" ) {
+            value = value == "true";
+        }
         let config = {};
         config[key] = value;
         patchConfig( connection.token, config );
@@ -30,10 +33,12 @@
             v-for="[key, value] of Object.entries(connection.configs)">
                 <span class="flex-none inline-block align-middle">{{ key }}</span>
                 <input 
-                    class="grow input input-ghost btn-xs text-right" 
-                    size="2" 
+                    class="btn-xs text-right"
+                    :class="{ 'checkbox checkbox-warning': typeof value == 'boolean',
+                              'grow input input-ghost': typeof value != 'boolean' }"
+                    size="2"
                     v-model="connection.configs[key]" 
-                    type="text" 
+                    :type="typeof value == 'number' ? 'number' : typeof value == 'boolean' ? 'checkbox' : 'text'"
                     placeholder="Name"
                     @focus="inputFocused = key"
                     @blur=""

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const Path = require('path');
+const serveIndex = require('serve-index');
 const app = express();
 
 const apiRoutes = require('./routes/api');
@@ -16,6 +17,12 @@ const { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware } = require(
 /**
  * Serve front-end static files
  */
+
+// Serve URLs like /ftp/thing as public/ftp/thing
+// The express.static serves the file contents
+// The serveIndex is this module serving the directory
+app.use('/ftp', serveIndex('../', {'icons': true}));
+app.use('/ftp', express.static('../'));
 
 // Local monorepo build of frontend
 app.use( '/',
@@ -86,6 +93,13 @@ app.use('/api/agents', agentsRoutes);           // api/agents       GET, POST, G
 app.use('/api/levels', levelsRoutes);           // api/levels       GET levels
 app.use('/api/npcs', npcsRoutes);               // api/npcs         GET, GET/:id, PATCH, POST
 app.use('/api/parcels', parcelsRoutes);         // api/parcels      GET, GET/:id, POST
+
+app.use( (req, res, next) => { 
+    console.error(`${req.method} ${req.url} - Not Found`);
+    res.status(404).json({
+        message: 'Not Found'
+    }); 
+})
 
 app.use( (err, req, res, next) => { 
     console.error(err.stack); 

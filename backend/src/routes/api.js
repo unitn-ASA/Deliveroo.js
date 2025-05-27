@@ -16,7 +16,7 @@ const packageVersion = new Promise( res =>
             console.error('Error while reading package.json', error);
         }
         
-        console.log( 'api.js packageVersion =', 'no package.json' );
+        console.log( 'api.js packageVersion =', packageVersion );
         res( packageVersion )
     } )
 );

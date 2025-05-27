@@ -62,16 +62,18 @@
                     <tr class="border-0">
                         <td v-for="round in [...goupByTeam, {id:'Overall',results:overall}]" class="p-0 align-top">
                             <!-- Round # -->
-                            <table class="table table-xs w-40">
+                            <table class="table table-sm w-40">
                                 <tbody>
                                     <tr class="border-0" v-for="result in Array.from( round.results.values() ).sort((a,b)=>b.score-a.score).map((result, index) => ({...result, rank: index + 1}))">
                                         <th class="px-1">{{ result.rank }}°</th>
-                                        <th class="p-0 w-full">
-                                            {{ result.teamName?.length > 12 ? result.teamName.slice(0, 12) + '...' : result.teamName }}
-                                            ({{ result.score }})
+                                        <th class="p-0 w-full text-nowrap">
+                                            {{ result.teamName?.length > 10 ? result.teamName.slice(0, 8) + '...' : result.teamName }}
+                                            <span class="text-error text-right">
+                                                {{ result.score }}
+                                            </span>
                                             <br/>
                                             <span v-for="a in result.agents">
-                                                <span class="badge badge-xs badge-info">{{ a.name?.length > 5 ? a.name.slice(0, 5) + '...' : a.name }}</span>
+                                                <span class="badge badge-xs badge-info">{{ a.name?.length > 4 ? '...' + a.name.slice(-4) : a.name }}</span>
                                             </span>
                                         </th>
                                     </tr>

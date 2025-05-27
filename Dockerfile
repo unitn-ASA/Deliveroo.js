@@ -1,4 +1,4 @@
-FROM node:22.14.0
+FROM node:22.16.0-slim
 LABEL author="Marco Robol <marco.robol@unitn.it>"
 
 # Install dependencies
@@ -9,12 +9,15 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libgif-dev \
     librsvg2-dev \
-    jq # Aggiunge jq per elaborare file JSON
+    git \
+    jq # Aggiunge jq per elaborare file JSON \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app
 COPY . /app
 WORKDIR /app
-RUN npm install && \
+RUN rm -rf /app/node_modules && rm -rf /app/backend/node_modules && rm -rf /app/frontend/node_modules \
+    npm install && \
     npm run build && \
     cd frontend && rm -rf node_modules &&  cd .. \
     npm prune --production && \

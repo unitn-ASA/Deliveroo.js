@@ -122,10 +122,10 @@
                 'opacity-20': agent.status == 'out of range',
              }" >
             <span v-if="agent.teamName" class="text-xs align-baseline">
-                {{ agent.name }}@
+                {{ agent.teamName.slice(0, 6) }}...{{ agent.name.slice(-5) }}
             </span>
-            <span class="align-baseline">
-                {{ agent.teamName ? agent.teamName : agent.name }}
+            <span v-else class="text-xs align-baseline">
+                {{ agent.name.length > 10 ? agent.name.slice(0,8) + '...' : agent.name }}
             </span>
             <span class="pl-1 text-sm">
                 ({{agent.score}})

@@ -48,11 +48,11 @@ export const goupByTeam = computed(() => {
 export const overall = computed(() => {
     const result = new Map();
     for (const round of goupByTeam.value) {
-        for (const [id, team] of round.results.entries()) {
-            if (!result.has(id)) {
-                result.set(id, { teamName: team.teamName, agents: team.agents, score: 0 });
+        for (const team of round.results.values()) {
+            if (!result.has(team.teamName)) {
+                result.set(team.teamName, { teamName: team.teamName, agents: team.agents, score: 0 });
             }
-            result.get(id).score += team.score;
+            result.get(team.teamName).score += team.score;
         }
     }
     return Array.from(result.values())

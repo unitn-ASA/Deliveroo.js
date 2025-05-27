@@ -28,25 +28,25 @@
                         @mouseover="agent.hoovered=true"
                         @mouseleave="agent.hoovered=false"
                 >
-                    <template v-if="agent.status != 'soffline'" >
-                        <td class="pt-1 pl-1">
-                            <input type="checkbox" v-model="agent.selected" :checked="agent.selected.value" class="checkbox checkbox-info" />
+                    <template v-if="agent.status != 'invalid'" >
+                        <td class="p-0 pl-1 align-bottom">
+                            <input type="checkbox" v-model="agent.selected" :checked="agent.selected.value" class="checkbox checkbox-info checkbox-sm" />
                         </td>
-                        <td class="">
+                        <td class="align-middle">
                             <div class="tooltip tooltip-info" :data-tip="`${agent.name}(${agent.id}) ${agent.teamName?agent.teamName+'('+agent.teamId+')':''}`">
                                 <div class="flex flex-wrap place-content-center items-center max-w-28 overflow-hidden leading-none">
-                                    <span class="mx-1 text-sm font-mono" :class="{ 'font-bold': agent.hoovered }">
-                                        {{ agent.name?.length > 10 ? agent.name.slice(0, 10) + '...' : agent.name }}
+                                    <span v-if="agent.teamName" class="text-xs" :class="{ 'font-bold': agent.hoovered }">
+                                        {{ agent.teamName?.length > 10 ? agent.teamName?.slice(0, 8) : agent.teamName }}...{{ agent.name?.length > 6 ? agent.name.slice(-4) : agent.name }}
                                     </span>
-                                    <span class="text-xs font-mono text-error" :class="{ 'font-bold': agent.hoovered }">
-                                        {{ agent.teamName?.length > 10 ? agent.teamName?.slice(0, 10) + '...' : agent.teamName }}
+                                    <span v-else class="text-xs" :class="{ 'font-bold': agent.hoovered }">
+                                        {{ agent.name?.length > 12 ? '...' + agent.name.slice(-10) : agent.name }}
                                     </span>
                                 </div>
                             </div>
                         </td>
                         <td class="">
                             <div class="tooltip tooltip-info" :data-tip="agent.status">
-                                <span class="font-mono text-sm" :class="{
+                                <span class="font-mono text-xs" :class="{
                                     'text-green-500': agent.status == 'online',
                                     'text-yellow-500': agent.status == 'out of range',
                                     'text-red-500': agent.status == 'offline',
@@ -62,7 +62,7 @@
                             </span>
                         </td>
                         <td class="max-w-16">
-                            <span class="text-xl text-white ml-1">
+                            <span class="text-lg text-white ml-1">
                                 {{ agent.penalty }}
                             </span>
                         </td>

@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
 
     environment:
-      - LEVEL=24c1_1
+      - LEVEL=levels/24c1_1
       - PORT=4001
 
     ports: # not needed if proxied by caddy

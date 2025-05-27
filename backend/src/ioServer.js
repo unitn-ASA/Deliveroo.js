@@ -381,7 +381,7 @@ class ioServer {
  */
 const oldLog = console.log;
 global.console.log = function ( ...message ) {
-    if ( config.BROADCAST_LOGS && config.BROADCAST_LOGS != "false" ) {
+    if ( config.BROADCAST_LOGS ) { // && config.BROADCAST_LOGS != "false"
         io.emit( 'log', {src: 'server', timestamp: {ms: myClock.ms, frame: myClock.frame}}, ...message );
     };
     oldLog.apply( console, message );
