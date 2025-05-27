@@ -37,7 +37,9 @@
     "redis": "^4.6.4",
     "serve-index": "^1.9.1",
     "socket.io": "^4.4.1",
-    "uid": "^2.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "uid": "^2.0.1",
+    "yaml": "^2.8.0"
   },
   "engines": {
     "node": "22.x"

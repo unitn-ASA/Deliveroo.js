@@ -1,7 +1,7 @@
 <script setup>
     
     import { connection } from '../../states/myConnection.js';
-    import { deleteAgent } from '../../apiClient.js';
+    import { deleteAgent, patchAgent } from '../../apiClient.js';
 
     const admin = connection?.payload.role == 'admin';
     const grid = connection?.grid;
@@ -74,13 +74,9 @@
         <button class="m-1 btn btn-outline btn-error btn-sm" @click="deleteAgent(connection?.token, connection?.grid.selectedAgent.value.id)" v-if="admin" >
             Kick
         </button>
-
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="respawn()" v-if="false" >
-            Respawn
-        </button>
         
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="resetScore()" v-if="false" disabled >
-            Reset score
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="patchAgent(connection?.token, connection?.grid.selectedAgent.value.id, {score:0, penalty:0})" v-if="admin" >
+            Reset
         </button>
                 
     </main>

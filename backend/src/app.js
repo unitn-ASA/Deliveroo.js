@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const Path = require('path');
 const serveIndex = require('serve-index');
+const swaggerUi = require('swagger-ui-express');
+const fs = require("fs")
+const YAML = require('yaml')
 const app = express();
 
 const apiRoutes = require('./routes/api');
@@ -41,6 +44,13 @@ app.use( '/',
         }
     } )
 );
+
+
+
+// Serve Swagger API documentation
+const oas3  = fs.readFileSync('./oas3.yaml', 'utf8')
+const swaggerDocument = YAML.parse(oas3)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup( swaggerDocument ));
 
 
 

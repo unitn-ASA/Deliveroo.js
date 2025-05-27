@@ -21,7 +21,7 @@
     // Create mesh
     const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
     const color = new THREE.Color( Math.random() * 0xffffff ); // color.setHex( Math.random() * 0xffffff );
-    const material = new THREE.MeshBasicMaterial( { color, transparent: true, opacity: 1 } );
+    const material = new THREE.MeshStandardMaterial( { color, transparent: true, opacity: 1 } );
     /** @type {THREE.Mesh} */
     const mesh = agent.mesh = new THREE.Mesh( geometry, material );
     mesh.position.set(agent.x*1.5, 0.5, -agent.y*1.5);
@@ -56,15 +56,15 @@
             if ( hovered ) {
                 mesh.scale.set( 1.3, 1.3, 1.3 );
                 mesh.position.y = 0.7;
-                mesh.material.emissiveIntensity = 0.5;
+                material.emissiveIntensity = 0.5;
             } else if ( selected ) {
                 mesh.scale.set( 1.2, 1.2, 1.2 );
                 mesh.position.y = 0.7;
-                mesh.material.emissiveIntensity = 0.3;
+                material.emissiveIntensity = 0.3;
             } else {
                 mesh.scale.set( 1, 1, 1 );
                 mesh.position.y = 0.5;
-                mesh.material.emissiveIntensity = 0;
+                material.emissiveIntensity = 0;
             }
         }
     );

@@ -100,7 +100,7 @@ if ( localStorage.getItem('myTournament') ) {
 }
 else {
     const newRound = {
-        id: 1,
+        id: "1",
         status: 'active',
         results: new Map()
     };

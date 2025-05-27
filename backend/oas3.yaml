@@ -1,0 +1,505 @@
+openapi: 3.0.4
+info:
+  version: '1.0'
+  title: "Deliveroo.js"
+  description: Deliveroo.js is a simple grid-based multi-player game
+    where players can move around, collect items, and interact with each other.  
+  license:
+    name: MIT
+servers:
+  - url: '../'
+    description: same as the current URL
+  - url: http://localhost:8080/
+    description: Localhost
+  - url: https://deliveroojs.rtibdi.disi.unitn.it/
+    description: unitn
+  - url: https://deliveroojs25.azurewebsites.net/
+    description: Azure
+paths:
+
+  /api/tokens:
+    get:
+      summary: Issue a new JWT token
+      description: >-
+        Issue a new JWT token.
+      parameters:
+        - name: name
+          in: query
+          required: true
+          description: 'Name of the user'
+          schema:
+            type: string
+          example: 'marco'
+        - name: teamName
+          in: query
+          description: 'Name of the team'
+          schema:
+            type: string
+        - name: password
+          in: header
+          description: 'Secret to require an admin token'
+          schema:
+            type: string
+          example: 'admin'
+      responses:
+        '200':
+          description: 'Token created'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                    description: 'JWT token'
+                  payload:
+                    type: object
+                    description: 'Payload of the JWT token'
+                    properties:
+                      id:
+                        type: string
+                        description: 'ID of the user'
+                      name:
+                        type: string
+                        description: 'Name of the user'
+                      teamId:
+                        type: string
+                        description: 'ID of the team'
+                      teamName:
+                        type: string
+                        description: 'Name of the team'
+                      role:
+                        type: string
+                        description: 'Role of the user (admin or user)'
+  
+  /api/:
+    get:
+      summary: Get the status of the game
+      responses:
+        '200':
+          description: 'Game status retrieved successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  commitHash:
+                    type: string
+                  packageVersion:
+                    type: string
+
+  /api/agents:
+    get:
+      summary: Get the list of agents
+      description: >-
+        Retrieves the list of agents currently in the game.
+      responses:
+        '200':
+          description: 'List of agents retrieved successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'  
+  
+  /api/agents/{agentId}:
+    delete:
+      summary: Remove an agent
+      description: >-
+        Removes an agent from the game.
+      parameters:
+        - name: agentId
+          required: true
+          in: path
+          description: 'ID of the agent to be removed'
+          schema:
+            type: string
+      security:
+        - AdminQueryToken: []
+          AdminHeaderToken: []
+      responses:
+        '200':
+          description: 'Agent removed successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    patch:
+      summary: Update an agent's information
+      description: >-
+        Updates the information of an agent in the game.
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: 'ID of the agent to be updated'
+          schema:
+            type: string
+      security:
+        - AdminQueryToken: []
+          AdminHeaderToken: []
+      requestBody:
+        description: >-
+          The agent information to be updated.
+          The request body should contain the fields to be updated.
+          Only the fields that are present in the request body will be updated.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                score:
+                  type: number
+                  description: 'Current score of the agent'
+                penalty:
+                  type: number
+                  description: 'Current penalty of the agent'
+      responses:
+        '200':
+          description: 'Agent information updated successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/configs:
+    get:
+      summary: Get current configuration settings
+      description: >-
+        Retrieves the current configuration settings for the game, including the game level, map file, and active plugins.
+      responses:
+        '200':
+          description: 'Current configuration settings retrieved successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configs'
+              
+    patch:
+      summary: Update configuration settings
+      description: >-
+        Updates the configuration settings for the game, including the game level, map file, and active plugins.
+      security:
+        - AdminQueryToken: []
+          AdminHeaderToken: []
+      requestBody:
+        description: >-
+          The configuration settings to be updated.
+          The request body should contain the fields to be updated.
+          Only the fields that are present in the request body will be updated.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Configs'
+      responses:
+        '200':
+          description: 'Configuration settings updated successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Configs'
+
+  /api/levels:
+    get:
+      description: >-
+        Gets the list of levels.
+      summary: View all levels
+      responses:
+        '200':
+          description: 'Levels'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Configs'
+  
+  /api/maps:
+    get:
+      description: >-
+        Gets the list of maps.
+      summary: View all maps
+      security:
+        - AdminQueryToken: []
+          AdminHeaderToken: []
+      responses:
+        '200':
+          description: 'Maps'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: 'Map file name'
+                  png:
+                    type: string
+                    description: 'Map PNG file name'
+                  map:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                    description: 'Map grid representation'
+
+  /api/npcs:
+    get:
+      summary: Get the list of NPC controlled agents
+      description: >-
+        Retrieves the list of NPC controlled agents currently in the game.
+      responses:
+        '200':
+          description: 'List of NPC controlled agents retrieved successfully'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NPC'
+    post:
+      summary: Create a new NPC controlled agent
+      description: >-
+        Creates a new NPC controlled agent in the game.
+      security:
+        - AdminQueryToken: []
+          AdminHeaderToken: []
+      responses:
+        '201':
+          description: 'NPC controlled agent created successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NPC'
+  
+  /api/npcs/{npcId}:
+    patch:
+      summary: Update an NPC controlled agent's information
+      description: >-
+        Updates the information of an NPC controlled agent in the game.
+      parameters:
+        - name: npcId
+          in: path
+          required: true
+          description: 'ID of the NPC controlled agent to be updated'
+          schema:
+            type: string
+      security:
+        - AdminQueryToken: []
+          AdminHeaderToken: []
+      requestBody:
+        description: >-
+          The NPC controlled agent information to be updated.
+          The request body should contain the fields to be updated.
+          Only the fields that are present in the request body will be updated.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                running:
+                  type: boolean
+                  description: 'Indicates if the NPC controlled agent is running'
+                stopRequested:
+                  type: boolean
+                  description: 'Indicates if a stop request has been made for the NPC controlled agent'
+      responses:
+        '200':
+          description: 'NPC controlled agent information updated successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  
+  /api/parcels:
+    get:
+      summary: Get the list of parcels
+      description: >-
+        Retrieves the list of parcels currently in the game.
+      responses:
+        '200':
+          description: 'List of parcels retrieved successfully'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: 'ID of the parcel'
+                    reward:
+                      type: number
+                      description: 'Reward for delivering the parcel'
+          
+  /api/parcels/{parcelId}:
+    delete:
+      summary: Remove a parcel
+      description: >-
+        Removes a parcel from the game.
+      parameters:
+        - name: parcelId
+          required: true
+          in: path
+          description: 'ID of the parcel to be removed'
+          schema:
+            type: string
+      security:
+        - AdminQueryToken: []
+          AdminHeaderToken: []
+      responses:
+        '200':
+          description: 'Parcel removed successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          
+components:
+
+  securitySchemes:
+    
+    AdminHeaderToken: # arbitrary name for the security scheme
+      description: >-
+        A valid JWT token must be passed in the header 'x-access-token'.
+      type: apiKey
+      in: header
+      name: x-access-token
+    
+    AdminQueryToken: # arbitrary name for the security scheme
+      description: >-
+        A valid JWT token must be passed in the query 'token'.
+      type: apiKey
+      in: query
+      name: token
+
+  schemas:
+
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 'ID of the agent'
+        name:
+          type: string
+          description: 'Name of the agent'
+        teamId:
+          type: string
+          description: 'ID of the team the agent belongs to'
+        teamName:
+          type: string
+          description: 'Name of the team the agent belongs to'
+        score:
+          type: number
+          description: 'Current score of the agent'
+        penalty:
+          type: number
+          description: 'Current penalty of the agent'
+
+    Configs:
+      type: object
+      properties:
+        LEVEL:
+          type: string
+          description: 'The current game level.'
+        MAP_FILE:
+          type: string
+          description: 'The current map file name.'
+        PARCELS_GENERATION_INTERVAL:
+          type: integer
+          description: 'The interval in seconds for parcel generation.'
+        PARCELS_MAX:
+          type: integer
+          description: 'The maximum number of parcels that can be generated at a time.'
+        PARCEL_REWARD_AVG:
+          type: integer
+          description: 'The average reward for delivering a parcel.'
+        PARCEL_REWARD_VARIANCE:
+          type: integer
+          description: 'The variance in the reward for delivering a parcel.'
+        PARCEL_DECADING_INTERVAL:
+          description: "Specify the decading interval for parcels, options are '1s', '2s', '5s', '10s', 'infinite', default is '1s'"
+          type: string
+          enum: ['1s', '2s', '5s', '10s', 'infinite']
+        PENALTY:
+          type: integer
+          description: 'Specify penalty in case of invalid aciton, default is 0'
+        MOVEMENT_STEPS:
+          type: integer
+          description: 'Specify the Number of steps for each movement, default is 1'
+        MOVEMENT_DURATION:
+          type: integer
+          description: 'Specify the duration of each movement, default is 50'
+        AGENTS_OBSERVATION_DISTANCE:
+          type: integer
+          description: 'Specify the observation distance for agents, default is 5'
+        PARCELS_OBSERVATION_DISTANCE:
+          type: integer
+          description: 'Specify the observation distance for parcels, default is 5'
+        AGENT_TIMEOUT:
+          type: integer
+          description: 'Specify the timeout for agents, default is 10000'
+        RANDOMLY_MOVING_AGENTS:
+          type: integer
+          description: 'Specify the Number of randomly moving agents, default is 0'
+        RANDOM_AGENT_SPEED:
+          type: string
+          default: '2s'
+          description: "Specify the speed for randomly moving agents, options are '1s', '2s', '5s', '10s', default is '2s'"
+          enum: ['1s', '2s', '5s', '10s']
+        CLOCK:
+          type: integer
+          description: "Specify the clock [ms], 40 (25frame/s), default is 50 (20frame/s)"
+        BROADCAST_LOGS:
+          type: boolean
+          default: false
+          description: 'Enable or disable broadcast logs'
+        PLUGINS:
+          type: array
+          items:
+            type: string
+          description: 'List of active plugins'
+        AGENT_TYPE:
+          type: string
+          description: 'Specify the agent class to use'
+
+    NPC:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 'ID of the NPC controlled agent'
+        name:
+          type: string
+          description: 'Name of the NPC controlled agent'
+        agent:
+          type: object
+          $ref: '#/components/schemas/Agent'
+          description: 'Agent information of the NPC controlled agent'
+        running:
+          type: boolean
+          description: 'Indicates if the NPC controlled agent is running'
+        stopRequested:
+          type: boolean
+          description: 'Indicates if a stop request has been made for the NPC controlled agent'

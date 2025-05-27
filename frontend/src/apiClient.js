@@ -118,7 +118,7 @@ async function deleteAgent ( token, id ) {
 /**
  * @param {string} token 
  * @param {string} id 
- * @param {{score:number}} agent
+ * @param {{score?:number, penalty?:number}} agent
  * @returns 
  */
 async function patchAgent ( token, id, agent ) {

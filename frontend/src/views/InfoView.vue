@@ -32,6 +32,10 @@
             Check the examples at <a href="github.com/unitn-ASA/DeliverooAgent.js">github.com/unitn-ASA/DeliverooAgent.js</a>.
             <br/>
 
+            <h2 class="p-5 text-m">Restful APIs Docs</h2>
+
+            Check here <a href="/api-docs">/api-docs</a> the documentation of the Restful APIs.
+
         </div>
 
         <div class="sticky top-[100vh] px-20 py-10 text-xs text-neutral-content bg-neutral">
