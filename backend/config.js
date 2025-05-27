@@ -137,7 +137,7 @@ class Config {
         });
 
         /** @type {boolean} */
-        this.BROADCAST_LOGS = Boolean(process.env.BROADCAST_LOGS) || true;
+        this.BROADCAST_LOGS = Boolean(process.env.BROADCAST_LOGS) || false;
         parser.add_argument('--broadcast-logs', {
             dest: 'BROADCAST_LOGS', type: Boolean,
             help: "Broadcast logs to all clients, default is true"
