@@ -8,7 +8,7 @@
     });
     const grid = connection?.grid;
     const me = grid?.me;
-    const clock = grid?.clock;
+    const clock = grid?.info;
 
     const selectedAgent = ref('All');
     const input = ref('');

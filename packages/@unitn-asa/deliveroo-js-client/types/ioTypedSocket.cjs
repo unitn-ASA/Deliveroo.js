@@ -28,9 +28,12 @@
  */
 
 /**
- * @typedef timestamp
+ * @typedef info
  * @property {number} ms
  * @property {number} frame
+ * @property {number} fps
+ * @property {number} heapUsed
+ * @property {number} heapTotal
  */
 
 /**
@@ -55,11 +58,11 @@
  *      'disconnect':       function () : void,
  *      'config':           function ( any ) : void,
  *      'map':              function ( number, number, tile[] ) : void,
- *      'tile':             function ( tile, timestamp ) : void,
+ *      'tile':             function ( tile, info ) : void,
  *      'controller':       function ( 'connected' | 'disconnected', {id:string, name:string, teamId:string, teamName:string, score:number} ) : void,
- *      'you':              function ( agent, timestamp ) : void,
- *      'agents sensing':   function ( agent[], timestamp ) : void,
- *      'parcels sensing':  function ( parcel[], timestamp ) : void,
+ *      'you':              function ( agent, info ) : void,
+ *      'agents sensing':   function ( agent[], info ) : void,
+ *      'parcels sensing':  function ( parcel[], info ) : void,
  *      'msg':              function ( string, string, Object, function ( Object ) : void = ) : Object,
  *      'log':              function ( {src: 'server'|'client', ms:number, frame:number, socket:string, id:string, name:string}, ...any ) : void
  * }} serverEvents
@@ -134,12 +137,13 @@ class ioTypedSocket {
      */
     async emitAndResolveOnAck ( event, ...args ) {
         // console.log( 'emitAndResolveOnAck', event.toString(), ...args );
-        return new Promise( (resolve) => {
-            setTimeout( () => resolve( false ), 1000 );
-            this.#socket.emit( event.toString(), ...args, reply =>
-                resolve( reply )
-            );
-        } );
+        return this.#socket.timeout( 1000 ).emitWithAck( event.toString(), ...args );
+        // return new Promise( (resolve) => {
+        //     setTimeout( () => resolve( false ), 1000 );
+        //     this.#socket.emit( event.toString(), ...args, reply =>
+        //         resolve( reply )
+        //     );
+        // } );
     }
     
     /**
@@ -153,11 +157,12 @@ class ioTypedSocket {
              * @param {Parameters<emitEv[K]>} args
              */
             emit: ( event, ...args ) => {
-                return new Promise(  (resolve) => {
-                    this.#socket.to( room ).emit( event.toString(), ...args, reply =>
-                        resolve( reply )
-                    );
-                } );
+                this.#socket.to( room ).emit( event.toString(), ...args );
+                // return new Promise(  (resolve) => {
+                //     this.#socket.to( room ).emit( event.toString(), ...args, reply =>
+                //         resolve( reply )
+                //     );
+                // } );
             },
             fetchSockets: () => this.#socket.to( room ).fetchSockets()
         };

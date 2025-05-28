@@ -241,7 +241,10 @@ class ioServer {
                 const moving = await me[direction.toString()]();
                 if ( acknowledgementCallback )
                     acknowledgementCallback( moving ); //.bind(me)()
-            } catch (error) { console.error(direction, 'is not a method of agent'); console.error(error) }
+            } catch (error) {
+                me.penalty -= me.config.PENALTY;
+                console.warn( `${me.name}(${me.id}) got penalty ${me.penalty}: onMove() direction ${direction.toString()} is not a method of agent!` );
+            }
         });
 
         socket.onPickup( async (acknowledgementCallback) => {
@@ -310,7 +313,7 @@ class ioServer {
         /**
          * Bradcast client log
          */
-        if ( config.BROADCAST_LOGS && config.BROADCAST_LOGS != "false" ) {
+        if ( config.BROADCAST_LOGS ) {
             socket.onLog( ( ...message ) => {
                 socket.broadcast.emit( 'log', {src: 'client', ms: myClock.ms, frame: myClock.frame, socket: socket.id, id: me.id, name: me.name}, ...message )
             } )

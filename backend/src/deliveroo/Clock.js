@@ -8,6 +8,11 @@ const Types = require('./Types');
  * @typedef { Types.ClockEvent } ClockEvent
  */
 
+/**
+ * @typedef info
+ * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").info}
+ */
+
 
 
 /**
@@ -87,12 +92,11 @@ class Clock {
             this.#ms += this.#base;
             this.#frame += 1;
             this.sample();
-            const memoryUsage = process.memoryUsage();
             /** always emit frame event */      this.#eventEmitter.emit( 'frame' );
             if ( this.#ms % 1000 == 0 ) {       this.#eventEmitter.emit( '1s' );
                 if ( this.#ms % 2000 == 0 )     this.#eventEmitter.emit( '2s' );
                 if ( this.#ms % 5000 == 0 ) {   this.#eventEmitter.emit( '5s' );
-                    console.log( 'FRAME', `#${this.#frame}`, `@${this.#base}ms`, this.fps(), `fps`, `Heap: ${Math.round(memoryUsage.heapUsed/1000000)}MB used of ${Math.round(memoryUsage.heapTotal/1000000)}MB total` );
+                    console.log( 'FRAME', `#${this.#frame}`, `@${this.#base}ms`, this.info.fps, `fps`, `Heap: ${this.info.heapUsed}MB used of ${this.info.heapTotal}MB total` );
                     if ( this.#ms % 10000 == 0 )this.#eventEmitter.emit( '10s' );
                 }
             }
@@ -103,6 +107,17 @@ class Clock {
         }, this.#base )
     }
 
+    /**
+     * @type {info}
+     */
+    info = {
+        ms: 0,
+        frame: 0,
+        fps: 0,
+        heapUsed: 0,
+        heapTotal: 0
+    }
+
     #samples = [];
 
     sample () {
@@ -110,9 +125,17 @@ class Clock {
             frame: this.frame,
             time: Date.now()
         } );
+        const memoryUsage = process.memoryUsage();
+        this.info = {
+            ms: this.ms,
+            frame: this.frame,
+            fps: this.#computeFps(),
+            heapUsed: Math.round( memoryUsage.heapUsed / 1000000 ),
+            heapTotal: Math.round( memoryUsage.heapTotal / 1000000 )
+        };
     }
 
-    fps ( back = 10 ) {
+    #computeFps ( back = 10 ) {
         if ( this.#samples.length < 1 )
             return Math.round( this.#frame / ( Date.now() - this.#startTime ) * 1000 * 10 ) / 10;
         let lastI = this.#samples.length - 1;

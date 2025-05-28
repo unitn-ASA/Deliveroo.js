@@ -48,6 +48,11 @@ import { connection } from "./states/myConnection.js";
 * }}
 */
 
+/**
+ * @typedef info
+ * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").info}
+ */
+
 
 
 export class Grid {
@@ -62,11 +67,8 @@ export class Grid {
      */
     configs = shallowReactive ({});
 
-    /** @type {{ms:number,frame:number}} */
-    clock = {
-        ms: 0,
-        frame: 0
-    };
+    /** @type {import("vue").Ref<info>} */
+    info = ref();
 
     /** @type {number} */
     width = 0;
@@ -270,7 +272,7 @@ export class Grid {
         //     // this.tiles.delete( x + y*1000 ); // delete to avoid blocks from old maps
         // });
 
-        socket.on( "tile", ({x, y, type}, {ms, frame}) => {
+        socket.on( "tile", ({x, y, type}, {ms, frame, fps}) => {
             // console.log( 'Grid.js tile', x, y, type );
             this.getTile(x, y).type = type;
             // if ( delivery )
@@ -295,11 +297,10 @@ export class Grid {
         //     AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
         // } )
 
-        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty }, clock ) => {
+        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty }, info ) => {
             // console.log( "Grid.js socket.on(you)", id, name, teamId, teamName, x, y, score, clock )
 
-            this.clock.ms = clock.ms;
-            this.clock.frame = clock.frame;
+            this.info.value = info;
 
             let me = this.me.value = this.getOrCreateAgent( id );
             me.name = name;
@@ -342,12 +343,11 @@ export class Grid {
         // });
 
 
-        socket.on("agents sensing", (sensedReceived, clock) => {
+        socket.on("agents sensing", (sensedReceived, info) => {
 
             //console.log("agents sensing", ...sensed)//, sensed.length)
 
-            this.clock.ms = clock.ms;
-            this.clock.frame = clock.frame;
+            this.info.value = info;
 
             var sensed = Array.from(sensedReceived)
             
@@ -376,12 +376,11 @@ export class Grid {
 
         });
 
-        socket.on("parcels sensing", (sensedReceived, clock) => {
+        socket.on("parcels sensing", (sensedReceived, info) => {
 
-            // console.log("parcels sensing", ...sensed)//, sensed.length)
+            // console.log("parcels sensing", ...sensedReceived, clock)//, sensed.length)
 
-            this.clock.ms = clock.ms;
-            this.clock.frame = clock.frame;
+            this.info.value = info;
 
             var sensed = Array.from(sensedReceived)
 

@@ -32,7 +32,7 @@ const commitHash = new Promise( res =>
             else if ( data )
                 commitHash = data.toString().trim();
         } catch (error) {
-            console.error('Error while reading commit hash from .git-revision', error);
+            // console.error('Error while reading commit hash from .git-revision', error);
         }
         
         console.log( 'api.js commitHash =', commitHash );
