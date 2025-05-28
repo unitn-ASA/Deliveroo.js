@@ -268,7 +268,7 @@ class ioServer {
 
         socket.onSay( (toId, msg, acknowledgementCallback) => {
             
-            console.log( me.id, me.name, 'say to', toId, msg );
+            // console.log( me.id, me.name, 'say to', toId, msg );
 
             // console.log( me.id, me.name, 'emit \'msg\' on socket', socket.id, msg );
             socket.emitMsg( me, toId, msg );
@@ -281,13 +281,13 @@ class ioServer {
         } )
 
         socket.onAsk( async (toId, msg, replyCallback) => {
-            console.log( me.id, me.name, 'ask to', toId, msg );
+            // console.log( me.id, me.name, 'ask to', toId, msg );
 
             // console.log( me.id, 'socket', socket.id, 'emit msg', ...args );
             let reply = await socket.emitAsk( me, toId, msg);
 
             try {
-                console.log( toId, 'replied', reply );
+                // console.log( toId, 'replied', reply );
                 replyCallback( reply )
             } catch (error) { console.log( me.id, 'error while trying to acknowledge reply' ) }
 
@@ -295,7 +295,7 @@ class ioServer {
 
         socket.onShout( (msg, acknowledgementCallback) => {
 
-            console.log( me.id, me.name, 'shout to everyone:', msg );
+            // console.log( me.id, me.name, 'shout to everyone:', msg );
             
             socket.broadcastMsg( me, msg );
 
