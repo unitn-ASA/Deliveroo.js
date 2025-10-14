@@ -33,6 +33,12 @@ class Parcel extends ObservableMulti {
 
     /** @type {boolean} */
     expired;
+
+    /** @type {Function} */
+    #decayListener;
+
+    /** @type {Function} */
+    #followCarrier;
     
     /**
      * @constructor Parcel
@@ -52,10 +58,10 @@ class Parcel extends ObservableMulti {
         // Follow carrier
         /** @type {Agent} */
         var lastCarrier = null;
-        const followCarrier = (agent) => { if ( this.carriedBy ) this.xy = this.carriedBy.xy };
+        this.#followCarrier = (agent) => { if ( this.carriedBy ) this.xy = this.carriedBy.xy };
         this.on( 'carriedBy', ({carriedBy}) => {
-            lastCarrier?.off( 'xy', followCarrier )
-            this.carriedBy?.on( 'xy', followCarrier )
+            lastCarrier?.off( 'xy', this.#followCarrier )
+            this.carriedBy?.on( 'xy', this.#followCarrier )
             lastCarrier = this.carriedBy;
         } )
 
@@ -79,14 +85,28 @@ class Parcel extends ObservableMulti {
         }
         this.on( 'reward', rewardListener );
 
-        const decay = () => {
+        this.#decayListener = () => {
             this.reward = Math.floor( this.reward - 1 );
             if ( this.reward <= 0) {
-                myClock.off( config.PARCEL_DECADING_INTERVAL, decay );
+                myClock.off( config.PARCEL_DECADING_INTERVAL, this.#decayListener );
             }
         };
-        myClock.on( config.PARCEL_DECADING_INTERVAL, decay );
+        myClock.on( config.PARCEL_DECADING_INTERVAL, this.#decayListener );
         
+    }
+
+    /**
+     * Cleanup method to remove event listeners and prevent memory leaks
+     */
+    cleanup() {
+        // Remove clock listener
+        if ( this.#decayListener ) {
+            myClock.off( config.PARCEL_DECADING_INTERVAL, this.#decayListener );
+        }
+        // Remove carrier follower listener
+        if ( this.carriedBy && this.#followCarrier ) {
+            this.carriedBy.off( 'xy', this.#followCarrier );
+        }
     }
 
 }

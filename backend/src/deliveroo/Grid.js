@@ -188,6 +188,11 @@ class Grid extends GridEventEmitter {
         // agent.removeAllListeners('agents sensing');
         // agent.removeAllListeners('parcels sensing');
         
+        // Cleanup sensor listeners to prevent memory leak
+        if ( agent.sensor && typeof agent.sensor.cleanup === 'function' ) {
+            agent.sensor.cleanup();
+        }
+        
         this.#agents.delete( agent.id );
         
         this.emitAgent( 'deleted', agent );
@@ -252,6 +257,10 @@ class Grid extends GridEventEmitter {
         parcel.removeAllListeners('reward');
         parcel.removeAllListeners('carriedBy');
         parcel.removeAllListeners('xy');
+        // Call cleanup to remove clock and carrier listeners
+        if ( typeof parcel.cleanup === 'function' ) {
+            parcel.cleanup();
+        }
         return this.#parcels.delete( id );
     }
 
