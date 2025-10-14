@@ -180,4 +180,38 @@ async function deleteParcel( token, id ) {
     });
 }
 
-export { richiediToken, getConfig, patchConfig, deleteAgent, patchAgent, deleteParcel }
+
+/**
+ * Delete all parcels from the grid.
+ * @param {*} token 
+ */
+async function deleteAllParcels( token ) {
+    return new Promise((resolve, reject) => {
+        fetch(HOST+'/api/parcels', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-token': token
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            else {
+                throw new Error(`Error deleting all parcels, Status code: ${response.status}`);
+            }
+        })
+        .then(data => {
+            console.log("all parcels deleted: " + data);
+            resolve(data);
+        })
+        .catch(error => {
+            console.warn('An error occurred:', error);
+            reject('Error deleting all parcels');
+        });
+    });
+}
+
+
+export { richiediToken, getConfig, patchConfig, deleteAgent, patchAgent, deleteParcel, deleteAllParcels };

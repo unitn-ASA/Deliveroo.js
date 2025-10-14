@@ -28,7 +28,6 @@
     });
     const grid = connection?.grid;
     const me = grid?.me;
-    const clock = grid?.clock;
 
     function restartGame() {
         connection.socket.emit('restart');
@@ -121,7 +120,7 @@
             <div class="fixed z-10 w-80 right-4 top-4 max-h-full">
                 <div class="flex flex-col h-full rounded-lg space-y-2">
                     
-                    <Timer class="z-10" :timer="clock?.ms" :frames="clock?.frame"/>
+                    <Timer class="z-10" v-if="connection?.grid?.info?.value?.ms"/>
                     
                     <div class="z-10 grid grid-flow-col gap-2 text-center text-xs w-80">
                         <button class="btn btn-info btn-sm" @click="loginModal=true"

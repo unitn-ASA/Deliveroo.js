@@ -284,7 +284,10 @@ class ioServer {
                 const moving = await me[direction.toString()]();
                 if ( acknowledgementCallback )
                     acknowledgementCallback( moving ); //.bind(me)()
-            } catch (error) { console.error(direction, 'is not a method of agent'); console.error(error) }
+            } catch (error) {
+                me.penalty -= me.config.PENALTY;
+                console.warn( `${me.name}(${me.id}) got penalty ${me.penalty}: onMove() direction ${direction.toString()} is not a method of agent!` );
+            }
         });
 
         socket.onPickup( async (acknowledgementCallback) => {
@@ -311,7 +314,7 @@ class ioServer {
 
         socket.onSay( (toId, msg, acknowledgementCallback) => {
             
-            console.log( me.id, me.name, 'say to', toId, msg );
+            // console.log( me.id, me.name, 'say to', toId, msg );
 
             // console.log( me.id, me.name, 'emit \'msg\' on socket', socket.id, msg );
             socket.emitMsg( me, toId, msg );
@@ -324,13 +327,13 @@ class ioServer {
         } )
 
         socket.onAsk( async (toId, msg, replyCallback) => {
-            console.log( me.id, me.name, 'ask to', toId, msg );
+            // console.log( me.id, me.name, 'ask to', toId, msg );
 
             // console.log( me.id, 'socket', socket.id, 'emit msg', ...args );
             let reply = await socket.emitAsk( me, toId, msg);
 
             try {
-                console.log( toId, 'replied', reply );
+                // console.log( toId, 'replied', reply );
                 replyCallback( reply )
             } catch (error) { console.log( me.id, 'error while trying to acknowledge reply' ) }
 
@@ -338,7 +341,7 @@ class ioServer {
 
         socket.onShout( (msg, acknowledgementCallback) => {
 
-            console.log( me.id, me.name, 'shout to everyone:', msg );
+            // console.log( me.id, me.name, 'shout to everyone:', msg );
             
             socket.broadcastMsg( me, msg );
 
@@ -353,7 +356,7 @@ class ioServer {
         /**
          * Bradcast client log
          */
-        if ( config.BROADCAST_LOGS && config.BROADCAST_LOGS != "false" ) {
+        if ( config.BROADCAST_LOGS ) {
             socket.onLog( ( ...message ) => {
                 socket.broadcast.emit( 'log', {src: 'client', ms: myClock.ms, frame: myClock.frame, socket: socket.id, id: me.id, name: me.name}, ...message )
             } )

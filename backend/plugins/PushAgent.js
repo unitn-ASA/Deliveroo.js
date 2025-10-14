@@ -42,6 +42,7 @@ class PushAgent extends Agent {
         }
         // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
         this.penalty -= this.config.PENALTY;
+        console.warn( `${this.name}(${this.id}) got penalty ${this.penalty}: move was not possible, tile either not existing, blocked or not walkable!` );
         return false;
     }
     

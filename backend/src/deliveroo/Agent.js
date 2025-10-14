@@ -163,6 +163,7 @@ class Agent extends ObservableMulti {
         // if still pending
         if ( this.isDoing ) {
             this.penalty -= this.config.PENALTY;
+            console.warn( `${this.name}(${this.id}) got penalty ${this.penalty}: trying to do something without waiting for previous action to finish!` );
             return false;
         }
         else {
@@ -193,6 +194,7 @@ class Agent extends ObservableMulti {
         }
         // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
         this.penalty -= this.config.PENALTY;
+        // console.warn( `${this.name}(${this.id}) got penalty ${this.penalty}: move was not possible, tile either not existing, blocked or not walkable!` );
         return false;
     }
 
@@ -271,7 +273,8 @@ class Agent extends ObservableMulti {
             this.score += sc;
             if ( sc > 0 ) {
                 console.log( `${this.name}(${this.id}) putDown ${dropped.length} parcels (+ ${sc} pti -> ${this.score} pti)` );
-                console.log( Array.from(this.#grid.agents.values()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
+                // Leaderboard
+                // console.log( Array.from(this.#grid.agents.values()).map(({name,id,score})=>`${name}(${id}) ${score} pti`).join(', ') );
             }
             // if ( dropped.length > 0 )
             //     this.emitOnePerTick( 'putdown', this, dropped );

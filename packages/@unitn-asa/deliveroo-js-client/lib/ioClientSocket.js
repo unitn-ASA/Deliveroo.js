@@ -21,8 +21,8 @@ import ioTypedSocket from '@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cj
  */
 
 /**
- * @typedef timestamp
- * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").timestamp}
+ * @typedef info
+ * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").info}
  */
 
 /**
@@ -72,7 +72,7 @@ export default class ioClientInterface extends ioTypedSocket {
         } );
 
         this.me = new Promise( (res) => {
-            this.once( 'you', (agent, timestamp) => {
+            this.once( 'you', (agent, info) => {
                 res( agent );
             } );
         } );
@@ -129,7 +129,7 @@ export default class ioClientInterface extends ioTypedSocket {
     }
     
     /**
-     * @param { function( tile, timestamp ) : void } callback
+     * @param { function( tile, info ) : void } callback
      */
     onTile ( callback ) {
         this.on( "tile", callback )
@@ -144,14 +144,14 @@ export default class ioClientInterface extends ioTypedSocket {
     }
     
     /**
-     * @param { function( agent, timestamp ) : void } callback
+     * @param { function( agent, info ) : void } callback
      */
     onYou ( callback ) {
         this.on( "you", callback )
     }
 
     /**
-     * @param { function( agent, timestamp ) : void } callback
+     * @param { function( agent, info ) : void } callback
      */
     onceYou ( callback ) {
         this.once( "you", callback )

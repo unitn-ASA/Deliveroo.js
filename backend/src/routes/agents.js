@@ -47,20 +47,25 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
 // PATCH /agents/:id update an agent's score
 router.patch('/:id', authorizeAdmin, async (req, res) => {
 
-    console.log( `PATCH /api/agents/${req.params.id}` );
+    // log a message on same line as previous log
+    process.stdout.write( `PATCH /api/agents/${req.params.id} ${JSON.stringify(req.body)}: ` );
 
     const id = req.params.id;
     const agent = myGrid.agents.get( id );
     if ( agent ) {
         if ( req.body.score !== undefined || req.body.penalty !== undefined ) {
-            agent.score = req.body.score;
-            agent.penalty = req.body.penalty;
+            if ( req.body.score !== undefined )
+                agent.score = Number.parseInt(req.body.score);
+            if ( req.body.penalty !== undefined )
+                agent.penalty = Number.parseInt(req.body.penalty);
             res.status(200).json( { message: `Agent ${id} updated`, score: agent.score, penalty: agent.penalty } );
         } else {
             res.status(400).json( { message: `Score or penalty not provided` } );
         }
+        console.log( `${agent.name}(${agent.id})`, JSON.stringify({score: agent.score, penalty: agent.penalty}) );
     } else {
         res.status(404).json( { message: `Agent ${id} not found` } );
+        console.warn( `Agent ${id} not found` );
     }
   
 });

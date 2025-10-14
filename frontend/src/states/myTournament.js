@@ -5,7 +5,7 @@ import { connection } from './myConnection.js';
 const grid = connection?.grid;
 
 /**
- * @type {import("vue").Reactive<Array<{id:string, status:string, results:Map<string,{id: string, name:string, teamId: string, teamName: string, score:number}>}>>}
+ * @type {import("vue").Reactive<Array<{id:number, status:string, results:Map<string,{id: string, name:string, teamId: string, teamName: string, score:number}>}>>}
  */
 export const tournament = reactive(new Array());
 // tournament.push({
@@ -19,7 +19,7 @@ export const tournament = reactive(new Array());
 
 
 /**
- * @type {import("vue").ComputedRef< Array<{ id:string, status:string, results:{teamName:string, agents:*[], score:number}[] }>  >}
+ * @type {import("vue").ComputedRef< Array<{ id:number, status:string, results:{teamName:string, agents:*[], score:number}[] }>  >}
  */
 export const goupByTeam = computed(() => {
     return tournament.map(round => {
@@ -100,7 +100,7 @@ if ( localStorage.getItem('myTournament') ) {
 }
 else {
     const newRound = {
-        id: "1",
+        id: 1,
         status: 'active',
         results: new Map()
     };

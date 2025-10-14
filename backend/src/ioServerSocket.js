@@ -17,8 +17,8 @@ const ioTypedSocket = require('../../packages/@unitn-asa/deliveroo-js-client/typ
  */
 
 /**
- * @typedef timestamp
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").timestamp}
+ * @typedef info
+ * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").info}
  */
 
 /**
@@ -97,7 +97,7 @@ class ioServerSocket extends ioTypedSocket {
      * @param { tile } tile
      */
     emitTile ( { x, y, type } ) {
-        this.emit( 'tile', {x, y, type}, {ms: myClock.ms, frame:myClock.frame} );
+        this.emit( 'tile', {x, y, type}, myClock.info );
     }
 
     /**
@@ -112,21 +112,21 @@ class ioServerSocket extends ioTypedSocket {
      * @param { agent } you
      */
     emitYou ( {id, name, teamId, teamName, x, y, score, penalty} ) {
-        this.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty}, {ms: myClock.ms, frame: myClock.frame} );
+        this.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty}, myClock.info );
     }
 
     /**
      * @param { agent [] } agents
      */
     emitAgentsSensing ( agents ) {
-        this.emit( 'agents sensing', agents, {ms: myClock.ms, frame: myClock.frame} );
+        this.emit( 'agents sensing', agents, myClock.info );
     }
     
     /**
      * @param { parcel [] } parcels
      */
     emitParcelSensing ( parcels ) {
-        this.emit( 'parcels sensing', parcels, {ms: myClock.ms, frame: myClock.frame} );
+        this.emit( 'parcels sensing', parcels, myClock.info );
     }
 
 

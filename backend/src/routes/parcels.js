@@ -21,6 +21,21 @@ router.get('/', async (req, res) => {
 
 
 
+// DELETE /parcels delete all parcels from the grid
+router.delete('/', authorizeAdmin, async (req, res) => {
+
+    console.log( `DELETE /api/parcels` );
+
+    for ( const parcel of myGrid.getParcels() ) {
+        myGrid.deleteParcel( parcel.id );
+    }
+    
+    res.status(200).json( { message: 'All parcels deleted' } );
+
+});
+
+
+
 // DELETE /parcels/:id delete an parcel from the grid
 router.delete('/:id', authorizeAdmin, async (req, res) => {
 
@@ -30,9 +45,9 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
     const parcel = myGrid.getParcel( id );
     if ( parcel ) {
         myGrid.deleteParcel( parcel.id );
-        res.status(200).json( { message: `Agent ${id} deleted` } );
+        res.status(200).json( { message: `Parcel ${id} deleted` } );
     } else {
-        res.status(404).json( { message: `Agent ${id} not found` } );
+        res.status(404).json( { message: `Parcel ${id} not found` } );
     }
   
 });
