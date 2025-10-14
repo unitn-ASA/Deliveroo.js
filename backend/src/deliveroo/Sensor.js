@@ -38,6 +38,21 @@ class Sensor extends ObservableMulti {
     /** @type {SensedParcel[]} */
     sensedParcels = [];
 
+    /** @type {Function} - Grid agent xy listener */
+    #agentXyListener;
+    
+    /** @type {Function} - Grid agent deleted listener */
+    #agentDeletedListener;
+    
+    /** @type {Function} - Grid agent score listener */
+    #agentScoreListener;
+    
+    /** @type {Function} - Grid parcel listener */
+    #parcelListener;
+    
+    /** @type {Function} - Agent xy listener */
+    #myXyListener;
+
     /**
      * @constructor Agent
      * @param {Grid} grid
@@ -58,7 +73,7 @@ class Sensor extends ObservableMulti {
 
         if ( agent ) {
 
-            grid.onAgent( 'xy', ( event, who ) => {
+            this.#agentXyListener = ( event, who ) => {
                 // On my movements emit agents and parcels sensing
                 if ( agent.id == who.id ) {
                     this.emitAgentSensing();
@@ -68,25 +83,31 @@ class Sensor extends ObservableMulti {
                 else if ( !( Xy.distance(agent, who) > this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                         this.emitAgentSensing();
                     }  
-            } )
+            };
+            grid.onAgent( 'xy', this.#agentXyListener );
             
             // On agent deleted emit agentSensing
-            grid.onAgent( 'deleted', ( event, who ) => {
+            this.#agentDeletedListener = ( event, who ) => {
                 if ( agent.id != who.id && !( Xy.distance(agent, who) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                     this.emitAgentSensing()
                 }
-            } )
+            };
+            grid.onAgent( 'deleted', this.#agentDeletedListener );
 
             // On others score emit SensendAgents
-            grid.onAgent( 'score', ( event, who ) => {
+            this.#agentScoreListener = ( event, who ) => {
                 if ( agent.id != who.id && !( Xy.distance(agent, who) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
                     this.emitAgentSensing()
                 }
-            } )
+            };
+            grid.onAgent( 'score', this.#agentScoreListener );
 
             // On parcel and my movements emit parcels sensing
-            grid.onParcel( () => this.emitParcelSensing() );
-            agent.on( 'xy', () => this.emitParcelSensing() );
+            this.#parcelListener = () => this.emitParcelSensing();
+            grid.onParcel( this.#parcelListener );
+            
+            this.#myXyListener = () => this.emitParcelSensing();
+            agent.on( 'xy', this.#myXyListener );
 
         }
 
@@ -94,6 +115,27 @@ class Sensor extends ObservableMulti {
         this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
         this.emitAgentSensing = new Postponer( this.emitAgentSensing.bind(this) ).at( myClock.synch() );
 
+    }
+
+    /**
+     * Cleanup method to remove event listeners and prevent memory leaks
+     */
+    cleanup() {
+        if ( this.#agentXyListener ) {
+            this.#grid.offAgent( 'xy', this.#agentXyListener );
+        }
+        if ( this.#agentDeletedListener ) {
+            this.#grid.offAgent( 'deleted', this.#agentDeletedListener );
+        }
+        if ( this.#agentScoreListener ) {
+            this.#grid.offAgent( 'score', this.#agentScoreListener );
+        }
+        if ( this.#parcelListener ) {
+            this.#grid.offParcel( this.#parcelListener );
+        }
+        if ( this.#myXyListener && this.#agent ) {
+            this.#agent.off( 'xy', this.#myXyListener );
+        }
     }
 
 

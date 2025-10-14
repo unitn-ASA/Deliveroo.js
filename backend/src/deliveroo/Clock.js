@@ -104,12 +104,17 @@ class Clock {
     }
 
     #samples = [];
+    #maxSamples = 100; // Keep only last 100 samples to prevent memory leak
 
     sample () {
         this.#samples.push( {
             frame: this.frame,
             time: Date.now()
         } );
+        // Remove old samples to prevent unbounded memory growth
+        if ( this.#samples.length > this.#maxSamples ) {
+            this.#samples.shift();
+        }
     }
 
     fps ( back = 10 ) {
