@@ -34,10 +34,10 @@ class Parcel extends ObservableMulti {
     /** @type {boolean} */
     expired;
 
-    /** @type {Function} */
+    /** @type {Function} - Clock decay listener */
     #decayListener;
 
-    /** @type {Function} */
+    /** @type {Function} - Carrier follower listener */
     #followCarrier;
     
     /**

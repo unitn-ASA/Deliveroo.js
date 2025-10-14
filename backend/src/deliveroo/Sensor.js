@@ -38,19 +38,19 @@ class Sensor extends ObservableMulti {
     /** @type {SensedParcel[]} */
     sensedParcels = [];
 
-    /** @type {Function} */
+    /** @type {Function} - Grid agent xy listener */
     #agentXyListener;
     
-    /** @type {Function} */
+    /** @type {Function} - Grid agent deleted listener */
     #agentDeletedListener;
     
-    /** @type {Function} */
+    /** @type {Function} - Grid agent score listener */
     #agentScoreListener;
     
-    /** @type {Function} */
+    /** @type {Function} - Grid parcel listener */
     #parcelListener;
     
-    /** @type {Function} */
+    /** @type {Function} - Agent xy listener */
     #myXyListener;
 
     /**
