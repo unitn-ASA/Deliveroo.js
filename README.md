@@ -8,7 +8,7 @@ You can play in **Multi-Player** from your browser or develop your own Autonomou
 
 ## How to play
 
-Play online from your browser at [deliveroojs.onrender.com/](https://deliveroojs.onrender.com/) or at [https://deliveroojs25.azurewebsites.net/](https://deliveroojs25.azurewebsites.net/)
+Play online from your browser at [deliveroojs.onrender.com/](https://deliveroojs.onrender.com/) or [https://deliveroojs.azurewebsites.net/](https://deliveroojs.azurewebsites.net/), or preview the latest version at [https://deliveroojsdev.azurewebsites.net/](https://deliveroojsdev.azurewebsites.net/)
 
 `a`: left, `s`: down, `d`: right, `w`: up,
 `q`: pickup, `e`: putdown
