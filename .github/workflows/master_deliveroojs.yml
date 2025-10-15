@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy to deliveroojs25.azurewebsites.net
+name: Build and deploy Node.js app to Azure Web App - deliveroojs
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write #This is required for actions/checkout
+      contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -51,9 +51,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     
     steps:
       - name: Download artifact from build job
@@ -65,7 +62,8 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'deliveroojs25'
+          app-name: 'deliveroojs'
           slot-name: 'Production'
           package: release.zip
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_350AE686F48948D59B3E968A141C4AE1 }}
+
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_35C083FEC9FE47C3A1A8991654C1DD90 }}
