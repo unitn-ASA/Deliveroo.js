@@ -97,6 +97,17 @@ class ioServer {
         const ioAgent = socket.to("agent:"+me.id);
         // const ioTeam = socket.to("team:"+me.teamId);
 
+        // Store all listener references for cleanup
+        const listeners = {
+            tileListener: null,
+            agentCreatedListener: null,
+            agentDeletedListener: null,
+            meAnyListener: null,
+            sensedParcelsListener: null,
+            sensedAgentsListener: null,
+            penaltyListener: null
+        };
+
         /**
          * on Disconnect
          */
@@ -110,6 +121,30 @@ class ioServer {
                     `Other ${socketsLeft} connections to the agent.` :
                     `No other connections, agent will be removed in ${config.AGENT_TIMEOUT/1000} seconds.`
                 );
+                
+                // Cleanup listeners to prevent memory leak
+                if ( listeners.tileListener ) {
+                    myGrid.offTile( listeners.tileListener );
+                }
+                if ( listeners.agentCreatedListener ) {
+                    myGrid.offAgent( 'created', listeners.agentCreatedListener );
+                }
+                if ( listeners.agentDeletedListener ) {
+                    myGrid.offAgent( 'deleted', listeners.agentDeletedListener );
+                }
+                if ( listeners.meAnyListener ) {
+                    me.off( 'any', listeners.meAnyListener );
+                }
+                if ( listeners.sensedParcelsListener ) {
+                    me.sensor.off( 'sensedParcels', listeners.sensedParcelsListener );
+                }
+                if ( listeners.sensedAgentsListener ) {
+                    me.sensor.off( 'sensedAgents', listeners.sensedAgentsListener );
+                }
+                if ( listeners.penaltyListener ) {
+                    me.off( 'penalty', listeners.penaltyListener );
+                }
+                
                 if ( socketsLeft == 0 && me.xy ) {
                     
                     // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
@@ -133,12 +168,13 @@ class ioServer {
         /**
          * Kick agent
          */
-        me.on( 'penalty', () => {
+        listeners.penaltyListener = () => {
             if ( me.penalty < -1000 ) {
                 console.log( `${me.name}-${me.teamName}-${me.id} is behaving too bad, automatically kicked with penalty ${me.penalty}` );
                 socket.disconnect();
             }
-        } );
+        };
+        me.on( 'penalty', listeners.penaltyListener );
 
 
 
@@ -156,9 +192,10 @@ class ioServer {
         /**
          * Emit map (tiles)
          */
-        myGrid.onTile( ( { xy: {x,y}, type } ) => {
+        listeners.tileListener = ( { xy: {x,y}, type } ) => {
             socket.emitTile( {x, y, type} );
-        } );
+        };
+        myGrid.onTile( listeners.tileListener );
         let tiles = []
         for (const { xy: {x, y}, type } of myGrid.getTiles()) {
                 // console.log( 'emit tile', x, y, type );
@@ -178,16 +215,19 @@ class ioServer {
             let {id, name, teamName, teamId, score} = agent;
             socket.emitController( 'connected', {id, name, teamName, teamId, score} );
         } );
-        myGrid.onAgent( 'created', ( event, agent ) => {
+        listeners.agentCreatedListener = ( event, agent ) => {
             if ( ! agent.id ) return;
             let {id, name, teamName, teamId, score} = agent;
             socket.emitController( 'connected', {id, name, teamName, teamId, score} );
-        } );
-        myGrid.onAgent( 'deleted', ( event, agent ) => {
+        };
+        myGrid.onAgent( 'created', listeners.agentCreatedListener );
+        
+        listeners.agentDeletedListener = ( event, agent ) => {
             if ( ! agent.id ) return;
             let {id, name, teamName, teamId, score} = agent;
             socket.emitController( 'disconnected', {id, name, teamName, teamId, score} );
-        } );
+        };
+        myGrid.onAgent( 'deleted', listeners.agentDeletedListener );
         
 
         
@@ -196,10 +236,11 @@ class ioServer {
          */
 
         // Emit you
-        me.on( 'any', () => {
+        listeners.meAnyListener = () => {
             // console.log( 'emit you', id, name, x, y, score );
             socket.emitYou( me );
-        } );
+        };
+        me.on( 'any', listeners.meAnyListener );
         // console.log( 'emit you', id, name, x, y, score );
         socket.emitYou( {
             id: me.id, name: me.name,
@@ -216,17 +257,19 @@ class ioServer {
          */
 
         // Parcels
-        me.sensor.on( 'sensedParcels', () => {
+        listeners.sensedParcelsListener = () => {
             // console.log('emit parcels sensing', ...parcels);
             socket.emitParcelSensing( me.sensor.sensedParcels )
-        } );
+        };
+        me.sensor.on( 'sensedParcels', listeners.sensedParcelsListener );
         // me.sensor.emitParcelSensing();
 
         // Agents
-        me.sensor.on( 'sensedAgents', () => {
+        listeners.sensedAgentsListener = () => {
             // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
             socket.emitAgentsSensing( me.sensor.sensedAgents );
-        } );
+        };
+        me.sensor.on( 'sensedAgents', listeners.sensedAgentsListener );
         // me.emitAgentSensing();
         
 

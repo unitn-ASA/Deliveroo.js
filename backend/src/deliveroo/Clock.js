@@ -119,12 +119,14 @@ class Clock {
     }
 
     #samples = [];
+    #maxSamples = 100; // Keep only last 100 samples to prevent memory leak
 
     sample () {
         this.#samples.push( {
             frame: this.frame,
             time: Date.now()
         } );
+        // Update info
         const memoryUsage = process.memoryUsage();
         this.info = {
             ms: this.ms,
@@ -133,6 +135,10 @@ class Clock {
             heapUsed: Math.round( memoryUsage.heapUsed / 1000000 ),
             heapTotal: Math.round( memoryUsage.heapTotal / 1000000 )
         };
+        // Remove old samples to prevent unbounded memory growth
+        if ( this.#samples.length > this.#maxSamples ) {
+            this.#samples.shift();
+        }
     }
 
     #computeFps ( back = 10 ) {

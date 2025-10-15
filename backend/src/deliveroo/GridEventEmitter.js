@@ -34,6 +34,13 @@ class GridEventEmitter {
         this.#eventEmitter.on('tile', callback);
     }
 
+    /**
+     * @param { function ( Tile ) : void } callback 
+     */
+    offTile ( callback ) {
+        this.#eventEmitter.off('tile', callback);
+    }
+
 
 
     /**
@@ -48,6 +55,13 @@ class GridEventEmitter {
      **/
     onParcel ( callback ) {
         this.#eventEmitter.on('parcel', callback);
+    }
+
+    /**
+     * @param { function ( Parcel ) : void } callback
+     **/
+    offParcel ( callback ) {
+        this.#eventEmitter.off('parcel', callback);
     }
 
 
@@ -74,6 +88,18 @@ class GridEventEmitter {
             this.#eventEmitter.on('agent ' + agentEvent, callback);
         } else {
             this.#eventEmitter.on('agent', callback);
+        }
+    }
+
+    /**
+     * @param { agentEvent } agentEvent
+     * @param { function ( agentEvent, Agent ) : void } callback 
+     */
+    offAgent ( agentEvent, callback ) {
+        if ( agentEvent ) {
+            this.#eventEmitter.off('agent ' + agentEvent, callback);
+        } else {
+            this.#eventEmitter.off('agent', callback);
         }
     }
 

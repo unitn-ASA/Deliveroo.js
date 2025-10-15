@@ -73,7 +73,12 @@ export class Connection {
     listenAndRegister ( event ) {
         this.state.events.set(event, []);
         this.socket.on( event, (...args) => {
-            this.state.events.get(event).push(args);
+            const eventArray = this.state.events.get(event);
+            eventArray.push(args);
+            // Limit array size to prevent memory leak - keep last 1000 events
+            if ( eventArray.length > 1000 ) {
+                eventArray.shift();
+            }
             // console.log( `Connection.js Socket.on('${event}')`, args );
         });
     }
@@ -151,10 +156,19 @@ export class Connection {
             // this.grid.clock.ms = ms;
             // this.grid.clock.frame = frame;
 
-            if ( src == 'server' )
+            if ( src == 'server' ) {
                 this.serverLogs.push( { ms, frame, message } );
-            else
+                // Limit array size to prevent memory leak - keep last 1000 logs
+                if ( this.serverLogs.length > 1000 ) {
+                    this.serverLogs.shift();
+                }
+            } else {
                 this.clientLogs.push( { ms, frame, socket, id, name, message} );
+                // Limit array size to prevent memory leak - keep last 1000 logs
+                if ( this.clientLogs.length > 1000 ) {
+                    this.clientLogs.shift();
+                }
+            }
         } );
 
         socket.on( "msg", ( id, name, msg, reply ) => {
@@ -168,6 +182,10 @@ export class Connection {
                 name,
                 msg
             } );
+            // Limit array size to prevent memory leak - keep last 1000 messages
+            if ( this.msgs.length > 1000 ) {
+                this.msgs.shift();
+            }
 
         })
 
