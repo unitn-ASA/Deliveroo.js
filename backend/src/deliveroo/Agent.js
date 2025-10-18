@@ -1,3 +1,4 @@
+const { AgentType } = require('../types');
 const ObservableValue = require('../reactivity/ObservableValue');
 const Xy =  require('./Xy')
 const Grid =  require('./Grid')
@@ -13,6 +14,7 @@ const Identity = require('./Identity');
 /**
  * @class Agent
  * @extends { ObservableMulti< {xy:Xy, score:number, penalty:number, carryingParcels:Set<Parcel>} > }
+ * @implements {AgentType}
  */
 class Agent extends ObservableMulti {
     

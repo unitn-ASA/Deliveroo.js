@@ -2,7 +2,7 @@ import { ref, reactive, shallowReactive } from "vue";
 import { default as io, Socket } from 'socket.io-client';
 import { jwtDecode } from "jwt-decode";
 import { Grid } from "./Grid.js";
-import ioClientSocket from "../../packages/@unitn-asa/deliveroo-js-client/lib/ioClientSocket.js";
+import { IOClient } from "@unitn-asa/types";
 
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
@@ -19,9 +19,9 @@ export class Connection {
     payload;
 
     /**
-     * @type {ioClientSocket} socket
+     * @type {IOClient} ioClient
      */
-    socket;
+    ioClient;
 
     /**
      * @type {{connected: boolean, events: Map<string,Array>}} state
@@ -72,7 +72,7 @@ export class Connection {
 
     listenAndRegister ( event ) {
         this.state.events.set(event, []);
-        this.socket.on( event, (...args) => {
+        this.ioClient.on( event, (...args) => {
             const eventArray = this.state.events.get(event);
             eventArray.push(args);
             // Limit array size to prevent memory leak - keep last 1000 events
@@ -85,11 +85,11 @@ export class Connection {
 
     connect () {
         console.log( "Connection.connect() connecting to", HOST, "with token:", this.token.slice(0,10)+'...' );
-        return this.socket.connect();
+        return this.ioClient.connect();
     }
 
     disconnect () {
-        return this.socket.disconnect();
+        return this.ioClient.disconnect();
     }
     
     connected () {
@@ -109,29 +109,28 @@ export class Connection {
             console.error( 'Connection.js Invalid token specified:', token, error );
         }
 
-        const socket = this.socket = new ioClientSocket (
-            io( HOST, {
+        const rawSocket = io( HOST, {
                 autoConnect: false,
                 withCredentials: false,
                 extraHeaders: { 'x-token': token }
                 // query: { name: name }
                 // path: '/'
             } )
-        );
+        const ioClient = this.ioClient = new IOClient ( /** @type {any} */ (rawSocket) );
 
         // socket.onAny( ( event, ...args ) => {
         //     console.log( `on('${event}')`, ...args );
         // } );
 
-        this.grid = new Grid( socket );
+        this.grid = new Grid( ioClient );
 
-        socket.on( "connect", () => {
+        ioClient.on( "connect", () => {
             // console.log( "Connection.js Socket.on('connect') CONNECTED!" );
             this.state.connected = true;
             // document.getElementById('socket.id').textContent = `socket.id ${this.socket.id}`
         } );
 
-        socket.on( "disconnect", (reason) => {
+        ioClient.on( "disconnect", (reason) => {
             console.log( `Connection.js Socket.on('disconnect') token: ${this.token.slice(0,10)}...` );
             this.state.connected = false;
             // if (reason === "io server disconnect") {
@@ -151,7 +150,7 @@ export class Connection {
         this.listenAndRegister( "agents sensing" );
         this.listenAndRegister( "parcels sensing" );
 
-        socket.on( 'log', ( {src, ms, frame, socket, id, name}, ...message ) => {
+        ioClient.on( 'log', ( {src, ms, frame, socket, id, name}, ...message ) => {
 
             // this.grid.clock.ms = ms;
             // this.grid.clock.frame = frame;
@@ -171,13 +170,13 @@ export class Connection {
             }
         } );
 
-        socket.on( "msg", ( id, name, msg, reply ) => {
+        ioClient.on( "msg", ( id, name, msg, reply ) => {
             // console.log( 'CLIENT: msg', {id, name, msg, reply} )
             if ( msg == 'who are you?' && reply ) reply('I am the web app')
 
             this.msgs.push( {
                 timestamp: new Date().toISOString(),
-                socket: this.socket.id,
+                socket: this.ioClient.id,
                 id,
                 name,
                 msg
@@ -189,7 +188,7 @@ export class Connection {
 
         })
 
-        this.socket.on( "config", ( config ) => {
+        this.ioClient.on( "config", ( config ) => {
             // document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
             for ( let [key,value] of Object.entries(config) ) {
                 this.configs[key] = value;

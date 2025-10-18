@@ -9,7 +9,7 @@
     const selectedParcel = grid?.selectedParcel;
 
     function change() {
-        connection.socket.emit( 'tile', selectedTile.value );
+        connection.ioClient.emit( 'tile', selectedTile.value );
     }
 
 </script>

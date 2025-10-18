@@ -6,7 +6,7 @@
     import { patchAgent, deleteParcel, deleteAllParcels } from '../../apiClient.js';
     
     function restartGame() {
-        connection.socket.emit('restart');
+        connection.ioClient.emit('restart');
     }
     
     const timer = ref(1000*60*3); // 3min

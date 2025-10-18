@@ -17,13 +17,13 @@
         console.log('sendMsg', selectedAgent.value, input.value);
         if (input.value.length > 0) {
             if (selectedAgent.value == 'All') {
-                connection.socket.emitShout(input.value);
+                connection.ioClient.emitShout(input.value);
             } else {
-                connection.socket.emitSay(selectedAgent.value, input.value);
+                connection.ioClient.emitSay(selectedAgent.value, input.value);
             }
             connection?.msgs.push({
                 timestamp: new Date().toLocaleTimeString(),
-                socket: connection.socket.id,
+                socket: connection.ioClient.id,
                 id: me.value.id,
                 msg: input.value,
                 name: me.value.name

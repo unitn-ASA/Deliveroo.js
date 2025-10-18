@@ -10,12 +10,12 @@ const myClock = require('../myClock');
 
 /**
  * @typedef SensedAgent
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").agent}
+ * @type {import("@unitn-asa/types").IOAgent}
  */
 
 /**
  * @typedef SensedParcel
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
+ * @type {import("@unitn-asa/types").IOParcel}
  */
 
 /**
@@ -38,20 +38,44 @@ class Sensor extends ObservableMulti {
     /** @type {SensedParcel[]} */
     sensedParcels = [];
 
-    /** @type {Function} - Grid agent xy listener */
-    #agentXyListener;
+    /** @type {(event: any, who: Agent) => void} - Grid agent xy listener */
+    #agentXyListener = ( event, who ) => {
+        // On my movements emit agents and parcels sensing
+        if ( this.#agent.id == who.id ) {
+            this.emitAgentSensing();
+            this.emitParcelSensing();
+        }
+        // On others movements within my range, emit agents sensing
+        else if ( !( Xy.distance(this.#agent, who) > this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+                this.emitAgentSensing();
+            }  
+    };
     
-    /** @type {Function} - Grid agent deleted listener */
-    #agentDeletedListener;
+    /** @type {(event: any, who: Agent) => void} - Grid agent deleted listener */
+    #agentDeletedListener = ( event, who ) => {
+        if ( this.#agent.id != who.id && !( Xy.distance(this.#agent, who) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+            this.emitAgentSensing()
+        }
+    }
     
-    /** @type {Function} - Grid agent score listener */
-    #agentScoreListener;
-    
-    /** @type {Function} - Grid parcel listener */
-    #parcelListener;
-    
-    /** @type {Function} - Agent xy listener */
-    #myXyListener;
+    /** @type {(event: any, who: Agent) => void} - Grid agent score listener */
+    #agentScoreListener = ( event, who ) => {
+        if ( this.#agent.id != who.id && !( Xy.distance(this.#agent, who) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+            this.emitAgentSensing()
+        }
+    };
+
+    /** @type {(parcel: Parcel) => void} - Grid parcel listener */
+    #parcelListener = ( parcel ) => {
+        if ( !( Xy.distance(this.#agent, parcel) > this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
+            this.emitParcelSensing();
+        }
+    };
+
+    /** @type {(event: any) => void} - Agent xy listener */
+    #myXyListener = ( event ) => {
+        this.emitParcelSensing();
+    };
 
     /**
      * @constructor Agent
@@ -73,40 +97,20 @@ class Sensor extends ObservableMulti {
 
         if ( agent ) {
 
-            this.#agentXyListener = ( event, who ) => {
-                // On my movements emit agents and parcels sensing
-                if ( agent.id == who.id ) {
-                    this.emitAgentSensing();
-                    this.emitParcelSensing();
-                }
-                // On others movements within my range, emit agents sensing
-                else if ( !( Xy.distance(agent, who) > this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                        this.emitAgentSensing();
-                    }  
-            };
+            // On my movements emit agents and parcels sensing,
+            // on others movements within my range, emit agents sensing
             grid.onAgent( 'xy', this.#agentXyListener );
             
             // On agent deleted emit agentSensing
-            this.#agentDeletedListener = ( event, who ) => {
-                if ( agent.id != who.id && !( Xy.distance(agent, who) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                    this.emitAgentSensing()
-                }
-            };
             grid.onAgent( 'deleted', this.#agentDeletedListener );
 
             // On others score emit SensendAgents
-            this.#agentScoreListener = ( event, who ) => {
-                if ( agent.id != who.id && !( Xy.distance(agent, who) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                    this.emitAgentSensing()
-                }
-            };
             grid.onAgent( 'score', this.#agentScoreListener );
 
             // On parcel and my movements emit parcels sensing
-            this.#parcelListener = () => this.emitParcelSensing();
             grid.onParcel( this.#parcelListener );
             
-            this.#myXyListener = () => this.emitParcelSensing();
+            // On my movements emit parcels sensing
             agent.on( 'xy', this.#myXyListener );
 
         }

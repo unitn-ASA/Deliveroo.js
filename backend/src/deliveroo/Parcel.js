@@ -8,8 +8,15 @@ const ObservableMulti = require('../reactivity/ObservableMulti')
 
 
 /**
+ * @typedef {import('../types').ParcelType} ParcelType
+ */
+
+
+
+/**
  * @class Parcel
  * @extends { ObservableMulti< {xy:Xy, carriedBy:Agent, reward:number, expired:boolean} > }
+ * @implements { ParcelType }
  */
 class Parcel extends ObservableMulti {
     

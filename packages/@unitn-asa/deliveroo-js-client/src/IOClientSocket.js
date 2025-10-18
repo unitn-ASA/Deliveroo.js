@@ -1,71 +1,43 @@
-import ioTypedSocket from '@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs';
-// Importa l'intero modulo e accedi alla proprietà
-// import * as ioTypedSocketModule from '../types/ioTypedSocket.cjs';
-// const { ioTypedSocket } = ioTypedSocketModule;
-
-
+import { IOTypedSocketClient } from '@unitn-asa/types';
 
 /**
- * @typedef agent
- * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").agent}
- */
-
-/**
- * @typedef parcel
- * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
- */
-
-/**
- * @typedef tile
- * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").tile}
- */
-
-/**
- * @typedef info
- * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").info}
- */
-
-/**
- * @typedef clientEvents on the client side these are to be emitted with .emit
- * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").clientEvents}
- */
-
-/**
- * @typedef serverEvents on the client side these are to be listened with .on
- * @type {import("../../deliveroo-js-client/types/ioTypedSocket.cjs").serverEvents}
+ * @typedef {import("@unitn-asa/types").IOAgent} IOAgent
+ * @typedef {import("@unitn-asa/types").IOParcel} IOParcel
+ * @typedef {import("@unitn-asa/types").IOTile} IOTile
+ * @typedef {import("@unitn-asa/types").IOInfo} IOInfo
  */
 
 
 
 /**
  * @class ioClientInterface
- * @extends { ioTypedSocket<serverEvents, clientEvents> }
+ * @extends { IOTypedSocketClient }
  */
-export default class ioClientInterface extends ioTypedSocket {
-
-    /** @type {import('socket.io-client').Socket} */
-    #socket;
+export class IOClientSocket extends IOTypedSocketClient {
 
     /** @type { Promise < string > } */
     token;
     
-    /** @type { Promise < agent > } */
+    /** @type { Promise < IOAgent > } */
     me;
     
     /** @type { Promise } */
     config;
 
-    /** @type { Promise < { width:number, height:number, tiles: tile [] } > } */
+    /** @type { Promise < { width:number, height:number, tiles: IOTile [] } > } */
     map;
 
+    /**
+     * @param { IOTypedSocketClient.IOTypedSocketClientSocket } socket 
+     */
     constructor ( socket ) {
 
         super( socket );
 
-        this.#socket = socket;
+        this.socket = socket;
         
         this.token = new Promise( (res) => {
-            this.#socket.once( 'token', (token) => {
+            this.socket.once( 'token', (token) => {
                 // console.log( 'New token for ' + NAME + ': ' + token )
                 res( token );
             } );
@@ -93,11 +65,11 @@ export default class ioClientInterface extends ioTypedSocket {
 
     connect () {
         // console.log( "Connection.connect() connecting to", HOST, "with token:", this.token.slice(0,10)+'...' );
-        return this.#socket.connect();
+        return this.socket.connect();
     }
 
     disconnect () {
-        return this.#socket.disconnect();
+        return this.socket.disconnect();
     }
 
     /**
@@ -122,14 +94,14 @@ export default class ioClientInterface extends ioTypedSocket {
     }
 
     /**
-     * @param { function( number, number, tile[] ) : void } callback ( width, height, tiles )
+     * @param { function( number, number, IOTile[] ) : void } callback ( width, height, tiles )
      */
     onMap ( callback ) {
         this.on( "map", callback )
     }
     
     /**
-     * @param { function( tile, info ) : void } callback
+     * @param { function( IOTile, IOInfo ) : void } callback
      */
     onTile ( callback ) {
         this.on( "tile", callback )
@@ -144,14 +116,14 @@ export default class ioClientInterface extends ioTypedSocket {
     }
     
     /**
-     * @param { function( agent, info ) : void } callback
+     * @param { function( IOAgent, IOInfo ) : void } callback
      */
     onYou ( callback ) {
         this.on( "you", callback )
     }
 
     /**
-     * @param { function( agent, info ) : void } callback
+     * @param { function( IOAgent, IOInfo ) : void } callback
      */
     onceYou ( callback ) {
         this.once( "you", callback )
@@ -159,7 +131,7 @@ export default class ioClientInterface extends ioTypedSocket {
     
     /**
      * Listen to 'agents sensing' events
-     * @param { function( agent [] ) : void } callback 
+     * @param { function( IOAgent [] ) : void } callback 
      */
     onAgentsSensing ( callback ) {
         this.on( "agents sensing", callback )
@@ -167,7 +139,7 @@ export default class ioClientInterface extends ioTypedSocket {
     
     /**
      * Listen to 'parcels sensing' events
-     * @param { function( parcel [] ) : void } callback 
+     * @param { function( IOParcel [] ) : void } callback 
      */
     onParcelsSensing ( callback ) {
         this.on( "parcels sensing", callback )

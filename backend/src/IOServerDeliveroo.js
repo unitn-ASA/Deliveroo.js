@@ -1,43 +1,23 @@
 const myClock = require('./myClock');
-const ioTypedSocket = require('../../packages/@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs');
+const { IOServer } = require('@unitn-asa/types');
 
 /**
- * @typedef agent
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").agent}
- */
-
-/**
- * @typedef parcel
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").parcel}
- */
-
-/**
- * @typedef tile
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").tile}
- */
-
-/**
- * @typedef info
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").info}
- */
-
-/**
- * @typedef clientEvents on the server side these are to be listened with .on
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").clientEvents}
- */
-
-/**
- * @typedef serverEvents on the server side these are to be emitted with .emit
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").serverEvents}
+ * @typedef {import("@unitn-asa/types").IOAgent} IOAgent
+ * @typedef {import("@unitn-asa/types").IOParcel} IOParcel
+ * @typedef {import("@unitn-asa/types").IOTile} IOTile
+ * @typedef {import("@unitn-asa/types").IOInfo} IOInfo
+ * 
+ * @typedef {import("@unitn-asa/types").IOClientEvents} IOClientEvents on the server side these are to be listened with .on
+ * @typedef {import("@unitn-asa/types").IOServerEvents} IOServerEvents on the server side these are to be emitted with .emit
  */
 
 
 
 /**
  * @class ioServerInterface
- * @extends { ioTypedSocket<clientEvents, serverEvents> }
+ * @extends { IOServer }
  */
-class ioServerSocket extends ioTypedSocket {
+class IOServerDeliveroo extends IOServer {
 
     warnings = new Array();
 
@@ -51,9 +31,9 @@ class ioServerSocket extends ioTypedSocket {
     }
 
     /**
-     * @template {keyof clientEvents} K
+     * @template {keyof IOClientEvents} K
      * @param {K} event
-     * @param {clientEvents[K]} listener
+     * @param {IOClientEvents[K]} listener
      * @returns {void}
      */
     on ( event, listener ) {
@@ -61,9 +41,9 @@ class ioServerSocket extends ioTypedSocket {
             try {
                 return listener.apply( this, args );
             } catch (error) {
-                console.error( `WARN Socket ${this.id} on( ${event}, ${args.slice(0,-1).join(', ')} ).`, error );
+                console.error( `WARN Socket ${this.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`, error );
                 this.warnings.push( {
-                    msg: `WARN Socket ${this.id} on( ${event}, ${args.slice(0,-1).join(', ')} ).`,
+                    msg: `WARN Socket ${this.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`,
                     error: error
                 } );
             }
@@ -87,14 +67,14 @@ class ioServerSocket extends ioTypedSocket {
     /**
      * @param { number } width
      * @param { number } height
-     * @param { tile [] } tiles
+     * @param { IOTile [] } tiles
      */
     emitMap ( width, height, tiles ) {
         this.emit( 'map', width, height, tiles );
     }
 
     /**
-     * @param { tile } tile
+     * @param { IOTile } tile
      */
     emitTile ( { x, y, type } ) {
         this.emit( 'tile', {x, y, type}, myClock.info );
@@ -102,28 +82,28 @@ class ioServerSocket extends ioTypedSocket {
 
     /**
      * @param { 'connected'|'disconnected' } status
-     * @param { Parameters<serverEvents['controller']>[1] } agent
+     * @param { Parameters<IOServerEvents['controller']>[1] } agent
      */
     emitController ( status, {id, name, teamId, teamName, score} ) {
         this.emit( 'controller', status, {id, name, teamId, teamName, score} );
     }
     
     /**
-     * @param { agent } you
+     * @param { IOAgent } you
      */
     emitYou ( {id, name, teamId, teamName, x, y, score, penalty} ) {
         this.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty}, myClock.info );
     }
 
     /**
-     * @param { agent [] } agents
+     * @param { IOAgent [] } agents
      */
     emitAgentsSensing ( agents ) {
         this.emit( 'agents sensing', agents, myClock.info );
     }
     
     /**
-     * @param { parcel [] } parcels
+     * @param { IOParcel [] } parcels
      */
     emitParcelSensing ( parcels ) {
         this.emit( 'parcels sensing', parcels, myClock.info );
@@ -190,7 +170,7 @@ class ioServerSocket extends ioTypedSocket {
     }
 
     /**
-     * @param { agent } me
+     * @param { IOAgent } me
      * @param { string } toId
      * @param { {} } msg
      * @returns { Promise < any > } reply
@@ -200,7 +180,7 @@ class ioServerSocket extends ioTypedSocket {
     }
 
     /**
-     * @param { agent } me
+     * @param { IOAgent } me
      * @param { string } toId
      * @param { {} } msg
      * @returns { Promise < any > } reply
@@ -273,7 +253,7 @@ class ioServerSocket extends ioTypedSocket {
 
     /**
      * Process request for creating a tile on x, y or setting its type
-     * @param { function ( tile ) : void } callback
+     * @param { function ( IOTile ) : void } callback
      */
     onTile ( callback ) {
         this.on( 'tile', callback );
@@ -290,4 +270,4 @@ class ioServerSocket extends ioTypedSocket {
 }
 
 
-module.exports = ioServerSocket;
+module.exports = IOServerDeliveroo;

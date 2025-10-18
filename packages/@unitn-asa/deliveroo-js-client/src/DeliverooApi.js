@@ -1,6 +1,5 @@
 import { io } from "socket.io-client";
-import { default as argsParser } from "args-parser";
-import { default as ioClientSocket } from "./ioClientSocket.js";
+import { IOClientSocket } from "./IOClientSocket.js";
 
 
 
@@ -11,14 +10,14 @@ import { default as ioClientSocket } from "./ioClientSocket.js";
  * $ node index.js -token=... -name=marco
  * $ npm start -- -token=... -name=marco
  */
-const args = argsParser(process.argv);
+const args = require("args-parser")(process? process?.argv : []);
 let NAME = args['name'];
 let TOKEN = args['token'];
 let HOST = args['host'];
 
 
 
-export default class DeliverooApi extends ioClientSocket {
+export class DeliverooApi extends IOClientSocket {
 
     constructor ( host, token = null, autoconnect = true ) {
 
@@ -34,8 +33,8 @@ export default class DeliverooApi extends ioClientSocket {
                 opts.extraHeaders = { 'x-token': TOKEN || token }
             else if ( NAME )
                 opts.query = { name: NAME }
-            
-            super( io( HOST || host, opts ) );
+
+            super( ( io( HOST || host, opts ) ) );
 
             if ( autoconnect )
                 this.connect();

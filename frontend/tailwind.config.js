@@ -9,4 +9,7 @@ export default {
     plugins: [
         daisyui
     ],
+    daisyui: {
+        logs: false // Disabilita i log di DaisyUI durante il build
+    }
 }

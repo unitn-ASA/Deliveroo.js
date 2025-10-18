@@ -5,7 +5,7 @@ const config = require('../config');
 const myClock = require('./myClock');
 require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 const {tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware} = require('./middlewares/token');
-const ioServerSocket = require('./ioServerSocket');
+const IOServerDeliveroo = require('./IOServerDeliveroo');
 const Agent = require('./deliveroo/Agent');
 const Identity = require('./deliveroo/Identity');
 const Xy = require('./deliveroo/Xy');
@@ -80,7 +80,7 @@ io.on('connection', async ( socket ) => {
         // myGrid.emit( 'agent deleted', me );
     }
 
-    new ioServer( new ioServerSocket( socket ), me );
+    new ioServer( new IOServerDeliveroo( socket ), me );
 
 });
 
@@ -89,7 +89,7 @@ io.on('connection', async ( socket ) => {
 class ioServer {
 
     /**
-     * @param { ioServerSocket } socket /**
+     * @param { IOServerDeliveroo } socket /**
      * @param { Agent } me
      */
     constructor( socket, me ) {

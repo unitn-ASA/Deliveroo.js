@@ -4,11 +4,16 @@ const Grid =  require('./Grid')
 const ObservableMulti = require('../reactivity/ObservableMulti');
 
 
+/**
+ * @typedef IOTile
+ * @type {import("@unitn-asa/types").IOTile}
+ */
 
 
 /**
  * @class Tile
  * @extends { ObservableMulti< {xy:Xy, type:string, locked:boolean} > }
+ * @implements { IOTile }
  */
  class Tile extends ObservableMulti {
 

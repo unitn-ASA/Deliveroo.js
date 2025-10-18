@@ -24,18 +24,16 @@ export default defineConfig( () => {
   return {
     optimizeDeps: {
       include: [
-        '@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs',
-        '@unitn-asa/deliveroo-js-client/*',
-        '../deliveroo-js-client/types/ioTypedSocket.cjs',
-        '../deliveroo-js-client/*'
+        '@unitn-asa/types/*',
+        // '@unitn-asa/deliveroo-js-client/*',
+        // '../deliveroo-js-client/*'
       ],
     },
     build: {
       commonjsOptions: {
         include: [
-          '@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs',
-          '../deliveroo-js-client/types/ioTypedSocket.cjs',
-          '../deliveroo-js-client/ioClientSocket.js'
+          '@unitn-asa/types/*',
+          // '../deliveroo-js-client/ioClientSocket.js'
         ],
       },
     },

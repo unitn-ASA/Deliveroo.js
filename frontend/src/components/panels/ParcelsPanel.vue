@@ -12,7 +12,7 @@
             // console.log('removeParcel FAIL', parcel.id);
             my_modal_3.value.showModal();
         }, 1000 );
-        await connection.socket.emit( 'parcel', 'dispose', { id: parcel.id } );
+        await connection.ioClient.emit( 'parcel', 'dispose', { id: parcel.id } );
         // console.log('removeParcel, emit dispose parcel', parcel.id);
         clearTimeout(timeout);
     }

@@ -9,8 +9,8 @@ const Types = require('./Types');
  */
 
 /**
- * @typedef info
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").info}
+ * @typedef IOInfo
+ * @type {import("@unitn-asa/types").IOInfo}
  */
 
 
@@ -108,7 +108,7 @@ class Clock {
     }
 
     /**
-     * @type {info}
+     * @type {IOInfo}
      */
     info = {
         ms: 0,

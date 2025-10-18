@@ -1,56 +1,14 @@
 import { ref, reactive, shallowReactive, watch, computed } from "vue";
 import { default as io, Socket } from 'socket.io-client';
-import ioClientSocket from "../../packages/@unitn-asa/deliveroo-js-client/lib/ioClientSocket.js";
+import { IOClient } from "@unitn-asa/types";
 import { connection } from "./states/myConnection.js";
 
-
-
-/**
- * @typedef Tile
- * @type {{
-*         x: number,y: number,
-*         type: string,
-*         mesh?: import('three').Mesh,
-*         hoovered?: boolean,
-*         selected?: boolean,
-*         perceivingAgents?: import('vue').ComputedRef<boolean>,
-*         perceivingParcels?: import('vue').ComputedRef<boolean>
-* }}
-*/
-
-/**
- * @typedef Agent
- * @type {{id: string,
-*         name: string,
-*         teamId: string
-*         teamName: string,
-*         x: number,y: number,
-*         score: number,
-*         penalty: number,
-*         carrying?: Array<string>,
-*         mesh?: import('three').Mesh,
-*         opacity?: number,
-*         status?: string,
-*         hoovered?: boolean,
-*         selected?: import('vue').ComputedRef<boolean>
-* }}
-*/
-
-/**
- * @typedef Parcel
- * @type {{id:string,
-*         x:number,y:number,
-*         reward:number,
-*         carriedBy?:string,
-*         mesh?: import('three').Mesh,
-*         hoovered?: boolean,
-*         selected?: boolean
-* }}
-*/
-
+/** @typedef {import('./types/UIAgentType.js').UIAgent} UIAgent */
+/** @typedef {import('./types/UITileType.js').UITile} UITile */
+/** @typedef {import('./types/UIParcelType.js').UIParcel} UIParcel */
 /**
  * @typedef info
- * @type {import("@unitn-asa/deliveroo-js-client/types/ioTypedSocket.cjs").info}
+ * @type {import("@unitn-asa/types").IOInfo}
  */
 
 
@@ -58,7 +16,7 @@ import { connection } from "./states/myConnection.js";
 export class Grid {
 
     /**
-     * @type {ioClientSocket} socket
+     * @type {IOClient} socket
      */
     socket;
 
@@ -75,15 +33,14 @@ export class Grid {
     /** @type {number} */
     height = 0;
 
-    /**
-     * @type {Map<number,Tile>} tiles
-     */
-    tiles = reactive (new Map());
-
-    /** @type {function(number,number):Tile} */
+/**
+ * @type {Map<number,UITile>} tiles
+ */
+tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
     getTile (x, y) {
         if ( !this.tiles.has(x + y*1000) ) {
-            this.tiles.set( x + y*1000, {
+            /** @type {UITile} */
+            const newTile = {
                 x,
                 y,
                 type: '0',
@@ -95,24 +52,25 @@ export class Grid {
                 perceivingParcels: computed( () => {
                     return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.PARCELS_OBSERVATION_DISTANCE ) ? true : false;
                 } )
-            } );
+            };
+            this.tiles.set( x + y*1000, newTile );
         }
         return this.tiles.get( x + y*1000 );
     }
 
     /** 
-     * @type {import("vue").Ref<Agent>}
+     * @type {import("vue").Ref<UIAgent>}
      **/
     me = ref(null);
 
     /**
-     * @type {Map<string,Agent>} agents
+     * @type {Map<string,UIAgent>} agents
      */
     agents = reactive ( new Map() );
 
     /**
      * @param {string} id
-     * @returns {Agent}
+     * @returns {UIAgent}
      */
     getOrCreateAgent ( id ) {
         // console.error( 'Grid.js getOrCreateAgent', id );
@@ -138,18 +96,19 @@ export class Grid {
     }
 
     /**
-     * @type {Map<string,Parcel>} parcels
+     * @type {Map<string,UIParcel>} parcels
      */
     parcels = reactive (new Map());
 
     /**
      * @param {string} id
-     * @returns {Parcel}
+     * @returns {UIParcel}
      */
     getOrCreateParcel ( id ) {
         // console.debug( 'Grid.js getOrCreateParcel', id );
         var parcel = this.parcels.get(id);
         if ( ! parcel ) {
+            /** @type {UIParcel} */
             parcel = {id, x:-1, y:-1, carriedBy:null, reward:-1};
             this.parcels.set( id, parcel );
         }
@@ -157,7 +116,7 @@ export class Grid {
     }
 
     /**
-     * @type {(x:number,y:number)=>Array<Parcel>}
+     * @type {(x:number,y:number)=>Array<UIParcel>}
      */
     getParcelsAt ( x, y ) {
         return Array.from(this.parcels.values()).filter( parcel => parcel.x == x && parcel.y == y && parcel.carriedBy == null );
@@ -165,44 +124,45 @@ export class Grid {
 
 
 
-    /** @type {import("vue").Ref<Agent|Tile|Parcel>} */
+        /** @type {import("vue").Ref<UIAgent|UITile|UIParcel>} */
     hoovered = ref();
 
-    /** @type {import("vue").Ref<Tile>} */
+    /** @type {import("vue").Ref<UITile>} */
     selectedTile = ref();
 
-    /** @type {import("vue").Ref<Agent>} */
+    /** @type {import("vue").Ref<UIAgent>} */
     selectedAgent = ref();
 
-    /** @type {import("vue").Ref<Parcel>} */
+    /** @type {import("vue").Ref<UIParcel>} */
     selectedParcel = ref();
 
     /**
-	 * @type {function(String):Agent}
+	 * @type {function(String):UIAgent}
 	 */
 	getAgentByMeshUUID ( uuid ) {
-        return Array.from(this.agents.values()).find( agent => agent.mesh.uuid == uuid );
+        return Array.from(this.agents.values()).find( agent => agent.mesh?.uuid == uuid );
 	}
     /**
-	 * @type {function(String):Parcel}
+	 * @type {function(String):UIParcel}
 	 */
 	getParcelByMeshUUID ( uuid ) {
-        return Array.from(this.parcels.values()).find( parcel => parcel.mesh.uuid == uuid );
+        return Array.from(this.parcels.values()).find( parcel => parcel.mesh?.uuid == uuid );
 	}
     /**
-     * @type {function(String):Tile}
+     * @type {function(String):UITile}
     */
     getTileByMeshUUID ( uuid ) {
-        return Array.from(this.tiles.values()).find( tile => tile.mesh.uuid == uuid )
+        return Array.from(this.tiles.values()).find( tile => tile.mesh?.uuid == uuid )
     }
 
     hooverByMesh ( mesh ) {
         // console.log( 'Grid.js hooverByMesh', mesh );
+        /** @type {UIAgent|UIParcel|UITile|undefined} */
         let byMesh = this.getAgentByMeshUUID( mesh?.uuid ) || this.getParcelByMeshUUID( mesh?.uuid ) || this.getTileByMeshUUID( mesh?.uuid );
-        if ( byMesh?.hoovered ) return; // null or already hoovered, return
-        if ( this.hoovered.value ) this.hoovered.value.hoovered = false; // unhoover previous
+        if (byMesh && 'hoovered' in byMesh && byMesh.hoovered) return; // null or already hoovered, return
+        if ( this.hoovered.value && 'hoovered' in this.hoovered.value ) this.hoovered.value.hoovered = false; // unhoover previous
         this.hoovered.value = byMesh; // set newly hoovered
-        if ( this.hoovered.value ) this.hoovered.value.hoovered = true; // hoover new
+        if ( this.hoovered.value && 'hoovered' in this.hoovered.value ) this.hoovered.value.hoovered = true; // hoover new
     }
 
     selectByMesh ( mesh ) {
@@ -235,7 +195,7 @@ export class Grid {
 
     /**
      * Socket constructor
-     * @param {ioClientSocket} socket
+     * @param {IOClient} socket
      */
     constructor ( socket ) {
 

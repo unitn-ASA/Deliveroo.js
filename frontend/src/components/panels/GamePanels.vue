@@ -30,7 +30,7 @@
     const me = grid?.me;
 
     function restartGame() {
-        connection.socket.emit('restart');
+        connection.ioClient.emit('restart');
     }
 
     const chatOpen = ref(false);
@@ -130,7 +130,7 @@
                                 <path stroke="currentColor" stroke-width="2" d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
                             </svg>
                             <div class="tooltip tooltip-warning tooltip-left"
-                                 :data-tip="`${me?.name}(${me?.id}) ${me?.teamName?me.teamName+'('+me?.teamId+')':''} socket=${connection?.socket.id}`"
+                                 :data-tip="`${me?.name}(${me?.id}) ${me?.teamName?me.teamName+'('+me?.teamId+')':''} socket=${connection?.ioClient.id}`"
                             >
                                 <span> {{ me?.name?.slice(0,10) }}({{ me?.id }}) </span>
                                 <span v-if="me?.x"> {{ me?.x ? Math.floor(me?.x)+','+Math.floor(me?.y) : '' }} </span>

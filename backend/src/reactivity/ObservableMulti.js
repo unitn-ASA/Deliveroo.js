@@ -194,7 +194,7 @@ class ObservableMulti {
     }
 
     /**
-     * @param { keyof T } key
+     * @param { keyof T | 'any' } key
      * @param { function( T ) : void } callback
      */
     off ( key, callback ) {

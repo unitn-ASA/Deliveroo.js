@@ -14,7 +14,7 @@ export class Controller {
 
         this.connection = connection;
 
-        const socket = connection.socket;
+        const socket = connection.ioClient;
         
         // async function emit( ...args ) {
         //     return new Promise( (res, rej) => {

@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@unitn-asa/deliveroo-js-webapp-dist": "^2.0.15",
+    "@unitn-asa/types": "^1.0.0",
     "argparse": "^2.0.1",
     "canvas": "^3.1.0",
     "express": "^4.17.3",
