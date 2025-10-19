@@ -1,5 +1,3 @@
-const Clock = require('./deliveroo/Clock.js');
+import Clock from './deliveroo/Clock.js';
 
-
-
-module.exports = new Clock();
+export default new Clock();

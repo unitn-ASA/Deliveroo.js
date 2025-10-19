@@ -1,6 +1,6 @@
-const Agent = require('../src/deliveroo/Agent');
-const Grid = require('../src/deliveroo/Grid');
-const Identity = require('../src/deliveroo/Identity');
+import Agent from '../src/deliveroo/Agent.js';
+import Grid from '../src/deliveroo/Grid.js';
+import Identity from '../src/deliveroo/Identity.js';
 
 /**
  * @class
@@ -50,8 +50,9 @@ class PushAgent extends Agent {
 
 
 
-module.exports = PushAgent;
+export default PushAgent;
 
 // Lazy plugin installation
 global.PushAgent = PushAgent;
-require('../config').AGENT_TYPE = 'PushAgent';
+import config from '../config.js';
+config.AGENT_TYPE = 'PushAgent';

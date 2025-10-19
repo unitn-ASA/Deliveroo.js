@@ -1,7 +1,7 @@
-const myClock =  require('../myClock');
-const config =  require('../../config');
-const timersPromises = require('timers/promises'); // await timersPromises.setImmediate();
-const NPC = require('./NPC'); 
+import myClock from '../myClock.js';
+import config from '../../config.js';
+import timersPromises from 'timers/promises'; // await timersPromises.setImmediate();
+import NPC from './NPC.js';
         
 const actions = [ 'up', 'right', 'down', 'left' ];
 const relPos = [ {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0} ];
@@ -56,4 +56,4 @@ class RandomlyMovingAgent extends NPC {
 }
 
 
-module.exports = RandomlyMovingAgent;
+export default RandomlyMovingAgent;

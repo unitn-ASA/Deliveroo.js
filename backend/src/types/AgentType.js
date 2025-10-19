@@ -30,6 +30,4 @@
  * }}
  */
 
-module.exports = {
-  AgentType: /** @type {AgentType} */ ({})
-};
+export const AgentType = /** @type {AgentType} */ ({});

@@ -1,4 +1,4 @@
 
-console.log( 'Building Deliveroo.js backend...' );
+console.log('Building Deliveroo.js backend...');
 
-require('./generateGitRevision.js');
+import './generateGitRevision.js';

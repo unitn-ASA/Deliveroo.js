@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { myGrid } = require('../grid');
-const { authorizeAdmin } = require('../middlewares/token');
+import { myGrid } from '../grid.js';
+import { authorizeAdmin } from '../middlewares/token.js';
 
 
 
@@ -72,4 +72,4 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
 
 
 
-module.exports = router;
+export default router;

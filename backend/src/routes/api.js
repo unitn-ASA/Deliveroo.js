@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
+import fs from 'fs';
 const router = express.Router();
-const fs = require('fs');
 
 const packageVersion = new Promise( res =>
     fs.readFile('./package.json', { encoding: 'utf8'}, (err, data) => {
@@ -54,4 +54,4 @@ router.get('/', async (req, res) => {
 
 })
 
-module.exports = router;
+export default router;

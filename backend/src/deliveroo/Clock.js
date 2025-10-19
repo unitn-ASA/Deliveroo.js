@@ -1,11 +1,11 @@
-const EventEmitter = require('events');
-const {CLOCK} = require('../../config');
-const Types = require('./Types');
+import EventEmitter from 'events';
+import config from '../../config.js';
+import { parseClockEvent } from './Types.js';
 
 
 
 /**
- * @typedef { Types.ClockEvent } ClockEvent
+ * @typedef { import('./Types.js').ClockEvent } ClockEvent
  */
 
 /**
@@ -23,7 +23,7 @@ class Clock {
     /** @type {EventEmitter} */
     #eventEmitter = new EventEmitter();
 
-    #base = Number( CLOCK ); // 40ms are 25frame/s
+    #base = Number( config.CLOCK ); // 40ms are 25frame/s
     #id;
     #ms = 0;
     #frame = 0;
@@ -169,4 +169,4 @@ class Clock {
 
 
 
-module.exports = Clock ;
+export default Clock;

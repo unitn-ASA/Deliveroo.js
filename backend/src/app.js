@@ -1,20 +1,26 @@
-const express = require('express');
-const cors = require('cors');
-const Path = require('path');
-const serveIndex = require('serve-index');
-const swaggerUi = require('swagger-ui-express');
-const fs = require("fs")
-const YAML = require('yaml')
+import express from 'express';
+import cors from 'cors';
+import Path from 'path';
+import { fileURLToPath } from 'url';
+import serveIndex from 'serve-index';
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
+import { default as YAML } from 'yaml';
+
 const app = express();
 
-const apiRoutes = require('./routes/api');
-const configRoutes = require('./routes/configs');
-const mapsRoutes = require('./routes/maps');
-const agentsRoutes = require('./routes/agents');
-const levelsRoutes = require('./routes/levels');
-const npcsRoutes = require('./routes/npcs');
-const parcelsRoutes = require('./routes/parcels');
-const { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware } = require('./middlewares/token');
+import apiRoutes from './routes/api.js';
+import configRoutes from './routes/configs.js';
+import mapsRoutes from './routes/maps.js';
+import agentsRoutes from './routes/agents.js';
+import levelsRoutes from './routes/levels.js';
+import npcsRoutes from './routes/npcs.js';
+import parcelsRoutes from './routes/parcels.js';
+import { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware } from './middlewares/token.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = Path.dirname(__filename);
+
 
 
 /**
@@ -48,8 +54,9 @@ app.use( '/',
 
 
 // Serve Swagger API documentation
-const oas3  = fs.readFileSync('./oas3.yaml', 'utf8')
-const swaggerDocument = YAML.parse(oas3)
+const oas3Path = Path.join(__dirname, '..', 'oas3.yaml');
+const oas3 = fs.readFileSync(oas3Path, 'utf8');
+const swaggerDocument = YAML.parse(oas3);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup( swaggerDocument ));
 
 
@@ -125,4 +132,4 @@ app.use( (err, req, res, next) => {
 
 
 
-module.exports = app;
+export default app;

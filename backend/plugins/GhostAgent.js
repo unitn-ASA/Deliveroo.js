@@ -1,6 +1,6 @@
-const Agent = require('../src/deliveroo/Agent');
-const myClock = require('../src/myClock');
-const config = require('../config');
+import Agent from '../src/deliveroo/Agent.js';
+import myClock from '../src/myClock.js';
+import config from '../config.js';
 
 /**
  * @class
@@ -8,9 +8,11 @@ const config = require('../config');
 */
 class GhostAgent extends Agent {
 
+
     constructor ( grid, options ) {
         super ( grid, options );
         console.log("I am a ghost", options);
+export default GhostAgent;
     }
     
     moving = false;
@@ -37,7 +39,7 @@ class GhostAgent extends Agent {
 
 
 
-module.exports = GhostAgent;
+export default GhostAgent;
 
 
 

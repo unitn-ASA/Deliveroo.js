@@ -1,9 +1,7 @@
-require('./scripts/generateGitRevision.js');
-const httpServer = require('./src/httpServer.js');
-const ioServer = require('./src/ioServer');
-const {PORT} = require('./config');
-
-
+import './scripts/generateGitRevision.js';
+import httpServer from './src/httpServer.js';
+import ioServer from './src/ioServer.js';
+import config from './config.js';
 
 async function start () {
 
@@ -11,9 +9,9 @@ async function start () {
      *  Start http server
      */
 
-    httpServer.listen( PORT, () => {
+    httpServer.listen( config.PORT, () => {
         
-        console.log(`Server listening on http://localhost:${PORT}`);
+        console.log(`Server listening on http://localhost:${config.PORT}`);
     
     } );
 

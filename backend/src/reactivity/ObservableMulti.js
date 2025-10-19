@@ -1,5 +1,5 @@
-const PostponerEventEmitter = require('./PostponerEventEmitter');
-const EventEmitter = require('events');
+import PostponerEventEmitter from './PostponerEventEmitter.js';
+import EventEmitter from 'events';
 
 /**
  * @template { Record<keyof T,T[keyof T]> } T
@@ -214,4 +214,4 @@ class ObservableMulti {
     
 }
 
-module.exports = ObservableMulti;
+export default ObservableMulti;

@@ -1,8 +1,17 @@
-const express = require('express');
+import express from 'express';
+import path from 'path';
+import config from '../../config.js';
+import { myGrid } from '../grid.js';
+import { authorizeAdmin } from '../middlewares/token.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const mapsDirectory = path.resolve(__dirname, '..', '..', 'levels', 'maps');
+
 const router = express.Router();
-const config = require('../../config');
-const { myGrid } = require('../grid');
-const { authorizeAdmin } = require('../middlewares/token');
+
+
 
 // GET /configs 
 router.get('/', async (req, res) => {
@@ -18,24 +27,25 @@ router.patch('/', authorizeAdmin, async (req, res) => {
 
     // if changed, update configs from LEVEL file
     if ( req.body.LEVEL && config.LEVEL != req.body.LEVEL ) {
-        const js = config.loadJavascript( req.body.LEVEL );
-        Object.assign( this, js );
+        const js = await config.loadJavascript( req.body.LEVEL );
         console.log(`PATCH /configs: loaded level ${req.body.LEVEL}:`, js);
     }
 
     // if changed, load MAP_FILE into myGrid
     if ( req.body.MAP_FILE && config.MAP_FILE != req.body.MAP_FILE ) {
         try {
-            const map = require( '../../levels/maps/' + req.body.MAP_FILE + '.js' );
-            myGrid.loadMap( map );
+            // resolve map relative to backend folder
+            const mapPath = path.join(mapsDirectory, req.body.MAP_FILE + '.js');
+            const mod = await import('file://' + mapPath);
+            const map = mod.default ?? mod;
+            myGrid.loadMap(map);
             console.log(`PATCH /configs: loaded map ${req.body.MAP_FILE}`);
-        }
-        catch (error) {
+        } catch (error) {
             console.error(`PATCH /configs: cannot load map ${req.body.MAP_FILE}`, error);
         }
     }
     
-    // Split req.body.PLUGINS from spaced text to array
+    // process PLUGINS string into array
     if ( req.body.PLUGINS && typeof req.body.PLUGINS === 'string'  ) {
         req.body.PLUGINS = req.body.PLUGINS.split(' ');
     }
@@ -56,11 +66,12 @@ router.patch('/', authorizeAdmin, async (req, res) => {
         }
     }
 
-    const io = require('../ioServer');
-    io.emit('config', config);
+    // Lazily import ioServer to avoid circular dependencies
+    const { default: ioServer } = await import('../ioServer.js');
+    ioServer.emit('config', config);
     
     res.status(200).json( config );
 
 })
 
-module.exports = router;
+export default router;

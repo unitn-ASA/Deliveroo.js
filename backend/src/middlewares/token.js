@@ -1,7 +1,6 @@
-const jwt = require('jsonwebtoken');
-const express = require('express');
-const { uid } = require('uid/secure'); 
-
+import jwt from 'jsonwebtoken';
+import express from 'express';
+import { uid } from 'uid/secure';
 
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
@@ -199,6 +198,6 @@ async function tokenMiddleware ( req, res, next ) {
 
 
 
-module.exports = { authorizeUser, authorizeAdmin, tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware };
+export { authorizeUser, authorizeAdmin, tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware };
 
 

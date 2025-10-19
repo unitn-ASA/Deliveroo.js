@@ -59,4 +59,4 @@ class Identity {
 
 
 
-module.exports = Identity;
+export default Identity;

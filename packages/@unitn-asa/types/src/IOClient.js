@@ -1,4 +1,4 @@
-const IOGenerics = require( './IOGenerics.js' );
+import { IOGenerics } from './IOGenerics.js';
 
 /**
  * @typedef {import("./ioTypes.js").IOServerEvents} IOServerEvents
@@ -14,7 +14,7 @@ const IOGenerics = require( './IOGenerics.js' );
  *                          import("socket.io-client").Socket< IOServerEvents, IOClientEvents >
  * > }
  */
-class IOClient extends IOGenerics {
+export class IOClient extends IOGenerics {
 
     connect () {
         // console.log( "Connection.connect() connecting to", HOST, "with token:", this.token.slice(0,10)+'...' );
@@ -22,5 +22,3 @@ class IOClient extends IOGenerics {
     }
 
 }
-
-module.exports = IOClient;

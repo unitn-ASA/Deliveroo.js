@@ -1,8 +1,8 @@
-const Grid = require('../deliveroo/Grid');
-const config = require('../../config');
-const randomlyMovingAgent = require('./RandomlyMovingNPC');
-const NPC = require('./NPC');
-const myClock = require('../myClock');
+import Grid from '../deliveroo/Grid.js';
+import config from '../../config.js';
+import randomlyMovingAgent from './RandomlyMovingNPC.js';
+import NPC from './NPC.js';
+import myClock from '../myClock.js';
 
 
 
@@ -77,4 +77,4 @@ class NPCspawner {
 
 
 
-module.exports = NPCspawner;
+export default NPCspawner;

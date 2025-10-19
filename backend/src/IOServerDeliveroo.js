@@ -1,5 +1,5 @@
-const myClock = require('./myClock');
-const { IOServer } = require('@unitn-asa/types');
+import myClock from './myClock.js';
+import { IOServer } from '@unitn-asa/types';
 
 /**
  * @typedef {import("@unitn-asa/types").IOAgent} IOAgent
@@ -270,4 +270,4 @@ class IOServerDeliveroo extends IOServer {
 }
 
 
-module.exports = IOServerDeliveroo;
+export default IOServerDeliveroo;

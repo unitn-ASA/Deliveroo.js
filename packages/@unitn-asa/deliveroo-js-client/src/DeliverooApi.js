@@ -1,5 +1,6 @@
 import { io } from "socket.io-client";
 import { IOClientSocket } from "./IOClientSocket.js";
+import { default as argsparser } from "args-parser";
 
 
 
@@ -10,7 +11,7 @@ import { IOClientSocket } from "./IOClientSocket.js";
  * $ node index.js -token=... -name=marco
  * $ npm start -- -token=... -name=marco
  */
-const args = require("args-parser")(process? process?.argv : []);
+const args = argsparser(process? process?.argv : []);
 let NAME = args['name'];
 let TOKEN = args['token'];
 let HOST = args['host'];

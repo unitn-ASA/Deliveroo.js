@@ -13,4 +13,4 @@ function parseClockEvent ( event ) {
         throw new Error( `ClockEvents: invalid event '${event}'` );
 }
 
-module.exports = { parseClockEvent };
+export { parseClockEvent };

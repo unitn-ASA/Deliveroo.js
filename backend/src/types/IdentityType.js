@@ -8,6 +8,4 @@
  * }}
  */
 
-module.exports = {
-    IdentityType: /** @type {IdentityType} */ ({})
-};
+export const IdentityType = /** @type {IdentityType} */ ({});

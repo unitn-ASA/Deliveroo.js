@@ -32,7 +32,7 @@ export default defineConfig( () => {
     build: {
       commonjsOptions: {
         include: [
-          '@unitn-asa/types/*',
+          // '@unitn-asa/types/*',
           // '../deliveroo-js-client/ioClientSocket.js'
         ],
       },

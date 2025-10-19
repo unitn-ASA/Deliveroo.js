@@ -1,12 +1,12 @@
-const Tile =  require('./Tile')
-const Agent =  require('./Agent')
-const Parcel = require('./Parcel');
-const Xy = require('./Xy');
-const config =  require('../../config');
-const GridEventEmitter = require('./GridEventEmitter');
-const Sensor = require('./Sensor');
-const Identity = require('./Identity');
-const Factory = require('./Factory');
+import Tile from './Tile.js';
+import Agent from './Agent.js';
+import Parcel from './Parcel.js';
+import Xy from './Xy.js';
+import config from '../../config.js';
+import GridEventEmitter from './GridEventEmitter.js';
+import Sensor from './Sensor.js';
+import Identity from './Identity.js';
+import Factory from './Factory.js';
 
 
 
@@ -280,4 +280,4 @@ class Grid extends GridEventEmitter {
 }
 
 
-module.exports = Grid;
+export default Grid;

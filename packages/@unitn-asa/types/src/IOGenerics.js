@@ -5,7 +5,7 @@
  * @template { Record< string, function(...any):void > } emitEv events to be emitted with .emit
  * @template { import("socket.io-client").Socket | import("socket.io").Socket } soc the type of the socket
  */
-class IOTypedSocketClient {
+export class IOGenerics {
 
     /** @type { soc } */
     socket;
@@ -74,5 +74,3 @@ class IOTypedSocketClient {
         this.socket = socket;
     }
 }
-
-module.exports = IOTypedSocketClient;

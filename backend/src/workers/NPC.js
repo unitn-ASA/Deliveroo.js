@@ -1,6 +1,6 @@
-const Grid = require('../deliveroo/Grid');
-const Identity = require('../deliveroo/Identity');
-const Agent = require('../deliveroo/Agent');
+import Grid from '../deliveroo/Grid.js';
+import Identity from '../deliveroo/Identity.js';
+import Agent from '../deliveroo/Agent.js';
 
 
 
@@ -80,4 +80,4 @@ class NPC {
 }
 
 
-module.exports = NPC;
+export default NPC;

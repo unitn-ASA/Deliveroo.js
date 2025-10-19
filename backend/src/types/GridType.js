@@ -15,6 +15,4 @@
  * }}
  */
 
-module.exports = {
-  GridType: /** @type {GridType} */ ({})
-};
+export const GridType = /** @type {GridType} */ ({});

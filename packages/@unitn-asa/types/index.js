@@ -1,6 +1,6 @@
 // Import socket types
-const IOClient = require('./src/IOClient.js');
-const IOServer = require('./src/IOServer.js');
+import { IOClient } from './src/IOClient.js';
+import { IOServer } from './src/IOServer.js';
 
 /**
  * @typedef {import("./src/ioTypes.js").IOAgent} IOAgent
@@ -11,8 +11,8 @@ const IOServer = require('./src/IOServer.js');
  * @typedef {import("./src/ioTypes.js").IOClientEvents} IOClientEvents
  * @typedef {import("./src/ioTypes.js").IOServerEvents} IOServerEvents
  * 
- * @typedef {import("./src/IOClient.js").ClientSocket} IOTypedSocketClientSocket
- * @typedef {import("./src/IOServer.js").ServerSocket} IOTypedSocketServerSocket
+ * @typedef {import("./src/IOClient.js").ClientSocket} IOClientSocket
+ * @typedef {import("./src/IOServer.js").ServerSocket} IOServerSocket
  */
 
-module.exports = { IOClient, IOServer };
+export { IOClient, IOServer };

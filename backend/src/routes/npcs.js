@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { myNPCSpawner } from '../grid.js';
+import { authorizeAdmin } from '../middlewares/token.js';
+
 const router = express.Router();
-const { myNPCSpawner } = require('../grid');
-const { authorizeAdmin } = require('../middlewares/token');
 
 
 
@@ -95,4 +96,4 @@ router.post('/', authorizeAdmin, async (req, res) => {
 
 
 
-module.exports = router;
+export default router;

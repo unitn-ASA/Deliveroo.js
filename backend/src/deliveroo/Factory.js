@@ -1,7 +1,7 @@
-const Agent =  require('./Agent')
-const Identity = require('./Identity');
-const Grid =  require('./Grid');
-const config =  require('../../config');
+import Agent from './Agent.js';
+import Identity from './Identity.js';
+import Grid from './Grid.js';
+import config from '../../config.js';
 
 global.DefaultAgent = Agent;
 config.loadPlugins();
@@ -42,4 +42,4 @@ class Factory {
 
 
 
-module.exports = Factory;
+export default Factory;

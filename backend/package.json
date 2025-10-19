@@ -5,7 +5,8 @@
   "author": "Marco Robol <marco.robol@unitn.it>",
   "license": "ISC",
   "private": true,
-  "type": "commonjs",
+  "type": "module",
+  "module": "es2022",
   "main": "index.js",
   "bin": {
     "deliveroo-js-server": "./scripts/cli.js"
@@ -40,7 +41,7 @@
     "socket.io": "^4.4.1",
     "swagger-ui-express": "^5.0.1",
     "uid": "^2.0.1",
-    "yaml": "^2.8.0"
+    "yaml": "^2.8.1"
   },
   "engines": {
     "node": "22.x"

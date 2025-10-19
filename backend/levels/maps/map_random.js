@@ -14,4 +14,4 @@ for (let x = 0; x < 50; x++) {
     }
 }
 
-module.exports = map;
+export default map;

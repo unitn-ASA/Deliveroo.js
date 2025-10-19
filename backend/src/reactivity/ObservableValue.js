@@ -1,4 +1,4 @@
-const PostponerEventEmitter = require('./PostponerEventEmitter');
+import PostponerEventEmitter from './PostponerEventEmitter.js';
 
 /**
  * @template T
@@ -72,4 +72,4 @@ class ObservableValue {
     
 }
 
-module.exports = ObservableValue;
+export default ObservableValue;

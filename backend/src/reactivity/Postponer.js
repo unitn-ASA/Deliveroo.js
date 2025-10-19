@@ -81,4 +81,4 @@ class Postponer {
 
 
 
-module.exports = Postponer
+export default Postponer;

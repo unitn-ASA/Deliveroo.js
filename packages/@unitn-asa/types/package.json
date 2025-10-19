@@ -2,12 +2,13 @@
   "name": "@unitn-asa/types",
   "version": "1.0.0",
   "description": "Shared types for Deliveroo.js",
+  "type": "module",
   "main": "./index.js",
   "module": "./index.mjs",
   "exports": {
     ".": {
-      "import": "./index.mjs",
-      "require": "./index.js"
+      "import": "./index.js",
+      "require": "./index.cjs"
     }
   },
   "types": "index.js",

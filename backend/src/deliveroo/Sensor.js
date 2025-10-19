@@ -1,10 +1,11 @@
-const ObservableMulti = require('../reactivity/ObservableMulti');
-const Xy =  require('./Xy')
-const Grid =  require('./Grid')
-const Agent = require('./Agent');
-const Parcel = require('./Parcel');
-const Postponer = require('../reactivity/Postponer');
-const myClock = require('../myClock');
+import ObservableMulti from '../reactivity/ObservableMulti.js';
+import Xy from './Xy.js';
+import Grid from './Grid.js';
+import Agent from './Agent.js';
+import Parcel from './Parcel.js';
+import Postponer from '../reactivity/Postponer.js';
+import myClock from '../myClock.js';
+import config from '../../config.js';
 
 
 
@@ -89,7 +90,7 @@ class Sensor extends ObservableMulti {
         this.watch('sensedAgents', true);
         this.watch('sensedParcels', true);
 
-        Object.assign( this.config, require('../../config') );
+    Object.assign(this.config, config );
 
         this.#grid = grid;
 
@@ -185,4 +186,4 @@ class Sensor extends ObservableMulti {
 }
 
 
-module.exports = Sensor;
+export default Sensor;

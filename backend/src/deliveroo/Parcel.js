@@ -1,9 +1,9 @@
-const ObservableValue =  require('../reactivity/ObservableValue')
-const Xy =  require('./Xy')
-const myClock =  require('../myClock')
-const config =  require('../../config')
-const Agent =  require('./Agent')
-const ObservableMulti = require('../reactivity/ObservableMulti')
+import ObservableValue from '../reactivity/ObservableValue.js';
+import Xy from './Xy.js';
+import myClock from '../myClock.js';
+import config from '../../config.js';
+import Agent from './Agent.js';
+import ObservableMulti from '../reactivity/ObservableMulti.js';
 
 
 
@@ -120,4 +120,4 @@ class Parcel extends ObservableMulti {
 
 
 
-module.exports = Parcel;
+export default Parcel;

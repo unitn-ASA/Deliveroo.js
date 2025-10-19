@@ -1,4 +1,4 @@
-const IOGenerics = require( './IOGenerics.js' );
+import { IOGenerics } from './IOGenerics.js';
 
 /**
  * @typedef {import("./ioTypes.js").IOClientEvents} IOClientEvents
@@ -14,7 +14,7 @@ const IOGenerics = require( './IOGenerics.js' );
  *                          import("socket.io").Socket< IOClientEvents, IOServerEvents >
  * > }
  */
-class IOServer extends IOGenerics {
+export class IOServer extends IOGenerics {
 
     /**
      * @param {string} room
@@ -46,5 +46,3 @@ class IOServer extends IOGenerics {
     }
 
 }
-
-module.exports = IOServer;

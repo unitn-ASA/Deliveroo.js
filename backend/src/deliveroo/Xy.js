@@ -98,4 +98,4 @@
 
 
 
-module.exports = Xy;
+export default Xy;

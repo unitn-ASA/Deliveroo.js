@@ -1,36 +1,37 @@
-const express = require('express');
-const router = express.Router();
-const fs = require('fs');
-const path = require('path');
-const { createCanvas } = require('canvas');
-const { authorizeAdmin } = require('../middlewares/token');
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { createCanvas } from 'canvas';
+import { fileURLToPath } from 'url';
+import { authorizeAdmin } from '../middlewares/token.js';
 
-// Maps directory
-const mapsDirectory = path.join(__dirname, '..','..','levels','maps')
+const router = express.Router();
+
+// Maps directory (resolve relative to backend folder)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const mapsDirectory = path.resolve(__dirname, '..', '..', 'levels', 'maps');
 
 
 // Get all maps as a json
 router.get('/', (req, res) => {
 
     fs.readdir(mapsDirectory, async (err, fileNames) => {
-        
         if (err) {
             console.error('Errore nella lettura della directory:', err);
             res.status(500).send('Errore nella lettura della directory');
             return;
         }
 
-        const maps = []; 
-        for ( let fileNmae of fileNames.filter( file => path.extname(file) === '.js' ) ) {
-            const map = await readMapFromJs(fileNmae).catch( console.error );
-            if ( map && map.map && map.name )
-                maps.push(map);
+        const maps = [];
+        for (const fileNmae of fileNames.filter(file => path.extname(file) === '.js')) {
+            const map = await readMapFromJs(fileNmae).catch(console.error);
+            if (map && map.map && map.name) maps.push(map);
         }
-        
-        res.json(maps); // Invia i dati delle mappe come risposta JSON
 
+        res.json(maps);
     });
- 
+
 });
 
 // Upload a new map. receive a json matrix and savo to a json file locally
@@ -57,11 +58,10 @@ router.get('/:mapName.png', async (req, res) => {
     const mapName = req.params.mapName;
 
     try {
-        
-        var json = await readMapFromJs( mapName.split('.')[0] );
+        const json = await readMapFromJs(mapName.split('.')[0]);
 
-        var png = generatePng( json.map );
-        savePng( mapName, png );
+        const png = generatePng(json.map);
+        savePng(mapName, png);
 
         res.contentType('image/png');
         res.send(png);
@@ -77,10 +77,10 @@ router.get('/:mapName.png', async (req, res) => {
 router.get('/:mapName', async (req, res) => {
     const mapName = req.params.mapName;
 
-    const json = await readMapFromJs( mapName ).catch( err => {
+    const json = await readMapFromJs(mapName).catch(err => {
         console.error(err);
         res.status(404).send('Map not found. Error: ' + err);
-    } );
+    });
 
     res.json(json);
 });
@@ -112,40 +112,36 @@ async function readMapFromJson( mapName ) {
 }
 
 // Read map from .js file
-async function readMapFromJs( mapName ) {
-    return new Promise((resolve, reject) => {
-        // rimuovo eventuale estensione
-        {
-            let tmp = mapName.split('.');
-            if ( tmp.pop() == 'js' )
-                mapName = tmp;
-        }
+async function readMapFromJs(mapName) {
+    // remove extension if present
+    if (mapName.split('.').pop() === 'js') {
+        mapName = mapName.split('.').slice(0, -1).join('.');
+    }
 
-        const jsonPath = path.join(mapsDirectory, `${mapName}`);
-        try {
-            var map = require(jsonPath);
-        } catch (error) {
-            reject( "Cannot read map .js file, no such file or directory " + jsonPath );
-            return;
-        }
-        resolve( {
-            self: '/api/maps/'+mapName,
-            png: '/api/maps/'+mapName+'.png',
+    const filePath = path.join(mapsDirectory, `${mapName}.js`);
+    try {
+        const mod = await import('file://' + filePath);
+        const map = mod.default ?? mod;
+        return {
+            self: '/api/maps/' + mapName,
+            png: '/api/maps/' + mapName + '.png',
             name: mapName,
             map: map
-        } );
-        
-    });
-    
+        };
+    } catch (error) {
+        throw "Cannot read map .js file, no such file or directory " + filePath;
+    }
+
 }
 
 // Read map png file
-function readMapFromPng( mapName ) {
+function readMapFromPng(mapName) {
     const pngPath = path.join(mapsDirectory, `${mapName}.png`);
     return new Promise((resolve, reject) => {
         fs.readFile(pngPath, (err, data) => {
             if (err) {
                 resolve(null);
+                return;
             }
             resolve(data);
         });
@@ -230,4 +226,4 @@ function savePng( mapName, buffer ) {
     fs.writeFileSync( mapPath, buffer );
 }
 
-module.exports = router;
+export default router;

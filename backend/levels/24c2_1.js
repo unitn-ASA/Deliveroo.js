@@ -1,5 +1,5 @@
 
-module.exports = {
+export default {
 
     MAP_FILE: '24c2_1',    // options are 'default_map' (DEFAULT), 'empty_map', 'map_20', ...files in levels/maps
 

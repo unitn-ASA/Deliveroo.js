@@ -1,13 +1,14 @@
-const { AgentType } = require('../types');
-const ObservableValue = require('../reactivity/ObservableValue');
-const Xy =  require('./Xy')
-const Grid =  require('./Grid')
-const Tile =  require('./Tile');
-const Parcel =  require('./Parcel');
-const myClock = require('../myClock');
-const ObservableMulti = require('../reactivity/ObservableMulti');
-const Sensor = require('./Sensor');
-const Identity = require('./Identity');
+import { AgentType } from '../types/index.js';
+import config from '../../config.js';
+import ObservableValue from '../reactivity/ObservableValue.js';
+import Xy from './Xy.js';
+import Grid from './Grid.js';
+import Tile from './Tile.js';
+import Parcel from './Parcel.js';
+import myClock from '../myClock.js';
+import ObservableMulti from '../reactivity/ObservableMulti.js';
+import Sensor from './Sensor.js';
+import Identity from './Identity.js';
 
 
 
@@ -97,7 +98,7 @@ class Agent extends ObservableMulti {
             this.xy = tile.xy;
         }
 
-        Object.assign( this.config, require('../../config') );
+    Object.assign( this.config, config );
         
         Object.defineProperty (this, 'carrying', {
             get: () => Array.from(this.carryingParcels).map( ({id, reward}) => { return {id, reward}; } ), // Recursion on carriedBy->agent->carrying->carriedBy ... 
@@ -288,4 +289,4 @@ class Agent extends ObservableMulti {
 
 
 
-module.exports = Agent;
+export default Agent;

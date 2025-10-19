@@ -12,6 +12,4 @@
  * }}
  */
 
-module.exports = {
-  TileType: /** @type {TileType} */ ({})
-};
+export const TileType = /** @type {TileType} */ ({});

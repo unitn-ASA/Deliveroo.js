@@ -1,15 +1,23 @@
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
+import fs from 'fs';
+import path from 'path';
+import express from 'express';
+import { fileURLToPath } from 'url';
+
 const router = express.Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const levelsDirectory = path.resolve(__dirname, '..', '..', 'levels');
+
+
 
 // GET /all levels
 router.get('/', async (req, res) => {
 
     console.log(`GET /api/levels`);
 
-    // load all .js files from levels directory
-    fs.readdir( './levels', (err, files) => {
+    // load all .js files from levels directory (relative to backend folder)
+    fs.readdir(levelsDirectory, async (err, files) => {
         if (err) {
             console.error('GET /levels Error while reading directory:', err);
             res.status(500).send('Error while reading directory');
@@ -19,17 +27,19 @@ router.get('/', async (req, res) => {
 
         const levels = [];
         // read each file
-        levelsFileNames.forEach( (name, index) => {
+        for (const name of levelsFileNames) {
             try {
                 const level = { self: '/api/levels/' + name };
-                level.LEVEL = './levels/' + name; // add LEVEL property to the level object
-                // copy everything in file object
-                Object.assign( level, require( '../../levels/' + name ) );
-                levels.push( level );
+                level.LEVEL = './levels/' + name;
+                const filePath = path.join(levelsDirectory, name);
+                // dynamic import and prefer default export
+                const mod = await awaitImportFile(filePath);
+                Object.assign(level, mod);
+                levels.push(level);
             } catch (err) {
                 console.error('GET /levels Error while reading file:', err);
             }
-        });
+        };
         
         res.json(levels);
     } );
@@ -48,11 +58,11 @@ router.post('/', async (req, res) => {
         return;
     }
 
-    const filePath = path.join(__dirname, '../../levels', `${levelName}.js`);
+    const filePath = path.join(levelsDirectory, `${levelName}.js`);
 
     try {
         // Write file
-        const fileContent = `module.exports = ${JSON.stringify(levelData, null, 4)};`;
+    const fileContent = `export default ${JSON.stringify(levelData, null, 4)};`;
         fs.writeFileSync(filePath, fileContent, 'utf8');
         console.log(`Level ${levelName} saved successfully.`);
         res.status(201).send(`Level ${levelName} created or updated successfully`);
@@ -72,11 +82,15 @@ router.get('/:levelName', async (req, res) => {
     level.LEVEL = levelName; // add LEVEL property to the level object
     try {
         // load and copy everything in the level
-        Object.assign( level, require( '../../levels/' + levelName + '.js' ) );
+        const filePath = path.join(levelsDirectory, `${levelName}.js`);
+        const mod = await import('file://' + filePath);
+        Object.assign(level, mod.default ?? mod);
         res.json(level);
     } catch (err) {
         try {
-            Object.assign( level, require( '../../levels/' + levelName ) );
+            const filePath = path.join(levelsDirectory, levelName);
+            const mod = await import('file://' + filePath);
+            Object.assign(level, mod.default ?? mod);
             res.json(level);
         } catch (err) {
             console.error(`GET /levels/:${levelName} Error while reading file`);
@@ -86,4 +100,14 @@ router.get('/:levelName', async (req, res) => {
 
 } )
 
-module.exports = router;
+async function awaitImportFile(filePath) {
+    try {
+        const mod = await import('file://' + filePath);
+        return mod.default ?? mod;
+    } catch (err) {
+        console.error('Error importing file', filePath, err);
+        throw err;
+    }
+}
+
+export default router;

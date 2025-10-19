@@ -1,14 +1,15 @@
-const { Server } = require('socket.io');
-const httpServer = require('./httpServer');
-const { myGrid } = require('./grid');
-const config = require('../config');
-const myClock = require('./myClock');
-require('events').EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
-const {tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware} = require('./middlewares/token');
-const IOServerDeliveroo = require('./IOServerDeliveroo');
-const Agent = require('./deliveroo/Agent');
-const Identity = require('./deliveroo/Identity');
-const Xy = require('./deliveroo/Xy');
+import { Server } from 'socket.io';
+import httpServer from './httpServer.js';
+import { myGrid } from './grid.js';
+import config from '../config.js';
+import myClock from './myClock.js';
+import events from 'events';
+events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
+import { tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
+import IOServerDeliveroo from './IOServerDeliveroo.js';
+import Agent from './deliveroo/Agent.js';
+import Identity from './deliveroo/Identity.js';
+import Xy from './deliveroo/Xy.js';
 
 
 
@@ -435,4 +436,4 @@ global.console.log = function ( ...message ) {
 
 
 
-module.exports = io;
+export default io;

@@ -1,4 +1,4 @@
-const ObservableMulti = require('./ObservableMulti');
+import ObservableMulti from './ObservableMulti.js';
 
 
 
@@ -39,3 +39,5 @@ class Tracker {
     }
 
 }
+
+export default Tracker;

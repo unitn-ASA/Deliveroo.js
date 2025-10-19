@@ -1,7 +1,7 @@
-require('dotenv').config();
-const timersPromises = require('timers/promises')
-const ObservableMulti = require('./ObservableMulti');
-const myClock = require('../myClock');
+import 'dotenv/config';
+import timersPromises from 'timers/promises';
+import ObservableMulti from './ObservableMulti.js';
+import myClock from '../myClock.js';
 myClock.start();
 
 

@@ -1,6 +1,16 @@
-const fs = require('node:fs');
-const { ArgumentParser } = require('argparse');
-const Types = require('./src/deliveroo/Types');
+import fs from 'node:fs';
+import { ArgumentParser } from 'argparse';
+import { parseClockEvent } from './src/deliveroo/Types.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ESM-friendly __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/**
+ * @typedef {import("./src/deliveroo/Types.js").ClockEvent} ClockEvent
+ */
 
 
 
@@ -38,10 +48,10 @@ class Config {
             help: 'Specify name of map file (without .json) from those in ./levels/maps folder'
         });
 
-        /** @type {Types.ClockEvent} */
-        this.PARCELS_GENERATION_INTERVAL = Types.parseClockEvent( process.env.PARCELS_GENERATION_INTERVAL || '2s' );
+        /** @type {ClockEvent} */
+        this.PARCELS_GENERATION_INTERVAL = parseClockEvent( process.env.PARCELS_GENERATION_INTERVAL || '2s' );
         parser.add_argument('-i', '--parcels-interval', {
-            dest: 'PARCELS_GENERATION_INTERVAL', type: Types.parseClockEvent,
+            dest: 'PARCELS_GENERATION_INTERVAL', type: parseClockEvent,
             help: "Specify the interval for parcels generation, options are '1s', '2s', '5s', '10s', default is '2s'"
         });
 
@@ -66,10 +76,10 @@ class Config {
             help: "Specify the variance for parcels, default is 10"
         });
 
-        /** @type {Types.ClockEvent} */
-        this.PARCEL_DECADING_INTERVAL = Types.parseClockEvent( process.env.PARCEL_DECADING_INTERVAL || '1s' );
+        /** @type {ClockEvent} */
+        this.PARCEL_DECADING_INTERVAL = parseClockEvent( process.env.PARCEL_DECADING_INTERVAL || '1s' );
         parser.add_argument('-c', '--decading-interval', {
-            dest: 'PARCEL_DECADING_INTERVAL', type: Types.parseClockEvent,
+            dest: 'PARCEL_DECADING_INTERVAL', type: parseClockEvent,
             help: "Specify the decading interval for parcels, options are '1s', '2s', '5s', '10s', 'infinite', default is '1s'"
         });
 
@@ -122,10 +132,10 @@ class Config {
             help: "Specify the Number of randomly moving agents, default is 0"
         });
 
-        /** @type {Types.ClockEvent} */
-        this.RANDOM_AGENT_SPEED = Types.parseClockEvent( process.env.RANDOM_AGENT_SPEED || '2s' );
+        /** @type {ClockEvent} */
+        this.RANDOM_AGENT_SPEED = parseClockEvent( process.env.RANDOM_AGENT_SPEED || '2s' );
         parser.add_argument('-y', '--npc-speed', {
-            dest: 'RANDOM_AGENT_SPEED', type: Types.parseClockEvent,
+            dest: 'RANDOM_AGENT_SPEED', type: parseClockEvent,
             help: "Specify the speed for randomly moving agents, options are '1s', '2s', '5s', '10s', default is '2s'"
         });
 
@@ -158,7 +168,7 @@ class Config {
         });
 
         // Parsing Arguments from command line
-        const args = parser.parse_args();
+    const args = parser.parse_args();
 
         // 1. default values
 
@@ -167,23 +177,22 @@ class Config {
         // 3. Loading from file specified in process.env.LEVEL 
         if (process.env.LEVEL) {
             try {
-                const json = this.loadJavascript( process.env.LEVEL );
-                Object.assign( this, json );
+                const json = await this.loadJavascript(process.env.LEVEL);
+                Object.assign(this, json);
                 this.LEVEL = process.env.LEVEL;
             } catch (err) {
-                console.error( 'Error loading from process.env.LEVEL', process.env.LEVEL );
+                console.error('Error loading from process.env.LEVEL', process.env.LEVEL);
             }
         }
 
         // 4. Loading from file specified in args.LEVEL
-        if ( args.LEVEL ) {
+        if (args.LEVEL) {
             try {
-                const json = this.loadJavascript( args.LEVEL );
-                Object.assign( this, json );
+                const json = await this.loadJavascript(args.LEVEL);
+                Object.assign(this, json);
                 this.LEVEL = args.LEVEL;
-                // console.log( 'Loaded level specified as argument', args.LEVEL );
             } catch (err) {
-                console.error( 'Error loading from args.LEVEL', args.LEVEL );
+                console.error('Error loading from args.LEVEL', args.LEVEL);
             }
         }
         
@@ -202,17 +211,17 @@ class Config {
 
 
 
-    loadJavascript ( path ) {
-    
+    async loadJavascript(pathRel) {
         try {
-            var js = require( './'+path );
-            console.log( 'Config.loadJavascript succesfully loaded', './' + path );
+            const filePath = path.isAbsolute(pathRel) ? pathRel : path.join(__dirname, pathRel);
+            const mod = await import('file://' + filePath);
+            const js = mod.default ?? mod;
+            console.log('Config.loadJavascript succesfully loaded', './' + pathRel);
             return js;
-        } catch ( err ) {
-            console.warn( 'WARN Config.loadJavascript file not found in ./' + path )
+        } catch (err) {
+            console.warn('WARN Config.loadJavascript file not found in ./' + pathRel, err);
             throw err;
         }
-    
     }
     
     loadConfigsFromJson ( ) {
@@ -246,20 +255,26 @@ class Config {
         }
     }
 
-    loadPlugins ( ) {
+    async loadPlugins() {
         if (this.PLUGINS) {
-            // if this.PLUGINS is a string, split it
-            if (typeof this.PLUGINS === 'string')
-                this.PLUGINS = String(this.PLUGINS).split(' ');
-            this.PLUGINS.forEach( path => {
+            if (typeof this.PLUGINS === 'string') this.PLUGINS = String(this.PLUGINS).split(' ');
+            for (const p of this.PLUGINS) {
                 try {
-                    let loaded = require( './' + path );
-                    console.log( 'Plugin loaded', path, loaded );
+                    // resolve plugins relative to the backend folder (__dirname)
+                    var filePath = path.isAbsolute(p) ? p : path.join(__dirname, p);
+                    // add .js if missed
+                    if (path.extname(filePath) !== '.js') {
+                        filePath += '.js';
+                    }
+                    // import the plugin
+                    const mod = await import('file://' + filePath);
+                    const js = mod.default ?? mod;
+                    console.log('Plugin loaded', p, js);
                 } catch (err) {
-                    console.error( 'ERROR loading plugin', path );
-                    console.error( err );
+                    console.error('ERROR loading plugin', p);
+                    console.error(err);
                 }
-            });
+            }
         }
     }
 
@@ -268,8 +283,7 @@ class Config {
 
 
 const config = new Config();
-// console.log("Initial config:", Object.keys(config.parameters).reduce( (obj,key) => { obj[key] = config[key]; return obj; } ,{}) );
+export default config;
 
-module.exports = config;
-
-config.lazyLoading();
+// initialize
+await config.lazyLoading();

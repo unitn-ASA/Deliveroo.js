@@ -13,13 +13,9 @@
  * }}
  */
 
-const AgentType = require("./AgentType");
-
 /**
  * @typedef SensedParcel
  * @type {ParcelType}
  */
 
-module.exports = {
-    ParcelType: /** @type {ParcelType} */ ({})
-};
+export const ParcelType = /** @type {ParcelType} */ ({});

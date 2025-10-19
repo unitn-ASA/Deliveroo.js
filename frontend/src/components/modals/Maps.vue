@@ -17,7 +17,7 @@
     })
 
     function loadMap( map ) {
-        patchConfig( connection.token, { 'MAP_FILE': map.name[0] } );
+        patchConfig( connection.token, { 'MAP_FILE': map.name } );
         emit('loadMap', map );
     }
 
@@ -74,7 +74,7 @@
                 v-for="map of maps">
                 
                 <button class="btn btn-info btn-sm" @click="loadMap(map)">
-                    Load Map <span>{{ map.name[0] }}</span>
+                    Load Map <span>{{ map.name }}</span>
                 </button>
                 {{ map.map[0].length }}x{{ map.map.length }}
                 

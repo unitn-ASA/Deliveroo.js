@@ -1,6 +1,6 @@
-const myClock = require('../myClock');
-const config = require('../../config');
-const Grid = require('../deliveroo/Grid');
+import myClock from '../myClock.js';
+import config from '../../config.js';
+import Grid from '../deliveroo/Grid.js';
 
 
 /**
@@ -53,4 +53,4 @@ class Spawner {
 
 }
         
-module.exports = Spawner;
+export default Spawner;

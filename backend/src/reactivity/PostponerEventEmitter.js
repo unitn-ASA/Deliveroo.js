@@ -1,5 +1,5 @@
-const EventEmitter = require('events');
-const myClock = require('../myClock');
+import EventEmitter from 'events';
+import myClock from '../myClock.js';
 
 /**
  * Observer callback function
@@ -152,4 +152,4 @@ class PostponerEventEmitter extends EventEmitter {
 
 
 
-module.exports = PostponerEventEmitter
+export default PostponerEventEmitter;

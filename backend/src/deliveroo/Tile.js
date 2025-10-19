@@ -1,7 +1,7 @@
-const Xy =  require('./Xy')
-const Parcel =  require('./Parcel')
-const Grid =  require('./Grid')
-const ObservableMulti = require('../reactivity/ObservableMulti');
+import Xy from './Xy.js';
+import Parcel from './Parcel.js';
+import Grid from './Grid.js';
+import ObservableMulti from '../reactivity/ObservableMulti.js';
 
 
 /**
@@ -82,4 +82,4 @@ const ObservableMulti = require('../reactivity/ObservableMulti');
 
 
 
-module.exports = Tile;
+export default Tile;

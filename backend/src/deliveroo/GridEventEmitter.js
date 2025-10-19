@@ -1,7 +1,7 @@
-const PostponerEventEmitter =  require('../reactivity/PostponerEventEmitter')
-const Tile =  require('./Tile')
-const Agent =  require('./Agent')
-const Parcel = require('./Parcel');
+import PostponerEventEmitter from '../reactivity/PostponerEventEmitter.js';
+import Tile from './Tile.js';
+import Agent from './Agent.js';
+import Parcel from './Parcel.js';
 
 
 
@@ -106,4 +106,4 @@ class GridEventEmitter {
 }
 
 
-module.exports = GridEventEmitter;
+export default GridEventEmitter;
