@@ -24,7 +24,7 @@ export default defineConfig( () => {
   return {
     optimizeDeps: {
       include: [
-        '@unitn-asa/types/*',
+        '@unitn-asa/deliveroo-js-sdk/*',
         // '@unitn-asa/deliveroo-js-client/*',
         // '../deliveroo-js-client/*'
       ],
@@ -32,7 +32,7 @@ export default defineConfig( () => {
     build: {
       commonjsOptions: {
         include: [
-          // '@unitn-asa/types/*',
+          // '@unitn-asa/deliveroo-js-sdk/*',
           // '../deliveroo-js-client/ioClientSocket.js'
         ],
       },

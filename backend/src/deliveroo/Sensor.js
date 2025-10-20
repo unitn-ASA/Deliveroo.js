@@ -11,12 +11,12 @@ import config from '../../config.js';
 
 /**
  * @typedef SensedAgent
- * @type {import("@unitn-asa/types").IOAgent}
+ * @type {import("@unitn-asa/deliveroo-js-sdk").IOAgent}
  */
 
 /**
  * @typedef SensedParcel
- * @type {import("@unitn-asa/types").IOParcel}
+ * @type {import("@unitn-asa/deliveroo-js-sdk").IOParcel}
  */
 
 /**

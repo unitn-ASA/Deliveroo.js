@@ -8,7 +8,9 @@
 export class IOGenerics {
 
     /** @type { soc } */
-    socket;
+    #socket;
+    /** @type { soc } */
+    get socket() { return this.#socket; }
 
     /**
      * @type {string}
@@ -71,6 +73,6 @@ export class IOGenerics {
      * @param { soc } socket 
      */
     constructor ( socket ) {
-        this.socket = socket;
+        this.#socket = socket;
     }
 }

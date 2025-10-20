@@ -10,7 +10,7 @@ import { parseClockEvent } from './Types.js';
 
 /**
  * @typedef IOInfo
- * @type {import("@unitn-asa/types").IOInfo}
+ * @type {import("@unitn-asa/deliveroo-js-sdk").IOInfo}
  */
 
 

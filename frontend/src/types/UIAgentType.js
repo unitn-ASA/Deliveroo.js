@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @typedef {import('@unitn-asa/types').IOAgent & {
+ * @typedef {import('@unitn-asa/deliveroo-js-sdk').IOAgent & {
  *   mesh?: import('three').Mesh;
  *   hoovered?: boolean;
  *   selected?: import('vue').ComputedRef<boolean>;

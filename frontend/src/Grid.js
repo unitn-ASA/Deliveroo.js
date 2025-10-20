@@ -1,6 +1,6 @@
 import { ref, reactive, shallowReactive, watch, computed } from "vue";
 import { default as io, Socket } from 'socket.io-client';
-import { IOClient } from "@unitn-asa/types";
+import { IODeliveroojsClient } from "@unitn-asa/deliveroo-js-sdk";
 import { connection } from "./states/myConnection.js";
 
 /** @typedef {import('./types/UIAgentType.js').UIAgent} UIAgent */
@@ -8,7 +8,7 @@ import { connection } from "./states/myConnection.js";
 /** @typedef {import('./types/UIParcelType.js').UIParcel} UIParcel */
 /**
  * @typedef info
- * @type {import("@unitn-asa/types").IOInfo}
+ * @type {import("@unitn-asa/deliveroo-js-sdk").IOInfo}
  */
 
 
@@ -16,7 +16,7 @@ import { connection } from "./states/myConnection.js";
 export class Grid {
 
     /**
-     * @type {IOClient} socket
+     * @type {IODeliveroojsClient} socket
      */
     socket;
 
@@ -195,7 +195,7 @@ tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
 
     /**
      * Socket constructor
-     * @param {IOClient} socket
+     * @param {IODeliveroojsClient} socket
      */
     constructor ( socket ) {
 

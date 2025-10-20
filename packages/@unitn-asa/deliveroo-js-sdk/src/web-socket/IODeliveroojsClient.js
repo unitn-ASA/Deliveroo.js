@@ -1,19 +1,26 @@
-import { IOTypedSocketClient } from '@unitn-asa/types';
+import { IOClient } from './generics/IOClient.js';
 
 /**
- * @typedef {import("@unitn-asa/types").IOAgent} IOAgent
- * @typedef {import("@unitn-asa/types").IOParcel} IOParcel
- * @typedef {import("@unitn-asa/types").IOTile} IOTile
- * @typedef {import("@unitn-asa/types").IOInfo} IOInfo
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOTile} IOTile
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} IOInfo
+ * 
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOServerEvents} IOServerEvents on the client side these are to be listened with .on
  */
 
 
+
+/**
+ * @typedef {import('socket.io-client').Socket<IOServerEvents, IOClientEvents>} IODeliveroojsClientSocket
+ */
 
 /**
  * @class ioClientInterface
- * @extends { IOTypedSocketClient }
+ * @extends { IOClient<IOServerEvents, IOClientEvents> }
  */
-export class IOClientSocket extends IOTypedSocketClient {
+export class IODeliveroojsClient extends IOClient {
 
     /** @type { Promise < string > } */
     token;
@@ -28,13 +35,11 @@ export class IOClientSocket extends IOTypedSocketClient {
     map;
 
     /**
-     * @param { IOTypedSocketClient.IOTypedSocketClientSocket } socket 
+     * @param { IODeliveroojsClientSocket } socket 
      */
     constructor ( socket ) {
 
         super( socket );
-
-        this.socket = socket;
         
         this.token = new Promise( (res) => {
             this.socket.once( 'token', (token) => {

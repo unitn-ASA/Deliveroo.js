@@ -22,7 +22,7 @@ class Tracker {
      * 
      * @param {keyof ObservableMulti<T>} key key of the observable 
      * @param {keyof T} key2 key of the tracked value
-     * @param {function} cb
+     * @param {function(...any) : void} cb
      */
     track ( key, key2, cb ) {
     

@@ -87,7 +87,7 @@ class Config {
         this.PENALTY = Number(process.env.PENALTY) || 1;
         parser.add_argument('-pp', '--penalty', {
             dest: 'PENALTY', type: 'int',
-            help: "Specify penalty in case of invalid aciton, default is 0"
+            help: "Specify penalty in case of invalid action, default is 0"
         });
 
         /** @type {Number} */

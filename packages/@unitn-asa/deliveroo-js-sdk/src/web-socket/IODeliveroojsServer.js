@@ -1,28 +1,31 @@
-import myClock from './myClock.js';
-import { IOServer } from '@unitn-asa/types';
+import { IOServer } from './generics/IOServer.js';
 
 /**
- * @typedef {import("@unitn-asa/types").IOAgent} IOAgent
- * @typedef {import("@unitn-asa/types").IOParcel} IOParcel
- * @typedef {import("@unitn-asa/types").IOTile} IOTile
- * @typedef {import("@unitn-asa/types").IOInfo} IOInfo
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOTile} IOTile
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} IOInfo
  * 
- * @typedef {import("@unitn-asa/types").IOClientEvents} IOClientEvents on the server side these are to be listened with .on
- * @typedef {import("@unitn-asa/types").IOServerEvents} IOServerEvents on the server side these are to be emitted with .emit
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOClientEvents} IOClientEvents on the server side these are to be listened with .on
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOServerEvents} IOServerEvents on the server side these are to be emitted with .emit
+ */
+
+/**
+ * @typedef {import("socket.io").Socket< IOClientEvents, IOServerEvents >} IODeliveroojsServerSocket
  */
 
 
 
 /**
  * @class ioServerInterface
- * @extends { IOServer }
+ * @extends { IOServer<IOClientEvents, IOServerEvents> }
  */
-class IOServerDeliveroo extends IOServer {
+export class IODeliveroojsServer extends IOServer {
 
     warnings = new Array();
 
     /**
-     * @param {import("socket.io").Socket} socket 
+     * @param {IODeliveroojsServerSocket} socket 
      */
     constructor ( socket ) {
 
@@ -41,9 +44,9 @@ class IOServerDeliveroo extends IOServer {
             try {
                 return listener.apply( this, args );
             } catch (error) {
-                console.error( `WARN Socket ${this.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`, error );
+                console.error( `WARN Socket ${super.socket.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`, error );
                 this.warnings.push( {
-                    msg: `WARN Socket ${this.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`,
+                    msg: `WARN Socket ${super.socket.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`,
                     error: error
                 } );
             }
@@ -61,7 +64,7 @@ class IOServerDeliveroo extends IOServer {
      * @param { {} } config
      */
     emitConfig ( config ) {
-        this.emit( 'config', config );
+        super.emit( 'config', config );
     }
 
     /**
@@ -70,14 +73,15 @@ class IOServerDeliveroo extends IOServer {
      * @param { IOTile [] } tiles
      */
     emitMap ( width, height, tiles ) {
-        this.emit( 'map', width, height, tiles );
+        super.emit( 'map', width, height, tiles );
     }
 
     /**
      * @param { IOTile } tile
+     * @param { IOInfo } info
      */
-    emitTile ( { x, y, type } ) {
-        this.emit( 'tile', {x, y, type}, myClock.info );
+    emitTile ( { x, y, type }, info ) {
+        super.emit( 'tile', {x, y, type}, info );
     }
 
     /**
@@ -85,28 +89,31 @@ class IOServerDeliveroo extends IOServer {
      * @param { Parameters<IOServerEvents['controller']>[1] } agent
      */
     emitController ( status, {id, name, teamId, teamName, score} ) {
-        this.emit( 'controller', status, {id, name, teamId, teamName, score} );
+        super.emit( 'controller', status, {id, name, teamId, teamName, score} );
     }
     
     /**
      * @param { IOAgent } you
+     * @param { IOInfo } info
      */
-    emitYou ( {id, name, teamId, teamName, x, y, score, penalty} ) {
-        this.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty}, myClock.info );
+    emitYou ( {id, name, teamId, teamName, x, y, score, penalty}, info ) {
+        super.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty}, info );
     }
 
     /**
      * @param { IOAgent [] } agents
+     * @param { IOInfo } info
      */
-    emitAgentsSensing ( agents ) {
-        this.emit( 'agents sensing', agents, myClock.info );
+    emitAgentsSensing ( agents, info ) {
+        super.emit( 'agents sensing', agents, info );
     }
     
     /**
      * @param { IOParcel [] } parcels
+     * @param { IOInfo } info
      */
-    emitParcelSensing ( parcels ) {
-        this.emit( 'parcels sensing', parcels, myClock.info );
+    emitParcelSensing ( parcels, info ) {
+        super.emit( 'parcels sensing', parcels, info );
     }
 
 
@@ -176,7 +183,7 @@ class IOServerDeliveroo extends IOServer {
      * @returns { Promise < any > } reply
      */
     async emitMsg ( me, toId, msg ) {
-        return this.to( "agent:" + toId ).emit( 'msg', me.id, me.name, msg );
+        return super.to( "agent:" + toId ).emit( 'msg', me.id, me.name, msg );
     }
 
     /**
@@ -189,7 +196,7 @@ class IOServerDeliveroo extends IOServer {
         
         // Currently, acks is awaited from all clients when .emit(), otherwise callback gets an error
         // https://github.com/socketio/socket.io/discussions/5062
-        const sockets = await this.to( "agent:" + toId ).fetchSockets();
+        const sockets = await super.to( "agent:" + toId ).fetchSockets();
         const emissionPromises = sockets.map( socket => {
             return new Promise( (res) => {
                 socket.timeout(1000).emit( 'msg', me.id, me.name, msg, (err, response) => {
@@ -214,7 +221,7 @@ class IOServerDeliveroo extends IOServer {
      * @returns { void } reply
      */
     broadcastMsg ( me, msg ) {
-        this.broadcast.emit( 'msg', me.id, me.name, msg );
+        super.broadcast.emit( 'msg', me.id, me.name, msg );
     }
 
     /**
@@ -228,14 +235,15 @@ class IOServerDeliveroo extends IOServer {
      * @param { string } myId
      * @param { string } myName
      * @param { 'server'|'client' } src
+     * @param { IOInfo } info
      * @param { ...any } message
      */
-    broadcastLog ( myId, myName, src, ...message ) {
-        this.broadcast.emit( 'log', {
+    broadcastLog ( myId, myName, src, info, ...message ) {
+        super.broadcast.emit( 'log', {
             src,
-            ms: myClock.ms,
-            frame: myClock.frame,
-            socket: this.id,
+            ms: info.ms,
+            frame: info.frame,
+            socket: super.socket.id,
             id: myId,
             name: myName
         }, ...message );
@@ -268,6 +276,3 @@ class IOServerDeliveroo extends IOServer {
     }
 
 }
-
-
-export default IOServerDeliveroo;

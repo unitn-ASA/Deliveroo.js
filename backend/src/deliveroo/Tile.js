@@ -6,7 +6,7 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
 
 /**
  * @typedef IOTile
- * @type {import("@unitn-asa/types").IOTile}
+ * @type {import("@unitn-asa/deliveroo-js-sdk").IOTile}
  */
 
 

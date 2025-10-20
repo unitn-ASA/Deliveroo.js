@@ -6,7 +6,7 @@ import myClock from './myClock.js';
 import events from 'events';
 events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 import { tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
-import IOServerDeliveroo from './IOServerDeliveroo.js';
+import { IODeliveroojsServer } from '@unitn-asa/deliveroo-js-sdk';
 import Agent from './deliveroo/Agent.js';
 import Identity from './deliveroo/Identity.js';
 import Xy from './deliveroo/Xy.js';
@@ -81,7 +81,7 @@ io.on('connection', async ( socket ) => {
         // myGrid.emit( 'agent deleted', me );
     }
 
-    new ioServer( new IOServerDeliveroo( socket ), me );
+    new ioServer( new IODeliveroojsServer( socket ), me );
 
 });
 
@@ -90,7 +90,7 @@ io.on('connection', async ( socket ) => {
 class ioServer {
 
     /**
-     * @param { IOServerDeliveroo } socket /**
+     * @param { IODeliveroojsServer } socket /**
      * @param { Agent } me
      */
     constructor( socket, me ) {
@@ -194,13 +194,13 @@ class ioServer {
          * Emit map (tiles)
          */
         listeners.tileListener = ( { xy: {x,y}, type } ) => {
-            socket.emitTile( {x, y, type} );
+            socket.emitTile( {x, y, type}, myClock.info );
         };
         myGrid.onTile( listeners.tileListener );
         let tiles = []
         for (const { xy: {x, y}, type } of myGrid.getTiles()) {
                 // console.log( 'emit tile', x, y, type );
-                socket.emitTile( {x, y, type} )
+                socket.emitTile( {x, y, type}, myClock.info )
                 tiles.push( {x, y, type} )
         }
         let {width, height} = myGrid.getMapSize()
@@ -239,7 +239,7 @@ class ioServer {
         // Emit you
         listeners.meAnyListener = () => {
             // console.log( 'emit you', id, name, x, y, score );
-            socket.emitYou( me );
+            socket.emitYou( me, myClock.info );
         };
         me.on( 'any', listeners.meAnyListener );
         // console.log( 'emit you', id, name, x, y, score );
@@ -249,7 +249,7 @@ class ioServer {
             x: me.x, y: me.y,
             score: me.score,
             penalty: me.penalty
-        } );
+        }, myClock.info );
         
 
 
@@ -260,7 +260,7 @@ class ioServer {
         // Parcels
         listeners.sensedParcelsListener = () => {
             // console.log('emit parcels sensing', ...parcels);
-            socket.emitParcelSensing( me.sensor.sensedParcels )
+            socket.emitParcelSensing( me.sensor.sensedParcels, myClock.info )
         };
         me.sensor.on( 'sensedParcels', listeners.sensedParcelsListener );
         // me.sensor.emitParcelSensing();
@@ -268,7 +268,7 @@ class ioServer {
         // Agents
         listeners.sensedAgentsListener = () => {
             // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
-            socket.emitAgentsSensing( me.sensor.sensedAgents );
+            socket.emitAgentsSensing( me.sensor.sensedAgents, myClock.info );
         };
         me.sensor.on( 'sensedAgents', listeners.sensedAgentsListener );
         // me.emitAgentSensing();

@@ -12,7 +12,6 @@ class GhostAgent extends Agent {
     constructor ( grid, options ) {
         super ( grid, options );
         console.log("I am a ghost", options);
-export default GhostAgent;
     }
     
     moving = false;
@@ -40,8 +39,6 @@ export default GhostAgent;
 
 
 export default GhostAgent;
-
-
 
 // Lazy plugin installation
 global.GhostAgent = GhostAgent;

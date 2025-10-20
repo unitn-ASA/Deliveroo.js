@@ -2,7 +2,7 @@ import { ref, reactive, shallowReactive } from "vue";
 import { default as io, Socket } from 'socket.io-client';
 import { jwtDecode } from "jwt-decode";
 import { Grid } from "./Grid.js";
-import { IOClient } from "@unitn-asa/types";
+import { IODeliveroojsClient } from "@unitn-asa/deliveroo-js-sdk";
 
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
@@ -19,7 +19,7 @@ export class Connection {
     payload;
 
     /**
-     * @type {IOClient} ioClient
+     * @type {IODeliveroojsClient} ioClient
      */
     ioClient;
 
@@ -116,7 +116,7 @@ export class Connection {
                 // query: { name: name }
                 // path: '/'
             } )
-        const ioClient = this.ioClient = new IOClient ( /** @type {any} */ (rawSocket) );
+        const ioClient = this.ioClient = new IODeliveroojsClient ( /** @type {any} */ (rawSocket) );
 
         // socket.onAny( ( event, ...args ) => {
         //     console.log( `on('${event}')`, ...args );
