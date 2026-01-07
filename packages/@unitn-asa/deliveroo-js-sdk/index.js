@@ -7,6 +7,9 @@ import { IODeliveroojsClient } from './src/web-socket/IODeliveroojsClient.js'
  * @typedef {import("./src/web-socket/ioTypes.js").IOTile} IOTile
  * @typedef {import("./src/web-socket/ioTypes.js").IOInfo} IOInfo
  * 
+ * @typedef {import("./src/web-socket/IOClockEvent.js").IOClockEvent} IOClockEvent
+ * @typedef {import("./src/web-socket/IOConfig.js").IOConfig} IOConfig
+ * 
  * @typedef {import("./src/web-socket/ioTypes.js").IOClientEvents} IOClientEvents
  * @typedef {import("./src/web-socket/ioTypes.js").IOServerEvents} IOServerEvents
  * 

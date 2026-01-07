@@ -1,6 +1,6 @@
 
 /**
- * @typedef { 'frame' | '1s' | '2s' | '5s' | '10s' } ClockEvent
+ * @typedef { import("./IOClockEvent").IOClockEvent } IOClockEvent
  */
 
 
@@ -14,7 +14,7 @@
  * @property {string} agent_type                    Default agent class
  * 
  * ParcelSpawner.js
- * @property {ClockEvent} parcels_generation_interval Event for parcels generation
+ * @property {IOClockEvent} parcels_generation_interval Event for parcels generation
  * @property {number} parcels_max                   Maximum number of parcels in the grid
  * @property {number} parcel_reward_avg             Average reward for each parcel when spawned
  * @property {number} parcel_reward_variance        Variance of the reward for each parcel when spawned
@@ -24,7 +24,7 @@
  * @property {string} random_agent_speed            Event for moving NPCs
  * 
  * Parcel.js
- * @property {ClockEvent} parcel_decading_interval  Event for parcel decading
+ * @property {IOClockEvent} parcel_decading_interval  Event for parcel decading
  * Agent.js
  * @property {number} penalty                       Penalty for each invalid action
  * @property {number} movement_steps                Number of steps for each movement
@@ -42,4 +42,4 @@
  * 
  */
 
-module.exports = { };
+export { };
