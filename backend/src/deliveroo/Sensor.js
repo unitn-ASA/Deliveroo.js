@@ -154,8 +154,8 @@ class Sensor extends ObservableMulti {
 
         // for each tile on the grid
         for ( let tile of this.#grid.getTiles() ) {
-            // only if within observation distance OR if my position is undefined
-            if ( Xy.distance(tile, this.#agent) < config.GAME.player.agents_observation_distance || ( this.#agent.x == undefined && this.#agent.y == undefined ) ) {
+            // only if my position is undefined OR if within observation distance
+            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.agents_observation_distance ) {
                 // agent sensed on this tile
                 const sensedAgent = this.#grid.getAgentAt( tile.xy ) ;
                 // if defined and not myself
@@ -193,7 +193,8 @@ class Sensor extends ObservableMulti {
 
         var observedTiles = [];
         for ( let tile of this.#grid.getTiles() ) {
-            if ( !( Xy.distance(tile, this.#agent) >= config.GAME.player.parcels_observation_distance ) ) {
+            // only if my position is undefined OR if within observation distance
+            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.parcels_observation_distance ) {
                 const sensedParcels = this.#grid.getParcelsAt( tile.xy );
                 for ( let parcel of sensedParcels ) {
                     // At least one parcel sensed on this tile
