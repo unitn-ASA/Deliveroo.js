@@ -23,7 +23,7 @@
  * @typedef IOTile
  * @property {number} x
  * @property {number} y
- * @property {string} type - Tile type: '0' (wall), '1' (walkable/spawner), '2' (delivery), '3' (walkable), '4' (base), '5' (obstacle), or directional arrows '↑', '→', '↓', '←'
+ * @property {string} type - Tile type: '0' (wall), '1' (walkable/spawner), '2' (delivery), '3' (walkable), or directional arrows '↑', '→', '↓', '←'
  */
 
 /**

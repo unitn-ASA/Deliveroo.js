@@ -27,7 +27,7 @@
     }
   },
   "files": [
-    "resources/",
+    "assets/",
     "src/",
     "cli.js",
     "index.js",

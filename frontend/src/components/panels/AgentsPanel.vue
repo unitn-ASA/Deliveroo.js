@@ -1,7 +1,7 @@
 <script setup>
     
     import { connection } from '../../states/myConnection.js';
-    import { deleteAgent, patchAgent } from '../../apiClient.js';
+    import api from '../../utils/api.js';
 
     const admin = connection?.payload.role == 'admin';
     const grid = connection?.grid;
@@ -71,11 +71,11 @@
             </tbody>
         </table>
 
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="deleteAgent(connection?.token, connection?.grid.selectedAgent.value.id)" v-if="admin" >
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="api.deleteAgent(connection?.token, connection?.grid.selectedAgent.value.id)" v-if="admin" >
             Kick
         </button>
         
-        <button class="m-1 btn btn-outline btn-error btn-sm" @click="patchAgent(connection?.token, connection?.grid.selectedAgent.value.id, {score:0, penalty:0})" v-if="admin" >
+        <button class="m-1 btn btn-outline btn-error btn-sm" @click="api.patchAgent(connection?.token, connection?.grid.selectedAgent.value.id, {score:0, penalty:0})" v-if="admin" >
             Reset
         </button>
                 

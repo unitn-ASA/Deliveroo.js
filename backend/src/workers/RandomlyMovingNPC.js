@@ -6,7 +6,7 @@ const actions = [ 'up', 'right', 'down', 'left' ];
 const relPos = [ {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0} ];
 
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
 
 
 
@@ -47,7 +47,7 @@ class RandomlyMovingAgent extends NPC {
     /**
      * @returns {Promise} Resolves when it stops
      */
-    async moveUntilStopRequested ( ) {
+    async execute ( ) {
     
         let index =  Math.floor( Math.random()*4 );
 

@@ -58,7 +58,7 @@
 
     watch( [ () => tile.perceivingAgents, () => tile.perceivingParcels ], () => {
 
-        console.log('Tile.vue tile', tile.x, tile.y, tile.perceivingAgents?'perceivingAgents':'', tile.perceivingParcels?'perceivingParcels':'' );
+        // console.log('Tile.vue tile', tile.x, tile.y, tile.perceivingAgents?'perceivingAgents':'', tile.perceivingParcels?'perceivingParcels':'' );
         
         if ( tile.perceivingAgents && tile.perceivingParcels ) {
             material.opacity = 1;

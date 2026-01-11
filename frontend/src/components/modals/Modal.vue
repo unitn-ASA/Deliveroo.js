@@ -39,8 +39,8 @@
 <template>
 
         <div v-if="isModalVisible">
-            <div class="absolute w-full h-screen pt-20">
-                <div class="w-2/3 mx-auto pb-10 grid grid-flow-row space-y-4">
+            <div class="absolute w-full h-screen pt-10">
+                <div class="w-5/6 mx-auto pb-10 grid grid-flow-row space-y-4">
                     <div class="z-30 flex items-center space-x-4 float-right w-full">
                         <div class="text-center text-xl bg-neutral/85 dark:bg-gray-700 rounded-lg py-2 flex-1 h-full">
                             {{ title }}

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Game configurations (`.json` files in `resources/games/`) define complete game setups including:
+Game configurations (`.json` files in `assets/games/`) define complete game setups including:
 - Map selection or generation
 - NPC spawning configurations
 - Parcel spawning settings

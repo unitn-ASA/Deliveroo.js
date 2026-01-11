@@ -1,11 +1,11 @@
 <script setup>
     
     import { ref, computed } from 'vue';
-    import Settings from './Settings.vue';
+    import Settings from '../modals/Settings.vue';
+    import GameSettings from '../modals/GameSettings.vue';
     import ParcelSpawner from './ParcelSpawner.vue';
     import Timer from './Timer.vue';
     import Levels from '../modals/Levels.vue';
-    import Maps from '../modals/Maps.vue';
     import Modal from '../modals/Modal.vue';
     import Login from '../modals/Login.vue';
     import Keyboard from './Keyboard.vue';
@@ -19,7 +19,7 @@
     import Tournament from './Tournament.vue';
 
     const levelsModal = ref(false); // Reactive variable for overlay visibility
-    const mapsModal = ref(false); // Reactive variable for overlay visibility
+    const gameSettingsModal = ref(false); // Reactive variable for overlay visibility
     const loginModal = ref(!connection); // Reactive variable for overlay visibility
     const settingsModal = ref(false); // Reactive variable for overlay visibility
 
@@ -48,14 +48,16 @@
             <Levels @load-level="levelsModal=false;"/>
         </Modal>
 
-        <Modal v-model="mapsModal" title="Change map">
-            <Maps @load-map="mapsModal=false;"/>
+        <Modal v-model="gameSettingsModal" title="Game settings">
+            <div class="px-40 py-10 space-y-4">
+                <GameSettings @load-map="gameSettingsModal=false;"/>
+                <ParcelSpawner v-if="connection"/>
+            </div>
         </Modal>
 
         <Modal v-model="settingsModal" title="Server settings">
             <div class="px-40 py-10 space-y-4">
                 <Settings v-if="connection"/>
-                <ParcelSpawner v-if="connection"/>
             </div>
         </Modal>
             
@@ -123,8 +125,7 @@
                     <Timer class="z-10" v-if="connection?.grid?.info?.value?.ms"/>
                     
                     <div class="z-10 grid grid-flow-col gap-2 text-center text-xs w-80">
-                        <button class="btn btn-info btn-sm" @click="loginModal=true"
-                        >
+                        <button class="btn btn-info btn-sm" @click="loginModal=true">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                 <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2" fill="none"/>
                                 <path stroke="currentColor" stroke-width="2" d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
@@ -150,21 +151,21 @@
                     </div>
 
                     <div class="z-10 grid grid-flow-col gap-2 text-center">
-                        <button class="btn btn-info btn-sm overflow-hidden" @click="mapsModal=true;"
+                        <button class="btn btn-info btn-sm overflow-hidden" @click="levelsModal=true;"
                                 v-bind:disabled="!admin" v-bind:class="{'!opacity-100 !text-white': !admin}"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                                 <path fill-rule="evenodd" d="M8.157 2.176a1.5 1.5 0 0 0-1.147 0l-4.084 1.69A1.5 1.5 0 0 0 2 5.25v10.877a1.5 1.5 0 0 0 2.074 1.386l3.51-1.452 4.26 1.762a1.5 1.5 0 0 0 1.146 0l4.083-1.69A1.5 1.5 0 0 0 18 14.75V3.872a1.5 1.5 0 0 0-2.073-1.386l-3.51 1.452-4.26-1.762ZM7.58 5a.75.75 0 0 1 .75.75v6.5a.75.75 0 0 1-1.5 0v-6.5A.75.75 0 0 1 7.58 5Zm5.59 2.75a.75.75 0 0 0-1.5 0v6.5a.75.75 0 0 0 1.5 0v-6.5Z" clip-rule="evenodd" />
                             </svg>
-                            {{ connection?.configs.MAP_FILE }}
+                            
+                            {{ connection?.configs?.GAME?.title }}
                         </button>
-                        <button class="btn btn-info btn-sm overflow-hidden" @click="levelsModal=true;"
+                        <button class="btn btn-info btn-sm overflow-hidden" @click="gameSettingsModal=true;"
                                 v-bind:disabled="!admin" v-bind:class="{'!opacity-100 !text-white': !admin}"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
                                 <path fill-rule="evenodd" d="M9 2.221V7H4.221a2 2 0 0 1 .365-.5L8.5 2.586A2 2 0 0 1 9 2.22ZM11 2v5a2 2 0 0 1-2 2H4v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-7ZM8 16a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1Zm1-5a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2H9Z" clip-rule="evenodd"/>
                             </svg>
-                            {{ connection?.configs.LEVEL }}
                         </button>
                     </div>
 

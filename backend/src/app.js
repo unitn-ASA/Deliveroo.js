@@ -10,8 +10,8 @@ import { default as YAML } from 'yaml';
 const app = express();
 
 import apiRoutes from './routes/api.js';
-import configRoutes from './routes/configs.js';
-import { mapsRouter, levelsRouter } from '@unitn-asa/deliveroo-js-assets';
+import configsRoutes from './routes/configs.js';
+import { gamesRouter } from '@unitn-asa/deliveroo-js-assets';
 import agentsRoutes from './routes/agents.js';
 import npcsRoutes from './routes/npcs.js';
 import parcelsRoutes from './routes/parcels.js';
@@ -104,17 +104,15 @@ app.use('/api/tokens', signTokenMiddleware, (req, res) => {
 });
 
 // Game server routes (core game logic)
-app.use('/api/configs', configRoutes);          // api/configs      GET config by roomId
+app.use('/api/configs', configsRoutes);          // api/configs      GET configs, PATCH configs
 app.use('/api/agents', agentsRoutes);           // api/agents       GET, POST, GET/:id, PATCH/:id agents on the grid
 app.use('/api/npcs', npcsRoutes);               // api/npcs         GET, GET/:id, PATCH, POST
 app.use('/api/parcels', parcelsRoutes);         // api/parcels      GET, GET/:id, POST
 
 // Content API routes (static content delivery - mounted at /api/content/*)
 // GET requests are public, POST requests require admin authorization
-app.use('/api/content/maps', mapsRouter);
-app.post('/api/content/maps', authorizeAdmin, (req, res, next) => mapsRouter(req, res, next));
-app.use('/api/content/levels', levelsRouter);
-app.post('/api/content/levels', authorizeAdmin, (req, res, next) => levelsRouter(req, res, next));
+app.post('/api/games', authorizeAdmin, gamesRouter);
+app.use('/api/games', gamesRouter);
 
 app.use( (req, res, next) => { 
     console.error(`${req.method} ${req.url} - Not Found`);

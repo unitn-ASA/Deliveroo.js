@@ -1,8 +1,8 @@
 <script setup>
 
     import { ref, computed } from 'vue'
-    import { patchConfig } from '../../apiClient.js';
     import { connection } from '@/states/myConnection.js';
+    import api from '../../utils/api.js';
 
     const admin = computed(() => {
         return connection?.payload?.role == 'admin';
@@ -13,7 +13,7 @@
     function setConfig(key, value) {
         let config = {};
         config[key] = value;
-        patchConfig( connection.token, config );
+        api.patchConfig( connection.token, config );
         inputFocused.value = undefined;
     }
 

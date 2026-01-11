@@ -1,12 +1,12 @@
 <script setup>
 
     import { ref, computed } from 'vue'
-    import { richiediToken } from '../../apiClient.js';
     import { myTokens } from '@/states/myTokens.js';
     import LoginToken from './LoginToken.vue';
     import { copyToClipboard, pasteFromClipboard } from '@/utils/copyPaste.js';
 	import { connection } from '@/states/myConnection.js';
     import { jwtDecode } from 'jwt-decode';
+    import api from '../../utils/api.js';
 
     const emit = defineEmits(['play']); // Define the emit for login
 
@@ -29,7 +29,7 @@
     });
 
     async function requestToken() {
-        let {token, payload} = await richiediToken(name.value, team.value, password.value);
+        let {token, payload} = await api.getToken(name.value, team.value, password.value);
         myTokens.push( token );
         // getOrCreateConnection( token );
     }

@@ -1,10 +1,11 @@
 import { IODeliveroojsServer } from './src/web-socket/IODeliveroojsServer.js'
 import { IODeliveroojsClient } from './src/web-socket/IODeliveroojsClient.js'
 import { parseClockEvent } from './src/web-socket/IOClockEvent.js'
+import APIClient from './src/web-service/APIClient.js'
 
 /**
- * @typedef {import("./src/IOConfig.js").IOConfig} IOConfig
- * @typedef {import("./src/IOGameOptions.js").IOGameOptions} IOGameOptions
+ * @typedef {import("./src/config/IOConfig.js").IOConfig} IOConfig
+ * @typedef {import("./src/config/IOGameOptions.js").IOGameOptions} IOGameOptions
  * 
  * @typedef {import("./src/web-socket/IOClockEvent.js").IOClockEvent} IOClockEvent
  * 
@@ -21,4 +22,4 @@ import { parseClockEvent } from './src/web-socket/IOClockEvent.js'
  * @typedef {import("./src/web-socket/IODeliveroojsServer.js").IODeliveroojsServerSocket} IODeliveroojsServerSocket
  */
 
-export { IODeliveroojsClient, IODeliveroojsServer, parseClockEvent };
+export { IODeliveroojsClient, IODeliveroojsServer, parseClockEvent, APIClient };

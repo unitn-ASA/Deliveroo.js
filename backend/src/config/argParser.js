@@ -18,14 +18,9 @@ parser.add_argument('-k', '--clock', {
     help: "Specify the clock [ms], 40 (25frame/s), default is 50 (20frame/s)"
 });
 
-parser.add_argument('-l', '--level', {
-    dest: 'LEVEL', type: String,
-    help: 'Specify path to a level file. Examples are in ./levels folder'
-});
-
-parser.add_argument('-m', '--map', {
-    dest: 'MAP', type: String,
-    help: 'Specify name of a map'
+parser.add_argument('-g', '--game', {
+    dest: 'GAME_FILE', type: String,
+    help: 'Specify path to a game file. Examples are in @unitn-asa/deliveroo-js-assets package /assets/games/'
 });
 
 parser.add_argument('-pp', '--penalty', {
@@ -48,8 +43,7 @@ parser.add_argument('--broadcast-logs', {
  * @type {Object}
  * @property {Number} [PORT]
  * @property {Number} [CLOCK]
- * @property {String} [LEVEL]
- * @property {String} [MAP]
+ * @property {String} [GAME_FILE]
  * @property {Number} [PENALTY]
  * @property {Number} [AGENT_TIMEOUT]
  * @property {Boolean} [BROADCAST_LOGS]

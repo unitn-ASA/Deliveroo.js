@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { Grid } from "./Grid.js";
 import { IODeliveroojsClient } from "@unitn-asa/deliveroo-js-sdk";
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOConfig.js').IOConfig} IOConfig */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOConfig.js').IOConfig} IOConfig */
 
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
@@ -190,7 +190,7 @@ export class Connection {
 
         })
 
-        this.ioClient.on( "config", ( config ) => {
+        this.ioClient.onConfig( ( config ) => {
             // document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
             for ( let [key,value] of Object.entries(config) ) {
                 this.configs[key] = value;

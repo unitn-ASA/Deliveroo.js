@@ -86,7 +86,7 @@ export default {
 
 ### Creating a Custom Level
 
-Create a new `.js` file in the `resources/levels/` directory:
+Create a new `.js` file in the `assets/levels/` directory:
 
 ```javascript
 // my_custom_level.js
@@ -167,7 +167,7 @@ When mounted, the following endpoints are available:
 
 ```
 @unitn-asa/deliveroo-js-assets/
-├── resources/
+├── assets/
 │   ├── maps/           # JSON map files
 │   │   ├── default_map.json
 │   │   └── ...

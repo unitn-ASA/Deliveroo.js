@@ -1,19 +1,20 @@
 import { args } from './argParser.js';
 import { loadGame } from '@unitn-asa/deliveroo-js-assets';
+import { readFileSync } from 'fs';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/web-socket/IOClockEvent.js').IOClockEvent} IOClockEvent */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IOGameOptions} IOGameOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IOParcelsOptions} IOParcelsOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IOPlayerOptions} IOPlayerOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOConfig.js').IOConfig} IOConfig */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IOGameOptions} IOGameOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IOParcelsOptions} IOParcelsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IOPlayerOptions} IOPlayerOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOConfig.js').IOConfig} IOConfig */
 
 
 /**
  * Apply JSON configuration to this instance
  * @param {IOGameOptions} json - Game configuration JSON
  */
-export function loadGameConfig(json) {
+export async function loadGameConfig(json) {
 
     // General configuration
     if (json.title) {
@@ -25,8 +26,10 @@ export function loadGameConfig(json) {
     if (json.maxPlayers !== undefined) {
         config.GAME.maxPlayers = json.maxPlayers;
     }
-    if (json.map?.file) {
-        config.GAME.map.file = json.map.file;
+    if (json.map?.tiles && Array.isArray(json.map.tiles)) {
+        config.GAME.map.tiles = json.map.tiles;
+        const { myGrid } = await import('../myGrid.js');
+        myGrid.loadMap( json.map.tiles );
     }
 
     // NPCs configuration
@@ -67,21 +70,22 @@ export function loadGameConfig(json) {
 
 async function lazyLoading( config ) {
 
-    // Load gameConfig by name as specified in args.LEVEL or process.env.LEVEL
-    if (args.LEVEL) {
+    // Load gameConfig by file as specified in args.GAME_FILE
+    if (args.GAME_FILE) {
         try {
-            const json = await loadGame(args.LEVEL);
-            loadGameConfig(json);
+            let json = readFileSync(args.GAME_FILE, 'utf-8')
+            loadGameConfig(JSON.parse(json));
         } catch (err) {
             console.error('Error loading from args.LEVEL', args.LEVEL);
         }
     }
-    else if (process.env.LEVEL) {
+    // Load gameConfig by name as specified in args.GAME_NAME or process.env.GAME_NAME
+    else if (process.env.GAME_NAME) {
         try {
-            const json = await loadGame(process.env.LEVEL);
+            const json = await loadGame(process.env.GAME_NAME);
             loadGameConfig(json);
         } catch (err) {
-            console.error('Error loading from process.env.LEVEL', process.env.LEVEL);
+            console.error('Error loading from process.env.GAME_NAME', process.env.GAME_NAME);
         }
     }
 
@@ -124,12 +128,18 @@ export const config = {
     BROADCAST_LOGS:                 Boolean(process.env.BROADCAST_LOGS) || false,
     
     /** @type {IOGameOptions} */
-    GAME: {
+    GAME:                           (process.env.GAME ? JSON.parse(process.env.GAME) : undefined)
+                                                                        || {
         title: 'Default Game',
         description: 'Default game configuration',
         maxPlayers: 10,
         map: {
-            file: 'default_map',
+            width: 2,
+            height: 2,
+            tiles: [
+                ['1','1'],
+                ['1','1']
+            ]
         },
         npcs: [
             {

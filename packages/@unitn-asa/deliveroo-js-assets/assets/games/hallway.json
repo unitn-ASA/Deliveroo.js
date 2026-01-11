@@ -1,0 +1,31 @@
+{
+  "title": "hallway",
+  "description": "Hallway",
+  "maxPlayers": 10,
+  "map": {
+    "tiles": [
+      [1],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[3],[2]
+    ]
+  },
+  "npcs": [
+    {
+      "moving_event": "frame",
+      "type": "random",
+      "count": 1,
+      "capacity": 5
+    }
+  ],
+  "parcels": {
+    "generation_event": "2s",
+    "decading_event": "1s",
+    "max": 5,
+    "reward_avg": 30,
+    "reward_variance": 10
+  },
+  "player": {
+    "movement_duration": 50,
+    "agents_observation_distance": 5,
+    "parcels_observation_distance": 5,
+    "capacity": 5
+  }
+}

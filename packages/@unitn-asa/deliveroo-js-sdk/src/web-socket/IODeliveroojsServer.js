@@ -6,8 +6,8 @@ import { IOServer } from './generics/IOServer.js';
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOTile} IOTile
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} IOInfo
- * @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IOGameOptions} IOGameOptions
- * @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOConfig.js').IOConfig} IOConfig
+ * @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IOGameOptions} IOGameOptions
+ * @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOConfig.js').IOConfig} IOConfig
  * 
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOClientEvents} IOClientEvents on the server side these are to be listened with .on
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOServerEvents} IOServerEvents on the server side these are to be emitted with .emit

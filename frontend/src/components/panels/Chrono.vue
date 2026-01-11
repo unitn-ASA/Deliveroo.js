@@ -3,8 +3,8 @@
     import { watchEffect, ref, computed, onMounted } from 'vue';
     import { saveRound } from '@/states/myTournament';
     import { connection } from '../../states/myConnection.js';
-    import { patchAgent, deleteParcel, deleteAllParcels } from '../../apiClient.js';
-    
+    import api from '../../utils/api.js';
+
     function restartGame() {
         connection.ioClient.emit('restart');
     }
@@ -24,12 +24,12 @@
         for ( let agent of connection.grid.agents.values() ) {
             try {
                 agent.score = 0;
-                await patchAgent( connection.token, agent.id, { score: 0 } );
+                await api.patchAgent( connection.token, agent.id, { score: 0 } );
             } catch (error) {
                 console.error("Error updating agent score:", error);
             }
         }
-        await deleteAllParcels( connection.token );
+        await api.deleteAllParcels( connection.token );
         interval = setInterval(() => {
             if (timer.value <= 0) {
                 saveRound();

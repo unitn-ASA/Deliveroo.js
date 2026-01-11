@@ -7,10 +7,10 @@ import Agent from '../deliveroo/Agent.js';
 /**
  * Timeline of NPC
  * 
- * Events:                start()      stop()      stopped      start()
- * runningPromise          | pending                | res/rej   | pending
- * running                 | true                   | false     | true
- * stopRequested    false               | true      | false     
+ * Events:            constructor() start()       stop()        stopped       start()
+ * completedPromise    | resolved    | pending     |             | res/rej     | pending
+ * running             | false       | true        |             | false       | true
+ * stopRequested       | false       |             | true        | false       |
  * 
  * @class
  * @abstract
@@ -31,7 +31,7 @@ class NPC {
     }
 
     /** @type {Promise} Resolves when it stops */
-    runningPromise = Promise.resolve();
+    completedPromise = Promise.resolve();
 
     /** @type {boolean} */
     running = false;
@@ -49,7 +49,7 @@ class NPC {
             return false;
         // start
         this.running = true;
-        this.runningPromise = this.moveUntilStopRequested ()
+        this.completedPromise = this.execute ()
             .catch ( () => {} ) // avoid unhandled promise rejection
             .finally ( () => {
                 this.running = false;
@@ -62,7 +62,7 @@ class NPC {
      */
     async stop() {
         this.stopRequested = true;
-        await this.runningPromise.finally( () => {
+        await this.completedPromise.finally( () => {
             this.stopRequested = false;
         } );
     }
@@ -73,7 +73,7 @@ class NPC {
      * @interface moveUntilStopRequested
      * @returns {Promise} Resolves when agent stops
      */
-    async moveUntilStopRequested () {
+    async execute () {
         throw new Error( 'Not implemented' );
     }
 

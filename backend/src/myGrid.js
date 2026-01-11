@@ -2,23 +2,11 @@ import Grid from './deliveroo/Grid.js';
 import { config } from './config/config.js';
 import ParcelSpawner from './workers/ParcelSpawner.js';
 import NPCspawner from './workers/NPCspawner.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { loadMap, getMapList } from '@unitn-asa/deliveroo-js-assets';
 
-var map;
-if ( config.MAP_FILE ) {
-    map = loadMap(config.MAP_FILE);
-}
-else if ( !Array.isArray(map) ) {
-    const list = getMapList();
-    config.MAP_FILE = list[0];
-    map = loadMap(config.MAP_FILE);
-}
-console.log(`myGrid.js: using map:`, config.MAP_FILE);
 
-const myGrid = new Grid(map);
-console.log(`myGrid.js: Grid initialized with size`, myGrid.getMapSize());
+
+const myGrid = new Grid(config.GAME.map.tiles);
+console.log(`myGrid.js: Grid initialized with map size ${myGrid.getMapSize()} from game '${config.GAME.title}'`);
 
 const myParcelSpawner = new ParcelSpawner(myGrid);
 console.log(`myGrid.js: ParcelSpawner initialized`);

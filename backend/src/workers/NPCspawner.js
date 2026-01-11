@@ -5,7 +5,7 @@ import NPC from './NPC.js';
 import myClock from '../myClock.js';
 
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
 
 /**
  * @class 

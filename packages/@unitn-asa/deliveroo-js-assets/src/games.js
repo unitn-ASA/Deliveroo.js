@@ -1,17 +1,31 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync, readdirSync } from 'fs';
+import { readFile, readFileSync, readdirSync } from 'fs';
 import { parseClockEvent } from '@unitn-asa/deliveroo-js-sdk';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const GAMES_DIR = path.resolve(__dirname, '..', 'resources', 'games');
-const LEVELS_DIR = path.resolve(__dirname, '..', 'resources', 'levels');
+const GAMES_DIR = path.resolve(__dirname, '..', 'assets', 'games');
 
 
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions').IOGameOptions} IOGameOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions').IOGameOptions} IOGameOptions */
+
+/**
+ * @typedef {Object} ValidationError
+ * @property {string} message - Error message
+ * @property {string} [path] - JSON path to the error
+ * @property {string} [property] - Property name that failed validation
+ * @property {string} [value] - Invalid value
+ * @property {string} [constraint] - Constraint that was violated
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether validation passed
+ * @property {ValidationError[]} [errors] - Array of validation errors
+ */
 
 
 
@@ -34,16 +48,25 @@ export function getGamesList() {
 
 /**
  * Load a game by name
+ * @async
+ * @function loadGame
  * @param {string} gameName - Name of the game (with or without .json extension)
- * @returns {IOGameOptions} The game configuration object
+ * @returns {Promise<IOGameOptions>} The game configuration object
  */
-export function loadGame(gameName) {
+export async function loadGame(gameName) {
     if (!gameName.endsWith('.json')) {
         gameName = gameName + '.json';
     }
     const gamePath = path.join(GAMES_DIR, gameName);
-    const gameData = readFileSync(gamePath, 'utf8');
-    return parseJson(gameData);
+    return new Promise((resolve, reject) => {
+        readFile(gamePath, 'utf-8', (err, data) => {
+            if (err) {
+                reject(new Error(`Error reading game file ${gamePath}: ${err.message}`));
+            } else {
+                resolve(parseJson(data));
+            }
+        });
+    });
 }
 
 

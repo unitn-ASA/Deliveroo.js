@@ -6,6 +6,7 @@ import { IOClient } from './generics/IOClient.js';
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOTile} IOTile
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} IOInfo
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOConfig} IOConfig
  *
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOServerEvents} IOServerEvents on the client side these are to be listened with .on
@@ -93,7 +94,7 @@ export class IODeliveroojsClient extends IOClient {
     }
 
     /**
-     * @param { function(any) : void } callback
+     * @param { function(IOConfig) : void } callback
      */
     onConfig ( callback ) {
         this.on( "config", callback )
