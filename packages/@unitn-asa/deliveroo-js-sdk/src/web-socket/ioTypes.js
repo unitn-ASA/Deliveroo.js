@@ -23,7 +23,15 @@
  * @typedef IOTile
  * @property {number} x
  * @property {number} y
- * @property {string} type
+ * @property {string} type - Tile type: '0' (wall), '1' (walkable/spawner), '2' (delivery), '3' (walkable), '4' (base), '5' (obstacle), or directional arrows '↑', '→', '↓', '←'
+ */
+
+/**
+ * @typedef IOSensing
+ * @property {number} x
+ * @property {number} y
+ * @property {IOAgent=} agent
+ * @property {IOParcel=} parcel
  */
 
 /**
@@ -61,8 +69,8 @@
  *      'tile':             function ( IOTile, IOInfo ) : void,
  *      'controller':       function ( 'connected' | 'disconnected', {id:string, name:string, teamId:string, teamName:string, score:number} ) : void,
  *      'you':              function ( IOAgent, IOInfo ) : void,
- *      'agents sensing':   function ( IOAgent[], IOInfo ) : void,
- *      'parcels sensing':  function ( IOParcel[], IOInfo ) : void,
+ *      'agents sensing':   function ( IOSensing[], IOInfo ) : void,
+ *      'parcels sensing':  function ( IOSensing[], IOInfo ) : void,
  *      'msg':              function ( string, string, Object, function ( Object ) : void = ) : Object,
  *      'log':              function ( {src: 'server'|'client', ms:number, frame:number, socket:string, id:string, name:string}, ...any ) : void
  * }} IOServerEvents

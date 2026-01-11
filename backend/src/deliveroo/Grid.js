@@ -2,9 +2,9 @@ import Tile from './Tile.js';
 import Agent from './Agent.js';
 import Parcel from './Parcel.js';
 import Xy from './Xy.js';
-import config from '../../config.js';
+import { config } from '../config/config.js';
 import GridEventEmitter from './GridEventEmitter.js';
-import Sensor from './Sensor.js';
+import SensorOfGod from './SensorOfGod.js';
 import Identity from './Identity.js';
 import Factory from './Factory.js';
 
@@ -36,6 +36,13 @@ class Grid extends GridEventEmitter {
 
     /** @type {Map<string, Parcel>} */
     #parcels;
+
+    /** @type {SensorOfGod} */
+    #sensorOfGod;
+
+    get sensorOfGod () {
+        return this.#sensorOfGod;
+    }
     
     /**
      * @constructor Grid
@@ -58,18 +65,38 @@ class Grid extends GridEventEmitter {
             }
         }
 
+        this.#sensorOfGod = new SensorOfGod( this );
+
     }
 
     loadMap ( map ) {
-        var Xlength = map.length;
-        var Ylength = Array.from(map).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
+        // Handle JSON format with metadata
+        let mapData;
+        if (map.tiles && Array.isArray(map.tiles)) {
+            // JSON format with metadata
+            mapData = map.tiles;
+            console.log(`Loading map: ${map.name || 'unnamed'}`);
+            if (map.description) {
+                console.log(`Description: ${map.description}`);
+            }
+        } else if (Array.isArray(map)) {
+            // Legacy array format
+            mapData = map;
+        } else {
+            console.error('Invalid map format');
+            return;
+        }
+
+        var Xlength = mapData.length;
+        var Ylength = Array.from(mapData).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
 
         for (let x = 0; x < Math.max(Xlength,this.#X); x++) {
             for (let y = 0; y < Math.max(Ylength,this.#Y); y++) {
                 let xy = new Xy( {x,y});
                 if (x < Xlength && y < Ylength) {
-                    let value = map[x][y];
-                    this.setTile( xy, value );
+                    let value = mapData[x][y];
+                    // Convert value to string for consistency
+                    this.setTile( xy, String(value) );
                 } else {
                     this.setTile( xy, '0' ); // needed to emit update, even if later deleted
                     this.#tiles.delete( xy.toString() );
@@ -199,6 +226,13 @@ class Grid extends GridEventEmitter {
 
     }
 
+    /**
+     * @type {function(Xy): Agent}
+     */
+    getAgentAt ( xy ) {
+        return Array.from(this.agents.values()).find( agent => agent.xy.rounded.equals(xy) );
+    }
+
 
 
     /**
@@ -239,6 +273,13 @@ class Grid extends GridEventEmitter {
      */
     getParcels () {
         return this.#parcels.values();
+    }
+
+    /**
+     * @type {function(Xy): Parcel[]}
+     */
+    getParcelsAt ( xy ) {
+        return Array.from(this.#parcels.values()).filter( p => p.xy.rounded.equals(xy) );
     }
 
     /**

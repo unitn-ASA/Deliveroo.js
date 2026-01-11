@@ -1,10 +1,12 @@
 import myClock from '../myClock.js';
-import config from '../../config.js';
 import timersPromises from 'timers/promises'; // await timersPromises.setImmediate();
 import NPC from './NPC.js';
         
 const actions = [ 'up', 'right', 'down', 'left' ];
 const relPos = [ {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0} ];
+
+
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
 
 
 
@@ -20,6 +22,27 @@ const relPos = [ {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0} ];
  * @extends { NPC }
  */
 class RandomlyMovingAgent extends NPC {
+
+
+
+    /**
+     * @param {IONpcsOptions} options
+     */
+    constructor ( options ) {
+
+        super();
+        
+        /** @type {IONpcsOptions} */
+        this.options = options || {
+            type: 'random',
+            moving_event: 'frame',
+            count: 1,
+            capacity: 5
+        };
+
+    }
+
+
 
     /**
      * @returns {Promise} Resolves when it stops
@@ -37,7 +60,7 @@ class RandomlyMovingAgent extends NPC {
             }
             if (moved)
                 // wait before continue
-                await new Promise( res => myClock.once( config.RANDOM_AGENT_SPEED, res ) );
+                await new Promise( res => myClock.once( this.options.moving_event, res ) );
             else
                 // if agent is stucked, this avoid blocking the whole program
                 await timersPromises.setImmediate();

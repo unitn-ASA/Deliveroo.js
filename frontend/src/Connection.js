@@ -4,6 +4,8 @@ import { jwtDecode } from "jwt-decode";
 import { Grid } from "./Grid.js";
 import { IODeliveroojsClient } from "@unitn-asa/deliveroo-js-sdk";
 
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOConfig.js').IOConfig} IOConfig */
+
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
 export class Connection {
@@ -61,7 +63,7 @@ export class Connection {
     msgs = shallowReactive (new Array());
 
     /**
-     * @type {Object} configs
+     * @type {IOConfig} configs
      */
     configs = reactive ({});
 

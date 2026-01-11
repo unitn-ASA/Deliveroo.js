@@ -10,11 +10,11 @@ try {
     fs.writeFileSync('.git-revision', gitRevision, 'utf8');
 
     // Log the git revision hash
-    console.log('Git revision hash:', gitRevision.slice(0, 7));
+    console.log('generateGitRevision.js Git revision hash', gitRevision.slice(0, 7), 'has been written to .git-revision file!');
 
 } catch (error) {
 
-    console.warn('Failed to generate .git-revision:', error.message);
+    console.warn('generateGitRevision.js Failed to generate .git-revision file:', error.message);
     // process.exit(1);
 
 }

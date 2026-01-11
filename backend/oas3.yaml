@@ -445,9 +445,6 @@ components:
         PENALTY:
           type: integer
           description: 'Specify penalty in case of invalid aciton, default is 0'
-        MOVEMENT_STEPS:
-          type: integer
-          description: 'Specify the Number of steps for each movement, default is 1'
         MOVEMENT_DURATION:
           type: integer
           description: 'Specify the duration of each movement, default is 50'

@@ -2,11 +2,11 @@
     import { onMounted, onUnmounted, ref, inject, watch, useTemplateRef } from 'vue';
     import * as THREE from 'three';
     import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-    import { connection } from '@/states/myConnection';
+    import { connection } from '@/states/myConnection.js';
 
     /**
      * @typedef Agent
-     * @type {import("@/Grid").Agent}
+     * @type {import("@/Grid.js").UIAgent}
      */
     
     /** @type {{agent?:Agent}} */
@@ -103,7 +103,7 @@
         if ( agent.x == Math.round(agent.x) && agent.y == Math.round(agent.y) ) { // if arrived
             agent.mesh.position.lerp( agentTargetVector3, 0.5 );
         } else { // if still moving
-            agent.mesh.position.lerp( agentTargetVector3, 8 / ( Number(connection.configs.MOVEMENT_DURATION) + Number(connection.configs.CLOCK * 2) ) );
+            agent.mesh.position.lerp( agentTargetVector3, 8 / ( Number(connection.configs.GAME.player.movement_duration) + Number(connection.configs.CLOCK * 2) ) );
         }
 
         requestAnimationFrame(animate);

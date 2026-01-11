@@ -11,11 +11,11 @@
 
     /**
      * @typedef Tile
-     * @type {import("@/Grid").Tile}
+     * @type {import("@/Grid").UITile}
      */
 
     /** @typedef Agent
-     *  @type {import("@/Grid").Agent}
+     *  @type {import("@/Grid").UIAgent}
      */
 
 	const threeContainer = ref(null);
@@ -61,6 +61,7 @@
 	
 	 /** @type {THREE.AmbientLight} */
 	const ambientLight = new THREE.AmbientLight( 0x202020 ); // lighter if: connection.payload.role == "admin" ? 0xaaaaaa
+	ambientLight.intensity = 8;
 	scene.add( ambientLight );
 
 	/** @type {THREE.PointLight} */
@@ -69,32 +70,6 @@
 	/** @type {THREE.PointLight} */
 	const parcelsLight = new THREE.PointLight( 0xffffff, 1, 1.5 * 1.2 * 5, 1.5 * 0.2 * 5 );
 	// light.castShadow = true;
-
-	function computeLightDistanceAndDecay( light, distance ) {
-		// console.log( 'ThreeScene.js computeLightDistanceAndDecay', distance );
-		if ( ! isNaN( distance ) ) {
-			// light.position.set( 0, 5, 0 );
-			// light.distance = 0.9 * distance + 4;
-			// light.decay = 0.4;
-			// targetMesh.value?.add( light );
-		}
-	}
-
-	watch( [ () => connection.configs.AGENTS_OBSERVATION_DISTANCE, () => connection.configs.PARCELS_OBSERVATION_DISTANCE ], ([AOD, POD]) => {
-		ambientLight.intensity = isNaN( AOD ) || isNaN( POD) ? 8 : 6;
-		computeLightDistanceAndDecay( agentsLight, AOD );
-		computeLightDistanceAndDecay( parcelsLight, POD);
-	}, { immediate: true } );
-
-	watch( () => targetMesh.value, (newVal) => {
-		// console.log( 'ThreeScene.js watch targetMesh', newVal.position, targetMesh.value.position );
-		targetMesh.value?.remove( agentsLight );
-		targetMesh.value?.remove( parcelsLight );
-		// targetMesh.value?.add( agentsLight );
-		// targetMesh.value?.add( parcelsLight );
-		computeLightDistanceAndDecay( agentsLight, connection.configs.AGENTS_OBSERVATION_DISTANCE );
-		computeLightDistanceAndDecay( parcelsLight, connection.configs.PARCELS_OBSERVATION_DISTANCE);
-	}, { immediate: true } );
 
 
 

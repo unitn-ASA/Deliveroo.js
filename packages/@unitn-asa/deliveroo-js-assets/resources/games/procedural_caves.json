@@ -1,0 +1,47 @@
+{
+    "title": "Procedural Caves",
+    "description": "Each game uses a uniquely generated cave map",
+    "maxPlayers": 4,
+    "map": {
+        "generation": {
+            "width": 40,
+            "height": 40,
+            "algorithm": "cellular",
+            "tileset": ["floor", "wall"],
+            "parameters": {
+                "wallRatio": 0.45,
+                "smoothness": 4,
+                "seed": null
+            }
+        }
+    },
+    "npcs": [
+        {
+            "type": "ghost",
+            "count": 5,
+            "speed": "2s"
+        }
+    ],
+    "parcels": {
+        "generationInterval": "3s",
+        "max": 5,
+        "reward": {
+            "avg": 80,
+            "variance": 30
+        },
+        "decadingInterval": "10s"
+    },
+    "player": {
+        "movement": {
+            "steps": 1,
+            "duration": 100
+        },
+        "observation": {
+            "agents": 8,
+            "parcels": 8
+        },
+        "timeout": 20000
+    },
+    "penalty": 2,
+    "plugins": []
+}

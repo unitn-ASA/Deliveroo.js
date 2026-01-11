@@ -5,7 +5,7 @@
     import Tile from './Tile.vue';
     import Agent from './Agent.vue';
     import Parcel from './Parcel.vue';
-    import { connection } from '@/states/myConnection';
+    import { connection } from '@/states/myConnection.js';
 	import { Controller } from '@/utils/Controller.js'
 
     const tiles = computed ( () => connection.grid.tiles );

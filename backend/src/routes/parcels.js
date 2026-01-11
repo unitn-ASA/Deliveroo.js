@@ -1,5 +1,5 @@
 import express from 'express';
-import { myGrid } from '../grid.js';
+import { myGrid } from '../myGrid.js';
 import { authorizeAdmin } from '../middlewares/token.js';
 
 const router = express.Router();

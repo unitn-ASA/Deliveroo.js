@@ -1,6 +1,6 @@
-import { AgentType } from '../types/index.js';
-import config from '../../config.js';
-import ObservableValue from '../reactivity/ObservableValue.js';
+console.log('Agent.js loaded');
+
+import { config } from '../config/config.js';
 import Xy from './Xy.js';
 import Grid from './Grid.js';
 import Tile from './Tile.js';
@@ -11,11 +11,18 @@ import Sensor from './Sensor.js';
 import Identity from './Identity.js';
 
 
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk').IOAgent} IOAgent */
+
+
+
+const MOVEMENT_STEPS = 1;
+
+
 
 /**
  * @class Agent
  * @extends { ObservableMulti< {xy:Xy, score:number, penalty:number, carryingParcels:Set<Parcel>} > }
- * @implements {AgentType}
+ * @implements {IOAgent}
  */
 class Agent extends ObservableMulti {
     
@@ -57,8 +64,6 @@ class Agent extends ObservableMulti {
     /** @type {Set<Parcel>} #carryingParcels */
     carryingParcels = new Set();
 
-    config = {};
-
     /** @type {Sensor} sensor */
     #sensor;
     /** @property {Sensor} sensor */
@@ -97,8 +102,6 @@ class Agent extends ObservableMulti {
             tile.lock();
             this.xy = tile.xy;
         }
-
-    Object.assign( this.config, config );
         
         Object.defineProperty (this, 'carrying', {
             get: () => Array.from(this.carryingParcels).map( ({id, reward}) => { return {id, reward}; } ), // Recursion on carriedBy->agent->carrying->carriedBy ... 
@@ -131,22 +134,22 @@ class Agent extends ObservableMulti {
     async stepByStep ( incr_x, incr_y ) {
         var init_x = this.x
         var init_y = this.y
-        if ( this.config.MOVEMENT_STEPS ) {
+        if ( MOVEMENT_STEPS ) {
             // Immediate offset by 0.6*step
             this.xy = new Xy ( {
-                x: ( 100 * this.x + 100 * incr_x / this.config.MOVEMENT_STEPS * 12/20 ) / 100,
-                y: ( 100 * this.y + 100 * incr_y / this.config.MOVEMENT_STEPS * 12/20 ) / 100
+                x: ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS * 12/20 ) / 100,
+                y: ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS * 12/20 ) / 100
             } )
         }
-        for ( let i = 0; i < this.config.MOVEMENT_STEPS; i++ ) {
-            // Wait for next step timeout = this.config.MOVEMENT_DURATION / MOVEMENT_STEPS
-            // await new Promise( res => setTimeout(res, this.config.MOVEMENT_DURATION / MOVEMENT_STEPS ) )
-            await myClock.synch( this.config.MOVEMENT_DURATION / this.config.MOVEMENT_STEPS );
-            if ( i < this.config.MOVEMENT_STEPS - 1 ) {
+        for ( let i = 0; i < MOVEMENT_STEPS; i++ ) {
+            // Wait for next step timeout = this.config.player.movement_duration / MOVEMENT_STEPS
+            // await new Promise( res => setTimeout(res, this.config.player.movement_duration / MOVEMENT_STEPS ) )
+            await myClock.synch( config.GAME.player.movement_duration / MOVEMENT_STEPS );
+            if ( i < MOVEMENT_STEPS - 1 ) {
                 // Move by one step = 1 / MOVEMENT_STEPS
                 this.xy = new Xy({
-                    x: ( 100 * this.x + 100 * incr_x / this.config.MOVEMENT_STEPS ) / 100,
-                    y: ( 100 * this.y + 100 * incr_y / this.config.MOVEMENT_STEPS ) / 100
+                    x: ( 100 * this.x + 100 * incr_x / MOVEMENT_STEPS ) / 100,
+                    y: ( 100 * this.y + 100 * incr_y / MOVEMENT_STEPS ) / 100
                 });
             }
         }
@@ -165,7 +168,7 @@ class Agent extends ObservableMulti {
     async exclusivelyDo ( actionFn ) {
         // if still pending
         if ( this.isDoing ) {
-            this.penalty -= this.config.PENALTY;
+            this.penalty -= config.PENALTY;
             console.warn( `${this.name}(${this.id}) got penalty ${this.penalty}: trying to do something without waiting for previous action to finish!` );
             return false;
         }
@@ -186,6 +189,21 @@ class Agent extends ObservableMulti {
         if (!fromTile)
             return false;
         let toTile = this.#grid.getTile( { x: this.x + incr_x, y: this.y + incr_y } );
+
+        // Check if current tile is directional and blocks exit in this direction
+        if (fromTile.isDirectional && !fromTile.allowsExitInDirection(incr_x, incr_y)) {
+            this.penalty -= config.PENALTY;
+            // console.warn( `${this.name}(${this.id}) blocked by directional tile: cannot exit ${fromTile.type} tile in this direction` );
+            return false;
+        }
+
+        // Check if destination tile is directional and blocks entry from current position
+        if (toTile && toTile.isDirectional && !toTile.allowsMovementFrom(this.x, this.y)) {
+            this.penalty -= config.PENALTY;
+            // console.warn( `${this.name}(${this.id}) blocked by directional tile: cannot enter ${toTile.type} tile from this direction` );
+            return false;
+        }
+
         if ( toTile && toTile.walkable && ! toTile.locked ) {
             toTile.lock();
             // console.log(this.id, 'start move in', this.x+incr_x, this.y+incr_y)
@@ -196,7 +214,7 @@ class Agent extends ObservableMulti {
             return this.xy;
         }
         // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
-        this.penalty -= this.config.PENALTY;
+        this.penalty -= config.PENALTY;
         // console.warn( `${this.name}(${this.id}) got penalty ${this.penalty}: move was not possible, tile either not existing, blocked or not walkable!` );
         return false;
     }

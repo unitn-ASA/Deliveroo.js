@@ -1,0 +1,49 @@
+{
+    "title": "Chaos Mode",
+    "description": "Maximum chaos with bombs, many NPCs, and fast gameplay",
+    "maxPlayers": 8,
+    "map": {
+        "file": "default_map"
+    },
+    "npcs": [
+        {
+            "type": "random",
+            "count": 10,
+            "speed": "1s"
+        },
+        {
+            "type": "bombs",
+            "spawnRate": "5s",
+            "countdown": "3s",
+            "radius": 2
+        },
+        {
+            "type": "collector",
+            "count": 5,
+            "speed": "1s",
+            "capacity": 3
+        }
+    ],
+    "parcels": {
+        "generationInterval": "1s",
+        "max": 20,
+        "reward": {
+            "avg": 50,
+            "variance": 40
+        },
+        "decadingInterval": "1s"
+    },
+    "player": {
+        "movement": {
+            "steps": 1,
+            "duration": 50
+        },
+        "observation": {
+            "agents": 5,
+            "parcels": 5
+        },
+        "timeout": 10000
+    },
+    "penalty": 5,
+    "plugins": ["spectator"]
+}

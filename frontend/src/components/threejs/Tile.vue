@@ -1,16 +1,16 @@
 <script setup>
     import { onMounted, onUnmounted, watch, computed, inject, useTemplateRef } from 'vue';
     import * as THREE from 'three';
-    import { Connection } from '@/Connection';
+    import { Connection } from '@/Connection.js';
     import { connection } from '@/states/myConnection.js';
 
     /**
      * @typedef Tile
-     * @type {import("@/Grid").Tile}
+     * @type {import("@/Grid.js").UITile}
      */
 
     /** @typedef Agent
-     *  @type {import("@/Grid").Agent}
+     *  @type {import("@/Grid.js").UIAgent}
      */
     
     /** @type {{tile?:Tile,me?:{x,y},connection?:Connection}} */
@@ -56,19 +56,14 @@
         }
     });
 
-    watch( [ () => connection.grid.me.value.x, () => connection.grid.me.value.y, () => connection.configs ], ( [ x, y ] ) => {
+    watch( [ () => tile.perceivingAgents, () => tile.perceivingParcels ], () => {
 
-        let AOD = connection.configs.AGENTS_OBSERVATION_DISTANCE;
-        let POD = connection.configs.PARCELS_OBSERVATION_DISTANCE;
-        let MinOD = Math.min( AOD, POD );
-        let MaxOD = Math.max( AOD, POD );
-
-        let dist = Math.abs( x - tile.x ) + Math.abs( y - tile.y );
-
-        if ( dist < MinOD ) {
+        console.log('Tile.vue tile', tile.x, tile.y, tile.perceivingAgents?'perceivingAgents':'', tile.perceivingParcels?'perceivingParcels':'' );
+        
+        if ( tile.perceivingAgents && tile.perceivingParcels ) {
             material.opacity = 1;
         }
-        else if ( dist < MaxOD ) {
+        else if ( tile.perceivingAgents || tile.perceivingParcels ) {
             material.opacity = 0.6;
         }
         else {
@@ -81,40 +76,76 @@
     watch( () => tile.type, (newVal) => {
         var color = 0x000000; // black
         var emissiveColor;
-        var opacity = 1;
-        switch (tile.type.toString()) {
-            case "0": // None - Black
-                color = 0x000000;
-                emissiveColor = 0x444444;
-                // opacity = 0.3;
-                break;
-            case "1": // Spawning - Green
-                color = 0x00ff00;
-                emissiveColor = 0x44ff44;
-                break;
-            case "2": // Delivery - Red
-                color = 0xff0000;
-                emissiveColor = 0xff4444;
-                break;
-            case "3": // Walkable - White
-                color = 0xffffff;
-                emissiveColor = 0xff99ff;
-                break;
-            case "4": // Base - Blue
-                color = 0x0000ff;
-                emissiveColor = 0x4444ff;
-                break;
-            case '5': // Obstacle - Yellow
-                color = 0xffff00;
-                emissiveColor = 0xffff44;
-                break;
-            default:
-                break;
+
+        // Check for directional tiles first (Unicode arrows)
+        const directionalTiles = ['↑', '→', '↓', '←'];
+        const isDirectional = directionalTiles.includes(String(newVal));
+
+        if (isDirectional) {
+            // Directional tile - use light blue color
+            color = 0x87ceeb;
+            emissiveColor = 0x87ceeb;
+
+            // Create arrow texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+
+            // Draw background
+            ctx.fillStyle = '#87ceeb';
+            ctx.fillRect(0, 0, 128, 128);
+
+            // Draw arrow
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(newVal, 64, 64);
+
+            // Create texture from canvas
+            const arrowTexture = new THREE.CanvasTexture(canvas);
+            material.map = arrowTexture;
+            material.needsUpdate = true;
+        } else {
+            // Clear texture for non-directional tiles
+            material.map = null;
+            material.needsUpdate = true;
+
+            // Existing tile type handling
+            switch (tile.type.toString()) {
+                case "0": // None - Black
+                    color = 0x000000;
+                    emissiveColor = 0x444444;
+                    // opacity = 0.3;
+                    break;
+                case "1": // Spawning - Green
+                    color = 0x00ff00;
+                    emissiveColor = 0x44ff44;
+                    break;
+                case "2": // Delivery - Red
+                    color = 0xff0000;
+                    emissiveColor = 0xff4444;
+                    break;
+                case "3": // Walkable - White
+                    color = 0xffffff;
+                    emissiveColor = 0xff99ff;
+                    break;
+                case "4": // Base - Blue
+                    color = 0x0000ff;
+                    emissiveColor = 0x4444ff;
+                    break;
+                case '5': // Obstacle - Yellow
+                    color = 0xffff00;
+                    emissiveColor = 0xffff44;
+                    break;
+                default:
+                    break;
+            }
         }
         // Set color and emissive color
         material.color = new THREE.Color( color );
         material.emissive = new THREE.Color( emissiveColor || color );
-        material.opacity = opacity;
     }, { immediate: true });
 
 

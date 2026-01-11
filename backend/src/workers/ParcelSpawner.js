@@ -1,5 +1,5 @@
 import myClock from '../myClock.js';
-import config from '../../config.js';
+import { config } from '../config/config.js';
 import Grid from '../deliveroo/Grid.js';
 
 
@@ -15,25 +15,27 @@ class Spawner {
     constructor ( grid ) {
         
         this.#grid = grid;
-        myClock.once( config.PARCELS_GENERATION_INTERVAL, this.recurrent.bind(this) );
+        myClock.once( config.GAME.parcels.generation_event, this.recurrent.bind(this) );
         
     }
 
     recurrent () {
         this.spawn();
-        myClock.once( config.PARCELS_GENERATION_INTERVAL, this.recurrent.bind(this) );
+        myClock.once( config.GAME.parcels.generation_event, this.recurrent.bind(this) );
     }
 
     spawn () {
         const grid = this.#grid;
-        if ( grid.getParcelsQuantity() >= config.PARCELS_MAX ) {
+        if ( grid.getParcelsQuantity() >= config.GAME.parcels.max ) {
             return;
         }
         let tiles_with_no_parcels = this.tilesWithNoParcels();
         if ( tiles_with_no_parcels.length > 0 ) {
-            let i = Math.floor( Math.random() * tiles_with_no_parcels.length - 1 )
-            let tile = tiles_with_no_parcels.at( i )
-            let parcel = grid.createParcel( tile.xy );
+            let i = Math.floor( Math.random() * tiles_with_no_parcels.length );
+            let tile = tiles_with_no_parcels.at( i );
+            if (tile && tile.xy) {
+                grid.createParcel( tile.xy );
+            }
         }
     }
 

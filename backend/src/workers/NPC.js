@@ -1,4 +1,4 @@
-import Grid from '../deliveroo/Grid.js';
+import { myGrid } from '../myGrid.js';
 import Identity from '../deliveroo/Identity.js';
 import Agent from '../deliveroo/Agent.js';
 
@@ -22,9 +22,9 @@ class NPC {
     agent;
 
     /**
-     * @param {Grid} myGrid
+     * @constructor
      */
-    constructor ( myGrid ) {
+    constructor () {
 
         this.agent = myGrid.createAgent( new Identity() );
 

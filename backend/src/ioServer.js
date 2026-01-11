@@ -1,7 +1,9 @@
+console.log('ioServer.js loaded');
+
 import { Server } from 'socket.io';
 import httpServer from './httpServer.js';
-import { myGrid } from './grid.js';
-import config from '../config.js';
+import { myGrid } from './myGrid.js';
+import { config } from './config/config.js';
 import myClock from './myClock.js';
 import events from 'events';
 events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
@@ -71,8 +73,8 @@ io.on('connection', async ( socket ) => {
     const me = myGrid.agents.get( id ) || myGrid.createAgent( identity );
     if ( !me ) return;
     if ( role == 'admin' ) { // former 'god' mod
-        me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite';
-        me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite';
+        // me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite';
+        // me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite';
         // await me.putDown();
         if  (me && me.tile && me.tile.unlock )
             me.tile.unlock();
@@ -138,9 +140,11 @@ class ioServer {
                 }
                 if ( listeners.sensedParcelsListener ) {
                     me.sensor.off( 'sensedParcels', listeners.sensedParcelsListener );
+                    me.grid.sensorOfGod.off( 'sensedParcels', listeners.sensedParcelsListener );
                 }
                 if ( listeners.sensedAgentsListener ) {
                     me.sensor.off( 'sensedAgents', listeners.sensedAgentsListener );
+                    me.grid.sensorOfGod.off( 'sensedAgents', listeners.sensedAgentsListener );
                 }
                 if ( listeners.penaltyListener ) {
                     me.off( 'penalty', listeners.penaltyListener );
@@ -148,7 +152,7 @@ class ioServer {
                 
                 if ( socketsLeft == 0 && me.xy ) {
                     
-                    // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${config.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
+                    // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${serverConfig.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
                     await new Promise( res => setTimeout(res, config.AGENT_TIMEOUT) );
                     
                     let socketsLeft = (await ioAgent.fetchSockets()).length;
@@ -182,11 +186,11 @@ class ioServer {
         /**
          * Config
          */
-        if ( me.identity.role == 'admin' ) { // former 'god' mod
-            me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite'
-            me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite'
-        }
-        socket.emit( 'config', me.config )
+        // if ( me.identity.role == 'admin' ) { // former 'god' mod
+        //     me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite'
+        //     me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite'
+        // }
+        socket.emitConfig( config )
 
         
 
@@ -262,16 +266,24 @@ class ioServer {
             // console.log('emit parcels sensing', ...parcels);
             socket.emitParcelSensing( me.sensor.sensedParcels, myClock.info )
         };
-        me.sensor.on( 'sensedParcels', listeners.sensedParcelsListener );
-        // me.sensor.emitParcelSensing();
+        // if ( me.identity.role == 'admin' ) // former 'god' mod
+        //     me.grid.sensorOfGod.on( 'sensedParcels', listeners.sensedParcelsListener );
+        // else
+            me.sensor.on( 'sensedParcels', listeners.sensedParcelsListener );
+        // Fire immediately to send initial sensing
+        listeners.sensedParcelsListener();
 
         // Agents
         listeners.sensedAgentsListener = () => {
             // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
             socket.emitAgentsSensing( me.sensor.sensedAgents, myClock.info );
         };
-        me.sensor.on( 'sensedAgents', listeners.sensedAgentsListener );
-        // me.emitAgentSensing();
+        // if ( me.identity.role == 'admin' ) // former 'god' mod
+        //     me.grid.sensorOfGod.on( 'sensedAgents', listeners.sensedAgentsListener );
+        // else
+            me.sensor.on( 'sensedAgents', listeners.sensedAgentsListener );
+        // Fire immediately to send initial sensing
+        listeners.sensedAgentsListener();
         
 
 
@@ -286,7 +298,7 @@ class ioServer {
                 if ( acknowledgementCallback )
                     acknowledgementCallback( moving ); //.bind(me)()
             } catch (error) {
-                me.penalty -= me.config.PENALTY;
+                me.penalty -= config.PENALTY;
                 console.warn( `${me.name}(${me.id}) got penalty ${me.penalty}: onMove() direction ${direction.toString()} is not a method of agent!` );
             }
         });
@@ -428,7 +440,7 @@ class ioServer {
  */
 const oldLog = console.log;
 global.console.log = function ( ...message ) {
-    if ( config.BROADCAST_LOGS ) { // && config.BROADCAST_LOGS != "false"
+    if ( config.BROADCAST_LOGS ) { // && serverConfig.BROADCAST_LOGS != "false"
         io.emit( 'log', {src: 'server', timestamp: {ms: myClock.ms, frame: myClock.frame}}, ...message );
     };
     oldLog.apply( console, message );

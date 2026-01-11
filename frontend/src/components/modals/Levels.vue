@@ -10,7 +10,7 @@
 
     const levels = ref([]);
 
-    fetch(HOST + "/api/levels")
+    fetch(HOST + "/api/content/levels")
     .then( res => res.json() )
     .then( data => {
         levels.value = data;
@@ -50,7 +50,7 @@
                     >
                 </div>
                 
-                <img v-if="level.MAP_FILE" :src="HOST+'/api/maps/'+level.MAP_FILE+'.png'" class="mt-2"/>
+                <img v-if="level.MAP_FILE" :src="HOST+'/api/content/maps/'+level.MAP_FILE+'.png'" class="mt-2"/>
                 
             </div>
 

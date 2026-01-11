@@ -1,6 +1,7 @@
+console.log('GhostAgent.js loaded');
+
 import Agent from '../src/deliveroo/Agent.js';
 import myClock from '../src/myClock.js';
-import config from '../config.js';
 
 /**
  * @class
@@ -39,7 +40,3 @@ class GhostAgent extends Agent {
 
 
 export default GhostAgent;
-
-// Lazy plugin installation
-global.GhostAgent = GhostAgent;
-config.AGENT_TYPE = 'GhostAgent';

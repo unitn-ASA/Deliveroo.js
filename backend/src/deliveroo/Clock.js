@@ -1,11 +1,10 @@
 import EventEmitter from 'events';
-import config from '../../config.js';
-import { parseClockEvent } from './Types.js';
+import { config } from '../config/config.js';
 
 
 
 /**
- * @typedef { import('./Types.js').ClockEvent } ClockEvent
+ * @typedef { import('@unitn-asa/deliveroo-js-sdk').IOClockEvent } IOClockEvent
  */
 
 /**
@@ -52,7 +51,7 @@ class Clock {
     }
 
     /**
-     * @arg { ClockEvent } event
+     * @arg { IOClockEvent } event
      * @arg { function(...any) : void } cb
      */
     on ( event, cb ) {
@@ -60,7 +59,7 @@ class Clock {
     }
     
     /**
-     * @arg { ClockEvent } event
+     * @arg { IOClockEvent } event
      * @arg { ? function(...any) : void } cb
      */
     async once ( event, cb = undefined ) {
@@ -71,7 +70,7 @@ class Clock {
     }
 
     /**
-     * @arg { ClockEvent } event
+     * @arg { IOClockEvent } event
      * @arg { function(...any) : void } cb
      */
     off ( event, cb ) {

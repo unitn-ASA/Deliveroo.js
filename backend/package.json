@@ -17,7 +17,7 @@
     "start": "node index.js",
     "prebuild": "npm install",
     "build": "node scripts/build.js",
-    "dev": "nodemon --inspect -r dotenv/config index.js"
+    "dev": "nodemon --inspect -r dotenv/config index.js --"
   },
   "repository": {
     "type": "git",
@@ -30,8 +30,9 @@
     "nodemon": "^3.1.9"
   },
   "dependencies": {
+    "@unitn-asa/deliveroo-js-assets": "file:../packages/@unitn-asa/deliveroo-js-assets",
+    "@unitn-asa/deliveroo-js-sdk": "file:../packages/@unitn-asa/deliveroo-js-sdk",
     "@unitn-asa/deliveroo-js-webapp-dist": "^2.0.15",
-    "@unitn-asa/deliveroo-js-sdk": "^1.0.0",
     "argparse": "^2.0.1",
     "canvas": "^3.1.0",
     "express": "^4.17.3",

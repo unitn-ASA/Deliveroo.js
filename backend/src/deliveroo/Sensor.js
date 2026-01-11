@@ -5,23 +5,25 @@ import Agent from './Agent.js';
 import Parcel from './Parcel.js';
 import Postponer from '../reactivity/Postponer.js';
 import myClock from '../myClock.js';
-import config from '../../config.js';
+import { config } from '../config/config.js';
 
 
 
 /**
- * @typedef SensedAgent
- * @type {import("@unitn-asa/deliveroo-js-sdk").IOAgent}
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
  */
 
 /**
- * @typedef SensedParcel
- * @type {import("@unitn-asa/deliveroo-js-sdk").IOParcel}
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
+ */
+
+/**
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
  */
 
 /**
  * @class Sensor
- * @extends { ObservableMulti< {sensedAgents:SensedAgent[], sensedParcels:SensedParcel[]} > }
+ * @extends { ObservableMulti< {sensedAgents:IOSensing[], sensedParcels:IOSensing[]} > }
  */
 class Sensor extends ObservableMulti {
 
@@ -30,13 +32,11 @@ class Sensor extends ObservableMulti {
 
     /** @type {Agent} id */
     #agent;
-    
-    config = {};
 
-    /** @type {SensedAgent[]} */
+    /** @type {IOSensing[]} */
     sensedAgents = [];
 
-    /** @type {SensedParcel[]} */
+    /** @type {IOSensing[]} */
     sensedParcels = [];
 
     /** @type {(event: any, who: Agent) => void} - Grid agent xy listener */
@@ -47,28 +47,28 @@ class Sensor extends ObservableMulti {
             this.emitParcelSensing();
         }
         // On others movements within my range, emit agents sensing
-        else if ( !( Xy.distance(this.#agent, who) > this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+        else if ( !( Xy.distance(this.#agent, who) > config.GAME.player.agents_observation_distance ) ) {
                 this.emitAgentSensing();
             }  
     };
     
     /** @type {(event: any, who: Agent) => void} - Grid agent deleted listener */
     #agentDeletedListener = ( event, who ) => {
-        if ( this.#agent.id != who.id && !( Xy.distance(this.#agent, who) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+        if ( this.#agent.id != who.id && !( Xy.distance(this.#agent, who) >= config.GAME.player.agents_observation_distance ) ) {
             this.emitAgentSensing()
         }
     }
     
     /** @type {(event: any, who: Agent) => void} - Grid agent score listener */
     #agentScoreListener = ( event, who ) => {
-        if ( this.#agent.id != who.id && !( Xy.distance(this.#agent, who) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
+        if ( this.#agent.id != who.id && !( Xy.distance(this.#agent, who) >= config.GAME.player.agents_observation_distance ) ) {
             this.emitAgentSensing()
         }
     };
 
     /** @type {(parcel: Parcel) => void} - Grid parcel listener */
     #parcelListener = ( parcel ) => {
-        if ( !( Xy.distance(this.#agent, parcel) > this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
+        if ( !( Xy.distance(this.#agent, parcel) > config.GAME.player.parcels_observation_distance ) ) {
             this.emitParcelSensing();
         }
     };
@@ -89,8 +89,6 @@ class Sensor extends ObservableMulti {
 
         this.watch('sensedAgents', true);
         this.watch('sensedParcels', true);
-
-    Object.assign(this.config, config );
 
         this.#grid = grid;
 
@@ -151,14 +149,37 @@ class Sensor extends ObservableMulti {
      */
     emitAgentSensing () {
 
-        let sensedAgents = [];
-        for ( let sensedAgent of this.#grid.agents.values() ) {
-            if ( sensedAgent != this.#agent && !( Xy.distance(sensedAgent, this.#agent) >= this.config.AGENTS_OBSERVATION_DISTANCE ) ) {
-                const {id, name, teamId, teamName, x: x, y: y, score, penalty} = sensedAgent
-                sensedAgents.push( {id, name, teamId, teamName, x, y, score, penalty} )
+        /** @type {Array<IOSensing>} */
+        let observedTiles = [];
+
+        // for each tile on the grid
+        for ( let tile of this.#grid.getTiles() ) {
+            // only if within observation distance OR if my position is undefined
+            if ( Xy.distance(tile, this.#agent) < config.GAME.player.agents_observation_distance || ( this.#agent.x == undefined && this.#agent.y == undefined ) ) {
+                // agent sensed on this tile
+                const sensedAgent = this.#grid.getAgentAt( tile.xy ) ;
+                // if defined and not myself
+                if ( sensedAgent && sensedAgent != this.#agent )
+                    observedTiles.push( {x: tile.x, y: tile.y, agent: {
+                        id: sensedAgent.id,
+                        name: sensedAgent.name,
+                        teamId: sensedAgent.teamId,
+                        teamName: sensedAgent.teamName,
+                        x: sensedAgent.x,
+                        y: sensedAgent.y,
+                        score: sensedAgent.score,
+                        penalty: sensedAgent.penalty
+                    } } );
+                // no agent sensed on this tile
+                else
+                    observedTiles.push( { x: tile.x, y: tile.y } );
+                // if (sensedAgent && sensedAgent != this.#agent) console.log('Sensor.js', this.#agent.id, 'sensing', sensedAgent.id, 'at', sensedAgent.x, sensedAgent.y);
             }
         }
-        this.sensedAgents = sensedAgents;
+
+        // console.log('Sensor.js', this.#agent.id, 'sensing', observedTiles.filter( t => t.agent != undefined ).length, 'agents out of', observedTiles.length, 'tiles');
+
+        this.sensedAgents = observedTiles;
 
     }
 
@@ -170,14 +191,27 @@ class Sensor extends ObservableMulti {
      */
     emitParcelSensing () {
 
-        var parcels = [];
-        for ( const parcel of this.#grid.getParcels() ) {
-            if ( !( Xy.distance(parcel, this.#agent) >= this.config.PARCELS_OBSERVATION_DISTANCE ) ) {
-                let {id, x: x, y: y, carriedBy, reward} = parcel;
-                parcels.push( {id, x, y, carriedBy: ( parcel.carriedBy ? parcel.carriedBy.id : null ), reward} )
+        var observedTiles = [];
+        for ( let tile of this.#grid.getTiles() ) {
+            if ( !( Xy.distance(tile, this.#agent) >= config.GAME.player.parcels_observation_distance ) ) {
+                const sensedParcels = this.#grid.getParcelsAt( tile.xy );
+                for ( let parcel of sensedParcels ) {
+                    // At least one parcel sensed on this tile
+                    observedTiles.push( {x: tile.x, y: tile.y, parcel: {
+                        id: parcel.id,
+                        x: parcel.x,
+                        y: parcel.y,
+                        carriedBy: parcel.carriedBy ? parcel.carriedBy.id : null,
+                        reward: parcel.reward
+                    } } )
+                }
+                if ( sensedParcels.length == 0 ) {
+                    // No parcel sensed on this tile
+                    observedTiles.push( { x: tile.x, y: tile.y } )
+                }
             }
         }
-        this.sensedParcels = parcels;
+        this.sensedParcels = observedTiles;
 
     }
 

@@ -16,7 +16,7 @@ const packageVersion = new Promise( res =>
             console.error('Error while reading package.json', error);
         }
         
-        console.log( 'api.js packageVersion =', packageVersion );
+        console.log( 'api.js Version', packageVersion, 'has been read from package.json file' );
         res( packageVersion )
     } )
 );
@@ -31,17 +31,17 @@ const commitHash = new Promise( res =>
                 throw err;
             else if ( data )
                 commitHash = data.toString().trim();
+                console.log( 'api.js Git commit hash', commitHash, 'has been read from .git-revision file' );
         } catch (error) {
-            // console.error('Error while reading commit hash from .git-revision', error);
+            console.warn('api.js No .git-revision file to read git commit hash');
         }
         
-        console.log( 'api.js commitHash =', commitHash );
         res( commitHash );
 
     } )
 );
 
-// GET /configs 
+// GET /api 
 router.get('/', async (req, res) => {
 
     console.log(`GET /api`);

@@ -1,7 +1,7 @@
 import ObservableValue from '../reactivity/ObservableValue.js';
 import Xy from './Xy.js';
 import myClock from '../myClock.js';
-import config from '../../config.js';
+import { config } from '../config/config.js';
 import Agent from './Agent.js';
 import ObservableMulti from '../reactivity/ObservableMulti.js';
 
@@ -75,8 +75,8 @@ class Parcel extends ObservableMulti {
         this.watch('reward');
         {
             let random = Math.random();
-            let va = config.PARCEL_REWARD_VARIANCE;
-            let avg = config.PARCEL_REWARD_AVG;
+            let va = config.GAME.parcels.reward_variance;
+            let avg = config.GAME.parcels.reward_avg;
             this.reward = reward || Math.floor( (random * va * 2) + (avg - va) ); // FIXED formulae; the +avg was being concatenated instead of summed. Still make no sense, who knows...
             // console.log( "Parcel.js reward:",  `${reward} || ${random} * ${va} * 2 + ${avg} - ${va} = ${random * va * 2} + ${avg} - ${va} = ${random * va * 2 + avg} - ${va} =Floor(${random * va * 2 + avg - va}) = ${this.reward}` ); // + avg were being concatenated instead of summed. who knows?
         }
@@ -95,10 +95,10 @@ class Parcel extends ObservableMulti {
         this.#decayListener = () => {
             this.reward = Math.floor( this.reward - 1 );
             if ( this.reward <= 0) {
-                myClock.off( config.PARCEL_DECADING_INTERVAL, this.#decayListener );
+                myClock.off( config.GAME.parcels.decading_event, this.#decayListener );
             }
         };
-        myClock.on( config.PARCEL_DECADING_INTERVAL, this.#decayListener );
+        myClock.on( config.GAME.parcels.decading_event, this.#decayListener );
         
     }
 
@@ -108,7 +108,7 @@ class Parcel extends ObservableMulti {
     cleanup() {
         // Remove clock listener
         if ( this.#decayListener ) {
-            myClock.off( config.PARCEL_DECADING_INTERVAL, this.#decayListener );
+            myClock.off( config.GAME.parcels.decading_event, this.#decayListener );
         }
         // Remove carrier follower listener
         if ( this.carriedBy && this.#followCarrier ) {

@@ -10,7 +10,7 @@
 
     const maps = ref([]);
 
-    fetch(HOST + "/api/maps")
+    fetch(HOST + "/api/content/maps")
     .then( res => res.json() )
     .then( data => {
         maps.value = data;

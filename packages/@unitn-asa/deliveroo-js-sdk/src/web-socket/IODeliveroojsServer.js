@@ -4,7 +4,10 @@ import { IOServer } from './generics/IOServer.js';
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOTile} IOTile
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} IOInfo
+ * @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOGameOptions.js').IOGameOptions} IOGameOptions
+ * @typedef {import('@unitn-asa/deliveroo-js-sdk/src/IOConfig.js').IOConfig} IOConfig
  * 
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOClientEvents} IOClientEvents on the server side these are to be listened with .on
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOServerEvents} IOServerEvents on the server side these are to be emitted with .emit
@@ -61,7 +64,7 @@ export class IODeliveroojsServer extends IOServer {
     }
 
     /**
-     * @param { {} } config
+     * @param { IOConfig } config
      */
     emitConfig ( config ) {
         super.emit( 'config', config );
@@ -101,7 +104,7 @@ export class IODeliveroojsServer extends IOServer {
     }
 
     /**
-     * @param { IOAgent [] } agents
+     * @param { IOSensing [] } agents
      * @param { IOInfo } info
      */
     emitAgentsSensing ( agents, info ) {
@@ -109,7 +112,7 @@ export class IODeliveroojsServer extends IOServer {
     }
     
     /**
-     * @param { IOParcel [] } parcels
+     * @param { IOSensing [] } parcels
      * @param { IOInfo } info
      */
     emitParcelSensing ( parcels, info ) {

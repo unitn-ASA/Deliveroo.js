@@ -4,8 +4,9 @@ import { IOClient } from './generics/IOClient.js';
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOTile} IOTile
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} IOInfo
- * 
+ *
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
  * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOServerEvents} IOServerEvents on the client side these are to be listened with .on
  */
@@ -136,7 +137,7 @@ export class IODeliveroojsClient extends IOClient {
     
     /**
      * Listen to 'agents sensing' events
-     * @param { function( IOAgent [] ) : void } callback 
+     * @param { function( IOSensing [] ) : void } callback
      */
     onAgentsSensing ( callback ) {
         this.on( "agents sensing", callback )
@@ -144,7 +145,7 @@ export class IODeliveroojsClient extends IOClient {
     
     /**
      * Listen to 'parcels sensing' events
-     * @param { function( IOParcel [] ) : void } callback 
+     * @param { function( IOSensing [] ) : void } callback
      */
     onParcelsSensing ( callback ) {
         this.on( "parcels sensing", callback )

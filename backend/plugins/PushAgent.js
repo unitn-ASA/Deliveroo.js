@@ -1,6 +1,9 @@
+console.log('PushAgent.js loaded');
+
 import Agent from '../src/deliveroo/Agent.js';
 import Grid from '../src/deliveroo/Grid.js';
 import Identity from '../src/deliveroo/Identity.js';
+import { config } from '../src/config/config.js';
 
 /**
  * @class
@@ -41,7 +44,7 @@ class PushAgent extends Agent {
             }
         }
         // console.log(this.id, 'fail move in', this.x+incr_x, this.y+incr_y)
-        this.penalty -= this.config.PENALTY;
+        this.penalty -= config.PENALTY;
         console.warn( `${this.name}(${this.id}) got penalty ${this.penalty}: move was not possible, tile either not existing, blocked or not walkable!` );
         return false;
     }
@@ -51,8 +54,3 @@ class PushAgent extends Agent {
 
 
 export default PushAgent;
-
-// Lazy plugin installation
-global.PushAgent = PushAgent;
-import config from '../config.js';
-config.AGENT_TYPE = 'PushAgent';

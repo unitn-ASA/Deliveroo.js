@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
+      "module": "es2022",
+      "target": "es2022",
+      "moduleResolution": "node",
     "sourceMap": true,
     "allowJs": true,
     "checkJs": true,
@@ -9,5 +10,9 @@
       "@/*": ["./src/*"]
     }
   },
-  "exclude": ["node_modules", "dist"]
+  "exclude": [
+    "node_modules",
+      "**/node_modules/*",
+      "dist"
+    ]
 }

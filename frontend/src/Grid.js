@@ -6,10 +6,9 @@ import { connection } from "./states/myConnection.js";
 /** @typedef {import('./types/UIAgentType.js').UIAgent} UIAgent */
 /** @typedef {import('./types/UITileType.js').UITile} UITile */
 /** @typedef {import('./types/UIParcelType.js').UIParcel} UIParcel */
-/**
- * @typedef info
- * @type {import("@unitn-asa/deliveroo-js-sdk").IOInfo}
- */
+
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} info */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing */
 
 
 
@@ -33,10 +32,11 @@ export class Grid {
     /** @type {number} */
     height = 0;
 
-/**
- * @type {Map<number,UITile>} tiles
- */
-tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
+    /**
+     * @type {Map<number,UITile>} tiles
+     */
+    tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
+    
     getTile (x, y) {
         if ( !this.tiles.has(x + y*1000) ) {
             /** @type {UITile} */
@@ -46,12 +46,14 @@ tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
                 type: '0',
                 hoovered: false,
                 selected: false,
-                perceivingAgents: computed( () => {
-                    return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.AGENTS_OBSERVATION_DISTANCE ) ? true : false;
-                } ),
-                perceivingParcels: computed( () => {
-                    return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.PARCELS_OBSERVATION_DISTANCE ) ? true : false;
-                } )
+                perceivingAgents: false,
+                perceivingParcels: false,
+                // perceivingAgents: computed( () => {
+                //     return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.AGENTS_OBSERVATION_DISTANCE ) ? true : false;
+                // } ),
+                // perceivingParcels: computed( () => {
+                //     return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.PARCELS_OBSERVATION_DISTANCE ) ? true : false;
+                // } )
             };
             this.tiles.set( x + y*1000, newTile );
         }
@@ -94,6 +96,13 @@ tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
         }
         return agent;
     }
+    
+    /**
+     * @type {(x:number,y:number)=>UIAgent}
+     */
+    getAgentAt ( x, y ) {
+        return Array.from(this.agents.values()).find( agent => Math.round(agent.x) == x && Math.round(agent.y) == y );
+    }
 
     /**
      * @type {Map<string,UIParcel>} parcels
@@ -124,7 +133,7 @@ tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
 
 
 
-        /** @type {import("vue").Ref<UIAgent|UITile|UIParcel>} */
+    /** @type {import("vue").Ref<UIAgent|UITile|UIParcel>} */
     hoovered = ref();
 
     /** @type {import("vue").Ref<UITile>} */
@@ -271,21 +280,6 @@ tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
             me.score = score
             me.penalty = penalty
 
-            // // when arrived
-            // if ( x % 1 == 0 && y % 1 == 0 ) {
-            //     for ( var tile of this.tiles.values() ) {
-            //         var distance = Math.abs(x-tile.x) + Math.abs(y-tile.y);
-            //         let opacity = 0.1;
-            //         if ( !( distance >= PARCELS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
-            //         if ( !( distance >= AGENTS_OBSERVATION_DISTANCE ) ) opacity += 0.2;
-            //         tile.opacity = ( opacity > 0.4 ? 1 : opacity );
-            //     }
-            // } else { // when moving
-            //     // me.animateMove(x, y)
-            // }
-
-            //updateLeaderboard( me );
-
         });
 
         socket.on( "controller", ( action, {id, name, teamId, teamName, score} ) => {
@@ -297,54 +291,74 @@ tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
             agent.score = score;
             agent.status = action == 'connected' ? "online" : "offline";
         });
-        // this.socket.on( "agent disconnected", (agent) => {
-        //     // console.log( "Grid.js socket.on(agent disconnected)", agent )
-        //     this.getOrCreateAgent(agent.id).status = "offline";
-        // });
 
+        socket.on("agents sensing", (arrayOfSensing, info) => {
 
-        socket.on("agents sensing", (sensedReceived, info) => {
-
-            //console.log("agents sensing", ...sensed)//, sensed.length)
+            // console.log("agents sensing", arrayOfSensing.filter( s => s.agent != undefined ).length, 'out of', arrayOfSensing.length, 'tiles' )
 
             this.info.value = info;
 
-            var sensed = Array.from(sensedReceived)
+            // /** @type {IOSensing[]} */
+            // var arrayOfSensing = Array.from(sensedReceived)
             
-            var sensed_ids = sensed.map( ({id}) => id )
-            for ( const [id, agent] of this.agents.entries() ) {
-                if ( id != this.me.value.id && ! sensed_ids.includes( id ) ) {
-                    // agent.opacity = 0;
-                    // this.agents.delete( agent.id );
-                    if ( agent.status == 'online' ) agent.status = 'out of range';
+            // for all tiles on the grid, check if sensed and update 'perceivingAgents' flag
+            for ( const tile of this.tiles.values() ) {
+                let theSensing = arrayOfSensing.find( s => s.x == tile.x && s.y == tile.y );
+                // let isMytile = ( tile.x == this.me.value.x && tile.y == this.me.value.y );
+                // if ( sensing ) console.log('Grid.js agents sensing', tile.x, tile.y, isMytile?'(my tile)':'', tile.perceivingAgents?'already':'not yet', 'perceiving');
+                tile.perceivingAgents = theSensing ? true : false;
+            }
+
+            // for all known agents on the grid, if not sensed set status in 'out of range'
+            for ( const agent of this.agents.values() ) {
+                if ( agent.id != this.me.value.id ) {
+                    let sensedAgent = arrayOfSensing.find( s => s.agent?.id == agent.id );
+                    if ( ! sensedAgent ) {
+                        // agent.opacity = 0;
+                        // this.agents.delete( agent.id );
+                        if ( agent.status == 'online' ) agent.status = 'out of range';
+                    }
                 }
             }
 
-            for ( const sensed_agent of sensed ) {
-                const {id, name, teamId, teamName, x, y, score, penalty} = sensed_agent;
-                var agent = this.getOrCreateAgent( id )
-                agent.name = name;
-                agent.teamId = teamId
-                agent.teamName = teamName;
-                agent.x = x;
-                agent.y = y;
-                agent.score = score;
-                agent.penalty = penalty;
-                agent.opacity = 1;
-                agent.status = 'online';
+            // for all sensed agents, update or create
+            for ( const {agent} of arrayOfSensing ) {
+                // console.log('Grid.js agents sensing loop', agent, agent?.id)
+                if ( agent && agent.id ) {
+                    const {id, name, teamId, teamName, x, y, score, penalty} = agent;
+                    var sensedAgent = this.getOrCreateAgent( id )
+                    sensedAgent.name = name;
+                    sensedAgent.teamId = teamId
+                    sensedAgent.teamName = teamName;
+                    sensedAgent.x = x;
+                    sensedAgent.y = y;
+                    sensedAgent.score = score;
+                    sensedAgent.penalty = penalty;
+                    sensedAgent.opacity = 1;
+                    sensedAgent.status = 'online';
+                    // console.log('Grid.js sensed agent', id, name, 'at', x, y);
+                }
             }
 
         });
 
-        socket.on("parcels sensing", (sensedReceived, info) => {
+        socket.on("parcels sensing", (arrayOfSensing, info) => {
 
-            // console.log("parcels sensing", ...sensedReceived, clock)//, sensed.length)
+            // console.log("parcels sensing", arrayOfSensing.length)
 
             this.info.value = info;
 
-            var sensed = Array.from(sensedReceived)
+            // /** @type {IOSensing[]} */
+            // var arrayOfSensing = Array.from(arrayOfSensing)
 
-            var sensed_ids = sensed.map( ({id}) => id )
+            // for all known tile, update perceivingParcels flag
+            for ( const tile of this.tiles.values() ) {
+                let oneSensing = arrayOfSensing.find( s => s.x == tile.x && s.y == tile.y );
+                tile.perceivingParcels = oneSensing ? true : false;
+            }
+
+            // for all known parcels, if not in sensed, remove
+            var sensed_ids = arrayOfSensing.map( ({parcel}) => parcel?.id ).filter( id => id !== undefined )
             for ( const [id, was] of this.parcels.entries() ) {
                 if ( ! sensed_ids.includes( was.id ) ) {
                     // console.log('no more sensing parcel', knownId)
@@ -357,8 +371,11 @@ tiles = reactive (new Map());    /** @type {function(number,number):UITile} */
                 }
             }
 
-            for ( const {id, x, y, carriedBy, reward} of sensed ) {
-                
+            // for all sensed parcels, update or create
+            for ( const {x, y, parcel} of arrayOfSensing ) {
+                if ( ! parcel ) continue;
+                const {id, carriedBy, reward} = parcel;
+
                 const was = this.getOrCreateParcel( id );
                 was.x = x;
                 was.y = y;

@@ -5,8 +5,8 @@
  *   mesh?: import('three').Mesh;
  *   hoovered?: boolean;
  *   selected?: boolean;
- *   perceivingAgents?: import('vue').ComputedRef<boolean>;
- *   perceivingParcels?: import('vue').ComputedRef<boolean>;
+ *   perceivingAgents?: boolean;
+ *   perceivingParcels?: boolean;
  *   opacity?: number;
  * }} UITile
  */

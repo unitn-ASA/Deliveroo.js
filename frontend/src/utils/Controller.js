@@ -143,12 +143,24 @@ export class Controller {
         } );
 
         watch ( () => keys.Digit4, async () => {
-            while ( keys.Digit4 ) {
-                if ( connection.grid.hoovered.value ) {
-                    var { x, y } = connection.grid.hoovered.value;
-                    socket.emit( 'tile', { x, y, type: '4' } );
+            if ( keys.Digit4 && connection.grid.hoovered.value ) {
+                var { x, y } = connection.grid.hoovered.value;
+                const currentTile = connection.grid.getTile(x, y);
+                const directionalTiles = ['↑', '→', '↓', '←'];
+
+                // Find current index or start at -1
+                let currentIndex = directionalTiles.indexOf(currentTile.type);
+                if (currentIndex === -1) {
+                    currentIndex = -1; // Not a directional tile, start from beginning
                 }
-                await new Promise( res => setTimeout(res) );
+
+                // Cycle to next direction
+                const nextIndex = (currentIndex + 1) % directionalTiles.length;
+                socket.emit( 'tile', { x, y, type: directionalTiles[nextIndex] } );
+
+                // Prevent rapid cycling
+                keys.Digit4 = false;
+                await new Promise( res => setTimeout(res, 200) );
             }
         } );
 
