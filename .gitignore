@@ -24,3 +24,7 @@ bin
 .DS_Store
 
 **/.git-revision
+
+.claude/**
+
+.continue/**

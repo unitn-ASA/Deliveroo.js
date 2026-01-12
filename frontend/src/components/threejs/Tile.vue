@@ -46,13 +46,13 @@
     watch( [() => tile.hoovered, () => tile.selected ], ([hovered, selected]) => {
         if ( hovered ) {
             mesh.scale.set( 1.5, 1.5, 1.5 );
-            material.emissiveIntensity = 1;
+            // material.emissiveIntensity = 1;
         } else if ( selected ) {
             mesh.scale.set( 1.3, 1.3, 1.3 );
-            material.emissiveIntensity = 1;
+            // material.emissiveIntensity = 1;
         } else {
             mesh.scale.set( 1, 1, 1 );
-            material.emissiveIntensity = 0;
+            // material.emissiveIntensity = 0;
         }
     });
 

@@ -19,7 +19,7 @@
      */
 
 	const threeContainer = ref(null);
-	let scene, camera, renderer, labelRenderer;
+	let scene, camera, renderer, labelRenderer, requestAnimationFrameID;
 
 	scene = new THREE.Scene();
 	// scene.background = new THREE.Color( 0xffffff );
@@ -182,6 +182,7 @@
 
         const mouse = new THREE.Vector2();
         const raycaster = new THREE.Raycaster();
+		/** @type {THREE.Intersection<THREE.Object3D<THREE.Object3DEventMap>>[]} */
 		var intersections = []
 		let hoveredObj = null;
 		// let x = Math.round( hoveredObj.position.x / 1.5 );
@@ -233,10 +234,10 @@
 			renderer.render(scene, camera);
 			labelRenderer.render(scene, camera);
 
-			requestAnimationFrame( animate );
+			requestAnimationFrameID = requestAnimationFrame( animate );
 		};
 
-		requestAnimationFrame( animate );
+		requestAnimationFrameID = requestAnimationFrame( animate );
 
 		// Gestisci il ridimensionamento della finestra
 		window.addEventListener('resize', onWindowResize);
@@ -244,6 +245,8 @@
 	});
 
 	onUnmounted(() => {
+		// Stop the animation loop, otherwise it will continue to run even when the component is unmounted, creating weird bugs
+		cancelAnimationFrame(requestAnimationFrameID); // this fixes the hoovering issue when switching to another ThreeScene instance
 		// Pulisci la scena di Three.js
 		window.removeEventListener('resize', onWindowResize);
 		// threeContainer.value.removeChild(renderer.domElement);

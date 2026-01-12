@@ -31,9 +31,9 @@
 		new Controller( connection );
     })
 
-    // onUnmounted(() => {
-    //     console.log('Deliveroojs.vue onUnmounted()')
-    // })
+    onUnmounted(() => {
+        // console.log('Deliveroojs.vue onUnmounted()')
+    })
 
 </script>
 
