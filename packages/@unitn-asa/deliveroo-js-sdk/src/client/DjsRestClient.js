@@ -49,7 +49,7 @@
 /**
  * @class
  */
-export class DeliveroojsRestClient {
+export class DjsRestClient {
 
 
 
@@ -66,7 +66,7 @@ export class DeliveroojsRestClient {
      */
     constructor( HOST ) {
         this.#HOST = HOST;
-        console.log("API Client initialized with HOST:", this.HOST);
+        console.log("DjsRestClient (API RESTful Client) initialized with HOST:", this.HOST);
     }
 
 
@@ -378,9 +378,9 @@ export class DeliveroojsRestClient {
 
 
 
-// Tests
+// Example usage:
 // 
-// const api = new DeliveroojsApiClient('http://localhost:8080');
+// const api = new DeliveroojsRestClient('http://localhost:8080');
 // api.get('agents', '', 'some-token').then( agents => console.log( agents ) );
 // api.get('agents/:id', 'some-id', 'some-token').then( agent => console.log( agent ) );
 // api.post('agents', 'some-token', {

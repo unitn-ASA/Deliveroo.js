@@ -1,17 +1,11 @@
 
-/** @typedef {import('../../types/IOAgent.js').IOAgent} IOAgent */
-/** @typedef {import('../../types/IOTile.js').IOTile} IOTile */
-/** @typedef {import('../../types/IOInfo.js').IOInfo} IOInfo */
+/** @typedef {import('./IOAgent.js').IOAgent} IOAgent */
+/** @typedef {import('./IOTile.js').IOTile} IOTile */
+/** @typedef {import('./IOInfo.js').IOInfo} IOInfo */
+/** @typedef {import('./IOSensing.js').IOSensing} IOSensing */
 
 /**
- * @typedef IOSensing
- * @property {number} x
- * @property {number} y
- * @property {IOAgent=} agent
- * @property {IOParcel=} parcel
- */
-
-/**
+ * Client -> Server events. Emitted by the client and listened by the server.
  * @typedef {{
  *      'disconnect':   function () : void,
  *      'move':         function ( 'up' | 'right' | 'left' | 'down' | { x:number, y:number }, function ( { x:number, y:number } | false ) : void = ) : { x:number, y:number } | false,
@@ -28,6 +22,7 @@
  */
 
 /**
+ * Server -> Client events. Emitted by the server and listened by the client.
  * @typedef {{
  *      'connect':          function () : void,
  *      'disconnect':       function () : void,

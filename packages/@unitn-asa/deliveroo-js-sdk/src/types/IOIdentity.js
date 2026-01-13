@@ -1,5 +1,6 @@
+
 /**
- * @typedef IdentityType
+ * @typedef IOIdentity
  * @type {{
  *   id: string,
  *   name: string,
@@ -8,4 +9,4 @@
  * }}
  */
 
-export const IdentityType = /** @type {IdentityType} */ ({});
+export {};

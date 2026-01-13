@@ -4,19 +4,17 @@
   "description": "Software development kit for Deliveroo.js",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
-  "main": "./index.js",
-  "module": "./index.js",
   "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
   },
   "exports": {
-    ".": "./index.js",
-    "./DeliveroojsAsyncClient": "./src/web-socket/DeliveroojsAsyncClient.js",
-    "./DeliveroojsRestClient": "./src/web-service/DeliveroojsRestClient.js",
     "./types/*": "./src/types/*",
-    "./src/*": "./src/*"
+    "./client": "./src/client/index.js",
+    "./client/*": "./src/client/*",
+    "./server": "./src/server/index.js",
+    "./server/*": "./src/server/*"
   },
   "types": "index.js",
   "files": [

@@ -1,4 +1,4 @@
-import { AbstractSocketServerWrapper } from './generics/AbstractSocketServerWrapper.js';
+import { Socket } from 'socket.io';
 
 /**
  * @typedef {import("../types/IOAgent.js").IOAgent} IOAgent
@@ -7,53 +7,37 @@ import { AbstractSocketServerWrapper } from './generics/AbstractSocketServerWrap
  * @typedef {import("../types/IOConfig.js").IOConfig} IOConfig
  * @typedef {import("../types/IOInfo.js").IOInfo} IOInfo
  * 
- * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOSensing} IOSensing
- *
- * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
- * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOServerEvents} IOServerEvents on the client side these are to be listened with .on
- */
-
-
-
-/**
- * @typedef {import("socket.io").Socket< IOClientEvents, IOServerEvents >} ServerSocket
+ * @typedef {import("../types/IOSocketEvents.js").IOSensing} IOSensing
+ * @typedef {import("../types/IOSocketEvents.js").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
+ * @typedef {import("../types/IOSocketEvents.js").IOServerEvents} IOServerEvents on the client side these are to be listened with .on
  */
 
 
 
 /**
  * @class
- * @extends { AbstractSocketServerWrapper<IOClientEvents, IOServerEvents> }
+ * @extends { Socket<IOClientEvents, IOServerEvents> }
  */
-export class DeliveroojsSocketServerWrapper extends AbstractSocketServerWrapper {
+export class DjsServerSocket extends Socket {
 
     warnings = new Array();
 
-    /**
-     * @param {ServerSocket} socket 
-     */
-    constructor ( socket ) {
-
-        super( socket );
-        
-    }
-
-    /**
-     * @template {keyof IOClientEvents} K
-     * @param {K} event
-     * @param {IOClientEvents[K]} listener
-     * @returns {void}
-     */
+    // /**
+    //  * @template {keyof IOClientEvents} K
+    //  * @param {K} event
+    //  * @param {IOClientEvents[K]} listener
+    //  * @returns {void}
+    //  */
     on ( event, listener ) {
         return super.on( event, (...args) => {
             try {
                 return listener.apply( this, args );
             } catch (error) {
-                console.error( `WARN Socket ${super.socket.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`, error );
-                this.warnings.push( {
-                    msg: `WARN Socket ${super.socket.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`,
-                    error: error
-                } );
+                console.error( `WARN Socket ${this.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`, error );
+                // this.warnings.push( {
+                //     msg: `WARN Socket ${this.id} on( ${String(event)}, ${args.slice(0,-1).join(', ')} ).`,
+                //     error: error
+                // } );
             }
         });
     }
@@ -248,7 +232,7 @@ export class DeliveroojsSocketServerWrapper extends AbstractSocketServerWrapper 
             src,
             ms: info.ms,
             frame: info.frame,
-            socket: super.socket.id,
+            socket: this.id,
             id: myId,
             name: myName
         }, ...message );
@@ -280,4 +264,52 @@ export class DeliveroojsSocketServerWrapper extends AbstractSocketServerWrapper 
         this.on( 'restart', callback );
     }
 
+
+
+    /**
+     * Enhance a Socket.io Socket into a DjsSocket
+     * @param { Socket } socket
+     * @returns { DjsServerSocket }
+     */
+    static enhance(socket) {
+
+        /**
+         * Mixin function to copy methods from a class prototype to an object
+         */
+        function applyMixin(target, MixinClass) {
+            
+            let proto = MixinClass.prototype;
+
+            const descriptors = Object.getOwnPropertyDescriptors(proto);
+            delete descriptors.constructor;
+            
+            Object.defineProperties(target, descriptors);
+
+            return target;
+        }
+        applyMixin(socket, DjsServerSocket);
+
+        /**
+         * Original socket enhanced with ClientSocketEnhancer methods casted as EnhancedSocket
+         * @type { DjsServerSocket }
+        */
+    // @ts-ignore
+        return socket;
+
+    }
+
 }
+
+
+
+
+// import { Server } from 'socket.io';
+// const ioserver = new Server();
+// ioserver.listen( 3000 );
+// ioserver.on( 'connection', ( socket ) => {
+//     const enhancedSocket = enhanceServerSocket( socket );
+//     enhancedSocket.onMove( ( direction ) => {
+//         console.log( `Client ${enhancedSocket.id} moved ${direction}` );
+//         return { success: true };
+//     } );
+// } );

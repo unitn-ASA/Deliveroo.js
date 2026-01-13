@@ -82,7 +82,7 @@
             mesh.remove(label);
             scene.remove(mesh);
         }
-    });
+    }, { immediate: true } );
 
     /*
      * Sync Mesh Position at beginning when still undefined

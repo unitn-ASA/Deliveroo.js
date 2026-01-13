@@ -1,7 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { readFile, readFileSync, readdirSync } from 'fs';
-import { parseClockEvent } from '@unitn-asa/deliveroo-js-sdk';
+import { parseClockEvent } from '@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
