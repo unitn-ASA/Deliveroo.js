@@ -1,6 +1,6 @@
 
-/** @typedef { import("../web-socket/IOClockEvent").IOClockEvent } IOClockEvent */
-/** @typedef { import("../IOTileType").IOTileType } IOTileType */
+/** @typedef { import("./IOClockEvent.js").IOClockEvent } IOClockEvent */
+/** @typedef { import("./IOTile.js").IOTileType } IOTileType */
 
 /**
  * @typedef IOGameOptions
@@ -19,7 +19,7 @@
  * @typedef IOMapOptions
  * @property {number} width                             Map width in tiles
  * @property {number} height                            Map height in tiles
- * @property {IOTileType[][]} tiles                         2D array of tile types
+ * @property {IOTileType[][]} tiles                     2D array of tile types
 */
 
 /**

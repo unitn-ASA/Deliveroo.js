@@ -1,14 +1,14 @@
 {
-    "compilerOptions": {
-      "module": "es2022",
-      "target": "es2022",
-      "moduleResolution": "node",
-      "sourceMap": true,
-      "allowJs": true,
-      "checkJs": true
-    },
-    "exclude": [
-      "node_modules",
-      "**/node_modules/*"
-    ]
+  "compilerOptions": {
+    "module": "NodeNext",
+    "target": "es2022",
+    "moduleResolution": "nodenext", // Aggiungi questa riga
+    "sourceMap": true,
+    "allowJs": true,
+    "checkJs": true
+  },
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*"
+  ]
 }

@@ -1,21 +1,20 @@
 import { ref, reactive, shallowReactive, watch, computed } from "vue";
 import { default as io, Socket } from 'socket.io-client';
-import { IODeliveroojsClient } from "@unitn-asa/deliveroo-js-sdk";
+import { DeliveroojsSocketClientWrapper } from "@unitn-asa/deliveroo-js-sdk";
 import { connection } from "./states/myConnection.js";
 
 /** @typedef {import('./types/UIAgentType.js').UIAgent} UIAgent */
 /** @typedef {import('./types/UITileType.js').UITile} UITile */
 /** @typedef {import('./types/UIParcelType.js').UIParcel} UIParcel */
 
-/** @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} info */
-/** @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOInfo.js").IOInfo} IOInfo */
 
 
 
 export class Grid {
 
     /**
-     * @type {IODeliveroojsClient} socket
+     * @type {DeliveroojsSocketClientWrapper} socket
      */
     socket;
 
@@ -24,7 +23,7 @@ export class Grid {
      */
     configs = shallowReactive ({});
 
-    /** @type {import("vue").Ref<info>} */
+    /** @type {import("vue").Ref<IOInfo>} */
     info = ref();
 
     /** @type {number} */
@@ -204,7 +203,7 @@ export class Grid {
 
     /**
      * Socket constructor
-     * @param {IODeliveroojsClient} socket
+     * @param {DeliveroojsSocketClientWrapper} socket
      */
     constructor ( socket ) {
 

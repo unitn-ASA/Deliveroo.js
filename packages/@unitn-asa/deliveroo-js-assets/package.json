@@ -2,51 +2,28 @@
   "name": "@unitn-asa/deliveroo-js-assets",
   "version": "1.0.0",
   "description": "Game assets (maps, levels) and content API for Deliveroo.js",
+  "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
   "main": "./index.js",
-  "module": "./index.mjs",
+  "module": "./index.js",
   "bin": {
     "deliveroojs-assets": "./cli.js"
   },
   "exports": {
-    ".": {
-      "import": "./index.js",
-      "require": "./index.cjs"
-    },
-    "./maps": {
-      "import": "./src/maps.js",
-      "require": "./src/maps.cjs"
-    },
-    "./games": {
-      "import": "./src/games.js",
-      "require": "./src/games.cjs"
-    },
-    "./routes": {
-      "import": "./src/routes/index.js",
-      "require": "./src/routes/index.cjs"
-    }
+    ".": "./index.js",
+    "./games.js": "./src/games.js",
+    "./routes/games.js": "./src/routes/games.js"
   },
   "files": [
     "assets/",
     "src/",
     "cli.js",
-    "index.js",
-    "index.mjs"
+    "index.js"
   ],
   "scripts": {
     "cli": "node cli.js",
     "test": "echo \"No tests yet\""
   },
-  "keywords": [
-    "assets",
-    "maps",
-    "levels",
-    "api",
-    "routes",
-    "cli",
-    "deliveroo"
-  ],
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "commander": "^12.0.0",

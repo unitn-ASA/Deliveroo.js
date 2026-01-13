@@ -2,12 +2,12 @@ import { args } from './argParser.js';
 import { loadGame } from '@unitn-asa/deliveroo-js-assets';
 import { readFileSync } from 'fs';
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/web-socket/IOClockEvent.js').IOClockEvent} IOClockEvent */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IOGameOptions} IOGameOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IOParcelsOptions} IOParcelsOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IOPlayerOptions} IOPlayerOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOConfig.js').IOConfig} IOConfig */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOClockEvent.js').IOClockEvent} IOClockEvent */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOConfig.js').IOConfig} IOConfig */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOGameOptions.js').IOGameOptions} IOGameOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOGameOptions.js').IOParcelsOptions} IOParcelsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOGameOptions.js').IOPlayerOptions} IOPlayerOptions */
 
 
 /**

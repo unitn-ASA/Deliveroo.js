@@ -10,7 +10,7 @@ const GAMES_DIR = path.resolve(__dirname, '..', 'assets', 'games');
 
 
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions').IOGameOptions} IOGameOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IOGameOptions} IOGameOptions */
 
 /**
  * @typedef {Object} ValidationError

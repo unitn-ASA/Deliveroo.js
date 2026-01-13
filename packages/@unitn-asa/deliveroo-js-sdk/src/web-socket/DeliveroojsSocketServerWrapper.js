@@ -1,34 +1,36 @@
-import { IOServer } from './generics/IOServer.js';
+import { AbstractSocketServerWrapper } from './generics/AbstractSocketServerWrapper.js';
 
 /**
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOTile} IOTile
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} IOInfo
- * @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IOGameOptions} IOGameOptions
- * @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOConfig.js').IOConfig} IOConfig
+ * @typedef {import("../types/IOAgent.js").IOAgent} IOAgent
+ * @typedef {import("../types/IOParcel.js").IOParcel} IOParcel
+ * @typedef {import("../types/IOTile.js").IOTile} IOTile
+ * @typedef {import("../types/IOConfig.js").IOConfig} IOConfig
+ * @typedef {import("../types/IOInfo.js").IOInfo} IOInfo
  * 
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOClientEvents} IOClientEvents on the server side these are to be listened with .on
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOServerEvents} IOServerEvents on the server side these are to be emitted with .emit
- */
-
-/**
- * @typedef {import("socket.io").Socket< IOClientEvents, IOServerEvents >} IODeliveroojsServerSocket
+ * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOSensing} IOSensing
+ *
+ * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
+ * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOServerEvents} IOServerEvents on the client side these are to be listened with .on
  */
 
 
 
 /**
- * @class ioServerInterface
- * @extends { IOServer<IOClientEvents, IOServerEvents> }
+ * @typedef {import("socket.io").Socket< IOClientEvents, IOServerEvents >} ServerSocket
  */
-export class IODeliveroojsServer extends IOServer {
+
+
+
+/**
+ * @class
+ * @extends { AbstractSocketServerWrapper<IOClientEvents, IOServerEvents> }
+ */
+export class DeliveroojsSocketServerWrapper extends AbstractSocketServerWrapper {
 
     warnings = new Array();
 
     /**
-     * @param {IODeliveroojsServerSocket} socket 
+     * @param {ServerSocket} socket 
      */
     constructor ( socket ) {
 

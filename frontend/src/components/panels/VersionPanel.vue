@@ -14,7 +14,7 @@ import { ref, onMounted, computed } from 'vue';
     /** @type {import('vue').Ref<string>} */
     const backendPackageVersion = ref("");
 
-    /** @type {import('vue').Ref<{}>} */
+    /** @type {import('vue').Ref<any>} */
     const backendHashCompare = ref({});
 
     const HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
@@ -27,6 +27,7 @@ import { ref, onMounted, computed } from 'vue';
             // console.log(data);
             backendCommitHash.value = data.commitHash;
             backendPackageVersion.value = data.packageVersion;
+            // https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#compare-two-commits
             fetch( `https://api.github.com/repos/unitn-asa/Deliveroo.js/compare/HEAD...${data.commitHash}` )
             .then( res => res.json() )
             .then( data => {

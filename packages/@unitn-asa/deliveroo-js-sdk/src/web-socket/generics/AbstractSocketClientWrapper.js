@@ -1,16 +1,16 @@
-import { IOGenerics } from './IOGenerics.js';
+import { AbstractSocketWrapper } from './AbstractSocketWrapper.js';
 
 /**
  * @class
  * @template { Record< string, function(...any):void > } onEv events to be listened with .on
  * @template { Record< string, function(...any):void > } emitEv events to be emitted with .emit
- * @extends { IOGenerics<
+ * @extends { AbstractSocketWrapper<
  *                          onEv,
  *                          emitEv,
  *                          import("socket.io-client").Socket< onEv, emitEv >
  * > }
  */
-export class IOClient extends IOGenerics {
+export class AbstractSocketClientWrapper extends AbstractSocketWrapper {
 
     /**
      * @param { import("socket.io-client").Socket< onEv, emitEv > } socket 

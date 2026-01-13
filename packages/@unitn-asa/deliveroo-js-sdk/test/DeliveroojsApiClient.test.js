@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { IODeliveroojsApi } from '../src/web-service/IODeliveroojsApi.js';
+import { DeliveroojsApiClient } from '../src/web-service/DeliveroojsApiClient.js';
 
 const assert = (cond, msg) => { if (!cond) { console.error('FAIL:', msg); process.exit(1); } };
 
@@ -17,7 +17,7 @@ function makeResponseLike(obj = {}, ok = true) {
 }
 
 async function run() {
-    const api = new IODeliveroojsApi('http://example.test');
+    const api = new DeliveroojsApiClient('http://example.test');
 
     // 1) GET without id - fetch resolves to a plain value -> api.get uses JSON.stringify on it
     let captured = { url: null, options: null };

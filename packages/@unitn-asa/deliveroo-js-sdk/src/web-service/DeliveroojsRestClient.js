@@ -1,24 +1,159 @@
 
-class APIClient {
+/**
+ * @typedef {import("../types/IOAgent.js").IOAgent} IOAgent
+ * @typedef {import("../types/IOParcel.js").IOParcel} IOParcel
+ * @typedef {import("../types/IOConfig.js").IOConfig} IOConfig
+ */
 
-    /**
-     * @param {string} HOST
-     */
-    HOST = 'http://localhost:8080';
+
+
+/**
+ * @typedef {{
+ *      'agents': () => IOAgent[],
+ *      'agents/:id': () => IOAgent,
+ *      'configs': () => IOConfig,
+ *      'levels': () => IOConfig[],
+ *      'level': () => IOConfig,
+ *      'maps': () => any[],
+ *      'map': () => any,
+ *      'npcs': () => any[],
+ *      'npc': () => any,
+ *      'parcels': () => IOParcel[],
+ *      'parcel': () => IOParcel,
+ * }} IODeliveroojsGETRoutes
+ */
+
+/**
+ * @typedef {{
+ *      'agents': (body: IOAgent) => IOAgent,
+ *      'levels': (body: IOConfig) => IOConfig,
+ *      'maps': (body: any) => IOConfig,
+ *      'npcs': (body: any) => {},
+ *      'parcels': (body: IOParcel) => IOParcel,
+ * }} IODeliveroojsPOSTRoutes
+ */
+
+/**
+ * @typedef {{
+ *      'agents': () => IOAgent[],
+ *      'agents/:id': () => IOAgent,
+ *      'npcs': () => any[],
+ *      'npc': (id: string) => any,
+ *      'parcels': () => IOParcel[],
+ *      'parcel': (id: string) => IOParcel,
+ * }} IODeliveroojsDELETERoutes
+ */
+
+
+
+/**
+ * @class
+ */
+export class DeliveroojsRestClient {
+
+
+
+    /** @type {string} */
+    #HOST = 'http://localhost:8080';
+    /** @type {string} */
+    get HOST() { return this.#HOST }
+
+
 
     /**
      * Initialize HOST for API calls.
      * @param {string} HOST
      */
     constructor( HOST ) {
-        this.HOST = HOST;
+        this.#HOST = HOST;
         console.log("API Client initialized with HOST:", this.HOST);
     }
+
+
+
+    /**
+     * @template { keyof IODeliveroojsGETRoutes } K
+     * @param { K } resource
+     * @param { string } id
+     * @param { string } token
+     * @returns {Promise<ReturnType<IODeliveroojsGETRoutes[K]>>}
+     */
+    async get ( resource, id, token ) {
+
+        return new Promise( (resolve, reject) => {
+
+            // replace placeholder ':id' with value of id in string resource
+            const url = this.HOST+'/api/'+resource.replace( ':id', id );
+
+            console.log( 'GET', url );
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-token': token
+                }
+            })
+            
+            .then( JSON.stringify )
+            
+            .then( body => resolve( /** @type {any} */ (body)) )
+            
+            .catch(error => {
+                console.error('An error occurred:', error);
+                reject('Error getting config');
+            });
+
+        } );
+
+    }
+
+
+
+    /**
+     * @template { keyof IODeliveroojsPOSTRoutes } K
+     * @param { K } resource
+     * @param { string } token
+     * @param { Parameters<IODeliveroojsPOSTRoutes[K]>[0] } body
+     * @returns {Promise<ReturnType<IODeliveroojsPOSTRoutes[K]>>}
+     */
+    async post ( resource, token, body ) {
+
+        return new Promise( (resolve, reject) => {
+
+            const url = this.HOST+'/api/'+resource;
+            
+            console.log( 'POST', url, body );
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-token': token
+                },
+                body: JSON.stringify( body )
+            })
+            
+            .then( JSON.stringify )
+            
+            .then( body => resolve( /** @type {any} */ (body)) )
+            
+            .catch(error => {
+                console.error('An error occurred:', error);
+                reject('Error getting config');
+            });
+
+        } );
+
+    }
+
+
 
     async getToken(name, team, password) {
         return new Promise((resolve, reject) => {
 
             console.log("Name fetch: ", name + " team fetch: ", team);
+
             fetch(this.HOST+'/api/tokens', {
                 method: 'POST',
                 headers: {
@@ -45,6 +180,8 @@ class APIClient {
         });
     }
 
+
+
     async getConfig ( token ) {
         return new Promise((resolve, reject) => {
             fetch(this.HOST+'/api/configs', {
@@ -61,6 +198,8 @@ class APIClient {
             });
         });
     }
+
+
 
     /**
      * 
@@ -97,6 +236,8 @@ class APIClient {
         });
     }
 
+
+
     /**
      * @param {string} token
      * @param {string} id 
@@ -127,6 +268,8 @@ class APIClient {
             });
         });
     }
+
+
 
     /**
      * @param {string} token 
@@ -161,6 +304,8 @@ class APIClient {
         });
     }
 
+
+
     /**
      * 
      * @param {string} token
@@ -192,6 +337,7 @@ class APIClient {
             });
         });
     }
+
 
 
     /**
@@ -226,6 +372,25 @@ class APIClient {
         });
     }
 
+
+
 }
 
-export default APIClient;
+
+
+// Tests
+// 
+// const api = new DeliveroojsApiClient('http://localhost:8080');
+// api.get('agents', '', 'some-token').then( agents => console.log( agents ) );
+// api.get('agents/:id', 'some-id', 'some-token').then( agent => console.log( agent ) );
+// api.post('agents', 'some-token', {
+//     id: 'agent-123',
+//     name: 'Agent 123',
+//     teamId: 'team-1',
+//     teamName: 'Team 1',
+//     score: 0,
+//     penalty: 0,
+//     x: 0,
+//     y: 0
+// } )
+// .then( agent => console.log( agent ) );

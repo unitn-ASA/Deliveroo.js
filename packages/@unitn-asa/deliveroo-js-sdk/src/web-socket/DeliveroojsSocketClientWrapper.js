@@ -1,28 +1,31 @@
-import { IOClient } from './generics/IOClient.js';
+import { AbstractSocketClientWrapper } from './generics/AbstractSocketClientWrapper.js';
 
 /**
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOTile} IOTile
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOInfo} IOInfo
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOConfig} IOConfig
+ * @typedef {import("../types/IOAgent.js").IOAgent} IOAgent
+ * @typedef {import("../types/IOParcel.js").IOParcel} IOParcel
+ * @typedef {import("../types/IOTile.js").IOTile} IOTile
+ * @typedef {import("../types/IOConfig.js").IOConfig} IOConfig
+ * @typedef {import("../types/IOInfo.js").IOInfo} IOInfo
+ * 
+ * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOSensing} IOSensing
  *
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOServerEvents} IOServerEvents on the client side these are to be listened with .on
+ * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
+ * @typedef {import("./types/DeliveroojsSocketIOEvents.js").IOServerEvents} IOServerEvents on the client side these are to be listened with .on
  */
 
 
 
 /**
- * @typedef {import('socket.io-client').Socket<IOServerEvents, IOClientEvents>} IODeliveroojsClientSocket
+ * @typedef {import('socket.io-client').Socket<IOServerEvents, IOClientEvents>} ClientSocket
  */
 
+
+
 /**
- * @class ioClientInterface
- * @extends { IOClient<IOServerEvents, IOClientEvents> }
+ * @class
+ * @extends { AbstractSocketClientWrapper<IOServerEvents, IOClientEvents> }
  */
-export class IODeliveroojsClient extends IOClient {
+export class DeliveroojsSocketClientWrapper extends AbstractSocketClientWrapper {
 
     /** @type { Promise < string > } */
     token;
@@ -37,7 +40,7 @@ export class IODeliveroojsClient extends IOClient {
     map;
 
     /**
-     * @param { IODeliveroojsClientSocket } socket 
+     * @param { ClientSocket } socket 
      */
     constructor ( socket ) {
 

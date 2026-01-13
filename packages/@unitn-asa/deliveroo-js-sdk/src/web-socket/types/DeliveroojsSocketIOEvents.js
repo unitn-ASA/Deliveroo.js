@@ -1,30 +1,7 @@
-/**
- * @typedef IOAgent
- * @property {string} id
- * @property {string} name
- * @property {string} teamId
- * @property {string} teamName
- * @property {number} x
- * @property {number} y
- * @property {number} score
- * @property {number} penalty
- */
 
-/**
- * @typedef IOParcel
- * @property {string} id
- * @property {number} x
- * @property {number} y
- * @property {string=} carriedBy
- * @property {number} reward
- */
-
-/**
- * @typedef IOTile
- * @property {number} x
- * @property {number} y
- * @property {string} type - Tile type: '0' (wall), '1' (walkable/spawner), '2' (delivery), '3' (walkable), or directional arrows '↑', '→', '↓', '←'
- */
+/** @typedef {import('../../types/IOAgent.js').IOAgent} IOAgent */
+/** @typedef {import('../../types/IOTile.js').IOTile} IOTile */
+/** @typedef {import('../../types/IOInfo.js').IOInfo} IOInfo */
 
 /**
  * @typedef IOSensing
@@ -32,15 +9,6 @@
  * @property {number} y
  * @property {IOAgent=} agent
  * @property {IOParcel=} parcel
- */
-
-/**
- * @typedef IOInfo
- * @property {number} ms
- * @property {number} frame
- * @property {number} fps
- * @property {number} heapUsed
- * @property {number} heapTotal
  */
 
 /**

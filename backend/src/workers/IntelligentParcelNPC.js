@@ -3,7 +3,7 @@ import timersPromises from 'timers/promises';
 import NPC from './NPC.js';
 import Xy from '../deliveroo/Xy.js';
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/config/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
 
 const actions = ['up', 'right', 'down', 'left'];
 const relPos = [{ x: 0, y: 1 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: -1, y: 0 }];

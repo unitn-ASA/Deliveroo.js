@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import { IODeliveroojsClient } from "@unitn-asa/deliveroo-js-sdk";
+import { DeliveroojsSocketClientWrapper } from "./DeliveroojsSocketClientWrapper.js";
 import { default as argsparser } from "args-parser";
 
 
@@ -18,7 +18,7 @@ let HOST = args['host'];
 
 
 
-export class DeliverooApi extends IODeliveroojsClient {
+export class DeliveroojsAsyncClient extends DeliveroojsSocketClientWrapper {
 
     constructor ( host, token = null, autoconnect = true ) {
 

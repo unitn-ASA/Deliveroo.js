@@ -4,12 +4,11 @@ import { config } from '../config/config.js';
 
 
 /**
- * @typedef { import('@unitn-asa/deliveroo-js-sdk').IOClockEvent } IOClockEvent
+ * @typedef { import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent } IOClockEvent
  */
 
 /**
- * @typedef IOInfo
- * @type {import("@unitn-asa/deliveroo-js-sdk").IOInfo}
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOInfo.js").IOInfo} IOInfo
  */
 
 

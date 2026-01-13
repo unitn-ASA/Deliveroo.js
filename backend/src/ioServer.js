@@ -8,7 +8,7 @@ import myClock from './myClock.js';
 import events from 'events';
 events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 import { tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
-import { IODeliveroojsServer } from '@unitn-asa/deliveroo-js-sdk';
+import { DeliveroojsSocketServerWrapper } from '@unitn-asa/deliveroo-js-sdk';
 import Agent from './deliveroo/Agent.js';
 import Identity from './deliveroo/Identity.js';
 import Xy from './deliveroo/Xy.js';
@@ -83,7 +83,7 @@ io.on('connection', async ( socket ) => {
         // myGrid.emit( 'agent deleted', me );
     }
 
-    new ioServer( new IODeliveroojsServer( socket ), me );
+    new ioServer( new DeliveroojsSocketServerWrapper( socket ), me );
 
 });
 
@@ -92,7 +92,7 @@ io.on('connection', async ( socket ) => {
 class ioServer {
 
     /**
-     * @param { IODeliveroojsServer } socket /**
+     * @param { DeliveroojsSocketServerWrapper } socket /**
      * @param { Agent } me
      */
     constructor( socket, me ) {
