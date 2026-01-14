@@ -39,15 +39,15 @@
     }
   ],
   "parcels": {
-    "generation_event": "2s",
+    "generation_event": "1s",
     "decading_event": "1s",
-    "max": 5,
-    "reward_avg": 30,
-    "reward_variance": 10
+    "max": 15,
+    "reward_avg": 1,
+    "reward_variance": 0
   },
   "player": {
     "movement_duration": 50,
-    "agents_observation_distance": 5,
+    "agents_observation_distance": 10,
     "parcels_observation_distance": 5,
     "capacity": 5
   }

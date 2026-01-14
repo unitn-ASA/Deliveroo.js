@@ -1,7 +1,7 @@
 {
   "title": "crossroads",
   "description": "Crossroads 25x25 map",
-  "maxPlayers": 10,
+  "maxPlayers": 2,
   "map": {
     "width": 25,
     "height": 25,
@@ -39,19 +39,25 @@
       "type": "random",
       "count": 1,
       "capacity": 5
+    },
+    {
+      "moving_event": "frame",
+      "type": "aggressive",
+      "count": 3,
+      "capacity": 5
     }
   ],
   "parcels": {
-    "generation_event": "2s",
-    "decading_event": "1s",
-    "max": 5,
+    "generation_event": "1s",
+    "decading_event": "infinite",
+    "max": 25,
     "reward_avg": 30,
-    "reward_variance": 10
+    "reward_variance": 2
   },
   "player": {
     "movement_duration": 50,
-    "agents_observation_distance": 5,
-    "parcels_observation_distance": 5,
-    "capacity": 5
+    "agents_observation_distance": 4,
+    "parcels_observation_distance": 8,
+    "capacity": 1
   }
 }

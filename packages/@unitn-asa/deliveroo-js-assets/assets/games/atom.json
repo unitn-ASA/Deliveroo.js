@@ -44,9 +44,9 @@
   "parcels": {
     "generation_event": "2s",
     "decading_event": "1s",
-    "max": 5,
-    "reward_avg": 30,
-    "reward_variance": 10
+    "max": 80,
+    "reward_avg": 90,
+    "reward_variance": 30
   },
   "player": {
     "movement_duration": 50,

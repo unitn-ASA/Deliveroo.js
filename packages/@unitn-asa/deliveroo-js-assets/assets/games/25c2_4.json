@@ -1,7 +1,7 @@
 {
   "title": "25c2_4",
   "description": "Migrated from 25c2_4.js",
-  "maxPlayers": 10,
+  "maxPlayers": 1,
   "map": {
     "name": "25c2_4",
     "description": "Migrated from 25c2_4.js",
@@ -38,22 +38,22 @@
   "npcs": [
     {
       "moving_event": "frame",
-      "type": "random",
+      "type": "aggressive",
       "count": 1,
-      "capacity": 5
+      "capacity": "infinite"
     }
   ],
   "parcels": {
     "generation_event": "2s",
     "decading_event": "1s",
-    "max": 5,
+    "max": 50,
     "reward_avg": 30,
-    "reward_variance": 10
+    "reward_variance": 20
   },
   "player": {
-    "movement_duration": 50,
+    "movement_duration": 100,
     "agents_observation_distance": 5,
-    "parcels_observation_distance": 5,
+    "parcels_observation_distance": 4,
     "capacity": 5
   }
 }

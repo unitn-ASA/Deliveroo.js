@@ -3,7 +3,7 @@
     import { ref, computed } from 'vue';
     import Settings from '../modals/Settings.vue';
     import ParcelSpawner from './ParcelSpawner.vue';
-    import GameJson from './GameJson.vue';
+    import GameJson from '../modals/GameJson.vue';
     import Timer from './Timer.vue';
     import Levels from '../modals/Levels.vue';
     import Modal from '../modals/Modal.vue';

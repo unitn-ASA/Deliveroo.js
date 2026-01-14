@@ -20,9 +20,14 @@ router.get('/', async (req, res) => {
 
         for (const gameName of gameNames) {
             try {
-                const gameData = await loadGame(gameName);
-                gameData["self"] = '/api/games/' + gameName;
-                gameData["png"] = '/api/games/' + gameName + '.png';
+                /** @type {import('../games.js').IOGameOptions & {self: string, png: string}} */
+                const gameData = {
+                    self: '/api/games/' + gameName,
+                    png: '/api/games/' + gameName + '.png'
+                };
+                Object.assign(gameData, await loadGame(gameName));
+                gameData.map.width = gameData.map.tiles.length;
+                gameData.map.height = gameData.map.tiles[0].length;
                 games.push(gameData);
             } catch (err) {
                 console.error(`Error reading game ${gameName}:`, err);
@@ -77,14 +82,14 @@ router.get('/:gameName', async (req, res) => {
     const gameName = req.params.gameName;
 
     try {
+        /** @type {import('../games.js').IOGameOptions & {self: string, png: string}} */
         const gameData = {
             self: '/api/games/' + gameName,
             png: '/api/games/' + gameName + '.png'
         };
         Object.assign(gameData, await loadGame(gameName));
-        
-        gameData["self"] = '/api/games/' + gameName;
-        gameData["png"] = '/api/games/' + gameName + '.png';
+        gameData.map.width = gameData.map.tiles.length;
+        gameData.map.height = gameData.map.tiles[0].length;
         res.json(gameData);
     } catch (err) {
         console.error(err);

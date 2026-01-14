@@ -32,21 +32,21 @@
             <div class="items-center space-x-1 flex justify-between text-xs"
             v-for="[key, value] of Object.entries(connection.configs)">
                 <span class="flex-none inline-block align-middle">{{ key }}</span>
-                <input 
+                <input
                     class="btn-xs text-right"
                     :class="{ 'checkbox checkbox-warning': typeof value == 'boolean',
                               'grow input input-ghost': typeof value != 'boolean' }"
                     size="2"
-                    v-model="connection.configs[key]" 
+                    v-model="connection.configs[key]"
                     :type="typeof value == 'number' ? 'number' : typeof value == 'boolean' ? 'checkbox' : 'text'"
                     placeholder="Name"
                     @focus="inputFocused = key"
                     @blur=""
                     v-bind:disabled="!admin"
                 >
-                <button 
-                    v-show="inputFocused == key" 
-                    class="flex-none btn btn-outline btn-error btn-xs" 
+                <button
+                    v-show="inputFocused == key"
+                    class="flex-none btn btn-outline btn-error btn-xs"
                     @click="setConfig(key, value)" v-if="admin"
                 >
                     Set
