@@ -29,15 +29,26 @@ import { ref, onMounted, computed } from 'vue';
             backendPackageVersion.value = data.packageVersion;
             // https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28#compare-two-commits
             fetch( `https://api.github.com/repos/unitn-asa/Deliveroo.js/compare/HEAD...${data.commitHash}` )
-            .then( res => res.json() )
+            .then( res => {
+                if (!res.ok) {
+                    if (res.status == 404)
+                        throw new Error(`Commit not found on GitHub.`);
+                    else
+                        throw new Error(`${res.status}. Reached GitHub API limit, cannot compare commits.`);
+                }
+                return res.json();
+            } )
             .then( data => {
                 backendHashCompare.value = data;
             } )
             .catch( err => {
-                // console.error(err);
+                backendHashCompare.value = { message: err.message || 'Failed to compare commits' };
             } );
+        } )
+        .catch( err => {
+            backendHashCompare.value = { message: 'Failed to fetch commitHash from '+HOST+'/api' };
         } );
-    
+
     })
 
     const toolTip = computed(() => {

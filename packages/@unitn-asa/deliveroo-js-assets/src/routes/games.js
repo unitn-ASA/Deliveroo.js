@@ -112,32 +112,38 @@ function generatePng(matrix) {
     const canvas = createCanvas(width * DOT_PER_TILE, height * DOT_PER_TILE);
     const ctx = canvas.getContext('2d');
 
+    // fill background
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#252f3dff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < height; y++) {
-            let value = 0;
+            let value = '0';
             try {
-                value = matrix[x][y];
+                value = ( matrix[x][y] ).toString();
             } catch (err) {
                 console.error('routes/games.js generatePng() Error accessing matrix at', x, y, ':', err);
             }
-            ctx.globalAlpha = 1;
 
             // Handle directional tiles (Unicode arrows)
             const directionalTiles = ['↑', '→', '↓', '←'];
             const isDirectional = directionalTiles.includes(String(value));
 
+            // Default opacity
+            ctx.globalAlpha = 1;
             if (isDirectional) {
-                ctx.fillStyle = 'lightblue';
+                ctx.fillStyle = '#3b82f6';
                 ctx.globalAlpha = 0.8;
-            } else if (value == 0 || value == '0') {
+            } else if (value == '0') {
                 ctx.fillStyle = 'grey';
                 ctx.globalAlpha = 0.1;
-            } else if (value == 1 || value == '1') {
+            } else if (value == '1') {
                 ctx.fillStyle = 'green';
-            } else if (value == 2 || value == '2') {
+            } else if (value == '2') {
                 ctx.fillStyle = 'red';
-            } else if (value == 3 || value == '3') {
-                ctx.fillStyle = 'lightgreen';
+            } else if (value == '3') {
+                ctx.fillStyle = 'lightgray';
             } else {
                 ctx.fillStyle = 'purple';
             }

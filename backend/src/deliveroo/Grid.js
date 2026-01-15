@@ -8,6 +8,7 @@ import SensorOfGod from './SensorOfGod.js';
 import Identity from './Identity.js';
 import Factory from './Factory.js';
 
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType} IOTileType */
 
 
 // @extends { ObservableMulti< {tiles:Map<String,Tile>, agents:Map<String, Agent>, parcels:Map<String, Parcel>} > }
@@ -111,7 +112,7 @@ class Grid extends GridEventEmitter {
     /**
      * @function setTile
      * @param {Xy} xy
-     * @param {string} type
+     * @param {IOTileType} type
      * @returns {void}
      */
     setTile ( xy, type ) {
@@ -279,7 +280,7 @@ class Grid extends GridEventEmitter {
      * @type {function(Xy): Parcel[]}
      */
     getParcelsAt ( xy ) {
-        return Array.from(this.#parcels.values()).filter( p => p.xy.rounded.equals(xy) );
+        return Array.from(this.#parcels.values()).filter( p => p?.xy?.rounded?.equals(xy) );
     }
 
     /**

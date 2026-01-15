@@ -18,3 +18,4 @@
  */
 
 export { DjsServerSocket } from './DjsServerSocket.js';
+export { DjsServer } from './DjsServer.js';

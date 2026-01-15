@@ -1,34 +1,39 @@
 <script setup>
 
-import { ref, reactive, computed, watch, h } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { connection } from '@/states/myConnection.js';
 import api from '../../utils/api.js';
-import { defineComponent } from 'vue';
+
+const props = defineProps({
+    modelValue: { type: Object, default: () => ({}) }
+});
+
+const emit = defineEmits(['update:modelValue']);
 
 const inputFocused = ref();
 
 // JSON editor state
 const jsonText = ref('');
-const parsed = ref(null);
+const parsed = ref({});
 const validation = reactive({ valid: false, errors: [] });
 
 const admin = computed(() => connection?.payload?.role == 'admin');
 
-watch(() => connection?.configs?.GAME, () => resetFromConnection(), { immediate: true });
-
-// Initialize jsonText from current GAME config if available
-function resetFromConnection() {
-    try {
-        const g = connection?.configs?.GAME || {};
-        jsonText.value = JSON.stringify(g, null, 2);
-        parseJson();
-    } catch (e) {
-        jsonText.value = '{}';
-        parsed.value = {};
-        validation.valid = false;
-        validation.errors.length = 0;
+// Initialize jsonText from modelValue when it changes externally (not from user input)
+watch(() => props.modelValue, (newValue) => {
+    if (newValue && Object.keys(newValue).length > 0) {
+        jsonText.value = JSON.stringify(newValue, null, 2);
+        const obj = validateJson();
+        if (obj) {
+            // normalize the editor text to the pretty-printed canonical form
+            try {
+                jsonText.value = prettyStringify(obj);
+            } catch (e) {
+                // keep standard stringify if prettyStringify fails
+            }
+        }
     }
-}
+}, { immediate: true, deep: true });
 
 // Basic validation following IOGameOptions typedef (best-effort)
 function validateGameOptions(obj) {
@@ -91,28 +96,38 @@ function validateGameOptions(obj) {
     return errs;
 }
 
-function parseJson() {
+// Validate JSON and update local state, returns the parsed object or null
+function validateJson() {
     try {
         const obj = JSON.parse(jsonText.value);
         const errs = validateGameOptions(obj);
         validation.errors.length = 0;
         errs.forEach(e => validation.errors.push(e));
         validation.valid = errs.length === 0;
-
-        // normalize the editor text to the pretty-printed canonical form
-        try {
-            jsonText.value = prettyStringify(obj);
-        } catch (e) {
-            jsonText.value = JSON.stringify(obj, null, 2);
-        }
-
         parsed.value = obj;
+        return obj;
     } catch (e) {
-        parsed.value = null;
         validation.valid = false;
         validation.errors.length = 0;
         validation.errors.push('Invalid JSON: ' + e.message);
+        return null;
     }
+}
+
+// Parse JSON and emit to parent (for user input)
+function onInputChange() {
+    const obj = validateJson();
+    if (!obj) return;
+
+    // normalize the editor text to the pretty-printed canonical form
+    try {
+        jsonText.value = prettyStringify(obj);
+    } catch (e) {
+        jsonText.value = JSON.stringify(obj, null, 2);
+    }
+
+    // emit update to parent
+    emit('update:modelValue', obj);
 }
 
 function prettyStringify(obj) {
@@ -158,7 +173,7 @@ function prettyStringify(obj) {
 
 function loadGame() {
     if (!admin.value) return;
-    parseJson();
+    onInputChange();
     if (!validation.valid) return;
     // send GAME config to server using the parsed (and normalized) object
     api.patchConfig(connection.token, { GAME: parsed.value });
@@ -167,55 +182,41 @@ function loadGame() {
 </script>
 
 <template>
-<main class="rounded-lg bg-slate-600" >
-    
-    <div class="rounded-lg bg-slate-500 grid grid-flow-col p-2" >
-        <h2 class="text-md text-black">
-            Game Options
-        </h2>
-    </div>
+<main class="card bg-base-200 text-base-content shadow-sm hover:shadow-xl transition-shadow duration-300" >
+    <!-- Card Header -->
+    <div class="card-body p-4">
 
-    <div class="space-y-4 p-4" >
-
-        <!-- JSON editor and preview -->
-        <div class="flex flex-row gap-4">
-
-            <div class="w-full">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-md">
-                        Edit JSON
-                    </h3>
-                    <div class="space-x-2">
-                        <button class="btn btn-xs" @click="parseJson">Validate</button>
-                        <button class="btn btn-xs btn-primary" @click="loadGame" :disabled="!admin || !validation.valid">Load Game</button>
-                    </div>
-                </div>
-                <textarea v-model="jsonText" rows="20" class="w-full textarea textarea-bordered text-base-content"
-                    @focus="inputFocused = 'GAME_JSON'"
-                    @input="parseJson"
-                    :disabled="!admin"
-                ></textarea>
-                <div class="mt-2 text-xs">
-                    <div v-if="validation.valid" class="text-success">JSON valid</div>
-                    <div v-else class="text-error">
-                        <div v-for="err in validation.errors">- {{ err }}</div>
-                    </div>
-                </div>
+            <!-- Title -->
+            <div class="flex justify-center gap-2 mb-1">
+                <h3 class="card-title text-lg">
+                    Json Editor
+                </h3>
             </div>
 
-            <!-- <div class="w-1/2">
-                <h3 class="text-md mb-2">Preview</h3>
-                <div class="bg-slate-200 p-2 rounded max-h-[520px] overflow-auto text-sm">
-                    <template v-if="parsed">
-                        <pre class="whitespace-pre-wrap font-mono text-xs">{{ jsonText }}</pre>
-                    </template>
-                    <div v-else class="text-xs text-gray-500">No valid JSON to preview</div>
+            <!-- JSON editor -->
+            <textarea v-model="jsonText" rows="20" class="w-full textarea bg-base-300 text-base-content text-xs font-mono whitespace-nowrap"
+                @focus="inputFocused = 'GAME_JSON'"
+                @input="onInputChange"
+                :disabled="!admin"
+            ></textarea>
+
+            <!-- Load Button and Validation Messages -->
+            <div class="flex items-center justify-between">
+                
+                <!-- Validation Messages -->
+                <div v-if="validation.valid" class="text-success">JSON valid</div>
+                <div v-else class="text-error">
+                    <div v-for="err in validation.errors">- {{ err }}</div>
                 </div>
-            </div> -->
+                
+                <!-- Load Game Button -->
+                <div class="space-x-2">
+                    <button class="btn btn-sm btn-primary" @click="loadGame" :disabled="!admin || !validation.valid">Load Game</button>
+                </div>
 
-        </div>
+            </div>
+
     </div>
-
 </main>
 </template>
 

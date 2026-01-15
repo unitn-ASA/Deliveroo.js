@@ -65,6 +65,7 @@ export class Connection {
     /**
      * @type {IOConfig} configs
      */
+    // @ts-ignore
     configs = reactive ({});
 
     /**
@@ -152,19 +153,19 @@ export class Connection {
         this.listenAndRegister( "agents sensing" );
         this.listenAndRegister( "parcels sensing" );
 
-        ioClient.on( 'log', ( {src, ms, frame, socket, id, name}, ...message ) => {
+        ioClient.on( 'log', ( src, info, ...message ) => {
 
             // this.grid.clock.ms = ms;
             // this.grid.clock.frame = frame;
 
             if ( src == 'server' ) {
-                this.serverLogs.push( { ms, frame, message } );
+                this.serverLogs.push( { ms: info.ms, frame: info.frame, message } );
                 // Limit array size to prevent memory leak - keep last 1000 logs
                 if ( this.serverLogs.length > 1000 ) {
                     this.serverLogs.shift();
                 }
             } else {
-                this.clientLogs.push( { ms, frame, socket, id, name, message} );
+                this.clientLogs.push( { ms: info.ms, frame: info.frame, socket: src.socket, id: src.id, name: src.name, message} );
                 // Limit array size to prevent memory leak - keep last 1000 logs
                 if ( this.clientLogs.length > 1000 ) {
                     this.clientLogs.shift();
@@ -190,12 +191,21 @@ export class Connection {
 
         })
 
+        // Update current configs on config updates
         this.ioClient.onConfig( ( config ) => {
             // document.getElementById('config').textContent = JSON.stringify( config, undefined, 2 );
+            // console.log( 'Connection.js onConfig', config );
             for ( let [key,value] of Object.entries(config) ) {
                 this.configs[key] = value;
+                // console.log( `Connection.js onConfig setting configs.${key} =`, value );
             }
         } )
+
+        // Update current configs.GAME.map.tiles on tile updates
+        this.ioClient.onTile( ( {x, y, type} ) => {
+            // console.log( 'Connection.js onTile', { x, y, type } );
+            this.configs.GAME.map.tiles[x][y] = type;
+        } );
 
         // console.log( 'Connection.js', this );
 

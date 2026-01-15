@@ -3,11 +3,9 @@ import Parcel from './Parcel.js';
 import Grid from './Grid.js';
 import ObservableMulti from '../reactivity/ObservableMulti.js';
 
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTile} IOTile */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType} IOTileType */
 
-/**
- * @typedef IOTile
- * @type {import("@unitn-asa/deliveroo-js-sdk").IOTile}
- */
 
 
 /**
@@ -29,7 +27,7 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
     /** @type {number} */
     get y () { return this.xy.y }
 
-    /** @type {string} */
+    /** @type {IOTileType} */
     type;
 
     /** Directional tile movement vectors */
@@ -116,7 +114,7 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
     /**
      * @constructor Tile
      * @param {Xy} xy
-     * @param {string} type
+     * @param {IOTileType} type
      */
     constructor ( xy, type = '1' ) {
 

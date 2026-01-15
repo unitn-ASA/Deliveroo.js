@@ -49,7 +49,7 @@ router.patch('/', authorizeAdmin, async (req, res) => {
 
     // Notify clients of config change
     const { default: ioServer } = await import('../ioServer.js');
-    ioServer.emit('config', { server: config });
+    ioServer.emit('config', config);
 
     res.status(200).json({
         PORT: PORT,

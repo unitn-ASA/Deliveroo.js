@@ -1,9 +1,9 @@
 <script setup>
-    
-    import { ref, computed } from 'vue';
+
+    import { ref, computed, watch } from 'vue';
     import Settings from '../modals/Settings.vue';
     import ParcelSpawner from './ParcelSpawner.vue';
-    import GameJson from '../modals/GameJson.vue';
+    import GameOptions from '../modals/GameOptions.vue';
     import Timer from './Timer.vue';
     import Levels from '../modals/Levels.vue';
     import Modal from '../modals/Modal.vue';
@@ -34,6 +34,14 @@
 
     const chatOpen = ref(false);
 
+    // Close levels modal when the game changes
+    watch(() => connection?.configs?.GAME, (newGame, oldGame) => {
+        // console.log('GAME changed', { newGame, oldGame });
+        if (newGame && oldGame && newGame.title !== oldGame.title) {
+            levelsModal.value = false;
+        }
+    }, { deep: true });
+
 </script>
 
 <template>
@@ -44,14 +52,14 @@
         </Modal>
 
         <Modal v-model="levelsModal" title="Load level">
-            <Levels @load-level="levelsModal=false;"/>
+            <Levels v-model="connection.configs.GAME"/>
         </Modal>
 
         <Modal v-model="settingsModal" title="Settings">
-            <div class="px-40 py-10 space-y-4">
-                <Settings v-if="connection"/>
+            <div class="p-4 space-y-4">
+                <Settings class="max-w-lg m-auto" v-if="connection"/>
                 <!-- <ParcelSpawner v-if="connection"/> -->
-                <GameJson v-if="connection"/>
+                <GameOptions v-if="connection"/>
             </div>
         </Modal>
             

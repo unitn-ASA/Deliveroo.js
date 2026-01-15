@@ -8,20 +8,19 @@ import myClock from './myClock.js';
 import events from 'events';
 events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
 import { tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
-import { DjsServerSocket } from '@unitn-asa/deliveroo-js-sdk/server';
+import { DjsServer, DjsServerSocket } from '@unitn-asa/deliveroo-js-sdk/server';
 import Agent from './deliveroo/Agent.js';
 import Identity from './deliveroo/Identity.js';
 import Xy from './deliveroo/Xy.js';
 
 
-
-const io = new Server( httpServer, {
+const io = DjsServer.enhance( new Server( httpServer, {
     cors: {
         origin: "*", // http://localhost:3000",
         credentials: false, // https://socket.io/docs/v4/handling-cors/#credential-is-not-supported-if-the-cors-header-access-control-allow-origin-is-
         allowedHeaders: ["x-token"]
     }
-} );
+} ) );
 
 /**
  * Check token on Handshake
@@ -92,7 +91,7 @@ io.on('connection', async ( socket ) => {
 class ioServer {
 
     /**
-     * @param { import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket } socket /**
+     * @param { DjsServerSocket } socket /**
      * @param { Agent } me
      */
     constructor( socket, me ) {
@@ -371,7 +370,7 @@ class ioServer {
          */
         if ( config.BROADCAST_LOGS ) {
             socket.onLog( ( ...message ) => {
-                socket.broadcast.emit( 'log', {src: 'client', ms: myClock.ms, frame: myClock.frame, socket: socket.id, id: me.id, name: me.name}, ...message )
+                socket.broadcast.emit( 'log', {socket: socket.id, id: me.id, name: me.name}, myClock.info, ...message )
             } )
         }
 
@@ -441,7 +440,7 @@ class ioServer {
 const oldLog = console.log;
 global.console.log = function ( ...message ) {
     if ( config.BROADCAST_LOGS ) { // && serverConfig.BROADCAST_LOGS != "false"
-        io.emit( 'log', {src: 'server', timestamp: {ms: myClock.ms, frame: myClock.frame}}, ...message );
+        io.emit( 'log', 'server', myClock.info, ...message );
     };
     oldLog.apply( console, message );
 }

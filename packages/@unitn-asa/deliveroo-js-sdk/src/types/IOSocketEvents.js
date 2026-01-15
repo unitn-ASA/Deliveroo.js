@@ -35,7 +35,7 @@
  *      'agents sensing':   function ( IOSensing[], IOInfo ) : void,
  *      'parcels sensing':  function ( IOSensing[], IOInfo ) : void,
  *      'msg':              function ( string, string, Object, function ( Object ) : void = ) : Object,
- *      'log':              function ( {src: 'server'|'client', ms:number, frame:number, socket:string, id:string, name:string}, ...any ) : void
+ *      'log':              function ( 'server' | { socket:string, id:string, name:string }, IOInfo, ...any ) : void
  * }} IOServerEvents
  */
 

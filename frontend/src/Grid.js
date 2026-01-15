@@ -1,6 +1,6 @@
 import { ref, reactive, shallowReactive, watch, computed } from "vue";
 import { default as io, Socket } from 'socket.io-client';
-import { DeliveroojsSocketClientWrapper } from "@unitn-asa/deliveroo-js-sdk";
+import { DjsClientSocket } from "@unitn-asa/deliveroo-js-sdk/client";
 import { connection } from "./states/myConnection.js";
 
 /** @typedef {import('./types/UIAgentType.js').UIAgent} UIAgent */
@@ -14,7 +14,7 @@ import { connection } from "./states/myConnection.js";
 export class Grid {
 
     /**
-     * @type {DeliveroojsSocketClientWrapper} socket
+     * @type {DjsClientSocket} socket
      */
     socket;
 
@@ -203,7 +203,7 @@ export class Grid {
 
     /**
      * Socket constructor
-     * @param {DeliveroojsSocketClientWrapper} socket
+     * @param {DjsClientSocket} socket
      */
     constructor ( socket ) {
 
