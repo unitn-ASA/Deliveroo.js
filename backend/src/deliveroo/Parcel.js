@@ -1,4 +1,3 @@
-import ObservableValue from '../reactivity/ObservableValue.js';
 import Xy from './Xy.js';
 import myClock from '../myClock.js';
 import { config } from '../config/config.js';

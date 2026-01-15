@@ -223,19 +223,12 @@ export class DjsServerSocket extends Socket {
     /**
      * @param { string } myId
      * @param { string } myName
-     * @param { 'server'|'client' } src
+     * @param { 'server' | { socket:string, id:string, name:string } } src - 'server' or client
      * @param { IOInfo } info
      * @param { ...any } message
      */
     broadcastLog ( myId, myName, src, info, ...message ) {
-        super.broadcast.emit( 'log', {
-            src,
-            ms: info.ms,
-            frame: info.frame,
-            socket: this.id,
-            id: myId,
-            name: myName
-        }, ...message );
+        super.broadcast.emit( 'log', src, info, ...message );
     }
 
 

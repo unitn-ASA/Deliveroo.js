@@ -70,36 +70,28 @@ class Grid extends GridEventEmitter {
 
     }
 
-    loadMap ( map ) {
-        // Handle JSON format with metadata
-        let mapData;
-        if (map.tiles && Array.isArray(map.tiles)) {
-            // JSON format with metadata
-            mapData = map.tiles;
-            console.log(`Loading map: ${map.name || 'unnamed'}`);
-            if (map.description) {
-                console.log(`Description: ${map.description}`);
-            }
-        } else if (Array.isArray(map)) {
-            // Legacy array format
-            mapData = map;
-        } else {
-            console.error('Invalid map format');
+    /**
+     * @param {IOTileType[][]} tiles
+     */
+    loadMap ( tiles ) {
+        if ( ! Array.isArray(tiles) ) {
+            console.error('Grid.js loadMap(tiles) Invalid tiles format', tiles);
             return;
         }
 
-        var Xlength = mapData.length;
-        var Ylength = Array.from(mapData).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
+        var Xlength = tiles.length;
+        var Ylength = Array.from(tiles).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
 
         for (let x = 0; x < Math.max(Xlength,this.#X); x++) {
             for (let y = 0; y < Math.max(Ylength,this.#Y); y++) {
                 let xy = new Xy( {x,y});
                 if (x < Xlength && y < Ylength) {
-                    let value = mapData[x][y];
+                    let value = tiles[x][y];
                     // Convert value to string for consistency
                     this.setTile( xy, String(value) );
                 } else {
-                    this.setTile( xy, '0' ); // needed to emit update, even if later deleted
+                    let tile = this.setTile( xy, '0' ); // Tile.watch(type) happens at clock frame, if tile got deleted, listeners are all unsubscribed.
+                    // this.emitTile( tile );           // So I may need to force it to happen immediately
                     this.#tiles.delete( xy.toString() );
                 }
             }
@@ -113,7 +105,7 @@ class Grid extends GridEventEmitter {
      * @function setTile
      * @param {Xy} xy
      * @param {IOTileType} type
-     * @returns {void}
+     * @returns {Tile}
      */
     setTile ( xy, type ) {
         var tile = this.#tiles.get( xy.toString() );
@@ -124,9 +116,10 @@ class Grid extends GridEventEmitter {
             this.#tiles.set( xy.toString(), tile );
             if ( xy.x + 1 > this.#X ) this.#X = xy.x + 1;
             if ( xy.y + 1 > this.#Y ) this.#Y = xy.y + 1;
-            tile.on( 'type' , () => this.emitTile( tile ) );
+            tile.onFrame( 'type' , () => this.emitTile( tile ) );
         }
-        this.emitTile( tile ); // not needed, ObservableMulti deep Track Map
+        // this.emitTile( tile ); // not needed Tile.type is watched with immediate = true
+        return tile;
     }
 
     /**

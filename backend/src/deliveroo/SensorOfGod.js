@@ -8,15 +8,15 @@ import myClock from '../myClock.js';
 
 
 /**
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOAgent.js").IOAgent} IOAgent
  */
 
 /**
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOParcel.js").IOParcel} IOParcel
  */
 
 /**
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
+ * @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOSensing.js").IOSensing} IOSensing
  */
 
 /**

@@ -197,6 +197,7 @@ class ioServer {
          * Emit map (tiles)
          */
         listeners.tileListener = ( { xy: {x,y}, type } ) => {
+            // console.log( 'emit tile', x, y, type );
             socket.emitTile( {x, y, type}, myClock.info );
         };
         myGrid.onTile( listeners.tileListener );

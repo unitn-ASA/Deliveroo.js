@@ -1,4 +1,4 @@
-import PostponerEventEmitter from '../reactivity/PostponerEventEmitter.js';
+import EventEmitter from 'events';
 import Tile from './Tile.js';
 import Agent from './Agent.js';
 import Parcel from './Parcel.js';
@@ -7,14 +7,15 @@ import Parcel from './Parcel.js';
 
 class GridEventEmitter {
 
-    /** @type {PostponerEventEmitter} */
+    // with EventEmitterOncePerFrame I was getting only one tile update per frame, all the others were lost!
+    /** @type {EventEmitter} */
     #eventEmitter;
 
     /**
      * @constructor GridEventEmitter
      */
     constructor ( ) {
-        this.#eventEmitter = new PostponerEventEmitter();
+        this.#eventEmitter = new EventEmitter();
         this.#eventEmitter.setMaxListeners(500);
     }
     

@@ -38,7 +38,7 @@ The package contains JSDoc typedef files describing `IOAgent`, `IOParcel`, `IOCo
 Example JSDoc import:
 
 ```js
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/web-socket/ioTypes.js').IOAgent} IOAgent */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent} IOAgent */
 ```
 
 ## License

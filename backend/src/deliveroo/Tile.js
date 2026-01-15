@@ -77,6 +77,10 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
      * @returns {boolean} - True if movement is allowed
      */
     allowsMovementFrom (fromX, fromY) {
+        
+        // Always allow movement from any tile
+        return true;
+
         if (!this.isDirectional) {
             // Not a directional tile, allows all movement
             return true;
@@ -122,10 +126,10 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
 
         this.#xy = xy;
 
-        this.watch('type', true); // immediate=true to emit agent when spawning
+        this.watch('type', true); // immediate=true to emit immediately when subscribe
         this.type = String(type); // Ensure type is always a string
 
-        this.watch('locked', true); // immediate=true to emit agent when spawning
+        this.watch('locked', true); // immediate=true to emit immediately when subscribe
         this.locked = false;
 
     }

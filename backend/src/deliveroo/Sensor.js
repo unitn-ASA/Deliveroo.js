@@ -7,19 +7,11 @@ import Postponer from '../reactivity/Postponer.js';
 import myClock from '../myClock.js';
 import { config } from '../config/config.js';
 
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOAgent.js").IOAgent} IOAgent */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOParcel.js").IOParcel} IOParcel */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOSensing.js").IOSensing} IOSensing */
 
 
-/**
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent
- */
-
-/**
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOParcel} IOParcel
- */
-
-/**
- * @typedef {import("@unitn-asa/deliveroo-js-sdk").IOSensing} IOSensing
- */
 
 /**
  * @class Sensor
@@ -35,47 +27,37 @@ class Sensor extends ObservableMulti {
 
     /** @type {IOSensing[]} */
     sensedAgents = [];
-
+    
     /** @type {IOSensing[]} */
     sensedParcels = [];
+    
+    #agentsDirty = true;
+    #parcelsDirty = true;
 
-    /** @type {(event: any, who: Agent) => void} - Grid agent xy listener */
-    #agentXyListener = ( event, who ) => {
+    /** @type {(event: any, who: Agent) => void} - Grid agent listener */
+    #agentListener = ( event, who ) => {
         // On my movements emit agents and parcels sensing
         if ( this.#agent.id == who.id ) {
-            this.emitAgentSensing();
-            this.emitParcelSensing();
+            this.#agentsDirty = true;
+            this.#parcelsDirty = true;
         }
         // On others movements within my range, emit agents sensing
         else if ( !( Xy.distance(this.#agent, who) > config.GAME.player.agents_observation_distance ) ) {
-                this.emitAgentSensing();
+                this.#agentsDirty = true;
             }  
-    };
-    
-    /** @type {(event: any, who: Agent) => void} - Grid agent deleted listener */
-    #agentDeletedListener = ( event, who ) => {
-        if ( this.#agent.id != who.id && !( Xy.distance(this.#agent, who) >= config.GAME.player.agents_observation_distance ) ) {
-            this.emitAgentSensing()
-        }
-    }
-    
-    /** @type {(event: any, who: Agent) => void} - Grid agent score listener */
-    #agentScoreListener = ( event, who ) => {
-        if ( this.#agent.id != who.id && !( Xy.distance(this.#agent, who) >= config.GAME.player.agents_observation_distance ) ) {
-            this.emitAgentSensing()
-        }
     };
 
     /** @type {(parcel: Parcel) => void} - Grid parcel listener */
     #parcelListener = ( parcel ) => {
         if ( !( Xy.distance(this.#agent, parcel) > config.GAME.player.parcels_observation_distance ) ) {
-            this.emitParcelSensing();
+            this.#parcelsDirty = true;
         }
     };
 
     /** @type {(event: any) => void} - Agent xy listener */
     #myXyListener = ( event ) => {
-        this.emitParcelSensing();
+        this.#agentsDirty = true;
+        this.#parcelsDirty = true;
     };
 
     /**
@@ -96,15 +78,11 @@ class Sensor extends ObservableMulti {
 
         if ( agent ) {
 
-            // On my movements emit agents and parcels sensing,
-            // on others movements within my range, emit agents sensing
-            grid.onAgent( 'xy', this.#agentXyListener );
-            
-            // On agent deleted emit agentSensing
-            grid.onAgent( 'deleted', this.#agentDeletedListener );
-
-            // On others score emit SensendAgents
-            grid.onAgent( 'score', this.#agentScoreListener );
+            // On my changes emit agents and parcels sensing,
+            // on others changes within my range, emit agents sensing
+            grid.onAgent( 'xy', this.#agentListener );
+            grid.onAgent( 'deleted', this.#agentListener );
+            grid.onAgent( 'score', this.#agentListener );
 
             // On parcel and my movements emit parcels sensing
             grid.onParcel( this.#parcelListener );
@@ -114,9 +92,18 @@ class Sensor extends ObservableMulti {
 
         }
 
-        // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
-        this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
-        this.emitAgentSensing = new Postponer( this.emitAgentSensing.bind(this) ).at( myClock.synch() );
+        // Fire on each frame if dirty
+        myClock.on('frame', () => {
+            if (this.#agentsDirty) {
+                this.#agentsDirty = false;
+                this.computeAgentSensing();
+            }
+
+            if (this.#parcelsDirty) {
+                this.#parcelsDirty = false;
+                this.computeParcelSensing();
+            }
+        });
 
     }
 
@@ -124,14 +111,10 @@ class Sensor extends ObservableMulti {
      * Cleanup method to remove event listeners and prevent memory leaks
      */
     cleanup() {
-        if ( this.#agentXyListener ) {
-            this.#grid.offAgent( 'xy', this.#agentXyListener );
-        }
-        if ( this.#agentDeletedListener ) {
-            this.#grid.offAgent( 'deleted', this.#agentDeletedListener );
-        }
-        if ( this.#agentScoreListener ) {
-            this.#grid.offAgent( 'score', this.#agentScoreListener );
+        if ( this.#agentListener ) {
+            this.#grid.offAgent( 'xy', this.#agentListener );
+            this.#grid.offAgent( 'deleted', this.#agentListener );
+            this.#grid.offAgent( 'score', this.#agentListener );
         }
         if ( this.#parcelListener ) {
             this.#grid.offParcel( this.#parcelListener );
@@ -147,7 +130,7 @@ class Sensor extends ObservableMulti {
      * Agents sensend on the grid
      * @type {function(): void}
      */
-    emitAgentSensing () {
+    computeAgentSensing () {
 
         /** @type {Array<IOSensing>} */
         let observedTiles = [];
@@ -189,7 +172,7 @@ class Sensor extends ObservableMulti {
      * Parcels sensend on the grid
      * @type {function(): void}
      */
-    emitParcelSensing () {
+    computeParcelSensing () {
 
         var observedTiles = [];
         for ( let tile of this.#grid.getTiles() ) {

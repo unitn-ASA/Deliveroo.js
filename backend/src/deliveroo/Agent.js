@@ -11,7 +11,7 @@ import Sensor from './Sensor.js';
 import Identity from './Identity.js';
 
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk').IOAgent} IOAgent */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent} IOAgent */
 
 
 

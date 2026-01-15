@@ -1,13 +1,15 @@
 import { args } from './argParser.js';
 import { loadGame } from '@unitn-asa/deliveroo-js-assets';
 import { readFileSync } from 'fs';
+import { watchProperty } from '../reactivity/watchProperty.js';
+import EventEmitterOncePerTick from '../reactivity/EventEmitterOncePerTick.js';
 
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOClockEvent.js').IOClockEvent} IOClockEvent */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOConfig.js').IOConfig} IOConfig */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOGameOptions.js').IOGameOptions} IOGameOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOGameOptions.js').IOParcelsOptions} IOParcelsOptions */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/src/types/IOGameOptions.js').IOPlayerOptions} IOPlayerOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent} IOClockEvent */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOConfig.js').IOConfig} IOConfig */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IOGameOptions} IOGameOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IOParcelsOptions} IOParcelsOptions */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IOPlayerOptions} IOPlayerOptions */
 
 
 /**
@@ -165,6 +167,34 @@ export const config = {
         },
     }
 };
+
+
+/** @type {EventEmitterOncePerTick<Record<keyof IOConfig,[]>>} no parameters associated to event emission */
+export const configEmitter = new EventEmitterOncePerTick( );
+watchProperty( {
+    target: config,
+    key: 'GAME',
+    callback: () => configEmitter.emit('GAME'),
+    immediate: true
+} );
+watchProperty( {
+    target: config,
+    key: 'PENALTY',
+    callback: () => configEmitter.emit('PENALTY'),
+    immediate: true
+} );
+watchProperty( {
+    target: config,
+    key: 'AGENT_TIMEOUT',
+    callback: () => configEmitter.emit('AGENT_TIMEOUT'),
+    immediate: true
+} );
+watchProperty( {
+    target: config,
+    key: 'BROADCAST_LOGS',
+    callback: () => configEmitter.emit('BROADCAST_LOGS'),
+    immediate: true
+} );
 
 
 
