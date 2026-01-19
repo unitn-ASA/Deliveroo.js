@@ -10,13 +10,13 @@
     "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
   },
   "exports": {
+    ".": "./src/client/index.js",
     "./types/*": "./src/types/*",
     "./client": "./src/client/index.js",
     "./client/*": "./src/client/*",
     "./server": "./src/server/index.js",
     "./server/*": "./src/server/*"
   },
-  "types": "index.js",
   "files": [
     "src/*",
     "index.js"

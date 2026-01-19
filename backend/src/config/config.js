@@ -30,8 +30,8 @@ export async function loadGameConfig(json) {
     }
     if (json.map?.tiles && Array.isArray(json.map.tiles)) {
         config.GAME.map.tiles = json.map.tiles;
-        const { myGrid } = await import('../myGrid.js');
-        myGrid.loadMap( json.map.tiles );
+        // const { myGrid } = await import('../myGrid.js');
+        // myGrid.loadMap( json.map.tiles );
     }
 
     // NPCs configuration
@@ -175,25 +175,25 @@ watchProperty( {
     target: config,
     key: 'GAME',
     callback: () => configEmitter.emit('GAME'),
-    immediate: true
+    immediate: false
 } );
 watchProperty( {
     target: config,
     key: 'PENALTY',
     callback: () => configEmitter.emit('PENALTY'),
-    immediate: true
+    immediate: false
 } );
 watchProperty( {
     target: config,
     key: 'AGENT_TIMEOUT',
     callback: () => configEmitter.emit('AGENT_TIMEOUT'),
-    immediate: true
+    immediate: false
 } );
 watchProperty( {
     target: config,
     key: 'BROADCAST_LOGS',
     callback: () => configEmitter.emit('BROADCAST_LOGS'),
-    immediate: true
+    immediate: false
 } );
 
 
