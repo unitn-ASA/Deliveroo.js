@@ -95,10 +95,13 @@ class Agent extends ObservableMulti {
             // not locked
             .filter( t => ! t.locked )
 
-        if ( tiles_unlocked.length == 0 )
-            throw new Error('No unlocked tiles available on the grid')
+        if ( tiles_unlocked.length == 0 ) {
+            console.warn('No unlocked tiles available on the grid. Spawning agent on the first tile (probably locked).');
+            // @ts-ignore
+            this.xy = grid.getTiles().next().value.xy;
+        }
         else {
-            let tile = tiles_unlocked.at( Math.floor( Math.random() * tiles_unlocked.length - 1 ) )
+            let tile = tiles_unlocked.at( Math.floor( Math.random() * tiles_unlocked.length - 0.001 ) )
             tile.lock();
             this.xy = tile.xy;
         }
