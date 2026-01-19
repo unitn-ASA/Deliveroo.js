@@ -6,7 +6,7 @@ import { myGrid } from './myGrid.js';
 import { config } from './config/config.js';
 import myClock from './myClock.js';
 import events from 'events';
-events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners)
+events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners);
 import { tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
 import { DjsServer, DjsServerSocket } from '@unitn-asa/deliveroo-js-sdk/server';
 import Agent from './deliveroo/Agent.js';
@@ -273,6 +273,14 @@ class ioServer {
         // Fire immediately to send initial sensing
         listeners.sensedParcelsListener();
 
+        // Crates
+        listeners.sensedCratesListener = () => {
+            socket.emitCrateSensing( me.sensor.sensedCrates, myClock.info )
+        };
+        me.sensor.on( 'sensedCrates', listeners.sensedCratesListener );
+        // Fire immediately to send initial sensing
+        listeners.sensedCratesListener();
+
         // Agents
         listeners.sensedAgentsListener = () => {
             // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
@@ -402,8 +410,27 @@ class ioServer {
                             myGrid.deleteParcel( p.id );
                     }
                 }
-                // TODO myGrid.emit( 'parcel' ); 
+                // TODO myGrid.emit( 'parcel' );
                 // if ack is a funtion
+                if ( ack && typeof ack === 'function' )
+                    ack();
+            } );
+
+            socket.on( 'crate', async (action, data, ack) => {
+                console.log( 'crate', action, data )
+                if ( action == 'create' ) {
+                    myGrid.createCrate( new Xy(data.x, data.y) );
+                }
+                else if ( action == 'dispose' ) {
+                    if ( data.id )
+                        myGrid.deleteCrate( data.id )
+                    else {
+                        let crates = Array.from( myGrid.getCrates() ).filter( c => c.x == data.x && c.y == data.y );
+                        for ( let c of crates)
+                            myGrid.deleteCrate( c.id );
+                    }
+                }
+                // if ack is a function
                 if ( ack && typeof ack === 'function' )
                     ack();
             } );

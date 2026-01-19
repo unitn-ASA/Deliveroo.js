@@ -244,15 +244,17 @@
                 <div v-else>
                     <!-- <div class="text-xs text-center text-base-content/60">No map preview available</div> -->
                     <div class="flex justify-center" v-for="row in transposeAndFlipVertically" >
-                        <div class="bg-yellow-500" v-for="type in row" >
+                        <div class="bg-purple-500 text-white" v-for="type in row" >
                             <div
                                 class="w-3 h-3 border border-base-content text-[10px] flex items-center justify-center overflow-hidden"
                                 :class="{
-                                    'bg-black': type == '0',
+                                    'bg-black text-white': type == '0',
                                     'bg-green-700': type == '1',
-                                    'bg-red-500': type == '2',
-                                    'bg-gray-300': type == '3',
-                                    'bg-blue-500': type == '↓' || type == '↑' || type == '→' || type == '←'
+                                    'bg-red-500 text-white': type == '2',
+                                    'bg-gray-300 text-black': type == '3',
+                                    'bg-blue-500 text-white': type == '↓' || type == '↑' || type == '→' || type == '←',
+                                    'bg-yellow-400 text-black': type == '5',
+                                    'bg-yellow-500 text-black': type == '5!'
                                 }"
                             >{{ type }}</div>
                         </div>

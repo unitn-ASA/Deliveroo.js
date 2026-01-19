@@ -5,12 +5,14 @@
     import Tile from './Tile.vue';
     import Agent from './Agent.vue';
     import Parcel from './Parcel.vue';
+    import Crate from './Crate.vue';
     import { connection } from '@/states/myConnection.js';
 	import { Controller } from '@/utils/Controller.js'
 
     const tiles = computed ( () => connection.grid.tiles );
     const agents = computed ( () => connection.grid.agents );
     const parcels = computed ( () => connection.grid.parcels );
+    const crates = computed ( () => connection.grid.crates );
 
 	// watch( () => connection.grid.me, (newVal) => {
 	// 	console.log( 'Deliveroojs.vue watch me', newVal.id );
@@ -43,6 +45,7 @@
             <Tile v-for="[key, t] in tiles.entries()" :key="key" :id="key" :tile="t" />
             <Agent v-for="[key, a] in agents.entries()" :key="key" :id="key" :agent="a" />
             <Parcel v-for="[key, p] in parcels.entries()" :key="key" :id="key" :parcel="p" />
+            <Crate v-for="[key, c] in crates.entries()" :key="key" :id="key" :crate="c" />
         </ThreeScene>
     </main>
 </template>

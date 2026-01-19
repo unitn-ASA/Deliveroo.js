@@ -2,6 +2,7 @@ import EventEmitter from 'events';
 import Tile from './Tile.js';
 import Agent from './Agent.js';
 import Parcel from './Parcel.js';
+import Crate from './Crate.js';
 
 
 
@@ -63,6 +64,29 @@ class GridEventEmitter {
      **/
     offParcel ( callback ) {
         this.#eventEmitter.off('parcel', callback);
+    }
+
+
+
+    /**
+     * @param { Crate } crate
+     */
+    emitCrate ( crate ) {
+        this.#eventEmitter.emit('crate', crate);
+    }
+
+    /**
+     * @param { function ( Crate ) : void } callback
+     **/
+    onCrate ( callback ) {
+        this.#eventEmitter.on('crate', callback);
+    }
+
+    /**
+     * @param { function ( Crate ) : void } callback
+     **/
+    offCrate ( callback ) {
+        this.#eventEmitter.off('crate', callback);
     }
 
 

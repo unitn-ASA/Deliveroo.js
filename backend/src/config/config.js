@@ -65,6 +65,8 @@ export async function loadGameConfig(json) {
         config.GAME.player.parcels_observation_distance = json.player.parcels_observation_distance;
     }
 
+    configEmitter.emit('GAME');
+
 }
 
 
@@ -139,8 +141,11 @@ export const config = {
             width: 2,
             height: 2,
             tiles: [
-                ['1','1'],
-                ['1','1']
+                ['0','3','3','0','1','1'],
+                ['2','3','3','0','1','1'],
+                ['2','3','5!','↑','1','1'],
+                ['2','3','5','↓','1','1'],
+                ['0','3','3','0','1','1']
             ]
         },
         npcs: [
@@ -161,8 +166,8 @@ export const config = {
         player: {
             agent_type: undefined,
             movement_duration: 50,
-            agents_observation_distance: 2,
-            parcels_observation_distance: 2,
+            agents_observation_distance: 6,
+            parcels_observation_distance: 5,
             capacity: 5,
         },
     }

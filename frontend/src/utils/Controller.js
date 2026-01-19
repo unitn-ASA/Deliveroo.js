@@ -90,13 +90,29 @@ export class Controller {
         watch ( () => keys.Space, async () => {
             if ( keys.Space && connection.grid.hoovered.value ) {
                 const hoovered = connection.grid.hoovered.value;
-                const parcel = connection.grid.getParcelByMeshUUID( hoovered.mesh.uuid );
-                if ( parcel ) {
-                    socket.emit( 'parcel', 'dispose', parcel );
-                }
-                else {
-                    var { x, y } = connection.grid.hoovered.value;
-                    socket.emit( 'parcel', 'create', { x, y } );
+                const { x, y } = connection.grid.hoovered.value;
+
+                // Check if this is a type "5" tile (crate sliding tile)
+                const tile = connection.grid.getTile(x, y);
+                if (tile && tile.type && tile.type.toString().startsWith('5')) {
+                    // Handle crate on type 5 tiles
+                    const cratesOnTile = connection.grid.getCratesAt(x, y);
+                    if (cratesOnTile && cratesOnTile.length > 0) {
+                        // Dispose the first crate on this tile
+                        const crate = cratesOnTile[0];
+                        socket.emit('crate', 'dispose', { x, y });
+                    } else {
+                        // Create a new crate
+                        socket.emit('crate', 'create', { x, y });
+                    }
+                } else {
+                    // Handle parcel on other tiles
+                    const parcel = connection.grid.getParcelByMeshUUID(hoovered.mesh?.uuid);
+                    if (parcel) {
+                        socket.emit('parcel', 'dispose', parcel);
+                    } else {
+                        socket.emit('parcel', 'create', { x, y });
+                    }
                 }
             }
         } );

@@ -3,6 +3,7 @@ import Xy from './Xy.js';
 import Grid from './Grid.js';
 import Agent from './Agent.js';
 import Parcel from './Parcel.js';
+import Crate from './Crate.js';
 import Postponer from '../reactivity/Postponer.js';
 import myClock from '../myClock.js';
 import { config } from '../config/config.js';
@@ -15,7 +16,7 @@ import { config } from '../config/config.js';
 
 /**
  * @class Sensor
- * @extends { ObservableMulti< {sensedAgents:IOSensing[], sensedParcels:IOSensing[]} > }
+ * @extends { ObservableMulti< {sensedAgents:IOSensing[], sensedParcels:IOSensing[], sensedCrates:IOSensing[]} > }
  */
 class Sensor extends ObservableMulti {
 
@@ -27,24 +28,29 @@ class Sensor extends ObservableMulti {
 
     /** @type {IOSensing[]} */
     sensedAgents = [];
-    
+
     /** @type {IOSensing[]} */
     sensedParcels = [];
-    
+
+    /** @type {IOSensing[]} */
+    sensedCrates = [];
+
     #agentsDirty = true;
     #parcelsDirty = true;
+    #cratesDirty = true;
 
     /** @type {(event: any, who: Agent) => void} - Grid agent listener */
     #agentListener = ( event, who ) => {
-        // On my movements emit agents and parcels sensing
+        // On my movements emit agents, parcels and crates sensing
         if ( this.#agent.id == who.id ) {
             this.#agentsDirty = true;
             this.#parcelsDirty = true;
+            this.#cratesDirty = true;
         }
         // On others movements within my range, emit agents sensing
         else if ( !( Xy.distance(this.#agent, who) > config.GAME.player.agents_observation_distance ) ) {
                 this.#agentsDirty = true;
-            }  
+            }
     };
 
     /** @type {(parcel: Parcel) => void} - Grid parcel listener */
@@ -54,10 +60,18 @@ class Sensor extends ObservableMulti {
         }
     };
 
+    /** @type {(crate: Crate) => void} - Grid crate listener */
+    #crateListener = ( crate ) => {
+        if ( !( Xy.distance(this.#agent, crate) > config.GAME.player.parcels_observation_distance ) ) {
+            this.#cratesDirty = true;
+        }
+    };
+
     /** @type {(event: any) => void} - Agent xy listener */
     #myXyListener = ( event ) => {
         this.#agentsDirty = true;
         this.#parcelsDirty = true;
+        this.#cratesDirty = true;
     };
 
     /**
@@ -66,11 +80,12 @@ class Sensor extends ObservableMulti {
      * @param {Agent} agent
      */
     constructor ( grid, agent ) {
-        
+
         super(true);
 
         this.watch('sensedAgents', true);
         this.watch('sensedParcels', true);
+        this.watch('sensedCrates', true);
 
         this.#grid = grid;
 
@@ -78,7 +93,7 @@ class Sensor extends ObservableMulti {
 
         if ( agent ) {
 
-            // On my changes emit agents and parcels sensing,
+            // On my changes emit agents, parcels and crates sensing,
             // on others changes within my range, emit agents sensing
             grid.onAgent( 'xy', this.#agentListener );
             grid.onAgent( 'deleted', this.#agentListener );
@@ -86,8 +101,11 @@ class Sensor extends ObservableMulti {
 
             // On parcel and my movements emit parcels sensing
             grid.onParcel( this.#parcelListener );
-            
-            // On my movements emit parcels sensing
+
+            // On crate and my movements emit crates sensing
+            grid.onCrate( this.#crateListener );
+
+            // On my movements emit parcels and crates sensing
             agent.on( 'xy', this.#myXyListener );
 
         }
@@ -102,6 +120,11 @@ class Sensor extends ObservableMulti {
             if (this.#parcelsDirty) {
                 this.#parcelsDirty = false;
                 this.computeParcelSensing();
+            }
+
+            if (this.#cratesDirty) {
+                this.#cratesDirty = false;
+                this.computeCrateSensing();
             }
         });
 
@@ -118,6 +141,9 @@ class Sensor extends ObservableMulti {
         }
         if ( this.#parcelListener ) {
             this.#grid.offParcel( this.#parcelListener );
+        }
+        if ( this.#crateListener ) {
+            this.#grid.offCrate( this.#crateListener );
         }
         if ( this.#myXyListener && this.#agent ) {
             this.#agent.off( 'xy', this.#myXyListener );
@@ -196,6 +222,37 @@ class Sensor extends ObservableMulti {
             }
         }
         this.sensedParcels = observedTiles;
+
+    }
+
+
+
+    /**
+     * Crates sensed on the grid
+     * @type {function(): void}
+     */
+    computeCrateSensing () {
+
+        var observedTiles = [];
+        for ( let tile of this.#grid.getTiles() ) {
+            // only if my position is undefined OR if within observation distance
+            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.parcels_observation_distance ) {
+                const sensedCrates = this.#grid.getCratesAt( tile.xy );
+                for ( let crate of sensedCrates ) {
+                    // At least one crate sensed on this tile
+                    observedTiles.push( {x: tile.x, y: tile.y, crate: {
+                        id: crate.id,
+                        x: crate.x,
+                        y: crate.y
+                    } } )
+                }
+                if ( sensedCrates.length == 0 ) {
+                    // No crate sensed on this tile
+                    observedTiles.push( { x: tile.x, y: tile.y } )
+                }
+            }
+        }
+        this.sensedCrates = observedTiles;
 
     }
 

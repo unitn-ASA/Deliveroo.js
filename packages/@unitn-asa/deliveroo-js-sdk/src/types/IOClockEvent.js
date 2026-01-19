@@ -14,7 +14,8 @@ function parseClockEvent ( event ) {
     if ( event == 'frame' || event == '1s' || event == '2s' || event == '5s' || event == '10s' || event == 'infinite' )
         return event;
     else
-        throw new Error( `IOClockEvent: invalid event '${event}'` );
+        console.warn( `IOClockEvent: invalid event '${event}', defaulting to '1s'` );
+        return '1s';
 }
 
 export { parseClockEvent };

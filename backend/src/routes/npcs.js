@@ -1,26 +1,9 @@
 import express from 'express';
-import { myNPCSpawners } from '../myGrid.js';
+import { myNPCSpawner } from '../myGrid.js';
 import { authorizeAdmin } from '../middlewares/token.js';
-import NPC from '../workers/NPC.js';
 
 const router = express.Router();
 
-
-/**
- * Get all NPCs from all spawners
- * @returns {Map<string, NPC>} Map of NPCs
- */
-function getAllNPCs() {
-    /** @type {Map<string, NPC>} */
-    const NPCs = new Map();
-    
-    for ( let spawner of myNPCSpawners ) {
-        for ( let [id, npc] of spawner.NPCs ) {
-            NPCs.set( id, npc );
-        }
-    }
-    return NPCs;
-}
 
 
 // GET /npcs get the list of all npcs on the grid
@@ -28,7 +11,7 @@ router.get('/', async (req, res) => {
 
     console.log( `GET /api/npcs` );
 
-    const agents = Array.from( getAllNPCs().values() ).map( npc => {
+    const agents = Array.from( myNPCSpawner.NPCs.values() ).map( npc => {
         return {
             id: npc.agent.id,
             name: npc.agent.name,
@@ -48,7 +31,7 @@ router.get('/:id', async (req, res) => {
 
     console.log( `GET /npcs/${req.params.id}` );
 
-    const npc = getAllNPCs().get( req.params.id );
+    const npc = myNPCSpawner.NPCs.get( req.params.id );
     if ( npc ) {
         res.status(200).json( {
             id: npc.agent.id,
@@ -71,7 +54,7 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
 
     console.log( `PATCH /api/npcs/${req.params.id}`, req.body );
 
-    const npc = getAllNPCs().get( req.params.id );
+    const npc = myNPCSpawner.NPCs.get( req.params.id );
     if ( npc ) {
         if ( req.body.running && ! npc.running ) {
             npc.start();
@@ -100,12 +83,13 @@ router.post('/', authorizeAdmin, async (req, res) => {
 
     console.log( `POST /api/npcs`, req.body );
 
-    if ( myNPCSpawners.length === 0 ) {
+    if ( myNPCSpawner.NPCs.size === 0 ) {
         res.status(500).json( { message: `No NPC spawners available` } );
         return;
     }
     
-    const npc = myNPCSpawners[0].createNPC();
+    const npc = myNPCSpawner.createNPC(req.body);
+
     res.status(200).json( {
         id: npc.agent.id,
         name: npc.agent.name,

@@ -7,6 +7,7 @@
  *   selected?: boolean;
  *   perceivingAgents?: boolean;
  *   perceivingParcels?: boolean;
+ *   perceivingCrates?: boolean;
  *   opacity?: number;
  * }} UITile
  */

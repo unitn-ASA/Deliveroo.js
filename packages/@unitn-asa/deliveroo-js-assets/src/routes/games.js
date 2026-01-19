@@ -144,6 +144,8 @@ function generatePng(matrix) {
                 ctx.fillStyle = 'red';
             } else if (value == '3') {
                 ctx.fillStyle = 'lightgray';
+            } else if (value == '5' || value == '5!') {
+                ctx.fillStyle = 'yellow';
             } else {
                 ctx.fillStyle = 'purple';
             }
@@ -162,6 +164,15 @@ function generatePng(matrix) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(value, _left + _width / 2, _top + _height / 2);
+            }
+
+            // Draw 'C' for crate spawning tiles
+            if (value.endsWith('!')) {
+                ctx.fillStyle = 'black';
+                ctx.font = '8px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('C', _left + _width / 2, _top + _height / 2);
             }
         }
     }

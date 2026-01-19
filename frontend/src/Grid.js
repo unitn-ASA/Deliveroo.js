@@ -6,6 +6,7 @@ import { connection } from "./states/myConnection.js";
 /** @typedef {import('./types/UIAgentType.js').UIAgent} UIAgent */
 /** @typedef {import('./types/UITileType.js').UITile} UITile */
 /** @typedef {import('./types/UIParcelType.js').UIParcel} UIParcel */
+/** @typedef {import('./types/UICrateType.js').UICrate} UICrate */
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOInfo.js").IOInfo} IOInfo */
 
@@ -47,6 +48,7 @@ export class Grid {
                 selected: false,
                 perceivingAgents: false,
                 perceivingParcels: false,
+                perceivingCrates: false,
                 // perceivingAgents: computed( () => {
                 //     return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.AGENTS_OBSERVATION_DISTANCE ) ? true : false;
                 // } ),
@@ -132,7 +134,35 @@ export class Grid {
 
 
 
-    /** @type {import("vue").Ref<UIAgent|UITile|UIParcel>} */
+    /**
+     * @type {Map<string,UICrate>} crates
+     */
+    crates = reactive (new Map());
+
+    /**
+     * @param {string} id
+     * @returns {UICrate}
+     */
+    getOrCreateCrate ( id ) {
+        var crate = this.crates.get(id);
+        if ( ! crate ) {
+            /** @type {UICrate} */
+            crate = {id, x:-1, y:-1};
+            this.crates.set( id, crate );
+        }
+        return crate;
+    }
+
+    /**
+     * @type {(x:number,y:number)=>Array<UICrate>}
+     */
+    getCratesAt ( x, y ) {
+        return Array.from(this.crates.values()).filter( crate => crate.x == x && crate.y == y );
+    }
+
+
+
+    /** @type {import("vue").Ref<UIAgent|UITile|UIParcel|UICrate>} */
     hoovered = ref();
 
     /** @type {import("vue").Ref<UITile>} */
@@ -143,6 +173,9 @@ export class Grid {
 
     /** @type {import("vue").Ref<UIParcel>} */
     selectedParcel = ref();
+
+    /** @type {import("vue").Ref<UICrate>} */
+    selectedCrate = ref();
 
     /**
 	 * @type {function(String):UIAgent}
@@ -157,6 +190,12 @@ export class Grid {
         return Array.from(this.parcels.values()).find( parcel => parcel.mesh?.uuid == uuid );
 	}
     /**
+	 * @type {function(String):UICrate}
+	 */
+	getCrateByMeshUUID ( uuid ) {
+        return Array.from(this.crates.values()).find( crate => crate.mesh?.uuid == uuid );
+	}
+    /**
      * @type {function(String):UITile}
     */
     getTileByMeshUUID ( uuid ) {
@@ -165,12 +204,19 @@ export class Grid {
 
     hooverByMesh ( mesh ) {
         // console.log( 'Grid.js hooverByMesh', mesh );
-        /** @type {UIAgent|UIParcel|UITile|undefined} */
-        let byMesh = this.getAgentByMeshUUID( mesh?.uuid ) || this.getParcelByMeshUUID( mesh?.uuid ) || this.getTileByMeshUUID( mesh?.uuid );
+        /** @type {UIAgent|UIParcel|UITile|UICrate|undefined} */
+        let byMesh = this.getAgentByMeshUUID( mesh?.uuid ) || this.getParcelByMeshUUID( mesh?.uuid ) || this.getCrateByMeshUUID( mesh?.uuid ) || this.getTileByMeshUUID( mesh?.uuid );
         if (byMesh && 'hoovered' in byMesh && byMesh.hoovered) return; // null or already hoovered, return
-        if ( this.hoovered.value && 'hoovered' in this.hoovered.value ) this.hoovered.value.hoovered = false; // unhoover previous
+
+        // Unhover previous hovered entity
+        if ( this.hoovered.value && 'hoovered' in this.hoovered.value ) {
+            this.hoovered.value.hoovered = false;
+        }
+
         this.hoovered.value = byMesh; // set newly hoovered
-        if ( this.hoovered.value && 'hoovered' in this.hoovered.value ) this.hoovered.value.hoovered = true; // hoover new
+        if ( this.hoovered.value && 'hoovered' in this.hoovered.value ) {
+            this.hoovered.value.hoovered = true; // hoover new
+        }
     }
 
     selectByMesh ( mesh ) {
@@ -198,6 +244,10 @@ export class Grid {
         let parcel = this.getParcelByMeshUUID( mesh?.uuid );
         setSelected( parcel, this.selectedParcel );
         if ( parcel ) return;
+
+        let crate = this.getCrateByMeshUUID( mesh?.uuid );
+        setSelected( crate, this.selectedCrate );
+        if ( crate ) return;
         
     }
 
@@ -392,6 +442,36 @@ export class Grid {
                     was.carriedBy = carriedBy;
                 }
 
+            }
+
+        });
+
+        socket.on("crates sensing", (arrayOfSensing, info) => {
+
+            this.info.value = info;
+
+            // for all known tiles, update perceivingCrates flag
+            for ( const tile of this.tiles.values() ) {
+                let oneSensing = arrayOfSensing.find( s => s.x == tile.x && s.y == tile.y );
+                tile.perceivingCrates = oneSensing ? true : false;
+            }
+
+            // for all known crates, if not in sensed, remove
+            var sensed_ids = arrayOfSensing.map( ({crate}) => crate?.id ).filter( id => id !== undefined )
+            for ( const [id, was] of this.crates.entries() ) {
+                if ( ! sensed_ids.includes( was.id ) ) {
+                    this.crates.delete( was.id );
+                }
+            }
+
+            // for all sensed crates, update or create
+            for ( const {x, y, crate} of arrayOfSensing ) {
+                if ( ! crate ) continue;
+                const {id} = crate;
+
+                const was = this.getOrCreateCrate( id );
+                was.x = x;
+                was.y = y;
             }
 
         });

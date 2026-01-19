@@ -105,6 +105,14 @@ export class DjsServerSocket extends Socket {
         super.emit( 'parcels sensing', parcels, info );
     }
 
+    /**
+     * @param { IOSensing [] } crates
+     * @param { IOInfo } info
+     */
+    emitCrateSensing ( crates, info ) {
+        super.emit( 'crates sensing', crates, info );
+    }
+
 
 
     /**

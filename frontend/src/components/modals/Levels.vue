@@ -31,7 +31,15 @@
             for ( let y=0; y<HEIGHT; y++ ) {
                 if ( tiles.has(x + y*1000) ) {
                     let tile = tiles.get( x + y*1000 );
-                    row.push(tile.type);
+                    let tileType = tile.type;
+
+                    // Append '!' if there's a crate on this tile
+                    const cratesOnTile = grid.getCratesAt( x, y );
+                    if ( cratesOnTile && cratesOnTile.length > 0 ) {
+                        tileType = tileType + '!';
+                    }
+
+                    row.push(tileType);
                 }
                 else {
                     row.push(0);

@@ -1,5 +1,4 @@
 import Grid from '../deliveroo/Grid.js';
-import { config } from '../config/config.js';
 import randomlyMovingAgent from './RandomlyMovingNPC.js';
 import NPC from './NPC.js';
 import myClock from '../myClock.js';
@@ -15,49 +14,46 @@ class NPCspawner {
     /** @type {Grid} */
     #grid;
 
-    /** @type {IONpcsOptions} */
-    #options;
-
     /** @type {Map<String,NPC>} */
     NPCs = new Map();
     
     /**
      * @param {Grid} grid
-     * @param {IONpcsOptions} options
+     * @param {IONpcsOptions[]} npcs
      */
-    constructor (grid, options) {
+    constructor (grid, npcs) {
 
         this.#grid = grid;
-        this.#options = options;
+        this.applyOptions( npcs );
 
+    }
 
-        myClock.on( '2s', () => {
+    /**
+     * @param {IONpcsOptions[]} npcs 
+     */
+    applyOptions ( npcs ) {
+        
+        // Remove existing NPCs
+        for ( let npc of this.NPCs.values() ) {
+            this.removeNPC( npc.agent.identity.id );
+        }
 
-            while ( this.NPCs.size < this.#options.count ) {
-
-                console.log(`NPCspawner: currently have ${this.NPCs.size} randomly moving agents, target is ${this.#options.count}`);
-                
-                if ( this.NPCs.size < this.#options.count ) {
-                    this.createNPC();
-                }
-                
-                else if ( this.NPCs.size > this.#options.count ) {
-                    let id = this.NPCs.keys().next().value;
-                    this.removeNPC( id );
-                }
-
+        // Create new NPCs
+        for ( let npc of npcs ) {
+            for ( let i = 0; i < (npc.count || 1); i++ ) {
+                this.createNPC(npc);
             }
-
-        } );
+        }
 
     }
 
     /**
      * Add a new NPC
+     * @param {IONpcsOptions} options 
      * @returns {NPC} NPC id
      */
-    createNPC () {
-        let NPC = new randomlyMovingAgent( this.#options );
+    createNPC ( options ) {
+        let NPC = new randomlyMovingAgent( options );
         this.NPCs.set( NPC.agent.identity.id, NPC );
         this.#grid.onAgent( "deleted" , (ev, agent) => {
             if ( agent.id == NPC.agent.id ) {

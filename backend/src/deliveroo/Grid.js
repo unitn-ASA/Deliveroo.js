@@ -1,6 +1,7 @@
 import Tile from './Tile.js';
 import Agent from './Agent.js';
 import Parcel from './Parcel.js';
+import Crate from './Crate.js';
 import Xy from './Xy.js';
 import { config } from '../config/config.js';
 import GridEventEmitter from './GridEventEmitter.js';
@@ -38,6 +39,9 @@ class Grid extends GridEventEmitter {
     /** @type {Map<string, Parcel>} */
     #parcels;
 
+    /** @type {Map<string, Crate>} */
+    #crates;
+
     /** @type {SensorOfGod} */
     #sensorOfGod;
 
@@ -54,6 +58,7 @@ class Grid extends GridEventEmitter {
         this.#tiles = new Map();
         this.#agents = new Map();
         this.#parcels = new Map();
+        this.#crates = new Map();
 
         var Xlength = map.length;
         var Ylength = Array.from(map).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
@@ -77,6 +82,11 @@ class Grid extends GridEventEmitter {
         if ( ! Array.isArray(tiles) ) {
             console.error('Grid.js loadMap(tiles) Invalid tiles format', tiles);
             return;
+        }
+
+        // Clear existing crates when loading a new map
+        for ( const crate of this.#crates.values() ) {
+            this.deleteCrate( crate.id );
         }
 
         var Xlength = tiles.length;
@@ -108,6 +118,13 @@ class Grid extends GridEventEmitter {
      * @returns {Tile}
      */
     setTile ( xy, type ) {
+        
+        // Create crates on tiles ending "!"
+        if ( type && type.toString().endsWith('!') ) {
+            const baseType = /** @type {IOTileType} */ (type.toString().slice(0, -1)); // Remove the "!"
+            this.createCrate( xy );
+        }
+
         var tile = this.#tiles.get( xy.toString() );
         if ( tile ) {
             tile.type = type;
@@ -299,6 +316,65 @@ class Grid extends GridEventEmitter {
         return this.#parcels.delete( id );
     }
 
+
+
+    /**
+     * @type {function(Xy): Crate}
+     */
+    createCrate ( xy ) {
+        var tile = this.getTile( xy );
+        if ( ! tile || ! tile.walkable )
+            return undefined;
+
+        // Instantiate and add to Grid
+        var crate = new Crate( xy );
+        this.#crates.set( crate.id, crate );
+
+        // Grid scoped event propagation
+        this.emitCrate( crate );
+        crate.on( 'xy', () => this.emitCrate( crate ) );
+
+        return crate;
+    }
+
+    /**
+     * @type {function(string): Crate}
+     */
+    getCrate (id) {
+        return this.#crates.get(id);
+    }
+
+    /**
+     * @type {function(): IterableIterator<Crate>}
+     */
+    getCrates () {
+        return this.#crates.values();
+    }
+
+    /**
+     * @type {function(Xy): Crate[]}
+     */
+    getCratesAt ( xy ) {
+        return Array.from(this.#crates.values()).filter( c => c?.xy?.rounded?.equals(xy) );
+    }
+
+    /**
+     * @type {function(): number}
+     */
+    getCratesQuantity () {
+        return this.#crates.size;
+    }
+
+    /**
+     * @type {function(String):boolean}
+     */
+    deleteCrate ( id ) {
+        var crate = this.getCrate( id );
+        if ( ! crate ) return false;
+        crate.removeAllListeners('xy');
+        return this.#crates.delete( id );
+    }
+
     /**
      * @type {function(): void}
      */
@@ -309,6 +385,9 @@ class Grid extends GridEventEmitter {
         }
         for ( const parcel of this.#parcels.values() ) {
             this.deleteParcel( parcel.id );
+        }
+        for ( const crate of this.#crates.values() ) {
+            this.deleteCrate( crate.id );
         }
     }
 

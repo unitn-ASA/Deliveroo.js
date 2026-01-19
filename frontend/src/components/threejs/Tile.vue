@@ -56,14 +56,16 @@
         }
     });
 
-    watch( [ () => tile.perceivingAgents, () => tile.perceivingParcels ], () => {
+    watch( [ () => tile.perceivingAgents, () => tile.perceivingParcels, () => tile.perceivingCrates ], () => {
 
-        // console.log('Tile.vue tile', tile.x, tile.y, tile.perceivingAgents?'perceivingAgents':'', tile.perceivingParcels?'perceivingParcels':'' );
-        
-        if ( tile.perceivingAgents && tile.perceivingParcels ) {
+        // console.log('Tile.vue tile', tile.x, tile.y, tile.perceivingAgents?'perceivingAgents':'', tile.perceivingParcels?'perceivingParcels':'', tile.perceivingCrates?'perceivingCrates':'' );
+
+        const perceptionCount = [tile.perceivingAgents, tile.perceivingParcels, tile.perceivingCrates].filter(Boolean).length;
+
+        if ( perceptionCount >= 2 ) {
             material.opacity = 1;
         }
-        else if ( tile.perceivingAgents || tile.perceivingParcels ) {
+        else if ( perceptionCount === 1 ) {
             material.opacity = 0.6;
         }
         else {
@@ -135,7 +137,33 @@
                     color = 0x0000ff;
                     emissiveColor = 0x4444ff;
                     break;
-                case '5': // Obstacle - Yellow
+                case '5!': // Crate Spawner - Orange with indicator
+                    color = 0xffff00;
+                    emissiveColor = 0xffff44;
+
+                    // Create crate spawner texture
+                    const spawnerCanvas = document.createElement('canvas');
+                    spawnerCanvas.width = 128;
+                    spawnerCanvas.height = 128;
+                    const spawnerCtx = spawnerCanvas.getContext('2d');
+
+                    // Draw background
+                    spawnerCtx.fillStyle = '#ffff00';
+                    spawnerCtx.fillRect(0, 0, 128, 128);
+
+                    // Draw crate icon (square with "C")
+                    spawnerCtx.fillStyle = 'black';
+                    spawnerCtx.font = 'bold 80px Arial';
+                    spawnerCtx.textAlign = 'center';
+                    spawnerCtx.textBaseline = 'middle';
+                    spawnerCtx.fillText('C', 64, 64);
+
+                    // Create texture from canvas
+                    const spawnerTexture = new THREE.CanvasTexture(spawnerCanvas);
+                    material.map = spawnerTexture;
+                    material.needsUpdate = true;
+                    break;
+                case '5': // Crate sliding tile - Yellow
                     color = 0xffff00;
                     emissiveColor = 0xffff44;
                     break;

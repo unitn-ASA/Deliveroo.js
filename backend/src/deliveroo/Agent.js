@@ -207,6 +207,24 @@ class Agent extends ObservableMulti {
             return false;
         }
 
+        // Check if there's a crate on the destination tile and try to push it
+        const cratesOnTile = this.#grid.getCratesAt( new Xy( { x: this.x + incr_x, y: this.y + incr_y } ) );
+        if (cratesOnTile.length > 0) {
+            const crate = cratesOnTile[0];
+            const crateDestTile = this.#grid.getTile( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
+
+            // Check if the crate can be pushed to the destination tile (must be type "5" and unlocked)
+            if (crateDestTile && crateDestTile.type.startsWith("5") && !crateDestTile.locked) {
+                // Push the crate
+                crate.xy = new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } );
+            } else {
+                // Cannot push crate, movement fails
+                this.penalty -= config.PENALTY;
+                // console.warn( `${this.name}(${this.id}) blocked by crate: cannot push to destination` );
+                return false;
+            }
+        }
+
         if ( toTile && toTile.walkable && ! toTile.locked ) {
             toTile.lock();
             // console.log(this.id, 'start move in', this.x+incr_x, this.y+incr_y)

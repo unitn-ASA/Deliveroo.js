@@ -123,6 +123,14 @@ export class DjsClientSocket extends Socket {
     onParcelsSensing ( callback ) {
         this.on( "parcels sensing", callback )
     }
+
+    /**
+     * Listen to 'crates sensing' events
+     * @param { function( IOSensing [] ) : void } callback
+     */
+    onCratesSensing ( callback ) {
+        this.on( "crates sensing", callback )
+    }
     
     /**
      * @callback onMsgCallback
