@@ -181,12 +181,25 @@ export class Controller {
         } );
 
         watch ( () => keys.Digit5, async () => {
-            while ( keys.Digit5 ) {
-                if ( connection.grid.hoovered.value ) {
-                    var { x, y } = connection.grid.hoovered.value;
-                    socket.emit( 'tile', { x, y, type: '5' } );
+            if ( keys.Digit5 && connection.grid.hoovered.value ) {
+                var { x, y } = connection.grid.hoovered.value;
+                const currentTile = connection.grid.getTile(x, y);
+                const crateTiles = ['5', '5!'];
+
+                // Find current index or start at -1
+                let currentIndex = crateTiles.indexOf(currentTile.type);
+                if (currentIndex === -1) {
+                    currentIndex = -1; // Not a crate tile, start from beginning
                 }
-                await new Promise( res => setTimeout(res) );
+
+                // Cycle to next crate tile type
+                const nextIndex = (currentIndex + 1) % crateTiles.length;
+                // @ts-ignore - '5!' is a valid tile type but not in IOTileType definition
+                socket.emit( 'tile', { x, y, type: crateTiles[nextIndex] } );
+
+                // Prevent rapid cycling
+                keys.Digit5 = false;
+                await new Promise( res => setTimeout(res, 200) );
             }
         } );
         

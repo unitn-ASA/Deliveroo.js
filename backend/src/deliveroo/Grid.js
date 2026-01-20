@@ -51,6 +51,7 @@ class Grid extends GridEventEmitter {
     
     /**
      * @constructor Grid
+     * @param {IOTileType[][]} map
      */
     constructor ( map = new Array(10).map( c=>new Array(10) ) ) {
         super();
@@ -60,16 +61,7 @@ class Grid extends GridEventEmitter {
         this.#parcels = new Map();
         this.#crates = new Map();
 
-        var Xlength = map.length;
-        var Ylength = Array.from(map).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
-
-        // Import map into #tiles
-        for (let x = 0; x < Xlength; x++) {
-            for (let y = 0; y < Ylength; y++) {
-                const value = map[x][y];
-                this.setTile( new Xy( {x,y}), value );
-            }
-        }
+        this.loadMap( map );
 
         this.#sensorOfGod = new SensorOfGod( this );
 
@@ -98,7 +90,7 @@ class Grid extends GridEventEmitter {
                 if (x < Xlength && y < Ylength) {
                     let value = tiles[x][y];
                     // Convert value to string for consistency
-                    this.setTile( xy, String(value) );
+                    this.setTile( xy, value );
                 } else {
                     let tile = this.setTile( xy, '0' ); // Tile.watch(type) happens at clock frame, if tile got deleted, listeners are all unsubscribed.
                     // this.emitTile( tile );           // So I may need to force it to happen immediately
@@ -118,12 +110,6 @@ class Grid extends GridEventEmitter {
      * @returns {Tile}
      */
     setTile ( xy, type ) {
-        
-        // Create crates on tiles ending "!"
-        if ( type && type.toString().endsWith('!') ) {
-            const baseType = /** @type {IOTileType} */ (type.toString().slice(0, -1)); // Remove the "!"
-            this.createCrate( xy );
-        }
 
         var tile = this.#tiles.get( xy.toString() );
         if ( tile ) {
@@ -135,6 +121,13 @@ class Grid extends GridEventEmitter {
             if ( xy.y + 1 > this.#Y ) this.#Y = xy.y + 1;
             tile.onFrame( 'type' , () => this.emitTile( tile ) );
         }
+
+        // Create crates on tiles ending "!"
+        if ( type && type.toString().endsWith('!') ) {
+            const baseType = /** @type {IOTileType} */ (type.toString().slice(0, -1)); // Remove the "!"
+            this.createCrate( xy );
+        }
+
         // this.emitTile( tile ); // not needed Tile.type is watched with immediate = true
         return tile;
     }

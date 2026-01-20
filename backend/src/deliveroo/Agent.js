@@ -213,16 +213,35 @@ class Agent extends ObservableMulti {
             const crate = cratesOnTile[0];
             const crateDestTile = this.#grid.getTile( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
 
-            // Check if the crate can be pushed to the destination tile (must be type "5" and unlocked)
-            if (crateDestTile && crateDestTile.type.startsWith("5") && !crateDestTile.locked) {
-                // Push the crate
-                crate.xy = new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } );
-            } else {
+            // Check if the crate can be pushed to the destination tile
+            // Must be type "5", unlocked, and not blocked by other entities
+            if (!crateDestTile || !crateDestTile.type.startsWith("5") || crateDestTile.locked) {
                 // Cannot push crate, movement fails
                 this.penalty -= config.PENALTY;
-                // console.warn( `${this.name}(${this.id}) blocked by crate: cannot push to destination` );
+                // console.warn( `${this.name}(${this.id}) blocked by crate: cannot push to destination (not type 5 or locked)` );
                 return false;
             }
+
+            // Check if destination tile has any crates
+            const cratesAtDest = this.#grid.getCratesAt( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
+            if (cratesAtDest.length > 0) {
+                // Cannot push crate onto another crate
+                this.penalty -= config.PENALTY;
+                // console.warn( `${this.name}(${this.id}) blocked by crate: destination has another crate` );
+                return false;
+            }
+
+            // Check if destination tile has an agent
+            const agentAtDest = this.#grid.getAgentAt( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
+            if (agentAtDest) {
+                // Cannot push crate onto an agent
+                this.penalty -= config.PENALTY;
+                // console.warn( `${this.name}(${this.id}) blocked by crate: destination has an agent` );
+                return false;
+            }
+
+            // Push the crate
+            crate.xy = new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } );
         }
 
         if ( toTile && toTile.walkable && ! toTile.locked ) {

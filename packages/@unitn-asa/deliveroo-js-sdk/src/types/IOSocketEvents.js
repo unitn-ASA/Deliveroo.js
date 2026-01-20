@@ -15,6 +15,7 @@
  *      'ask':          function ( string, any, function( any ) : void ) : void,
  *      'shout':        function ( any, function( any ) : void ) : void,
  *      'parcel':       function ( 'create' | 'dispose' | 'set', { x:number, y:number } | { id:string, reward?:number } ) : void,
+ *      'crate':        function ( 'create' | 'dispose', { x:number, y:number } ) : void,
  *      'restart':      function () : void,
  *      'tile':         function ( IOTile ) : void,
  *      'log':          function ( ...any ) : void
