@@ -77,9 +77,6 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
      * @returns {boolean} - True if movement is allowed
      */
     allowsMovementFrom (fromX, fromY) {
-        
-        // Always allow movement from any tile
-        return true;
 
         if (!this.isDirectional) {
             // Not a directional tile, allows all movement
@@ -90,9 +87,13 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
         const dx = this.x - fromX;
         const dy = this.y - fromY;
 
-        // Check if movement matches the tile's direction
-        const allowedDirection = Tile.#directionVectors[this.type];
-        return dx === allowedDirection.dx && dy === allowedDirection.dy;
+        // Check if movement is opposite to tile's direction
+        const prohibitedDirection = Tile.#directionVectors[this.type];
+        return dx != -prohibitedDirection.dx || dy != -prohibitedDirection.dy;
+
+        // // Check if movement matches the tile's direction
+        // const allowedDirection = Tile.#directionVectors[this.type];
+        // return dx === allowedDirection.dx && dy === allowedDirection.dy;
     }
 
     /**
@@ -102,6 +103,10 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
      * @returns {boolean} - True if exit in this direction is allowed
      */
     allowsExitInDirection (incr_x, incr_y) {
+        
+        // Always allow exit in any direction
+        return true;
+
         if (!this.isDirectional) {
             // Not a directional tile, allows all exits
             return true;

@@ -48,7 +48,7 @@
             mesh.scale.set( 1.5, 1.5, 1.5 );
             // material.emissiveIntensity = 1;
         } else if ( selected ) {
-            mesh.scale.set( 1.3, 1.3, 1.3 );
+            mesh.scale.set( 1.3, 1.3, 1.3 ); // replaced by animation below
             // material.emissiveIntensity = 1;
         } else {
             mesh.scale.set( 1, 1, 1 );
@@ -69,121 +69,168 @@
             material.opacity = 0.6;
         }
         else {
-            material.opacity = 0.1;
+            material.opacity = 0.2;
         }
 
     }, { immediate: true } );
 
+    const TILE_STYLES = {
+        '0': {                                      // None
+            color: 0x000000,    // black
+            emissive: 0x444444  // dark gray
+        },
+        '1': {                                      // Spawning
+            color: 0x00ff00,    // green
+            emissive: 0x44ff44  // light green
+        },
+        '2': {                                      // Delivery     
+            color: 0xff0000,    // red
+            emissive: 0xff4444  // light red
+        },
+        '3': {                                      // Walkable       
+            color: 0xffffff,    // white
+            emissive: 0xff99ff  // light pink
+        },
+        '4': {                                      // Base
+            color: 0x0000ff,    // blue
+            emissive: 0x4444ff  // light blue
+        },
+        '5': {                                      // Crate sliding
+            color: 0xffff00,    // yellow
+            emissive: 0xffff44  // light yellow
+        },
+        '5!': {                                      // Crate sliding & spawner
+            color: 0xffff00,    // yellow
+            emissive: 0xffff44, // light yellow
+            texture: createCrateSpawnerTexture()
+        },
+        '↑': {
+            color: 0xffffff,    // white
+            emissive: 0xffffff, // white
+            texture: () => createDirectionalTexture('↑')
+        },
+        '→': {
+            color: 0xffffff,    // white
+            emissive: 0xffffff, // white
+            texture: () => createDirectionalTexture('→')
+        },
+        '↓': {
+            color: 0xffffff,    // white
+            emissive: 0xffffff, // white
+            texture: () => createDirectionalTexture('↓')
+        },
+        '←': {
+            color: 0xffffff,    // white
+            emissive: 0xffffff, // white
+            texture: () => createDirectionalTexture('←')
+        }
+    };
+
     // Set color and emissive color based on type
     watch( () => tile.type, (newVal) => {
-        var color = 0x000000; // black
-        var emissiveColor;
+        const key = String(newVal);
+        const style = TILE_STYLES[key];
 
-        // Check for directional tiles first (Unicode arrows)
-        const directionalTiles = ['↑', '→', '↓', '←'];
-        const isDirectional = directionalTiles.includes(String(newVal));
+        if (!style) return;
 
-        if (isDirectional) {
-            // Directional tile - use light blue color
-            color = 0x87ceeb;
-            emissiveColor = 0x87ceeb;
+        // Clear texture by default
+        material.map = null;
 
-            // Create arrow texture
-            const canvas = document.createElement('canvas');
-            canvas.width = 128;
-            canvas.height = 128;
-            const ctx = canvas.getContext('2d');
+        // Apply colors
+        material.color.setHex(style.color);
+        material.emissive.setHex(style.emissive ?? style.color);
 
-            // Draw background
-            ctx.fillStyle = '#87ceeb';
-            ctx.fillRect(0, 0, 128, 128);
-
-            // Draw arrow
-            ctx.fillStyle = 'black';
-            ctx.font = 'bold 80px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(newVal, 64, 64);
-
-            // Create texture from canvas
-            const arrowTexture = new THREE.CanvasTexture(canvas);
-            material.map = arrowTexture;
-            material.needsUpdate = true;
-        } else {
-            // Clear texture for non-directional tiles
-            material.map = null;
-            material.needsUpdate = true;
-
-            // Existing tile type handling
-            switch (tile.type.toString()) {
-                case "0": // None - Black
-                    color = 0x000000;
-                    emissiveColor = 0x444444;
-                    // opacity = 0.3;
-                    break;
-                case "1": // Spawning - Green
-                    color = 0x00ff00;
-                    emissiveColor = 0x44ff44;
-                    break;
-                case "2": // Delivery - Red
-                    color = 0xff0000;
-                    emissiveColor = 0xff4444;
-                    break;
-                case "3": // Walkable - White
-                    color = 0xffffff;
-                    emissiveColor = 0xff99ff;
-                    break;
-                case "4": // Base - Blue
-                    color = 0x0000ff;
-                    emissiveColor = 0x4444ff;
-                    break;
-                case '5!': // Crate Spawner - Orange with indicator
-                    color = 0xffff00;
-                    emissiveColor = 0xffff44;
-
-                    // Create crate spawner texture
-                    const spawnerCanvas = document.createElement('canvas');
-                    spawnerCanvas.width = 128;
-                    spawnerCanvas.height = 128;
-                    const spawnerCtx = spawnerCanvas.getContext('2d');
-
-                    // Draw background
-                    spawnerCtx.fillStyle = '#ffff00';
-                    spawnerCtx.fillRect(0, 0, 128, 128);
-
-                    // Draw crate icon (square with "C")
-                    spawnerCtx.fillStyle = 'black';
-                    spawnerCtx.font = 'bold 80px Arial';
-                    spawnerCtx.textAlign = 'center';
-                    spawnerCtx.textBaseline = 'middle';
-                    spawnerCtx.fillText('C', 64, 64);
-
-                    // Create texture from canvas
-                    const spawnerTexture = new THREE.CanvasTexture(spawnerCanvas);
-                    material.map = spawnerTexture;
-                    material.needsUpdate = true;
-                    break;
-                case '5': // Crate sliding tile - Yellow
-                    color = 0xffff00;
-                    emissiveColor = 0xffff44;
-                    break;
-                default:
-                    break;
-            }
+        // Apply texture if present
+        if (style.texture) {
+            material.map = style.texture instanceof Function ? style.texture() : style.texture;
         }
-        // Set color and emissive color
-        material.color = new THREE.Color( color );
-        material.emissive = new THREE.Color( emissiveColor || color );
+
+        material.needsUpdate = true;
+
     }, { immediate: true });
 
+    /**
+     * Create a canvas texture with hazard stripes for directional tiles
+     * @param {string} direction - The direction symbol
+     * @returns {THREE.CanvasTexture}
+     */
+    function createDirectionalTexture(direction) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
 
+        // Constants
+        const size = 128;
+        const stripeWidth = 40;
+        const borderWidth = size / 2;
 
-    let raisingScale = true;
+        // Draw background
+        ctx.fillStyle = '#ffffff'; // white '#87ceeb'; // sky blue
+        ctx.fillRect(0, 0, 128, 128);
+
+        // Save context and apply clipping
+        ctx.save();
+        ctx.beginPath();
+        // Determine clip region based on direction
+        ctx.rect(
+            ['→'].includes(direction) ? size - borderWidth : 0,
+            ['↓'].includes(direction) ? size - borderWidth : 0,
+            ['←','→'].includes(direction) ? borderWidth : size,
+            ['↑','↓'].includes(direction) ? borderWidth : size
+        );
+        ctx.clip();
+
+        // Draw alternating yellow and black concentric 45° rotated squares
+        ctx.save();
+        // Move origin to center
+        ctx.translate(size / 2, size / 2);
+        // Rotate canvas by 45 degrees
+        ctx.rotate(Math.PI / 4);
+        // Draw concentric squares
+        for (let i = size * 1.55; i > size / 4; i -= stripeWidth) {
+            ctx.fillStyle = Math.floor(i / stripeWidth) % 2 === 0 ? '#ffffff' : '#0000ff';
+            const half = i / 2;
+            ctx.fillRect( -half, -half, i, i );
+        }
+        // Restore after drawing squares
+        ctx.restore();
+
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    /**
+     * Create a canvas texture for crate spawner tiles
+     * @returns {THREE.CanvasTexture}
+     */
+    function createCrateSpawnerTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 128;
+
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(0, 0, 128, 128);
+
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 80px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('C', 64, 64);
+
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    
+
+    // Animation variables
+    let isScalingUp = true;
     
     // slowly increase mesh scale when selected
     function animate () {
         if ( tile.selected ) {
-            if ( raisingScale ) {
+            if ( isScalingUp ) {
                 mesh.scale.x += ( 2 - mesh.scale.x ) * 0.05;
                 mesh.scale.z += ( 2 - mesh.scale.z ) * 0.05;
             }
@@ -193,15 +240,15 @@
             }
 
             if ( mesh.scale.x > 1.8 )
-                raisingScale = false;
+                isScalingUp = false;
             else if ( mesh.scale.x < 1.3 )
-                raisingScale = true;
+                isScalingUp = true;
         }   
         requestAnimationFrame(animate);
     };
     
     // Start animation
-    // requestAnimationFrame(animate); // commented out to improve performances
+    // requestAnimationFrame(animate); // Comment to improve performances
 
 </script>
 
