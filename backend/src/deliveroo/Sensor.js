@@ -201,26 +201,38 @@ class Sensor extends ObservableMulti {
     computeParcelSensing () {
 
         var observedTiles = [];
-        for ( let tile of this.#grid.getTiles() ) {
+        // Use a Set to track tiles with parcels, avoiding duplicates
+        const tilesWithParcels = new Set();
+
+        // Iterate directly over parcels instead of all tiles - O(parcels) instead of O(tiles * parcels)
+        for ( let parcel of this.#grid.getParcels() ) {
             // only if my position is undefined OR if within observation distance
-            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.parcels_observation_distance ) {
-                const sensedParcels = this.#grid.getParcelsAt( tile.xy );
-                for ( let parcel of sensedParcels ) {
-                    // At least one parcel sensed on this tile
-                    observedTiles.push( {x: tile.x, y: tile.y, parcel: {
-                        id: parcel.id,
-                        x: parcel.x,
-                        y: parcel.y,
-                        carriedBy: parcel.carriedBy ? parcel.carriedBy.id : null,
-                        reward: parcel.reward
-                    } } )
-                }
-                if ( sensedParcels.length == 0 ) {
-                    // No parcel sensed on this tile
-                    observedTiles.push( { x: tile.x, y: tile.y } )
+            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(parcel, this.#agent) < config.GAME.player.parcels_observation_distance ) {
+                const x = Math.round(parcel.x);
+                const y = Math.round(parcel.y);
+                const key = `${x}_${y}`;
+                tilesWithParcels.add(key);
+                observedTiles.push( {x, y, parcel: {
+                    id: parcel.id,
+                    x: parcel.x,
+                    y: parcel.y,
+                    carriedBy: parcel.carriedBy ? parcel.carriedBy.id : null,
+                    reward: parcel.reward
+                } } );
+            }
+        }
+
+        // Add empty tiles within observation distance
+        for ( let tile of this.#grid.getTiles() ) {
+            const key = `${tile.x}_${tile.y}`;
+            if ( ! tilesWithParcels.has(key) ) {
+                // only if my position is undefined OR if within observation distance
+                if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.parcels_observation_distance ) {
+                    observedTiles.push( { x: tile.x, y: tile.y } );
                 }
             }
         }
+
         this.sensedParcels = observedTiles;
 
     }
@@ -234,24 +246,36 @@ class Sensor extends ObservableMulti {
     computeCrateSensing () {
 
         var observedTiles = [];
-        for ( let tile of this.#grid.getTiles() ) {
+        // Use a Set to track tiles with crates, avoiding duplicates
+        const tilesWithCrates = new Set();
+
+        // Iterate directly over crates instead of all tiles - O(crates) instead of O(tiles * crates)
+        for ( let crate of this.#grid.getCrates() ) {
             // only if my position is undefined OR if within observation distance
-            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.parcels_observation_distance ) {
-                const sensedCrates = this.#grid.getCratesAt( tile.xy );
-                for ( let crate of sensedCrates ) {
-                    // At least one crate sensed on this tile
-                    observedTiles.push( {x: tile.x, y: tile.y, crate: {
-                        id: crate.id,
-                        x: crate.x,
-                        y: crate.y
-                    } } )
-                }
-                if ( sensedCrates.length == 0 ) {
-                    // No crate sensed on this tile
-                    observedTiles.push( { x: tile.x, y: tile.y } )
+            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(crate, this.#agent) < config.GAME.player.parcels_observation_distance ) {
+                const x = Math.round(crate.x);
+                const y = Math.round(crate.y);
+                const key = `${x}_${y}`;
+                tilesWithCrates.add(key);
+                observedTiles.push( {x, y, crate: {
+                    id: crate.id,
+                    x: crate.x,
+                    y: crate.y
+                } } );
+            }
+        }
+
+        // Add empty tiles within observation distance
+        for ( let tile of this.#grid.getTiles() ) {
+            const key = `${tile.x}_${tile.y}`;
+            if ( ! tilesWithCrates.has(key) ) {
+                // only if my position is undefined OR if within observation distance
+                if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.parcels_observation_distance ) {
+                    observedTiles.push( { x: tile.x, y: tile.y } );
                 }
             }
         }
+
         this.sensedCrates = observedTiles;
 
     }

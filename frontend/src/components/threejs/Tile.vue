@@ -3,6 +3,7 @@
     import * as THREE from 'three';
     import { Connection } from '@/Connection.js';
     import { connection } from '@/states/myConnection.js';
+    import { getTileTextures } from '@/utils/threejs/textures.js';
 
     /**
      * @typedef Tile
@@ -74,6 +75,10 @@
 
     }, { immediate: true } );
 
+    // Get static textures (cached globally)
+    /** @type {{ crateSpawner: THREE.CanvasTexture, dir_↑: THREE.CanvasTexture, dir_→: THREE.CanvasTexture, dir_↓: THREE.CanvasTexture, dir_←: THREE.CanvasTexture }} */
+    const textures = getTileTextures();
+
     const TILE_STYLES = {
         '0': {                                      // None
             color: 0x000000,    // black
@@ -83,11 +88,11 @@
             color: 0x00ff00,    // green
             emissive: 0x44ff44  // light green
         },
-        '2': {                                      // Delivery     
+        '2': {                                      // Delivery
             color: 0xff0000,    // red
             emissive: 0xff4444  // light red
         },
-        '3': {                                      // Walkable       
+        '3': {                                      // Walkable
             color: 0xffffff,    // white
             emissive: 0xff99ff  // light pink
         },
@@ -102,27 +107,27 @@
         '5!': {                                      // Crate sliding & spawner
             color: 0xffff00,    // yellow
             emissive: 0xffff44, // light yellow
-            texture: createCrateSpawnerTexture()
+            texture: textures.crateSpawner
         },
         '↑': {
             color: 0xffffff,    // white
             emissive: 0xffffff, // white
-            texture: () => createDirectionalTexture('↑')
+            texture: textures['dir_↑']
         },
         '→': {
             color: 0xffffff,    // white
             emissive: 0xffffff, // white
-            texture: () => createDirectionalTexture('→')
+            texture: textures['dir_→']
         },
         '↓': {
             color: 0xffffff,    // white
             emissive: 0xffffff, // white
-            texture: () => createDirectionalTexture('↓')
+            texture: textures['dir_↓']
         },
         '←': {
             color: 0xffffff,    // white
             emissive: 0xffffff, // white
-            texture: () => createDirectionalTexture('←')
+            texture: textures['dir_←']
         }
     };
 
@@ -142,87 +147,14 @@
 
         // Apply texture if present
         if (style.texture) {
-            material.map = style.texture instanceof Function ? style.texture() : style.texture;
+            material.map = style.texture;
         }
 
         material.needsUpdate = true;
 
     }, { immediate: true });
 
-    /**
-     * Create a canvas texture with hazard stripes for directional tiles
-     * @param {string} direction - The direction symbol
-     * @returns {THREE.CanvasTexture}
-     */
-    function createDirectionalTexture(direction) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 128;
-        canvas.height = 128;
-        const ctx = canvas.getContext('2d');
 
-        // Constants
-        const size = 128;
-        const stripeWidth = 40;
-        const borderWidth = size / 2;
-
-        // Draw background
-        ctx.fillStyle = '#ffffff'; // white '#87ceeb'; // sky blue
-        ctx.fillRect(0, 0, 128, 128);
-
-        // Save context and apply clipping
-        ctx.save();
-        ctx.beginPath();
-        // Determine clip region based on direction
-        ctx.rect(
-            ['→'].includes(direction) ? size - borderWidth : 0,
-            ['↓'].includes(direction) ? size - borderWidth : 0,
-            ['←','→'].includes(direction) ? borderWidth : size,
-            ['↑','↓'].includes(direction) ? borderWidth : size
-        );
-        ctx.clip();
-
-        // Draw alternating yellow and black concentric 45° rotated squares
-        ctx.save();
-        // Move origin to center
-        ctx.translate(size / 2, size / 2);
-        // Rotate canvas by 45 degrees
-        ctx.rotate(Math.PI / 4);
-        // Draw concentric squares
-        for (let i = size * 1.55; i > size / 4; i -= stripeWidth) {
-            ctx.fillStyle = Math.floor(i / stripeWidth) % 2 === 0 ? '#ffffff' : '#0000ff';
-            const half = i / 2;
-            ctx.fillRect( -half, -half, i, i );
-        }
-        // Restore after drawing squares
-        ctx.restore();
-
-        return new THREE.CanvasTexture(canvas);
-    }
-
-    /**
-     * Create a canvas texture for crate spawner tiles
-     * @returns {THREE.CanvasTexture}
-     */
-    function createCrateSpawnerTexture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 128;
-        canvas.height = 128;
-
-        const ctx = canvas.getContext('2d');
-
-        ctx.fillStyle = '#ffff00';
-        ctx.fillRect(0, 0, 128, 128);
-
-        ctx.fillStyle = 'black';
-        ctx.font = 'bold 80px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('C', 64, 64);
-
-        return new THREE.CanvasTexture(canvas);
-    }
-
-    
 
     // Animation variables
     let isScalingUp = true;

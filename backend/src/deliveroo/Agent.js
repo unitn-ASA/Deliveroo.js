@@ -289,8 +289,9 @@ class Agent extends ObservableMulti {
             // return [];
             const picked = new Array();
             var counter = 0;
-            for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcels() ) {
-                if ( parcel.x == this.x && parcel.y == this.y && parcel.carriedBy == null ) {
+            // Use getParcelsAt instead of iterating through all parcels - O(1) lookup instead of O(parcels)
+            for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcelsAt( this.xy.rounded ) ) {
+                if ( parcel.carriedBy == null ) {
                     this.carryingParcels.add(parcel);
                     parcel.carriedBy = this;
                     picked.push( parcel );

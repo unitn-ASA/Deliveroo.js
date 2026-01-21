@@ -42,6 +42,12 @@ class Grid extends GridEventEmitter {
     /** @type {Map<string, Crate>} */
     #crates;
 
+    /** @type {Map<string, Parcel[]>} - Spatial index for parcels by tile position */
+    #parcelsByTile = new Map();
+
+    /** @type {Map<string, Crate[]>} - Spatial index for crates by tile position */
+    #cratesByTile = new Map();
+
     /** @type {SensorOfGod} */
     #sensorOfGod;
 
@@ -246,11 +252,41 @@ class Grid extends GridEventEmitter {
         var tile = this.getTile( xy );
         if ( ! tile || ! tile.walkable )
             return undefined;
-        
+
         // Instantiate and add to Tile
         var parcel = new Parcel( xy );
         // tile.addParcel( parcel );
         this.#parcels.set( parcel.id, parcel )
+
+        // Add to spatial index
+        const tileKey = xy.rounded.toString();
+        if (!this.#parcelsByTile.has(tileKey)) {
+            this.#parcelsByTile.set(tileKey, []);
+        }
+        this.#parcelsByTile.get(tileKey).push(parcel);
+
+        // Track xy changes to update spatial index
+        let lastTileKey = tileKey;
+        parcel.on( 'xy', () => {
+            // Remove from old tile in spatial index
+            const oldParcels = this.#parcelsByTile.get(lastTileKey);
+            if (oldParcels) {
+                const index = oldParcels.indexOf(parcel);
+                if (index !== -1) {
+                    oldParcels.splice(index, 1);
+                    if (oldParcels.length === 0) {
+                        this.#parcelsByTile.delete(lastTileKey);
+                    }
+                }
+            }
+            // Add to new tile in spatial index
+            const newTileKey = parcel.xy.rounded.toString();
+            if (!this.#parcelsByTile.has(newTileKey)) {
+                this.#parcelsByTile.set(newTileKey, []);
+            }
+            this.#parcelsByTile.get(newTileKey).push(parcel);
+            lastTileKey = newTileKey;
+        } );
 
         parcel.once( 'expired', (...args) => {
             this.deleteParcel( parcel.id );
@@ -283,7 +319,8 @@ class Grid extends GridEventEmitter {
      * @type {function(Xy): Parcel[]}
      */
     getParcelsAt ( xy ) {
-        return Array.from(this.#parcels.values()).filter( p => p?.xy?.rounded?.equals(xy) );
+        // Use spatial index for O(1) lookup instead of iterating all parcels
+        return this.#parcelsByTile.get( xy.toString() ) || [];
     }
 
     /**
@@ -299,6 +336,22 @@ class Grid extends GridEventEmitter {
     deleteParcel ( id ) {
         var parcel = this.getParcel( id );
         if ( ! parcel ) return false
+
+        // Remove from spatial index
+        const tileKey = parcel.xy?.rounded?.toString();
+        if (tileKey) {
+            const parcelsAtTile = this.#parcelsByTile.get(tileKey);
+            if (parcelsAtTile) {
+                const index = parcelsAtTile.indexOf(parcel);
+                if (index !== -1) {
+                    parcelsAtTile.splice(index, 1);
+                    if (parcelsAtTile.length === 0) {
+                        this.#parcelsByTile.delete(tileKey);
+                    }
+                }
+            }
+        }
+
         parcel.removeAllListeners('reward');
         parcel.removeAllListeners('carriedBy');
         parcel.removeAllListeners('xy');
@@ -322,6 +375,36 @@ class Grid extends GridEventEmitter {
         // Instantiate and add to Grid
         var crate = new Crate( xy );
         this.#crates.set( crate.id, crate );
+
+        // Add to spatial index
+        const tileKey = xy.rounded.toString();
+        if (!this.#cratesByTile.has(tileKey)) {
+            this.#cratesByTile.set(tileKey, []);
+        }
+        this.#cratesByTile.get(tileKey).push(crate);
+
+        // Track xy changes to update spatial index
+        let lastTileKey = tileKey;
+        crate.on( 'xy', () => {
+            // Remove from old tile in spatial index
+            const oldCrates = this.#cratesByTile.get(lastTileKey);
+            if (oldCrates) {
+                const index = oldCrates.indexOf(crate);
+                if (index !== -1) {
+                    oldCrates.splice(index, 1);
+                    if (oldCrates.length === 0) {
+                        this.#cratesByTile.delete(lastTileKey);
+                    }
+                }
+            }
+            // Add to new tile in spatial index
+            const newTileKey = crate.xy.rounded.toString();
+            if (!this.#cratesByTile.has(newTileKey)) {
+                this.#cratesByTile.set(newTileKey, []);
+            }
+            this.#cratesByTile.get(newTileKey).push(crate);
+            lastTileKey = newTileKey;
+        } );
 
         // Grid scoped event propagation
         this.emitCrate( crate );
@@ -348,7 +431,8 @@ class Grid extends GridEventEmitter {
      * @type {function(Xy): Crate[]}
      */
     getCratesAt ( xy ) {
-        return Array.from(this.#crates.values()).filter( c => c?.xy?.rounded?.equals(xy) );
+        // Use spatial index for O(1) lookup instead of iterating all crates
+        return this.#cratesByTile.get( xy.toString() ) || [];
     }
 
     /**
@@ -364,6 +448,22 @@ class Grid extends GridEventEmitter {
     deleteCrate ( id ) {
         var crate = this.getCrate( id );
         if ( ! crate ) return false;
+
+        // Remove from spatial index
+        const tileKey = crate.xy?.rounded?.toString();
+        if (tileKey) {
+            const cratesAtTile = this.#cratesByTile.get(tileKey);
+            if (cratesAtTile) {
+                const index = cratesAtTile.indexOf(crate);
+                if (index !== -1) {
+                    cratesAtTile.splice(index, 1);
+                    if (cratesAtTile.length === 0) {
+                        this.#cratesByTile.delete(tileKey);
+                    }
+                }
+            }
+        }
+
         crate.removeAllListeners('xy');
         return this.#crates.delete( id );
     }
