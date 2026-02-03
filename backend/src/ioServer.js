@@ -80,7 +80,7 @@ io.on('connection', async ( socket ) => {
             me.tile.unlock();
         me.xy = undefined;
         myGrid.agents.delete( me.id );
-        // myGrid.emit( 'agent deleted', me );
+        // myGrid.emitter.emit( 'agent deleted', me );
     }
 
     new ioServer( DjsServerSocket.enhance( socket ), me );
@@ -127,13 +127,13 @@ class ioServer {
                 
                 // Cleanup listeners to prevent memory leak
                 if ( listeners.tileListener ) {
-                    myGrid.offTile( listeners.tileListener );
+                    myGrid.emitter.offTile( listeners.tileListener );
                 }
                 if ( listeners.agentCreatedListener ) {
-                    myGrid.offAgent( 'created', listeners.agentCreatedListener );
+                    myGrid.emitter.offAgent( listeners.agentCreatedListener );
                 }
                 if ( listeners.agentDeletedListener ) {
-                    myGrid.offAgent( 'deleted', listeners.agentDeletedListener );
+                    myGrid.emitter.offAgent( listeners.agentDeletedListener );
                 }
                 if ( listeners.meAnyListener ) {
                     me.emitter.off( 'xy', listeners.meAnyListener );
@@ -202,7 +202,7 @@ class ioServer {
             // console.log( 'emit tile', x, y, type );
             socket.emitTile( {x, y, type}, myClock.info );
         };
-        myGrid.onTile( listeners.tileListener );
+        myGrid.emitter.onTile( listeners.tileListener );
         let tiles = []
         for (const { xy: {x, y}, type } of myGrid.getTiles()) {
                 // console.log( 'emit tile', x, y, type );
@@ -227,14 +227,14 @@ class ioServer {
             let {id, name, teamName, teamId, score} = agent;
             socket.emitController( 'connected', {id, name, teamName, teamId, score} );
         };
-        myGrid.onAgent( 'created', listeners.agentCreatedListener );
+        myGrid.emitter.onAgent( 'created', listeners.agentCreatedListener );
         
         listeners.agentDeletedListener = ( event, agent ) => {
             if ( ! agent.id ) return;
             let {id, name, teamName, teamId, score} = agent;
             socket.emitController( 'disconnected', {id, name, teamName, teamId, score} );
         };
-        myGrid.onAgent( 'deleted', listeners.agentDeletedListener );
+        myGrid.emitter.onAgent( 'deleted', listeners.agentDeletedListener );
         
 
         
@@ -409,7 +409,7 @@ class ioServer {
                             myGrid.deleteParcel( p.id );
                     }
                 }
-                // TODO myGrid.emit( 'parcel' );
+                // TODO myGrid.emitter.emit( 'parcel' );
                 // if ack is a funtion
                 if ( ack && typeof ack === 'function' )
                     ack();

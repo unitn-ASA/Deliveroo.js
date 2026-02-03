@@ -55,7 +55,7 @@ class NPCspawner {
     createNPC ( options ) {
         let NPC = new randomlyMovingAgent( options );
         this.NPCs.set( NPC.agent.identity.id, NPC );
-        this.#grid.onAgent( "deleted" , (ev, agent) => {
+        this.#grid.emitter.onAgent( "deleted" , (ev, agent) => {
             if ( agent.id == NPC.agent.id ) {
                 this.removeNPC( NPC.agent.identity.id );
             }

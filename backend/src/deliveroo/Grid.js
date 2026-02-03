@@ -17,9 +17,14 @@ import { atPromise } from '../reactivity/postponeAt.js';
 
 /**
  * @class Grid
- * @extends GridEventEmitter
  */
-class Grid extends GridEventEmitter {
+class Grid {
+
+    /** @property {GridEventEmitter} */
+    #emitter;
+    get emitter () {
+        return this.#emitter;
+    }
 
     /** @property {number} X */
     #X = 0;
@@ -54,7 +59,8 @@ class Grid extends GridEventEmitter {
      * @param {IOTileType[][]} map
      */
     constructor ( map = new Array(10).map( c=>new Array(10) ) ) {
-        super();
+
+        this.#emitter = new GridEventEmitter();
         
         this.#tiles = new Map();
         this.#agents = new Map();
@@ -119,11 +125,11 @@ class Grid extends GridEventEmitter {
             if ( xy.y + 1 > this.#Y ) this.#Y = xy.y + 1;
             
             // Emit tile updates when its type changes
-            tile.emitter.on( 'type' , (type) => this.emitTile( tile ) ); // immediate emission
+            tile.emitter.on( 'type' , (type) => this.emitter.emitTile( tile ) ); // immediate emission
             // tile.emitter.on( 'type' , atPromise(myClock.synch(), () => this.emitTile( tile ) ) ); // emission at next clock frame
             
             // Initial emission
-            this.emitTile( tile );
+            this.emitter.emitTile( tile );
         }
 
         // Create crates on tiles ending "!"
@@ -186,14 +192,14 @@ class Grid extends GridEventEmitter {
         // Instantiate
         /** @type {Agent} */
         var me = Factory.createAgent( this, identity );
-        this.emitAgent( 'created', me );
+        this.emitter.emitAgent( 'created', me );
 
         // Register
         this.#agents.set(me.id, me);
 
         // Grid scoped events propagation
-        me.emitter.on( 'xy', () => this.emitAgent( 'xy', me ) );
-        me.emitter.on( 'score', () => this.emitAgent( 'score', me ) );
+        me.emitter.on( 'xy', () => this.emitter.emitAgent( 'xy', me ) );
+        me.emitter.on( 'score', () => this.emitter.emitAgent( 'score', me ) );
 
         return me;
     }
@@ -229,7 +235,7 @@ class Grid extends GridEventEmitter {
         
         this.#agents.delete( agent.id );
         
-        this.emitAgent( 'deleted', agent );
+        this.emitter.emitAgent( 'deleted', agent );
 
     }
 
@@ -290,10 +296,10 @@ class Grid extends GridEventEmitter {
         } );
 
         // Grid scoped event propagation
-        this.emitParcel( parcel )
-        parcel.emitter.on( 'reward', () => this.emitParcel( parcel ) );
-        parcel.emitter.on( 'carriedBy', () => this.emitParcel( parcel ) );
-        parcel.emitter.on( 'xy', () => this.emitParcel( parcel ) );
+        this.emitter.emitParcel( parcel )
+        parcel.emitter.on( 'reward', () => this.emitter.emitParcel( parcel ) );
+        parcel.emitter.on( 'carriedBy', () => this.emitter.emitParcel( parcel ) );
+        parcel.emitter.on( 'xy', () => this.emitter.emitParcel( parcel ) );
 
         return parcel;
     }
@@ -406,8 +412,8 @@ class Grid extends GridEventEmitter {
         } );
 
         // Grid scoped event propagation
-        this.emitCrate( crate );
-        crate.emitter.on( 'xy', () => this.emitCrate( crate ) );
+        this.emitter.emitCrate( crate );
+        crate.emitter.on( 'xy', () => this.emitter.emitCrate( crate ) );
 
         return crate;
     }

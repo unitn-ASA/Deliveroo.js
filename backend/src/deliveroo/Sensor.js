@@ -115,15 +115,15 @@ class Sensor {
 
             // On my changes emit agents, parcels and crates sensing,
             // on others changes within my range, emit agents sensing
-            grid.onAgent( 'xy', this.#agentListener );
-            grid.onAgent( 'deleted', this.#agentListener );
-            grid.onAgent( 'score', this.#agentListener );
+            grid.emitter.onAgent( 'xy', this.#agentListener );
+            grid.emitter.onAgent( 'deleted', this.#agentListener );
+            grid.emitter.onAgent( 'score', this.#agentListener );
 
             // On parcel and my movements emit parcels sensing
-            grid.onParcel( this.#parcelListener );
+            grid.emitter.onParcel( this.#parcelListener );
 
             // On crate and my movements emit crates sensing
-            grid.onCrate( this.#crateListener );
+            grid.emitter.onCrate( this.#crateListener );
 
             // On my movements emit parcels and crates sensing
             agent.emitter?.on( 'xy', this.#myXyListener );
@@ -155,15 +155,13 @@ class Sensor {
      */
     cleanup() {
         if ( this.#agentListener ) {
-            this.#grid.offAgent( 'xy', this.#agentListener );
-            this.#grid.offAgent( 'deleted', this.#agentListener );
-            this.#grid.offAgent( 'score', this.#agentListener );
+            this.#grid.emitter.offAgent( this.#agentListener );
         }
         if ( this.#parcelListener ) {
-            this.#grid.offParcel( this.#parcelListener );
+            this.#grid.emitter.offParcel( this.#parcelListener );
         }
         if ( this.#crateListener ) {
-            this.#grid.offCrate( this.#crateListener );
+            this.#grid.emitter.offCrate( this.#crateListener );
         }
         if ( this.#myXyListener && this.#agent ) {
             this.#agent.emitter?.off( 'xy', this.#myXyListener );
