@@ -1,12 +1,12 @@
-import ObservableMulti from '../reactivity/ObservableMulti.js';
 import Xy from './Xy.js';
 import Grid from './Grid.js';
 import Agent from './Agent.js';
 import Parcel from './Parcel.js';
 import Crate from './Crate.js';
-import Postponer from '../reactivity/Postponer.js';
 import myClock from '../myClock.js';
 import { config } from '../config/config.js';
+import eventEmitter from 'events';
+import { watchProperty } from '../reactivity/watchProperty.js';
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOAgent.js").IOAgent} IOAgent */
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOParcel.js").IOParcel} IOParcel */
@@ -16,9 +16,15 @@ import { config } from '../config/config.js';
 
 /**
  * @class Sensor
- * @extends { ObservableMulti< {sensedAgents:IOSensing[], sensedParcels:IOSensing[], sensedCrates:IOSensing[]} > }
  */
-class Sensor extends ObservableMulti {
+class Sensor {
+
+    /**
+     * @typedef {{sensedAgents: [IOSensing[]], sensedParcels: [IOSensing[]], sensedCrates: [IOSensing[]]}} EventsMap
+     * @type { eventEmitter<EventsMap> }
+    */
+    #emitter = new eventEmitter();
+    get emitter () { return this.#emitter; }
 
     /** @type {Grid} #grid */
     #grid;
@@ -81,11 +87,25 @@ class Sensor extends ObservableMulti {
      */
     constructor ( grid, agent ) {
 
-        super(true);
+        this.#emitter.setMaxListeners(0); // unlimited listeners
 
-        this.watch('sensedAgents', true);
-        this.watch('sensedParcels', true);
-        this.watch('sensedCrates', true);
+        watchProperty({
+            target: this,
+            key: 'sensedAgents',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
+
+        watchProperty({
+            target: this,
+            key: 'sensedParcels',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
+
+        watchProperty({
+            target: this,
+            key: 'sensedCrates',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
 
         this.#grid = grid;
 
@@ -106,7 +126,7 @@ class Sensor extends ObservableMulti {
             grid.onCrate( this.#crateListener );
 
             // On my movements emit parcels and crates sensing
-            agent.on( 'xy', this.#myXyListener );
+            agent.emitter?.on( 'xy', this.#myXyListener );
 
         }
 
@@ -146,7 +166,7 @@ class Sensor extends ObservableMulti {
             this.#grid.offCrate( this.#crateListener );
         }
         if ( this.#myXyListener && this.#agent ) {
-            this.#agent.off( 'xy', this.#myXyListener );
+            this.#agent.emitter?.off( 'xy', this.#myXyListener );
         }
     }
 

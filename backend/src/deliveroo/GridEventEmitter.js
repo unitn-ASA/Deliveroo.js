@@ -17,7 +17,7 @@ class GridEventEmitter {
      */
     constructor ( ) {
         this.#eventEmitter = new EventEmitter();
-        this.#eventEmitter.setMaxListeners(500);
+        this.#eventEmitter.setMaxListeners(0); // unlimited listeners
     }
     
 

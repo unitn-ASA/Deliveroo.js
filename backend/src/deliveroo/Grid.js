@@ -5,14 +5,15 @@ import Crate from './Crate.js';
 import Xy from './Xy.js';
 import { config } from '../config/config.js';
 import GridEventEmitter from './GridEventEmitter.js';
-import SensorOfGod from './SensorOfGod.js';
 import Identity from './Identity.js';
-import Factory from './Factory.js';
+import Factory from './AgentFactory.js';
+import myClock from '../myClock.js';
+import { atPromise } from '../reactivity/postponeAt.js';
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType} IOTileType */
 
 
-// @extends { ObservableMulti< {tiles:Map<String,Tile>, agents:Map<String, Agent>, parcels:Map<String, Parcel>} > }
+// @typedef {{tiles:[Map<String,Tile>], agents:[Map<String, Agent>], parcels:[Map<String, Parcel>}]} EventsMap
 
 /**
  * @class Grid
@@ -47,13 +48,6 @@ class Grid extends GridEventEmitter {
 
     /** @type {Map<string, Crate[]>} - Spatial index for crates by tile position */
     #cratesByTile = new Map();
-
-    /** @type {SensorOfGod} */
-    #sensorOfGod;
-
-    get sensorOfGod () {
-        return this.#sensorOfGod;
-    }
     
     /**
      * @constructor Grid
@@ -68,8 +62,6 @@ class Grid extends GridEventEmitter {
         this.#crates = new Map();
 
         this.loadMap( map );
-
-        this.#sensorOfGod = new SensorOfGod( this );
 
     }
 
@@ -125,7 +117,13 @@ class Grid extends GridEventEmitter {
             this.#tiles.set( xy.toString(), tile );
             if ( xy.x + 1 > this.#X ) this.#X = xy.x + 1;
             if ( xy.y + 1 > this.#Y ) this.#Y = xy.y + 1;
-            tile.onFrame( 'type' , () => this.emitTile( tile ) );
+            
+            // Emit tile updates when its type changes
+            tile.emitter.on( 'type' , (type) => this.emitTile( tile ) ); // immediate emission
+            // tile.emitter.on( 'type' , atPromise(myClock.synch(), () => this.emitTile( tile ) ) ); // emission at next clock frame
+            
+            // Initial emission
+            this.emitTile( tile );
         }
 
         // Create crates on tiles ending "!"
@@ -134,7 +132,6 @@ class Grid extends GridEventEmitter {
             this.createCrate( xy );
         }
 
-        // this.emitTile( tile ); // not needed Tile.type is watched with immediate = true
         return tile;
     }
 
@@ -195,8 +192,8 @@ class Grid extends GridEventEmitter {
         this.#agents.set(me.id, me);
 
         // Grid scoped events propagation
-        me.on( 'xy', () => this.emitAgent( 'xy', me ) );
-        me.on( 'score', () => this.emitAgent( 'score', me ) );
+        me.emitter.on( 'xy', () => this.emitAgent( 'xy', me ) );
+        me.emitter.on( 'score', () => this.emitAgent( 'score', me ) );
 
         return me;
     }
@@ -219,11 +216,11 @@ class Grid extends GridEventEmitter {
         
         agent.xy = undefined;
 
-        agent.removeAllListeners('xy');
-        agent.removeAllListeners('score');
-        // agent.removeAllListeners('agent');
-        // agent.removeAllListeners('agents sensing');
-        // agent.removeAllListeners('parcels sensing');
+        agent.emitter.removeAllListeners();
+        // agent.emitter.removeAllListeners('xy');
+        // agent.emitter.removeAllListeners('score');
+        // agent.emitter.removeAllListeners('penalty');
+        // agent.emitter.removeAllListeners('carryingParcel');
         
         // Cleanup sensor listeners to prevent memory leak
         if ( agent.sensor && typeof agent.sensor.cleanup === 'function' ) {
@@ -267,7 +264,7 @@ class Grid extends GridEventEmitter {
 
         // Track xy changes to update spatial index
         let lastTileKey = tileKey;
-        parcel.on( 'xy', () => {
+        parcel.emitter.on( 'xy', () => {
             // Remove from old tile in spatial index
             const oldParcels = this.#parcelsByTile.get(lastTileKey);
             if (oldParcels) {
@@ -288,15 +285,15 @@ class Grid extends GridEventEmitter {
             lastTileKey = newTileKey;
         } );
 
-        parcel.once( 'expired', (...args) => {
+        parcel.emitter.once( 'expired', (...args) => {
             this.deleteParcel( parcel.id );
         } );
 
         // Grid scoped event propagation
         this.emitParcel( parcel )
-        parcel.on( 'reward', () => this.emitParcel( parcel ) );
-        parcel.on( 'carriedBy', () => this.emitParcel( parcel ) );
-        parcel.on( 'xy', () => this.emitParcel( parcel ) );
+        parcel.emitter.on( 'reward', () => this.emitParcel( parcel ) );
+        parcel.emitter.on( 'carriedBy', () => this.emitParcel( parcel ) );
+        parcel.emitter.on( 'xy', () => this.emitParcel( parcel ) );
 
         return parcel;
     }
@@ -352,13 +349,15 @@ class Grid extends GridEventEmitter {
             }
         }
 
-        parcel.removeAllListeners('reward');
-        parcel.removeAllListeners('carriedBy');
-        parcel.removeAllListeners('xy');
+        // Unsubscribe all event listeners
+        parcel.emitter?.removeAllListeners();
+        // parcel.emitter.removeAllListeners('reward');
+        // parcel.emitter.removeAllListeners('carriedBy');
+        // parcel.emitter.removeAllListeners('xy');
+        
         // Call cleanup to remove clock and carrier listeners
-        if ( typeof parcel.cleanup === 'function' ) {
-            parcel.cleanup();
-        }
+        parcel.cleanup();
+        
         return this.#parcels.delete( id );
     }
 
@@ -385,7 +384,7 @@ class Grid extends GridEventEmitter {
 
         // Track xy changes to update spatial index
         let lastTileKey = tileKey;
-        crate.on( 'xy', () => {
+        crate.emitter.on( 'xy', () => {
             // Remove from old tile in spatial index
             const oldCrates = this.#cratesByTile.get(lastTileKey);
             if (oldCrates) {
@@ -408,7 +407,7 @@ class Grid extends GridEventEmitter {
 
         // Grid scoped event propagation
         this.emitCrate( crate );
-        crate.on( 'xy', () => this.emitCrate( crate ) );
+        crate.emitter.on( 'xy', () => this.emitCrate( crate ) );
 
         return crate;
     }
@@ -464,7 +463,7 @@ class Grid extends GridEventEmitter {
             }
         }
 
-        crate.removeAllListeners('xy');
+        crate.emitter?.removeAllListeners('xy');
         return this.#crates.delete( id );
     }
 

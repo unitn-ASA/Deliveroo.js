@@ -2,7 +2,8 @@ import { args } from './argParser.js';
 import { loadGame } from '@unitn-asa/deliveroo-js-assets';
 import { readFileSync } from 'fs';
 import { watchProperty } from '../reactivity/watchProperty.js';
-import EventEmitterOncePerTick from '../reactivity/EventEmitterOncePerTick.js';
+import EventEmitter from 'events';
+import { atNextTick } from '../reactivity/postponeAt.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent} IOClockEvent */
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOConfig.js').IOConfig} IOConfig */
@@ -174,31 +175,37 @@ export const config = {
 };
 
 
-/** @type {EventEmitterOncePerTick<Record<keyof IOConfig,[]>>} no parameters associated to event emission */
-export const configEmitter = new EventEmitterOncePerTick( );
+
+/**
+ * @typedef {{[K in keyof IOConfig]: IOConfig[K] []}} EventsMap
+ */
+
+
+
+/** @type {EventEmitter<EventsMap>} */
+export const configEmitter = new EventEmitter( );
+
+
+
 watchProperty( {
     target: config,
     key: 'GAME',
-    callback: () => configEmitter.emit('GAME'),
-    immediate: false
+    callback: atNextTick( (target, key, value) => configEmitter.emit('GAME', config.GAME) )
 } );
 watchProperty( {
     target: config,
     key: 'PENALTY',
-    callback: () => configEmitter.emit('PENALTY'),
-    immediate: false
+    callback: atNextTick((target, key, value) => configEmitter.emit('PENALTY', config.PENALTY) )
 } );
 watchProperty( {
     target: config,
     key: 'AGENT_TIMEOUT',
-    callback: () => configEmitter.emit('AGENT_TIMEOUT'),
-    immediate: false
+    callback: atNextTick((target, key, value) => configEmitter.emit('AGENT_TIMEOUT', config.AGENT_TIMEOUT) )
 } );
 watchProperty( {
     target: config,
     key: 'BROADCAST_LOGS',
-    callback: () => configEmitter.emit('BROADCAST_LOGS'),
-    immediate: false
+    callback: atNextTick((target, key, value) => configEmitter.emit('BROADCAST_LOGS', config.BROADCAST_LOGS) )
 } );
 
 

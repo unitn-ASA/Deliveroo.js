@@ -1,7 +1,9 @@
 import Xy from './Xy.js';
 import Parcel from './Parcel.js';
 import Grid from './Grid.js';
-import ObservableMulti from '../reactivity/ObservableMulti.js';
+import eventEmitter from 'events';
+import { watchProperty } from '../reactivity/watchProperty.js';
+import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTile} IOTile */
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType} IOTileType */
@@ -10,10 +12,16 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
 
 /**
  * @class Tile
- * @extends { ObservableMulti< {xy:Xy, type:string, locked:boolean} > }
  * @implements { IOTile }
  */
- class Tile extends ObservableMulti {
+ class Tile {
+
+    /**
+     * @typedef {{type: [string], locked: [boolean]}} eventsMap
+     * @type { eventEmitter<Record<keyof eventsMap, eventsMap[keyof eventsMap]>> }
+    */
+    #emitter = new eventEmitter();
+    get emitter () { return this.#emitter; }
 
     /** @type {Xy} */
     #xy;
@@ -103,7 +111,7 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
      * @returns {boolean} - True if exit in this direction is allowed
      */
     allowsExitInDirection (incr_x, incr_y) {
-        
+
         // Always allow exit in any direction
         return true;
 
@@ -127,14 +135,22 @@ import ObservableMulti from '../reactivity/ObservableMulti.js';
      */
     constructor ( xy, type = '1' ) {
 
-        super();
+        this.#emitter.setMaxListeners(0); // unlimited listeners
 
         this.#xy = xy;
 
-        this.watch('type', true); // immediate=true to emit immediately when subscribe
-        this.type = String(type); // Ensure type is always a string
+        watchProperty({
+            target: this,
+            key: 'type',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
+        this.type = parseIOTileType(type); // Ensure type is always a string
 
-        this.watch('locked', true); // immediate=true to emit immediately when subscribe
+        watchProperty({
+            target: this,
+            key: 'locked',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
         this.locked = false;
 
     }

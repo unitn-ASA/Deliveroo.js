@@ -1,21 +1,29 @@
 import Xy from './Xy.js';
-import ObservableMulti from '../reactivity/ObservableMulti.js';
+import { watchProperty } from '../reactivity/watchProperty.js';
+import eventEmitter from 'events';
 
 
 
 /**
  * @class Crate
- * @extends { ObservableMulti< {xy:Xy} > }
  *
  * A Crate is a pushable object that cannot be picked up.
  * It can be pushed by agents to adjacent tiles.
  */
-class Crate extends ObservableMulti {
+class Crate {
+    
+    /**
+     * @typedef {{xy: [Xy]}} EventsMap
+     * @type { eventEmitter<EventsMap> }
+    */
+    #emitter = new eventEmitter();
+    get emitter () { return this.#emitter; }
 
     static #lastId = 0;
 
     /** @type {string} */
-    id;
+    #id;
+    get id () { return this.#id; }
 
     /** @type {Xy} */
     xy;
@@ -29,13 +37,19 @@ class Crate extends ObservableMulti {
      * @param {Xy} xy - The initial position of the crate
      */
     constructor ( xy ) {
+        
+        this.#emitter = new eventEmitter();
+        this.#emitter.setMaxListeners(0); // unlimited listeners
+        
+        this.#id = 'c' + Crate.#lastId++;
 
-        super();
+        watchProperty({
+            target: this,
+            key: 'xy',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
 
-        this.id = 'c' + Crate.#lastId++;
-
-        this.watch('xy');
-        this.xy = xy;
+        this.xy = xy; // Set and emit initial position
 
     }
 

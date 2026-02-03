@@ -12,6 +12,7 @@ import { DjsServer, DjsServerSocket } from '@unitn-asa/deliveroo-js-sdk/server';
 import Agent from './deliveroo/Agent.js';
 import Identity from './deliveroo/Identity.js';
 import Xy from './deliveroo/Xy.js';
+import { atNextTick } from './reactivity/postponeAt.js';
 
 
 const io = DjsServer.enhance( new Server( httpServer, {
@@ -135,18 +136,19 @@ class ioServer {
                     myGrid.offAgent( 'deleted', listeners.agentDeletedListener );
                 }
                 if ( listeners.meAnyListener ) {
-                    me.off( 'any', listeners.meAnyListener );
+                    me.emitter.off( 'xy', listeners.meAnyListener );
+                    me.emitter.off( 'score', listeners.meAnyListener );
+                    me.emitter.off( 'penalty', listeners.meAnyListener );
+                    me.emitter.off( 'carryingParcels', listeners.meAnyListener );
                 }
                 if ( listeners.sensedParcelsListener ) {
-                    me.sensor.off( 'sensedParcels', listeners.sensedParcelsListener );
-                    me.grid.sensorOfGod.off( 'sensedParcels', listeners.sensedParcelsListener );
+                    me.sensor.emitter.off( 'sensedParcels', listeners.sensedParcelsListener );
                 }
                 if ( listeners.sensedAgentsListener ) {
-                    me.sensor.off( 'sensedAgents', listeners.sensedAgentsListener );
-                    me.grid.sensorOfGod.off( 'sensedAgents', listeners.sensedAgentsListener );
+                    me.sensor.emitter.off( 'sensedAgents', listeners.sensedAgentsListener );
                 }
                 if ( listeners.penaltyListener ) {
-                    me.off( 'penalty', listeners.penaltyListener );
+                    me.emitter.off( 'penalty', listeners.penaltyListener );
                 }
                 
                 if ( socketsLeft == 0 && me.xy ) {
@@ -178,7 +180,7 @@ class ioServer {
                 socket.disconnect();
             }
         };
-        me.on( 'penalty', listeners.penaltyListener );
+        me.emitter.on( 'penalty', listeners.penaltyListener );
 
 
 
@@ -241,11 +243,14 @@ class ioServer {
          */
 
         // Emit you
-        listeners.meAnyListener = () => {
+        listeners.meAnyListener = atNextTick( () => {
             // console.log( 'emit you', id, name, x, y, score );
             socket.emitYou( me, myClock.info );
-        };
-        me.on( 'any', listeners.meAnyListener );
+        } );
+        me.emitter.on( 'xy', listeners.meAnyListener );
+        me.emitter.on( 'score', listeners.meAnyListener );
+        me.emitter.on( 'penalty', listeners.meAnyListener );
+        me.emitter.on( 'carryingParcels', listeners.meAnyListener );
         // console.log( 'emit you', id, name, x, y, score );
         socket.emitYou( {
             id: me.id, name: me.name,
@@ -266,10 +271,7 @@ class ioServer {
             // console.log('emit parcels sensing', ...parcels);
             socket.emitParcelSensing( me.sensor.sensedParcels, myClock.info )
         };
-        // if ( me.identity.role == 'admin' ) // former 'god' mod
-        //     me.grid.sensorOfGod.on( 'sensedParcels', listeners.sensedParcelsListener );
-        // else
-            me.sensor.on( 'sensedParcels', listeners.sensedParcelsListener );
+        me.sensor.emitter.on( 'sensedParcels', listeners.sensedParcelsListener );
         // Fire immediately to send initial sensing
         listeners.sensedParcelsListener();
 
@@ -277,7 +279,7 @@ class ioServer {
         listeners.sensedCratesListener = () => {
             socket.emitCrateSensing( me.sensor.sensedCrates, myClock.info )
         };
-        me.sensor.on( 'sensedCrates', listeners.sensedCratesListener );
+        me.sensor.emitter.on( 'sensedCrates', listeners.sensedCratesListener );
         // Fire immediately to send initial sensing
         listeners.sensedCratesListener();
 
@@ -286,10 +288,7 @@ class ioServer {
             // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
             socket.emitAgentsSensing( me.sensor.sensedAgents, myClock.info );
         };
-        // if ( me.identity.role == 'admin' ) // former 'god' mod
-        //     me.grid.sensorOfGod.on( 'sensedAgents', listeners.sensedAgentsListener );
-        // else
-            me.sensor.on( 'sensedAgents', listeners.sensedAgentsListener );
+        me.sensor.emitter.on( 'sensedAgents', listeners.sensedAgentsListener );
         // Fire immediately to send initial sensing
         listeners.sensedAgentsListener();
         

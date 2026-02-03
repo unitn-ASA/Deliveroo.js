@@ -6,9 +6,11 @@ import Grid from './Grid.js';
 import Tile from './Tile.js';
 import Parcel from './Parcel.js';
 import myClock from '../myClock.js';
-import ObservableMulti from '../reactivity/ObservableMulti.js';
 import Sensor from './Sensor.js';
 import Identity from './Identity.js';
+import eventEmitter from 'events';
+import { watchProperty } from '../reactivity/watchProperty.js';
+import { atNextTick } from '../reactivity/postponeAt.js';
 
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent} IOAgent */
@@ -21,10 +23,16 @@ const MOVEMENT_STEPS = 1;
 
 /**
  * @class Agent
- * @extends { ObservableMulti< {xy:Xy, score:number, penalty:number, carryingParcels:Set<Parcel>} > }
  * @implements {IOAgent}
- */
-class Agent extends ObservableMulti {
+*/
+class Agent {
+    
+    /**
+     * @typedef {{xy: [Xy], score: [number], penalty: [number], carryingParcels: [Set<Parcel>]}} EventsMap
+     * @type { eventEmitter<EventsMap> }
+    */
+   #emitter = new eventEmitter();
+   get emitter () { return this.#emitter; }
     
     /** @type {Grid} #grid */
     #grid;
@@ -78,16 +86,37 @@ class Agent extends ObservableMulti {
      */
     constructor ( grid, identity ) {
 
-        super();
-
-        this.watch('xy', true); // immediate=true to emit agent when spawning
+        this.#emitter.setMaxListeners(0); // unlimited listeners
         
-        this.watch('score', true); // immediate=true to emit agent when spawning
-
-        this.watch('penalty', true); // immediate=true to emit agent when spawning
-
-        this.watch('carryingParcels', true); // immediate=true to emit agent when spawning
+        watchProperty({
+            target: this,
+            key: 'xy',
+            // callback: (target, key, value) => { this.#emitter.emit('xy', value); }
+            callback: atNextTick( (target, key, value) => target.#emitter.emit(key, value) )
+        });
+        // this.#emitter.emit('xy', this.xy) // to immediately emit agent when spawning
         
+        watchProperty({
+            target: this,
+            key: 'score',
+            callback: atNextTick( (target, key, value) => this.#emitter.emit('score', value) )
+        });
+        // this.#emitter.emit('score', this.score) // to immediately emit agent when spawning
+
+        watchProperty({
+            target: this,
+            key: 'penalty',
+            callback: atNextTick( (target, key, value) => this.#emitter.emit('penalty', value) )
+        });
+        // this.#emitter.emit('penalty', this.penalty) // to immediately emit agent when spawning
+
+        watchProperty({
+            target: this,
+            key: 'carryingParcels',
+            callback: atNextTick( (target, key, value) => this.#emitter.emit('carryingParcels', value) )
+        });
+        // this.#emitter.emit('carryingParcels', this.carryingParcels) // to immediately emit agent when spawning
+
         let tiles_unlocked =
             Array.from( grid.getTiles() )
             // walkable
@@ -121,9 +150,6 @@ class Agent extends ObservableMulti {
         this.#identity = identity;
         this.score = 0;
         
-        // Wrapping emitParcelSensing so to fire it just once every Node.js loop iteration
-        // this.emitParcelSensing = new Postponer( this.emitParcelSensing.bind(this) ).at( myClock.synch() );
-
     }
 
 

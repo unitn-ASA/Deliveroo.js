@@ -2,38 +2,43 @@ import Xy from './Xy.js';
 import myClock from '../myClock.js';
 import { config } from '../config/config.js';
 import Agent from './Agent.js';
-import ObservableMulti from '../reactivity/ObservableMulti.js';
+import eventEmitter from 'events';
+import { watchProperty } from '../reactivity/watchProperty.js';
 
 
 
-/**
- * @typedef {import('../types').ParcelType} ParcelType
- */
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOParcel.js').IOParcel} IOParcel */
 
 
 
 /**
  * @class Parcel
- * @extends { ObservableMulti< {xy:Xy, carriedBy:Agent, reward:number, expired:boolean} > }
- * @implements { ParcelType }
+ * @implements { IOParcel }
  */
-class Parcel extends ObservableMulti {
-    
+class Parcel {
+
+    /**
+     * @typedef {{xy: [Xy], carriedBy: [Agent], reward: [number], expired: [boolean]}} EventsMap
+     * @type { eventEmitter<EventsMap> }
+    */
+    #emitter = new eventEmitter();
+    get emitter () { return this.#emitter; }
+
     static #lastId = 0;
 
     /** @type {string} */
     id;
-    
+
     /** @type {Xy} */
     xy;
     /** @type {number} */
     get x () { return this.xy?.x }
     /** @type {number} */
     get y () { return this.xy?.y }
-    
+
     /** @type {Agent} */
     carriedBy;
-    
+
     /** @type {number} */
     reward;
 
@@ -45,33 +50,45 @@ class Parcel extends ObservableMulti {
 
     /** @type { function(...any) : void } - Carrier follower listener */
     #followCarrier;
-    
+
     /**
      * @constructor Parcel
      */
     constructor ( xy, carriedBy = null, reward ) {
 
-        super();
+        this.#emitter.setMaxListeners(0); // unlimited listeners
 
         this.id = 'p' + Parcel.#lastId++;
 
-        this.watch('xy');
+        watchProperty({
+            target: this,
+            key: 'xy',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
         this.xy = xy;
 
-        this.watch('carriedBy');
+        watchProperty({
+            target: this,
+            key: 'carriedBy',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
         this.carriedBy = carriedBy;
 
         // Follow carrier
         /** @type {Agent} */
         var lastCarrier = null;
         this.#followCarrier = (agent) => { if ( this.carriedBy ) this.xy = this.carriedBy.xy };
-        this.on( 'carriedBy', ({carriedBy}) => {
-            lastCarrier?.off( 'xy', this.#followCarrier )
-            this.carriedBy?.on( 'xy', this.#followCarrier )
+        this.#emitter.on( 'carriedBy', () => {
+            lastCarrier?.emitter?.off( 'xy', this.#followCarrier )
+            this.carriedBy?.emitter?.on( 'xy', this.#followCarrier )
             lastCarrier = this.carriedBy;
         } )
 
-        this.watch('reward');
+        watchProperty({
+            target: this,
+            key: 'reward',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
         {
             let random = Math.random();
             let va = config.GAME.parcels.reward_variance;
@@ -80,16 +97,20 @@ class Parcel extends ObservableMulti {
             // console.log( "Parcel.js reward:",  `${reward} || ${random} * ${va} * 2 + ${avg} - ${va} = ${random * va * 2} + ${avg} - ${va} = ${random * va * 2 + avg} - ${va} =Floor(${random * va * 2 + avg - va}) = ${this.reward}` ); // + avg were being concatenated instead of summed. who knows?
         }
 
-        this.watch('expired');
+        watchProperty({
+            target: this,
+            key: 'expired',
+            callback: (target, key, value) => target.#emitter.emit(key, value)
+        });
         this.expired = false;
 
         const rewardListener = () => {
             if ( this.reward <= 0 ) {
                 this.expired = true;
-                this.off( 'reward', rewardListener );
+                this.#emitter.off( 'reward', rewardListener );
             }
         }
-        this.on( 'reward', rewardListener );
+        this.#emitter.on( 'reward', rewardListener );
 
         this.#decayListener = () => {
             this.reward = Math.floor( this.reward - 1 );
@@ -98,7 +119,7 @@ class Parcel extends ObservableMulti {
             }
         };
         myClock.on( config.GAME.parcels.decading_event, this.#decayListener );
-        
+
     }
 
     /**
@@ -111,7 +132,7 @@ class Parcel extends ObservableMulti {
         }
         // Remove carrier follower listener
         if ( this.carriedBy && this.#followCarrier ) {
-            this.carriedBy.off( 'xy', this.#followCarrier );
+            this.carriedBy.emitter?.off( 'xy', this.#followCarrier );
         }
     }
 
