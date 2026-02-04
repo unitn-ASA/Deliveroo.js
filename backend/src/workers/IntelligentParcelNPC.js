@@ -68,7 +68,7 @@ class IntelligentParcelNPC extends NPC {
         if (!this.agent?.grid) return;
 
         this.deliveryTiles = [];
-        for (let tile of this.agent.grid.getTiles()) {
+        for (let tile of this.agent.grid.tileRegistry.getIterator()) {
             if (tile.delivery) {
                 this.deliveryTiles.push({ x: tile.x, y: tile.y });
             }
@@ -117,8 +117,8 @@ class IntelligentParcelNPC extends NPC {
         const agent = this.agent;
 
         // Pick up any parcels on current tile
-        const currentTile = agent.grid.getTile({ x: agent.x, y: agent.y });
-        if (currentTile && agent.grid.getParcelsAt(currentTile.xy).length > 0) {
+        const currentTile = agent.grid.tileRegistry.getOneByXy({ x: agent.x, y: agent.y });
+        if (currentTile && agent.grid.parcelRegistry.getByXy(currentTile.xy).length > 0) {
             await agent.pickUp();
             return;
         }
@@ -141,7 +141,7 @@ class IntelligentParcelNPC extends NPC {
      */
     async deliverParcels() {
         const agent = this.agent;
-        const currentTile = agent.grid.getTile({ x: agent.x, y: agent.y });
+        const currentTile = agent.grid.tileRegistry.getOneByXy({ x: agent.x, y: agent.y });
 
         // If on delivery tile, deliver
         if (currentTile && currentTile.delivery) {
@@ -282,11 +282,11 @@ class IntelligentParcelNPC extends NPC {
 
                 if (visited.has(key)) continue;
 
-                const tile = grid.getTile({ x: newX, y: newY });
+                const tile = grid.tileRegistry.getOneByXy({ x: newX, y: newY });
                 if (!tile || !tile.walkable) continue;
 
                 // Check if current tile allows exit in this direction
-                const currentTile = grid.getTile(current.pos);
+                const currentTile = grid.tileRegistry.getOneByXy(current.pos);
                 if (!currentTile.allowsExitInDirection(relPos[i].x, relPos[i].y)) continue;
 
                 // Check if new tile allows movement from current position
@@ -330,7 +330,7 @@ class IntelligentParcelNPC extends NPC {
         let minDist = Infinity;
         const myPos = { x: agent.x, y: agent.y };
 
-        for (let tile of agent.grid.getTiles()) {
+        for (let tile of agent.grid.tileRegistry.getIterator()) {
             if (tile.walkable && !this.visitedTiles.has(`${tile.x},${tile.y}`)) {
                 const dist = Xy.distance(myPos, { x: tile.x, y: tile.y });
                 if (dist < minDist) {

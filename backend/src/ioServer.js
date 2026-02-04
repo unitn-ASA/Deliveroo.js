@@ -70,7 +70,7 @@ io.on('connection', async ( socket ) => {
     /**
      * Get or create agent
      */
-    const me = myGrid.agents.get( id ) || myGrid.createAgent( identity );
+    const me = myGrid.agentRegistry.get( id ) || myGrid.createAgent( identity );
     if ( !me ) return;
     if ( role == 'admin' ) { // former 'god' mod
         // me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite';
@@ -79,7 +79,10 @@ io.on('connection', async ( socket ) => {
         if  (me && me.tile && me.tile.unlock )
             me.tile.unlock();
         me.xy = undefined;
-        myGrid.agents.delete( me.id );
+
+        // Remove agent from spatial registry is not needed! AgentFactory already tracks xy changes and update spatial registry
+        // myGrid.agentRegistry.remove( me.id );
+
         // myGrid.emitter.emit( 'agent deleted', me );
     }
 
@@ -204,7 +207,7 @@ class ioServer {
         };
         myGrid.emitter.onTile( listeners.tileListener );
         let tiles = []
-        for (const { xy: {x, y}, type } of myGrid.getTiles()) {
+        for (const { xy: {x, y}, type } of myGrid.tileRegistry.getIterator()) {
                 // console.log( 'emit tile', x, y, type );
                 socket.emitTile( {x, y, type}, myClock.info )
                 tiles.push( {x, y, type} )
@@ -217,7 +220,7 @@ class ioServer {
         /**
          * Emit agents connecting/disconnecting
          */
-        myGrid.agents.forEach( agent => {
+        Array.from( myGrid.agentRegistry.getIterator() ).forEach( agent => {
             if ( ! agent.id ) return;
             let {id, name, teamName, teamId, score} = agent;
             socket.emitController( 'connected', {id, name, teamName, teamId, score} );
@@ -397,14 +400,14 @@ class ioServer {
                         createdParcel.reward = parcel.reward;
                 }
                 else if ( action == 'set' ) {
-                    if ( myGrid.getParcel(parcel.id) )
-                        myGrid.getParcel(parcel.id).reward = parcel.reward;
+                    if ( myGrid.parcelRegistry.get(parcel.id) )
+                        myGrid.parcelRegistry.get(parcel.id).reward = parcel.reward;
                 }
                 else if ( action == 'dispose' ) {
                     if ( parcel.id )
                         myGrid.deleteParcel( parcel.id )
                     else {
-                        let parcels = Array.from( myGrid.getParcels() ).filter( p => p.x == parcel.x && p.y == parcel.y );
+                        let parcels = Array.from( myGrid.parcelRegistry.getIterator() ).filter( p => p.x == parcel.x && p.y == parcel.y );
                         for ( let p of parcels)
                             myGrid.deleteParcel( p.id );
                     }
@@ -424,7 +427,7 @@ class ioServer {
                     if ( data.id )
                         myGrid.deleteCrate( data.id )
                     else {
-                        let crates = Array.from( myGrid.getCrates() ).filter( c => c.x == data.x && c.y == data.y );
+                        let crates = Array.from( myGrid.crateRegistry.getIterator() ).filter( c => c.x == data.x && c.y == data.y );
                         for ( let c of crates)
                             myGrid.deleteCrate( c.id );
                     }
@@ -439,7 +442,7 @@ class ioServer {
 
                     let { x, y, type } = t;
                     // console.log( 'God mode: tile', x, y, type );
-                    let tile = myGrid.getTile( new Xy(x, y) )
+                    let tile = myGrid.tileRegistry.getOneByXy( {x, y} )
                     if ( tile )
                         tile.type = type;
 

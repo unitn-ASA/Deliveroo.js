@@ -15,6 +15,9 @@ import { atNextTick } from '../reactivity/postponeAt.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent} IOAgent */
 
+/**
+ * @typedef {{xy: [Xy], score: [number], penalty: [number], carryingParcels: [Set<Parcel>], deleted: [Agent]}} AgentEventsMap
+*/
 
 
 const MOVEMENT_STEPS = 1;
@@ -28,8 +31,7 @@ const MOVEMENT_STEPS = 1;
 class Agent {
     
     /**
-     * @typedef {{xy: [Xy], score: [number], penalty: [number], carryingParcels: [Set<Parcel>]}} EventsMap
-     * @type { eventEmitter<EventsMap> }
+     * @type { eventEmitter<AgentEventsMap> }
     */
    #emitter = new eventEmitter();
    get emitter () { return this.#emitter; }
@@ -118,7 +120,7 @@ class Agent {
         // this.#emitter.emit('carryingParcels', this.carryingParcels) // to immediately emit agent when spawning
 
         let tiles_unlocked =
-            Array.from( grid.getTiles() )
+            Array.from( grid.tileRegistry.getIterator() )
             // walkable
             .filter( t => t.walkable )
             // not locked
@@ -126,8 +128,7 @@ class Agent {
 
         if ( tiles_unlocked.length == 0 ) {
             console.warn('No unlocked tiles available on the grid. Spawning agent on the first tile (probably locked).');
-            // @ts-ignore
-            this.xy = grid.getTiles().next().value.xy;
+            this.xy = grid.tileRegistry.getIterator().next().value.xy;
         }
         else {
             let tile = tiles_unlocked.at( Math.floor( Math.random() * tiles_unlocked.length - 0.001 ) )
@@ -156,7 +157,7 @@ class Agent {
 
     get tile() {
         if ( this.xy )
-            return this.#grid.getTile( this.xy.rounded );
+            return this.#grid.tileRegistry.getOneByXy( this.xy.rounded );
         return null;
     }
 
@@ -217,7 +218,7 @@ class Agent {
         let fromTile = this.tile;
         if (!fromTile)
             return false;
-        let toTile = this.#grid.getTile( { x: this.x + incr_x, y: this.y + incr_y } );
+        let toTile = this.#grid.tileRegistry.getOneByXy( { x: this.x + incr_x, y: this.y + incr_y } );
 
         // Check if current tile is directional and blocks exit in this direction
         if (fromTile.isDirectional && !fromTile.allowsExitInDirection(incr_x, incr_y)) {
@@ -234,10 +235,10 @@ class Agent {
         }
 
         // Check if there's a crate on the destination tile and try to push it
-        const cratesOnTile = this.#grid.getCratesAt( new Xy( { x: this.x + incr_x, y: this.y + incr_y } ) );
+        const cratesOnTile = this.#grid.crateRegistry.getByXy( { x: this.x + incr_x, y: this.y + incr_y } );
         if (cratesOnTile.length > 0) {
             const crate = cratesOnTile[0];
-            const crateDestTile = this.#grid.getTile( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
+            const crateDestTile = this.#grid.tileRegistry.getOneByXy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } );
 
             // Check if the crate can be pushed to the destination tile
             // Must be type "5", unlocked, and not blocked by other entities
@@ -249,8 +250,8 @@ class Agent {
             }
 
             // Check if destination tile has any crates
-            const cratesAtDest = this.#grid.getCratesAt( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
-            if (cratesAtDest.length > 0) {
+            const crateAtDest = this.#grid.crateRegistry.getOneByXy( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
+            if (crateAtDest) {
                 // Cannot push crate onto another crate
                 this.penalty -= config.PENALTY;
                 // console.warn( `${this.name}(${this.id}) blocked by crate: destination has another crate` );
@@ -258,7 +259,7 @@ class Agent {
             }
 
             // Check if destination tile has an agent
-            const agentAtDest = this.#grid.getAgentAt( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
+            const agentAtDest = this.#grid.agentRegistry.getOneByXy( new Xy( { x: this.x + incr_x * 2, y: this.y + incr_y * 2 } ) );
             if (agentAtDest) {
                 // Cannot push crate onto an agent
                 this.penalty -= config.PENALTY;
@@ -316,7 +317,7 @@ class Agent {
             const picked = new Array();
             var counter = 0;
             // Use getParcelsAt instead of iterating through all parcels - O(1) lookup instead of O(parcels)
-            for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.getParcelsAt( this.xy.rounded ) ) {
+            for ( const /**@type {Parcel} parcel*/ parcel of this.#grid.parcelRegistry.getByXy( this.xy.rounded ) ) {
                 if ( parcel.carriedBy == null ) {
                     this.carryingParcels.add(parcel);
                     parcel.carriedBy = this;

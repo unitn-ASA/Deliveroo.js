@@ -17,11 +17,14 @@ import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
  class Tile {
 
     /**
-     * @typedef {{type: [string], locked: [boolean]}} eventsMap
+     * @typedef {{type: [string], locked: [boolean], deleted: []}} eventsMap
      * @type { eventEmitter<Record<keyof eventsMap, eventsMap[keyof eventsMap]>> }
     */
     #emitter = new eventEmitter();
     get emitter () { return this.#emitter; }
+    
+    /** @type {string} */
+    get id () { return this.#xy.toString(); }
 
     /** @type {Xy} */
     #xy;

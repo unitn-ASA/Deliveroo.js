@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
 
     console.log( `GET /api/parcels` );
 
-    const parcels = Array.from( await myGrid.getParcels() ).map( parcel => {
+    const parcels = Array.from( myGrid.parcelRegistry.getIterator() ).map( parcel => {
         return {
             id: parcel.id
         };
@@ -27,7 +27,7 @@ router.delete('/', authorizeAdmin, async (req, res) => {
 
     console.log( `DELETE /api/parcels` );
 
-    for ( const parcel of myGrid.getParcels() ) {
+    for ( const parcel of myGrid.parcelRegistry.getIterator() ) {
         myGrid.deleteParcel( parcel.id );
     }
     
@@ -43,7 +43,7 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
     console.log( `DELETE /api/parcels/${req.params.id}` );
 
     const id = req.params.id;
-    const parcel = myGrid.getParcel( id );
+    const parcel = myGrid.parcelRegistry.get( id );
     if ( parcel ) {
         myGrid.deleteParcel( parcel.id );
         res.status(200).json( { message: `Parcel ${id} deleted` } );

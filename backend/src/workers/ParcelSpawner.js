@@ -26,7 +26,7 @@ class Spawner {
 
     spawn () {
         const grid = this.#grid;
-        if ( grid.getParcelsQuantity() >= config.GAME.parcels.max ) {
+        if ( grid.parcelRegistry.getSize() >= config.GAME.parcels.max ) {
             return;
         }
         let tiles_with_no_parcels = this.tilesWithNoParcels();
@@ -41,12 +41,12 @@ class Spawner {
 
     tilesWithNoParcels () {
         const grid = this.#grid;
-        let tiles_with_no_parcels = Array.from( grid.getTiles() )
+        let tiles_with_no_parcels = Array.from( grid.tileRegistry.getIterator() )
         // parcel spawner tile
         .filter( t => t.parcelSpawner )
         // no parcels exists on the tile
         .filter( t =>
-            Array.from( grid.getParcels() ).find( p =>
+            Array.from( grid.parcelRegistry.getIterator() ).find( p =>
                 p.x == t.x && p.y == t.y
             ) == undefined
         )

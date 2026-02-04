@@ -28,10 +28,10 @@ class PushAgent extends Agent {
         let fromTile = this.tile;
         if (!fromTile)
             return false;
-        let toTile = this.#grid.getTile( { x: this.x + incr_x, y: this.y + incr_y } );
+        let toTile = this.#grid.tileRegistry.getOneByXy( { x: this.x + incr_x, y: this.y + incr_y } );
         if ( toTile && toTile.walkable ) {
             if ( toTile.locked ) {
-                await [...this.#grid.agents.values()].find( agent => agent.tile === toTile )?.move( incr_x, incr_y );
+                await [...this.#grid.agentRegistry.getIterator()].find( agent => agent.tile === toTile )?.move( incr_x, incr_y );
             }
             if ( ! toTile.locked ) {
                 toTile.lock();

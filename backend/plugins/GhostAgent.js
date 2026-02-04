@@ -21,7 +21,7 @@ class GhostAgent extends Agent {
             return false;
         this.moving = true;
         await myClock.synch();
-        let toTile = this.grid.getTile( {x: this.x + incr_x, y: this.y + incr_y } );
+        let toTile = this.grid.tileRegistry.getOneByXy( {x: this.x + incr_x, y: this.y + incr_y } );
         if ( toTile ) {
             // console.log(this.id, 'start move in', this.x+incr_x, this.y+incr_y)
             this.moving = true;

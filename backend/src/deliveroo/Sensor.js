@@ -180,11 +180,11 @@ class Sensor {
         let observedTiles = [];
 
         // for each tile on the grid
-        for ( let tile of this.#grid.getTiles() ) {
+        for ( let tile of this.#grid.tileRegistry.getIterator() ) {
             // only if my position is undefined OR if within observation distance
             if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.agents_observation_distance ) {
-                // agent sensed on this tile
-                const sensedAgent = this.#grid.getAgentAt( tile.xy ) ;
+                // agent sensed on this tile, assume at most one agent per tile
+                const sensedAgent = this.#grid.agentRegistry.getByXy( tile.xy )[0];
                 // if defined and not myself
                 if ( sensedAgent && sensedAgent != this.#agent )
                     observedTiles.push( {x: tile.x, y: tile.y, agent: {
@@ -223,7 +223,7 @@ class Sensor {
         const tilesWithParcels = new Set();
 
         // Iterate directly over parcels instead of all tiles - O(parcels) instead of O(tiles * parcels)
-        for ( let parcel of this.#grid.getParcels() ) {
+        for ( let parcel of this.#grid.parcelRegistry.getIterator() ) {
             // only if my position is undefined OR if within observation distance
             if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(parcel, this.#agent) < config.GAME.player.parcels_observation_distance ) {
                 const x = Math.round(parcel.x);
@@ -241,7 +241,7 @@ class Sensor {
         }
 
         // Add empty tiles within observation distance
-        for ( let tile of this.#grid.getTiles() ) {
+        for ( let tile of this.#grid.tileRegistry.getIterator() ) {
             const key = `${tile.x}_${tile.y}`;
             if ( ! tilesWithParcels.has(key) ) {
                 // only if my position is undefined OR if within observation distance
@@ -268,7 +268,7 @@ class Sensor {
         const tilesWithCrates = new Set();
 
         // Iterate directly over crates instead of all tiles - O(crates) instead of O(tiles * crates)
-        for ( let crate of this.#grid.getCrates() ) {
+        for ( let crate of this.#grid.crateRegistry.getIterator() ) {
             // only if my position is undefined OR if within observation distance
             if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(crate, this.#agent) < config.GAME.player.parcels_observation_distance ) {
                 const x = Math.round(crate.x);
@@ -284,7 +284,7 @@ class Sensor {
         }
 
         // Add empty tiles within observation distance
-        for ( let tile of this.#grid.getTiles() ) {
+        for ( let tile of this.#grid.tileRegistry.getIterator() ) {
             const key = `${tile.x}_${tile.y}`;
             if ( ! tilesWithCrates.has(key) ) {
                 // only if my position is undefined OR if within observation distance
