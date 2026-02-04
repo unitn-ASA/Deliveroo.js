@@ -1,4 +1,3 @@
-import Parcel from './Parcel.js';
 import Xy from './Xy.js';
 import EventEmitter from 'events';
 
@@ -16,11 +15,19 @@ class SpatialRegistry {
         return this.#emitter;
     }
 
-    /** @type {Map<string, { spatialKey: string, item: T }>} */
+    /** @type {Map<string, { spatialKey: string, spatialIndex: number, item: T }>} */
     #index = new Map();
 
     /** @type {Map<string, T[]>} - Spatial index by spatialKey position */
     #spatialIndex = new Map();
+
+    /** Cached maximum x coordinate */
+    #maxX = 0;
+    getMaxX () { return this.#maxX; }
+
+    /** Cached maximum y coordinate */
+    #maxY = 0;
+    getMaxY () { return this.#maxY; }
 
 
 
@@ -53,13 +60,13 @@ class SpatialRegistry {
                 return item;
             }
             // Remove from old position in spatial index
-            this.removeFromSpatialIndex( stored.spatialKey, item );
+            this.removeFromSpatialIndex( stored );
         }
         // If new item
         else {
             // Create storage entry
-            stored = { spatialKey: '', item: item };
-            
+            stored = { spatialKey: '', spatialIndex: -1, item: item };
+
             // Store entry
             this.#index.set( item.id, stored );
         }
@@ -74,9 +81,17 @@ class SpatialRegistry {
                 this.#spatialIndex.set(newSpatialKey, []);
             }
 
-            // Store in spatial index
-            this.#spatialIndex.get(newSpatialKey).push(item);
+            // Store in spatial index and track the index
+            const items = this.#spatialIndex.get(newSpatialKey);
+            stored.spatialIndex = items.length;
+            items.push(item);
+        } else {
+            stored.spatialIndex = -1;
         }
+
+        // Update cached max values
+        if (item.x > this.#maxX) this.#maxX = item.x;
+        if (item.y > this.#maxY) this.#maxY = item.y;
 
         // Emit xy update event
         this.#emitter.emit('xy', item);
@@ -87,20 +102,19 @@ class SpatialRegistry {
 
 
     /**
-     * Remove from old spatialKey in spatialIndex
-     * @param {T} item 
+     * Remove from old spatialKey in spatialIndex using tracked index for O(1) removal
+     * @param {{ spatialKey: string, spatialIndex: number, item: T }} stored
      */
-    removeFromSpatialIndex ( spatialKey, item ) {
+    removeFromSpatialIndex ( stored ) {
+        const { spatialKey, spatialIndex } = stored;
 
         // Remove from old xy in spatial index
         const oldItems = this.#spatialIndex.get(spatialKey);
-        if (oldItems) {
-            const index = oldItems.indexOf(item);
-            if (index !== -1) {
-                oldItems.splice(index, 1);
-                if (oldItems.length === 0) {
-                    this.#spatialIndex.delete(spatialKey);
-                }
+        if (oldItems && spatialIndex >= 0 && spatialIndex < oldItems.length) {
+            // Use tracked index for O(1) removal
+            oldItems.splice(spatialIndex, 1);
+            if (oldItems.length === 0) {
+                this.#spatialIndex.delete(spatialKey);
             }
         }
 
@@ -143,39 +157,17 @@ class SpatialRegistry {
     }
 
     /**
-     * @todo to be revised!
-     * @returns 
-     */
-    getMaxX () {
-        let maxX = 0;
-        for ( const {item} of this.#index.values() ) {
-            if ( item.x > maxX ) maxX = item.x;
-        }
-        return maxX;
-    }
-
-    /**
-     * @todo to be revised!
-     * @returns 
-     */
-    getMaxY () {
-        let maxY = 0;
-        for ( const {item} of this.#index.values() ) {
-            if ( item.y > maxY ) maxY = item.y;
-        }
-        return maxY;
-    }
-
-    /**
-     * @type {function({x:number, y:number}): T[]}
+     * Use spatial index for O(1) lookup instead of iterating all parcels
+     * @type {function( Xy | {x:number, y:number} ): T[]}
      */
     getByXy ( xy ) {
-        // Use spatial index for O(1) lookup instead of iterating all parcels
-        return this.#spatialIndex.get( new Xy(xy).rounded.toString() ) || [];
+        // @ts-ignore
+        const spatialKey = xy?.rounded?.toString() || new Xy(xy).rounded.toString();
+        return this.#spatialIndex.get( spatialKey ) || [];
     }
 
     /**
-     * @type {function({x:number, y:number}): T}
+     * @type {function( Xy | {x:number, y:number} ): T}
      */
     getOneByXy ( xy ) {
         return this.getByXy( xy )[0];
@@ -188,17 +180,32 @@ class SpatialRegistry {
         return this.#index.size;
     }
 
+    /** Recompute cached max bounds - only called when removing boundary items */
+    #recomputeMaxBounds () {
+        this.#maxX = 0;
+        this.#maxY = 0;
+        for ( const {item} of this.#index.values() ) {
+            if ( item.x > this.#maxX ) this.#maxX = item.x;
+            if ( item.y > this.#maxY ) this.#maxY = item.y;
+        }
+    }
+
     /**
      * @type {function(String):boolean}
      */
     remove ( id ) {
-        var stored = this.#index.get(id);
+        const stored = this.#index.get(id);
         if ( ! stored ) return false;
 
-        var { spatialKey, item } = stored;
+        const { item } = stored;
+
+        // Check if removed item is at boundary - recompute if needed
+        if (item.x >= this.#maxX || item.y >= this.#maxY) {
+            this.#recomputeMaxBounds();
+        }
 
         // Remove from spatial index
-        this.removeFromSpatialIndex( spatialKey, item );
+        this.removeFromSpatialIndex( stored );
 
         // Remove indexed item
         return this.#index.delete( id );
