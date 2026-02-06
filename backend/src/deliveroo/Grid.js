@@ -156,9 +156,6 @@ class Grid {
         } else {
             tile = this.#tileFactory.create( xy, type )
             
-            // if ( xy.x + 1 > this.#X ) this.#X = xy.x + 1;
-            // if ( xy.y + 1 > this.#Y ) this.#Y = xy.y + 1;
-            
             // Emit tile updates when its type changes
             tile.emitter.on( 'type' , (type) => this.emitter.emitTile( tile ) ); // immediate emission
             // tile.emitter.on( 'type' , atPromise(myClock.synch(), () => this.emitTile( tile ) ) ); // emission at next clock frame
@@ -318,9 +315,9 @@ class Grid {
         // console.log('Grid is restarting...');
 
         // Clean up tiles
-        for ( const tile of this.#tileRegistry.getIterator() ) {
-            tile.emitter.emit( 'deleted' );
-        }
+        // for ( const tile of this.#tileRegistry.getIterator() ) {
+        //     tile.emitter.emit( 'deleted' );
+        // }
 
         // Clean up agents
         for ( const agent of this.#agentRegistry.getIterator() ) {

@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
 
     console.log( `GET /api/agents` );
 
-    const agents = Array.from( await myGrid.agents.values() ).map( agent => {
+    const agents = Array.from( await myGrid.agentRegistry.getIterator() ).map( agent => {
         return {
             id: agent.id,
             name: agent.name,
@@ -32,7 +32,7 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
     console.log( `DELETE /api/agents/${req.params.id}` );
 
     const id = req.params.id;
-    const agent = myGrid.agents.get( id );
+    const agent = myGrid.agentRegistry.get( id );
     if ( agent ) {
         myGrid.deleteAgent( agent );
         res.status(200).json( { message: `Agent ${id} deleted` } );
@@ -51,7 +51,7 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
     process.stdout.write( `PATCH /api/agents/${req.params.id} ${JSON.stringify(req.body)}: ` );
 
     const id = req.params.id;
-    const agent = myGrid.agents.get( id );
+    const agent = myGrid.agentRegistry.get( id );
     if ( agent ) {
         if ( req.body.score !== undefined || req.body.penalty !== undefined ) {
             if ( req.body.score !== undefined )
