@@ -19,3 +19,4 @@
 
 export { DjsClientSocket } from './DjsClientSocket.js';
 export { DjsRestClient } from './DjsRestClient.js';
+export { DjsConnect } from './DjsConnect.js';

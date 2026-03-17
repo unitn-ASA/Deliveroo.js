@@ -18,7 +18,7 @@ const args = argsparser(process? process?.argv : []);
 /**
  * @returns { DjsClientSocket }
  */
-export function connect ( host, token = args['token'], name = args['name'], autoconnect = true ) {
+export function DjsConnect ( host, token = args['token'], name = args['name'], autoconnect = true ) {
 
     let opts = {
         autoConnect: false,
