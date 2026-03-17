@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-sdk",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Software development kit for Deliveroo.js",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
@@ -30,5 +30,6 @@
   "peerDependencies": {
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2"
-  }
+  },
+  "gitHead": "916c26846cf93dee0b020e3480bb46a53adbb1d2"
 }
