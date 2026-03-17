@@ -7,7 +7,7 @@ import { config } from './config/config.js';
 import myClock from './myClock.js';
 import events from 'events';
 events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners);
-import { tokenMiddleware, signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
+import { signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
 import { DjsServer, DjsServerSocket } from '@unitn-asa/deliveroo-js-sdk/server';
 import Agent from './deliveroo/Agent.js';
 import Identity from './deliveroo/Identity.js';
@@ -162,7 +162,7 @@ class ioServer {
                     let socketsLeft = (await ioAgent.fetchSockets()).length;
                     if ( socketsLeft == 0 && me.xy ) {
                         console.log( `${me.name}-${me.teamName}-${me.id} Agent deleted after ${config.AGENT_TIMEOUT/1000} seconds of no connections` );
-                        myGrid.deleteAgent ( me );
+                        me.delete();
                     };
                 }
 
@@ -212,8 +212,7 @@ class ioServer {
                 socket.emitTile( {x, y, type}, myClock.info )
                 tiles.push( {x, y, type} )
         }
-        let {width, height} = myGrid.getMapSize()
-        socket.emitMap( width, height, tiles )
+        socket.emitMap( myGrid.tileRegistry.getMaxX(), myGrid.tileRegistry.getMaxY(), tiles );
 
 
         
@@ -304,7 +303,23 @@ class ioServer {
         socket.onMove( async (direction, acknowledgementCallback) => {
             // console.log(me.id, me.x, me.y, direction);
             try {
-                const moving = await me[direction.toString()]();
+                var moving;
+                switch (direction) {
+                    case 'up':
+                        moving = await me.controller.up();
+                        break;
+                    case 'down':
+                        moving = await me.controller.down();
+                        break;
+                    case 'left':
+                        moving = await me.controller.left();
+                        break;
+                    case 'right':
+                        moving = await me.controller.right();
+                        break;
+                    default:
+                        throw new Error( `Direction ${direction} is not valid!` );
+                }
                 if ( acknowledgementCallback )
                     acknowledgementCallback( moving ); //.bind(me)()
             } catch (error) {
@@ -314,7 +329,7 @@ class ioServer {
         });
 
         socket.onPickup( async (acknowledgementCallback) => {
-            const picked = await me.pickUp()
+            const picked = await me.controller.pickUp()
             if ( acknowledgementCallback )
                 try {
                     acknowledgementCallback( picked )
@@ -322,7 +337,7 @@ class ioServer {
         });
 
         socket.onPutdown( async (selected, acknowledgementCallback) => {
-            const dropped = await me.putDown( selected )
+            const dropped = await me.controller.putDown( selected )
             if ( acknowledgementCallback )
                 try {
                     acknowledgementCallback( dropped )
@@ -405,11 +420,11 @@ class ioServer {
                 }
                 else if ( action == 'dispose' ) {
                     if ( parcel.id )
-                        myGrid.deleteParcel( parcel.id )
+                        myGrid.parcelRegistry.get(parcel.id)?.delete();
                     else {
                         let parcels = Array.from( myGrid.parcelRegistry.getIterator() ).filter( p => p.x == parcel.x && p.y == parcel.y );
                         for ( let p of parcels)
-                            myGrid.deleteParcel( p.id );
+                            myGrid.parcelRegistry.get(p.id)?.delete();
                     }
                 }
                 // TODO myGrid.emitter.emit( 'parcel' );
@@ -425,11 +440,11 @@ class ioServer {
                 }
                 else if ( action == 'dispose' ) {
                     if ( data.id )
-                        myGrid.deleteCrate( data.id )
+                        myGrid.crateRegistry.get(data.id)?.delete();
                     else {
                         let crates = Array.from( myGrid.crateRegistry.getIterator() ).filter( c => c.x == data.x && c.y == data.y );
                         for ( let c of crates)
-                            myGrid.deleteCrate( c.id );
+                            myGrid.crateRegistry.get(c.id)?.delete();
                     }
                 }
                 // if ack is a function

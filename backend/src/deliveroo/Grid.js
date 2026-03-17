@@ -7,12 +7,14 @@ import { config } from '../config/config.js';
 import GridEventEmitter from './GridEventEmitter.js';
 import Identity from './Identity.js';
 import myClock from '../myClock.js';
-import { atPromise } from '../reactivity/postponeAt.js';
 import SpatialRegistry from './SpatialRegistry.js';
 import CrateFactory from './CrateFactory.js';
 import ParcelFactory from './ParcelFactory.js';
 import AgentFactory from './AgentFactory.js';
 import TileFactory from './TileFactory.js';
+import RewardDecayingSystem from '../systems/RewardDecayingSystem.js';
+import MapLoadingSystem from '../systems/MapLoadingSystem.js';
+import { atNextTick } from '../reactivity/postponeAt.js';
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType} IOTileType */
 
@@ -29,17 +31,6 @@ class Grid {
     get emitter () {
         return this.#emitter;
     }
-
-
-
-    /** @property {number} X */
-    #X = 0;
-
-    /** @property {number} Y */
-    #Y = 0;
-    
-    // /** @type {Map<string, Tile>} */
-    // #tiles;
 
 
 
@@ -79,6 +70,17 @@ class Grid {
 
 
 
+    /** @type {RewardDecayingSystem} */
+    #rewardDecayingSystem;
+    /** @type {MapLoadingSystem} */
+    #mapLoadingSystem;
+
+    /** Getters for systems */
+    get rewardDecayingSystem() { return this.#rewardDecayingSystem; }
+    get mapLoadingSystem() { return this.#mapLoadingSystem; }
+
+
+
     /**
      * @constructor Grid
      * @param {IOTileType[][]} map
@@ -96,9 +98,13 @@ class Grid {
 
         this.#parcelRegistry = new SpatialRegistry();
         this.#parcelFactory = new ParcelFactory( this.#parcelRegistry );
-        
+
         this.#crateRegistry = new SpatialRegistry();
         this.#crateFactory = new CrateFactory( this.#crateRegistry );
+
+        // Initialize systems (pass Grid reference to avoid circular dependency)
+        this.#rewardDecayingSystem = new RewardDecayingSystem();
+        this.#mapLoadingSystem = new MapLoadingSystem(this);
 
         this.loadMap( map );
 
@@ -108,38 +114,13 @@ class Grid {
      * @param {IOTileType[][]} tiles
      */
     loadMap ( tiles ) {
-        if ( ! Array.isArray(tiles) ) {
-            console.error('Grid.js loadMap(tiles) Invalid tiles format', tiles);
+        // Use MapLoadingSystem to handle map loading
+        const result = this.#mapLoadingSystem.loadMap(tiles);
+
+        if (!result.success) {
+            console.error('Grid.js loadMap(tiles) failed:', result.error);
             return;
         }
-
-        // Clear existing crates when loading a new map
-        for ( const crate of this.#crateRegistry.getIterator() ) {
-            this.deleteCrate( crate.id );
-        }
-
-        var Xlength = tiles.length;
-        var Ylength = Array.from(tiles).reduce((longest, current) => (current.length > longest.length ? current : longest)).length;
-
-        for (let x = 0; x < Math.max(Xlength,this.#X); x++) {
-            for (let y = 0; y < Math.max(Ylength,this.#Y); y++) {
-                let xy = new Xy( {x,y});
-                if (x < Xlength && y < Ylength) {
-                    let value = tiles[x][y];
-                    // Convert value to string for consistency
-                    this.setTile( xy, value );
-                } else {
-                    let tile = this.setTile( xy, '0' ); // Tile.watch(type) happens at clock frame, if tile got deleted, listeners are all unsubscribed.
-                    // Remove tile that are outside the new map dimensions
-                    tile.emitter.emit( 'deleted' );
-                    // this.emitTile( tile );           // So I may need to force it to happen immediately
-                    this.tileRegistry.remove( xy.toString() );
-                }
-            }
-        }
-
-        this.#X = Xlength;
-        this.#Y = Ylength;
     }
 
     /**
@@ -159,6 +140,9 @@ class Grid {
             // Emit tile updates when its type changes
             tile.emitter.on( 'type' , (type) => this.emitter.emitTile( tile ) ); // immediate emission
             // tile.emitter.on( 'type' , atPromise(myClock.synch(), () => this.emitTile( tile ) ) ); // emission at next clock frame
+
+            // Emit tile update when deleted
+            tile.emitter.on( 'deleted', () => this.emitter.emitTile( tile ) );
             
             // Initial emission
             this.emitter.emitTile( tile );
@@ -173,59 +157,44 @@ class Grid {
         return tile;
     }
 
-    getMapSize () {
-        return { width: this.#X, height: this.#Y }
-    }
-
     /**
      * @type {function( Identity ): Agent}
      */
     createAgent ( identity ) {
 
         // Create agent using factory, it is automatically registered in spatial registry
-        var me = this.#agentFactory.createAgent( this, identity );
-        
-        // Grid scoped event propagation
-        this.emitter.emitAgent( 'created', me );
+        var agent = this.#agentFactory.createAgent( this, identity );
 
-        // Grid scoped events propagation
-        me.emitter.on( 'xy', () => this.emitter.emitAgent( 'xy', me ) );
-        me.emitter.on( 'score', () => this.emitter.emitAgent( 'score', me ) );
-
-        return me;
-    }
-
-    /**
-     * 
-     * @param {Agent} agent 
-     */
-    async deleteAgent ( agent ) {
-
-        await agent.doing;
-
-        if ( agent.tile )
-            agent.tile.unlock();
-
-        // if ( agent.xy?.roundedFrom )
-        //     this.tileRegistry.getOneByXy(agent.xy.roundedFrom).unlock();
-
-        agent.putDown();
-        
-        agent.xy = undefined;
-
-        // Emit deleted event before removing all listeners, automatically removes from spatial registry
-        agent.emitter.emit( 'deleted', agent );
-
-        // Unsubscribe all event listeners
-        agent.emitter.removeAllListeners();
-        
-        // Cleanup sensor listeners to prevent memory leak
-        if ( agent.sensor && typeof agent.sensor.cleanup === 'function' ) {
-            agent.sensor.cleanup();
+        // Initial position
+        let tiles_unlocked =
+            Array.from( this.tileRegistry.getIterator() )
+            // walkable
+            .filter( t => t.walkable )
+            // not locked
+            .filter( t => ! t.locked )
+        if ( tiles_unlocked.length > 0 ) {
+            // Pick a random tile among unlocked and walkable tiles
+            const tile = tiles_unlocked.at( Math.floor( Math.random() * tiles_unlocked.length - 0.001 ) );
+            // Lock the tile
+            tile.lock();
+            // Set agent position
+            agent.xy = tile.xy;
         }
-        
-        this.emitter.emitAgent( 'deleted', agent );
+        else {
+            console.warn('Grid.createAgent(): No tiles available, agent created without position.');
+            // tile = this.tileRegistry.getIterator().next().value;
+        }
 
+        // Propagate events at Grid-scope when agent properties change
+        agent.emitter.on( 'xy', () => this.emitter.emitAgent( 'xy', agent ) );
+        agent.emitter.on( 'score', () => this.emitter.emitAgent( 'score', agent ) );
+        
+        // Finally, emit 'created' event after setting up everything else
+        this.emitter.emitAgent( 'created', agent );
+
+        agent.emitter.on( 'deleted', () => this.emitter.emitAgent( 'deleted', agent ) );
+
+        return agent;
     }
 
 
@@ -242,8 +211,49 @@ class Grid {
         var parcel = this.#parcelFactory.create( xy );
 
         parcel.emitter.once( 'expired', (...args) => {
-            this.deleteParcel( parcel.id );
+            parcel.delete();
         } );
+
+
+        
+        // Carrier following logic: when parcel is picked up, it should follow the carrier's position; when dropped, it should stop following
+        const carrierListener = (xy) => {
+            if ( parcel.carriedBy ) parcel.xy = parcel.carriedBy.xy;
+        };
+        /** @type {Agent} */
+        var lastCarrier = null;
+        parcel.emitter.on( 'carriedBy', atNextTick( () => {
+            // Unsubscribe from last carrier xy changes
+            lastCarrier?.emitter?.off( 'xy', carrierListener );
+            // Subscribe to new carrier xy changes
+            parcel.carriedBy?.emitter?.on( 'xy', carrierListener );
+            // Update parcel position to carrier position immediately
+            carrierListener( parcel.xy );
+            // Update last carrier reference
+            lastCarrier = parcel.carriedBy;
+        } ) );
+        // Ensure we unsubscribe from carrier xy changes when parcel is deleted to prevent memory leaks
+        parcel.emitter.once( 'deleted', () => {
+            // Unsubscribe from carrier xy changes
+            lastCarrier?.emitter?.off( 'xy', carrierListener );
+        } );
+
+
+
+        // Set up decay listener on clock
+        const decayListener = () => {
+            parcel.reward = Math.floor(parcel.reward - 1);
+        };
+        const decaying_event = config.GAME.parcels.decaying_event;
+        myClock.on(decaying_event, decayListener);
+        // Ensure we unsubscribe from clock events when parcel is deleted to prevent memory leaks
+        parcel.emitter.once( 'deleted', () => {
+            myClock.off(decaying_event, decayListener);
+        } );
+
+
+
+        // Emit expire when reward reaches 0: done inside Parcel.js
 
         // Grid scoped event propagation
         this.emitter.emitParcel( parcel )
@@ -252,27 +262,6 @@ class Grid {
         parcel.emitter.on( 'xy', () => this.emitter.emitParcel( parcel ) );
 
         return parcel;
-    }
-    
-
-
-    /**
-     * @type {function(String):boolean}
-     */
-    deleteParcel ( id ) {
-        var parcel = this.parcelRegistry.get( id );
-        if ( ! parcel ) return false
-        
-        // Call cleanup to remove clock and carrier listeners
-        parcel.cleanup();
-
-        // // Emit deleted event before removing all listeners, automatically removes from spatial registry
-        // parcel.emitter.emit( 'deleted', parcel );
-
-        // // Unsubscribe all event listeners
-        // parcel.emitter?.removeAllListeners();
-        
-        return this.parcelRegistry.remove( id );
     }
 
 
@@ -287,26 +276,16 @@ class Grid {
 
         // Use factory to create crate (auto-registers with crateRegistry)
         var crate = this.#crateFactory.create( xy );
-        
+
         // Grid scoped event propagation
         this.emitter.emitCrate( crate );
         crate.emitter.on( 'xy', () => this.emitter.emitCrate( crate ) );
+        crate.emitter.once( 'deleted', () => this.emitter.emitCrate( crate ) );
 
         return crate;
     }
 
-    /**
-     * @type {function(String):boolean}
-     */
-    deleteCrate ( id ) {
-        var crate = this.#crateRegistry.get( id );
 
-        crate.emitter.emit( 'deleted', crate )
-
-        crate.emitter?.removeAllListeners('xy');
-        
-        return this.#crateRegistry.remove( id );
-    }
 
     /**
      * @type {function(): void}
@@ -321,17 +300,17 @@ class Grid {
 
         // Clean up agents
         for ( const agent of this.#agentRegistry.getIterator() ) {
-            this.deleteAgent( agent );
+            agent.delete();
         }
 
         // Clean up parcels
         for ( const parcel of this.#parcelRegistry.getIterator() ) {
-            this.deleteParcel( parcel.id );
+            parcel.delete();
         }
 
         // Clean up crates
         for ( const crate of this.#crateRegistry.getIterator() ) {
-            this.deleteCrate( crate.id );
+            crate.delete();
         }
 
     }

@@ -44,8 +44,8 @@ export async function loadGameConfig(json) {
     if (json.parcels?.generation_event) {
         config.GAME.parcels.generation_event = json.parcels.generation_event;
     }
-    if (json.parcels?.decading_event) {
-        config.GAME.parcels.decading_event = json.parcels.decading_event;
+    if (json.parcels?.decaying_event) {
+        config.GAME.parcels.decaying_event = json.parcels.decaying_event;
     }
     if (json.parcels.max !== undefined) {
         config.GAME.parcels.max ??= json.parcels.max;
@@ -159,7 +159,7 @@ export const config = {
         ],
         parcels: {
             generation_event: '1s',
-            decading_event: '1s',
+            decaying_event: '1s',
             max: 5,
             reward_avg: 30,
             reward_variance: 10,

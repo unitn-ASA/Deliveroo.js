@@ -1,5 +1,7 @@
 import Xy from './Xy.js';
 import eventEmitter from 'events';
+import { watchProperty } from '../reactivity/watchProperty.js';
+import { atNextTick } from '../reactivity/postponeAt.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOCrate.js').IOCrate} IOCrate */
 
@@ -48,6 +50,22 @@ class Crate {
         this.#id = 'c' + Crate.#lastId++;
         this.xy = xy;
 
+        // xy watching
+        watchProperty({
+            target: this,
+            key: 'xy',
+            callback: atNextTick( (target, key, value) => target.#emitter.emit(key, value) )
+        });
+        this.xy = xy;
+
+    }
+
+    /**
+     * Deletes the crate, emitting a 'deleted' event and cleaning up listeners.
+     */
+    delete () {
+        this.#emitter.emit( 'deleted', this );
+        this.#emitter.removeAllListeners();
     }
 
 }

@@ -73,7 +73,7 @@ class NPCspawner {
         if ( NPC ) {
             this.NPCs.delete( id );
             await NPC.stop();
-            this.#grid.deleteAgent( NPC.agent );
+            NPC.agent.delete();
         }
     }
 

@@ -205,8 +205,8 @@
                             {{ level?.parcels.reward_avg }} ± {{ level?.parcels.reward_variance }}
                         </span>
                         <span class="text-error"
-                            v-if="level?.parcels.decading_event !== 'infinite'">
-                            - 1pt/{{ level?.parcels.decading_event }}
+                            v-if="level?.parcels.decaying_event !== 'infinite'">
+                            - 1pt/{{ level?.parcels.decaying_event }}
                         </span>
                         <span class="text-error" v-else>
                             No decay

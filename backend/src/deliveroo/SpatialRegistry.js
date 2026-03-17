@@ -29,6 +29,10 @@ class SpatialRegistry {
     #maxY = 0;
     getMaxY () { return this.#maxY; }
 
+    /** @type {function():Xy} */
+    getMaxXy () {
+        return new Xy({ x: this.#maxX, y: this.#maxY });
+    }
 
 
     /**

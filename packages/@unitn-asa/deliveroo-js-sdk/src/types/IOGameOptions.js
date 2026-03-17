@@ -35,7 +35,7 @@
  * @typedef IOParcelsOptions
  * Parcels configuration object
  * @property {IOClockEvent} generation_event            Event for parcels generation
- * @property {IOClockEvent} decading_event              Event for parcel decading
+ * @property {IOClockEvent} decaying_event              Event for parcel decaying
  * @property {number} max                               Maximum number of parcels in the grid
  * @property {number} reward_avg                        Reward average
  * @property {number} reward_variance                   Reward variance

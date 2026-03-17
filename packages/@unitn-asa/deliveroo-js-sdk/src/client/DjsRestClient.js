@@ -74,6 +74,42 @@ export class DjsRestClient {
     /**
      * @template { keyof IODeliveroojsGETRoutes } K
      * @param { K } resource
+     * @param { string } token
+     * @returns {Promise<ReturnType<IODeliveroojsGETRoutes[K][]>>}
+     */
+    async getAll ( resource, token ) {
+
+        return new Promise( (resolve, reject) => {
+
+            const url = this.HOST+'/api/'+resource;
+
+            console.log( 'GET', url );
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-token': token
+                }
+            })
+            
+            .then( JSON.stringify )
+            
+            .then( body => resolve( /** @type {any} */ (body)) )
+            
+            .catch(error => {
+                console.error('An error occurred:', error);
+                reject('Error getting config');
+            });
+
+        } );
+    }
+
+
+
+    /**
+     * @template { keyof IODeliveroojsGETRoutes } K
+     * @param { K } resource
      * @param { string } id
      * @param { string } token
      * @returns {Promise<ReturnType<IODeliveroojsGETRoutes[K]>>}

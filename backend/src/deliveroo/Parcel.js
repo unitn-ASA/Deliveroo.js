@@ -1,5 +1,6 @@
 import Xy from './Xy.js';
 import myClock from '../myClock.js';
+import { myGrid } from '../myGrid.js';
 import { config } from '../config/config.js';
 import Agent from './Agent.js';
 import eventEmitter from 'events';
@@ -21,7 +22,7 @@ import { atNextTick } from '../reactivity/postponeAt.js';
  * Parcels decay over time, losing reward value until they expire.
  *
  * @class Parcel
- * @implements { IOParcel }
+ * It once used to implements { IOParcel }
  */
 class Parcel {
 
@@ -47,9 +48,6 @@ class Parcel {
     /** @type {Agent} */
     carriedBy;
 
-    /** @type { function(Xy) : void } - Carrier follower listener */
-    #carrierListener;
-
 
 
     /** @type {number} */
@@ -57,9 +55,6 @@ class Parcel {
 
     /** @type {boolean} */
     expired;
-
-    /** @type { function(...any) : void } - Clock decay listener */
-    #decayListener;
 
 
 
@@ -94,31 +89,14 @@ class Parcel {
         });
         this.carriedBy = carriedBy;
 
-        // Follow carrier
-        /** @type {Agent} */
-        var lastCarrier = null;
-        this.#carrierListener = (xy) => {
-            if ( this.carriedBy ) this.xy = this.carriedBy.xy;
-        };
-        this.emitter.on( 'carriedBy', atNextTick( () => {
-            lastCarrier?.emitter?.off( 'xy', this.#carrierListener );
-            this.carriedBy?.emitter?.on( 'xy', this.#carrierListener );
-            lastCarrier = this.carriedBy;
-        } ) );
-
         // reward watching
         watchProperty({
             target: this,
             key: 'reward',
             callback: (target, key, value) => target.emitter.emit(key, value)
         });
-        {
-            let random = Math.random();
-            let va = config.GAME.parcels.reward_variance;
-            let avg = config.GAME.parcels.reward_avg;
-            this.reward = reward || Math.floor( (random * va * 2) + (avg - va) ); // FIXED formulae; the +avg was being concatenated instead of summed. Still make no sense, who knows...
-            // console.log( "Parcel.js reward:",  `${reward} || ${random} * ${va} * 2 + ${avg} - ${va} = ${random * va * 2} + ${avg} - ${va} = ${random * va * 2 + avg} - ${va} =Floor(${random * va * 2 + avg - va}) = ${this.reward}` ); // + avg were being concatenated instead of summed. who knows?
-        }
+        // Use RewardDecayingSystem for reward calculation
+        this.reward = myGrid.rewardDecayingSystem.calculateReward(reward);
 
         // expired watching
         watchProperty({
@@ -137,35 +115,13 @@ class Parcel {
         };
         this.emitter.on( 'reward', rewardListener );
 
-        // Decay over time
-        this.#decayListener = () => {
-            this.reward = Math.floor( this.reward - 1 );
-            if ( this.reward <= 0 ) {
-                myClock.off( config.GAME.parcels.decading_event, this.#decayListener );
-            }
-        };
-        myClock.on( config.GAME.parcels.decading_event, this.#decayListener );
-
     }
 
     /**
-     * Cleanup method to remove event listeners and prevent memory leaks
+     * Deletes the parcel, emitting a 'deleted' event and cleaning up listeners.
      */
-    cleanup() {
-        // Emit deleted event
+    delete () {
         this.#emitter.emit( 'deleted', this );
-        
-        // Remove clock listener
-        if ( this.#decayListener ) {
-            myClock.off( config.GAME.parcels.decading_event, this.#decayListener );
-        }
-
-        // Remove carrier follower listener
-        if ( this.carriedBy && this.#carrierListener ) {
-            this.carriedBy.emitter?.off( 'xy', this.#carrierListener );
-        }
-        
-        // Remove all other listeners
         this.#emitter.removeAllListeners();
     }
 

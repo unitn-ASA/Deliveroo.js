@@ -8,8 +8,6 @@ import { config } from '../config/config.js';
 import eventEmitter from 'events';
 import { watchProperty } from '../reactivity/watchProperty.js';
 
-/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOAgent.js").IOAgent} IOAgent */
-/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOParcel.js").IOParcel} IOParcel */
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOSensing.js").IOSensing} IOSensing */
 
 
@@ -126,7 +124,7 @@ class Sensor {
             grid.emitter.onCrate( this.#crateListener );
 
             // On my movements emit parcels and crates sensing
-            agent.emitter?.on( 'xy', this.#myXyListener );
+            // agent.emitter?.on( 'xy', this.#myXyListener );
 
         }
 

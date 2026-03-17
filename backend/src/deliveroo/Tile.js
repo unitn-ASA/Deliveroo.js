@@ -158,6 +158,16 @@ import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
 
     }
 
+
+
+    /**
+     * Deletes the tile, emitting a 'deleted' event
+     */
+    delete() {
+        this.type = '0'; // Set to non-walkable type
+        this.#emitter.emit( 'deleted' );
+    }
+
 }
 
 

@@ -34,7 +34,7 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
     const id = req.params.id;
     const agent = myGrid.agentRegistry.get( id );
     if ( agent ) {
-        myGrid.deleteAgent( agent );
+        agent.delete();
         res.status(200).json( { message: `Agent ${id} deleted` } );
     } else {
         res.status(404).json( { message: `Agent ${id} not found` } );
