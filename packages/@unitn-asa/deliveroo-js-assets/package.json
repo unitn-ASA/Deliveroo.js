@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-assets",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Game assets (maps, levels) and content API for Deliveroo.js",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
@@ -26,8 +26,8 @@
   },
   "license": "ISC",
   "dependencies": {
+    "canvas": "^3.1.0",
     "commander": "^12.0.0",
-    "express": "^4.17.3",
-    "canvas": "^3.1.0"
+    "express": "^4.17.3"
   }
 }
