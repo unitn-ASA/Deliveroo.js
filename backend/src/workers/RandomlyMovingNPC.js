@@ -56,7 +56,12 @@ class RandomlyMovingAgent extends NPC {
             let tile = this.agent.grid.tileRegistry.getOneByXy( { x: this.agent.x + relPos[index].x, y: this.agent.y + relPos[index].y } );
             let moved = false;
             if ( tile && tile.walkable && ! tile.locked ) {
-                moved = await this.agent[ actions[index] ](); // try moving
+                switch ( actions[index] ) {
+                    case 'up':    moved = await this.agent.controller.up(); break;
+                    case 'right': moved = await this.agent.controller.right(); break;
+                    case 'down':  moved = await this.agent.controller.down(); break;
+                    case 'left':  moved = await this.agent.controller.left(); break;
+                }
             }
             if (moved)
                 // wait before continue

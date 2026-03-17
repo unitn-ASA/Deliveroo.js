@@ -1,5 +1,6 @@
 import Grid from '../deliveroo/Grid.js';
 import randomlyMovingAgent from './RandomlyMovingNPC.js';
+import IntelligentParcelNPC from './IntelligentParcelNPC.js';
 import NPC from './NPC.js';
 import myClock from '../myClock.js';
 

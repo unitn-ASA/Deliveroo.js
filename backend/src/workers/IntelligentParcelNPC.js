@@ -119,7 +119,7 @@ class IntelligentParcelNPC extends NPC {
         // Pick up any parcels on current tile
         const currentTile = agent.grid.tileRegistry.getOneByXy({ x: agent.x, y: agent.y });
         if (currentTile && agent.grid.parcelRegistry.getByXy(currentTile.xy).length > 0) {
-            await agent.pickUp();
+            await agent.controller.pickUp();
             return;
         }
 
@@ -128,7 +128,7 @@ class IntelligentParcelNPC extends NPC {
         if (nearestParcel) {
             await this.moveToTarget(nearestParcel.x, nearestParcel.y);
             // Try to pick up after moving
-            await agent.pickUp();
+            await agent.controller.pickUp();
             return;
         }
 
@@ -145,7 +145,7 @@ class IntelligentParcelNPC extends NPC {
 
         // If on delivery tile, deliver
         if (currentTile && currentTile.delivery) {
-            await agent.putDown();
+            await agent.controller.putDown();
             this.currentPath = [];
             this.currentTarget = null;
             return;
@@ -156,7 +156,7 @@ class IntelligentParcelNPC extends NPC {
         if (nearestDelivery) {
             await this.moveToTarget(nearestDelivery.x, nearestDelivery.y);
             // Try to deliver after moving
-            await agent.putDown();
+            await agent.controller.putDown();
         }
     }
 
