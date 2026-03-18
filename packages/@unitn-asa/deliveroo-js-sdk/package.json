@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-sdk",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Software development kit for Deliveroo.js",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "type": "module",
