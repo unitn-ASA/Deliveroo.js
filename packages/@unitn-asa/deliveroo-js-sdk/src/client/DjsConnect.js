@@ -1,9 +1,8 @@
 import { io } from "socket.io-client";
 import { DjsClientSocket } from "./DjsClientSocket.js";
-
 /**
  * Get command-line arguments for token and name (Node.js only)
- * Usage: npm run dev -- -token=... -name=...
+ * Usage: npm run dev -- -token=... -name=... -host=...
  */
 function getArgs() {
     if (typeof process !== 'undefined' && process?.argv) {
@@ -11,14 +10,14 @@ function getArgs() {
         try {
             const getopts = require('getopts');
             return getopts(process.argv, {
-                string: ['token', 'name']
+                string: ['token', 'name', 'host'],
             });
         } catch {
             // Fallback if require doesn't work (e.g., in bundler)
-            return { token: undefined, name: undefined };
+            return { token: undefined, name: undefined, host: undefined };
         }
     }
-    return { token: undefined, name: undefined };
+    return { token: undefined, name: undefined, host: undefined };
 }
 
 const args = getArgs();
@@ -28,7 +27,7 @@ const args = getArgs();
 /**
  * @returns { DjsClientSocket }
  */
-export function DjsConnect ( host, token = args['token'], name = args['name'], autoconnect = true ) {
+export function DjsConnect ( host = args['host'] || process.env.HOST, token = args['token'] || process.env.TOKEN, name = args['name'] || process.env.NAME, autoconnect = true ) {
 
     let opts = {
         autoConnect: false,
