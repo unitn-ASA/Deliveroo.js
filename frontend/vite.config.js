@@ -51,7 +51,8 @@ export default defineConfig( () => {
     },
     define: {
       '__COMMIT_HASH__': JSON.stringify( commitHash ),
-      '__PACKAGE_VERSION__': JSON.stringify( packageVersion )
+      '__PACKAGE_VERSION__': JSON.stringify( packageVersion ),
+      'process.env.NODE_ENV': JSON.stringify( process.env.NODE_ENV || 'production' )
     }
   };
 })

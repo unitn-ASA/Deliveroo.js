@@ -1,17 +1,27 @@
 import { io } from "socket.io-client";
-import { default as argsparser } from "args-parser";
 import { DjsClientSocket } from "./DjsClientSocket.js";
 
-
-
 /**
- * Takes the following arguments from console:
- * token or name
- * e.g:
- * $ node index.js -token=... -name=marco
- * $ npm start -- -token=... -name=marco
+ * Get command-line arguments for token and name (Node.js only)
+ * Usage: npm run dev -- -token=... -name=...
  */
-const args = argsparser(process? process?.argv : []);
+function getArgs() {
+    if (typeof process !== 'undefined' && process?.argv) {
+        // Dynamic import only in Node.js environment
+        try {
+            const getopts = require('getopts');
+            return getopts(process.argv, {
+                string: ['token', 'name']
+            });
+        } catch {
+            // Fallback if require doesn't work (e.g., in bundler)
+            return { token: undefined, name: undefined };
+        }
+    }
+    return { token: undefined, name: undefined };
+}
+
+const args = getArgs();
 
 
 
