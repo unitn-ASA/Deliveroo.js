@@ -23,12 +23,16 @@ export default class PddlDomain {
         this.addAction(...actions)
         
     }
-    
+
     addPredicate (predicate) { // predicate = 'light-on ?l'
         if ( this.predicates.find( (e) => e == predicate ) )
             return false;
-        if ( this.predicates.find( (e) => e.split(' ')[0] == predicate.split(' ')[0] && e.split(' ').length != predicate.split(' ').length ) )
+        if ( this.predicates.find( (e) => e.split(' ')[0] === predicate.split(' ')[0] && e.split(' ').length !== predicate.split(' ').length ) )
             throw new Error( 'Duplicated predicate with different number of parameters!' )
+
+        if ( this.predicates.find( (e) => e.split(' ')[0] === predicate.split(' ')[0] && e.split(' ').length === predicate.split(' ').length ) )
+            return false;
+            
         this.predicates.push(predicate)
         return true;
     }
