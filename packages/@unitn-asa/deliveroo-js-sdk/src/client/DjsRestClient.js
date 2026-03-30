@@ -205,7 +205,7 @@ export class DjsRestClient {
                 }
                 throw new Error(`Error generating token, Status code: ${response.status}`);
             })
-            .then(data => {
+            .then( (/** @type {{token:string}} */ data) => {
                 console.log("token ottenuto: " + data.token.slice(-30));
                 resolve(data);
             })

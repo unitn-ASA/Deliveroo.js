@@ -1,7 +1,6 @@
 
 /**
  * @typedef { 'frame' | '1s' | '2s' | '5s' | '10s' | 'infinite' } IOClockEvent
- * @export
  */
 
 

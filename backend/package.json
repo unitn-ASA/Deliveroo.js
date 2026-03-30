@@ -17,7 +17,10 @@
     "start": "node index.js",
     "prebuild": "npm install",
     "build": "node scripts/build.js",
-    "dev": "nodemon --inspect -r dotenv/config index.js --"
+    "dev": "nodemon --inspect -r dotenv/config index.js --",
+    "schemas:generate": "node scripts/generate-schemas.js",
+    "swagger:generate": "npm run schemas:generate && node scripts/generate-swagger.js",
+    "docs": "npm run schemas:generate && typedoc"
   },
   "repository": {
     "type": "git",
@@ -27,7 +30,9 @@
     "dotenv": "^16.0.3",
     "jest": "^27.5.1",
     "lerna": "^8.2.1",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "swagger-jsdoc": "^6.2.8",
+    "typedoc": "^0.28.17"
   },
   "dependencies": {
     "@unitn-asa/deliveroo-js-assets": "file:../packages/@unitn-asa/deliveroo-js-assets",

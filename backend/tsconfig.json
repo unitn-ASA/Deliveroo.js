@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "jsx": "react",
+    "noEmit": true,
+    "lib": ["ES2022"],
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": [
+    "src",
+    "../packages/@unitn-asa/deliveroo-js-sdk/src",
+    "../packages/@unitn-asa/deliveroo-js-assets/src"
+  ],
+  "exclude": [
+    "swagger.config.js",
+    "node_modules",
+    "dist",
+    "test"
+  ]
+}

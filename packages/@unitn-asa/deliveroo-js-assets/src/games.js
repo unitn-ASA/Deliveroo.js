@@ -48,7 +48,6 @@ export function getGamesList() {
 
 /**
  * Load a game by name
- * @async
  * @function loadGame
  * @param {string} gameName - Name of the game (with or without .json extension)
  * @returns {Promise<IOGameOptions>} The game configuration object

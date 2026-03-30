@@ -23,7 +23,14 @@ router.get('/', async (req, res) => {
                 /** @type {import('../games.js').IOGameOptions & {self: string, png: string}} */
                 const gameData = {
                     self: '/api/games/' + gameName,
-                    png: '/api/games/' + gameName + '.png'
+                    png: '/api/games/' + gameName + '.png',
+                    title: null,
+                    description: null,
+                    map: null,
+                    maxPlayers: null,
+                    npcs: [],
+                    parcels: null,
+                    player: null
                 };
                 Object.assign(gameData, await loadGame(gameName));
                 gameData.map.width = gameData.map.tiles.length;
@@ -85,7 +92,14 @@ router.get('/:gameName', async (req, res) => {
         /** @type {import('../games.js').IOGameOptions & {self: string, png: string}} */
         const gameData = {
             self: '/api/games/' + gameName,
-            png: '/api/games/' + gameName + '.png'
+            png: '/api/games/' + gameName + '.png',
+            title: null,
+            description: null,
+            map: null,
+            maxPlayers: null,
+            npcs: [],
+            parcels: null,
+            player: null
         };
         Object.assign(gameData, await loadGame(gameName));
         gameData.map.width = gameData.map.tiles.length;

@@ -1,5 +1,5 @@
 
-/** @typedef {import("./IOClockEvent.js").IOClockEvent} IOClockEvent */
+/** @import { IOClockEvent } from "./IOClockEvent.js" */
 
 
 

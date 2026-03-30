@@ -4,8 +4,7 @@ import Path from 'path';
 import { fileURLToPath } from 'url';
 import serveIndex from 'serve-index';
 import swaggerUi from 'swagger-ui-express';
-import fs from 'fs';
-import { default as YAML } from 'yaml';
+import { swaggerSpec } from '../swagger.config.js';
 
 const app = express();
 
@@ -53,10 +52,16 @@ app.use( '/',
 
 
 // Serve Swagger API documentation
-const oas3Path = Path.join(__dirname, '..', 'oas3.yaml');
-const oas3 = fs.readFileSync(oas3Path, 'utf8');
-const swaggerDocument = YAML.parse(oas3);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup( swaggerDocument ));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customSiteTitle: 'Deliveroo.js API Documentation',
+    customCss: '.swagger-ui .topbar { display: none }',
+}));
+
+// Serve TypeDoc documentation (code documentation)
+app.use('/docs', express.static(Path.join(__dirname, '..', 'docs', 'typedoc'), {
+    dotfiles: 'ignore',
+    index: 'index.html'
+}));
 
 
 

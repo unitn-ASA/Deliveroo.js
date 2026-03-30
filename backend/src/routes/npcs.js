@@ -4,7 +4,23 @@ import { authorizeAdmin } from '../middlewares/token.js';
 
 const router = express.Router();
 
-
+/**
+ * @swagger
+ * /api/npcs:
+ *   get:
+ *     summary: Get the list of NPC controlled agents
+ *     description: Retrieves the list of NPC controlled agents currently in the game.
+ *     tags: [NPCs]
+ *     responses:
+ *       200:
+ *         description: List of NPC controlled agents retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/NPC'
+ */
 
 // GET /npcs get the list of all npcs on the grid
 router.get('/', async (req, res) => {
@@ -25,6 +41,38 @@ router.get('/', async (req, res) => {
 });
 
 
+
+/**
+ * @swagger
+ * /api/npcs/{npcId}:
+ *   get:
+ *     summary: Get an NPC controlled agent
+ *     description: Retrieves a specific NPC controlled agent from the game.
+ *     tags: [NPCs]
+ *     parameters:
+ *       - name: npcId
+ *         in: path
+ *         required: true
+ *         description: ID of the NPC controlled agent
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: NPC controlled agent retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NPC'
+ *       404:
+ *         description: NPC not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 
 // GET /npcs/:id get the npc with id
 router.get('/:id', async (req, res) => {
@@ -48,6 +96,55 @@ router.get('/:id', async (req, res) => {
 });
 
 
+
+/**
+ * @swagger
+ * /api/npcs/{npcId}:
+ *   patch:
+ *     summary: Update an NPC controlled agent's information
+ *     description: Updates the information of an NPC controlled agent in the game.
+ *     tags: [NPCs]
+ *     parameters:
+ *       - name: npcId
+ *         in: path
+ *         required: true
+ *         description: ID of the NPC controlled agent to be updated
+ *         schema:
+ *           type: string
+ *     security:
+ *       - AdminQueryToken: []
+ *         AdminHeaderToken: []
+ *     requestBody:
+ *       description: The NPC controlled agent information to be updated. Only the fields that are present will be updated.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               running:
+ *                 type: boolean
+ *                 description: Indicates if the NPC controlled agent is running
+ *               stopRequested:
+ *                 type: boolean
+ *                 description: Indicates if a stop request has been made for the NPC controlled agent
+ *     responses:
+ *       200:
+ *         description: NPC controlled agent information updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NPC'
+ *       404:
+ *         description: NPC not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 
 // PATCH /npcs/:id start or stop the npc with id
 router.patch('/:id', authorizeAdmin, async (req, res) => {
@@ -77,6 +174,51 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
 });
 
 
+
+/**
+ * @swagger
+ * /api/npcs:
+ *   post:
+ *     summary: Create a new NPC controlled agent
+ *     description: Creates a new NPC controlled agent in the game.
+ *     tags: [NPCs]
+ *     security:
+ *       - AdminQueryToken: []
+ *         AdminHeaderToken: []
+ *     requestBody:
+ *       description: The NPC controlled agent information to create.
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the NPC
+ *               x:
+ *                 type: number
+ *                 description: Initial X coordinate
+ *               y:
+ *                 type: number
+ *                 description: Initial Y coordinate
+ *     responses:
+ *       200:
+ *         description: NPC controlled agent created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/NPC'
+ *       500:
+ *         description: No NPC spawners available
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 
 // POST /npcs create a new npc
 router.post('/', authorizeAdmin, async (req, res) => {

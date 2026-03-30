@@ -41,7 +41,31 @@ const commitHash = new Promise( res =>
     } )
 );
 
-// GET /api 
+/**
+ * @swagger
+ * /api/:
+ *   get:
+ *     summary: Get the status of the game
+ *     description: Returns the current status of the game including version and git commit.
+ *     tags: [General]
+ *     responses:
+ *       200:
+ *         description: Game status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 commitHash:
+ *                   type: string
+ *                   description: Git commit hash
+ *                 packageVersion:
+ *                   type: string
+ *                   description: Package version
+ */
+// GET /api
 router.get('/', async (req, res) => {
 
     console.log(`GET /api`);

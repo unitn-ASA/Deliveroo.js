@@ -1,6 +1,13 @@
 # Dependency directories
 node_modules/
 
+# Generated documentation
+docs/
+
+# Generated API documentation
+swagger.json
+generated-schemas.js
+
 # IDE
 .vscode
 

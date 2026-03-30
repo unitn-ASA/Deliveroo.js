@@ -1,0 +1,53 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "./src/app.js",
+    "./src/routes/*.js",
+    "../packages/@unitn-asa/deliveroo-js-sdk/src/**/*.js",
+    "../packages/@unitn-asa/deliveroo-js-assets/src/**/*.js",
+  ],
+  "out": "./docs/typedoc",
+  "name": "Deliveroo.js Backend API",
+  "exclude": [
+    "**/node_modules/**",
+    "**/test/**",
+    "**/dist/**",
+    "**/.git/**"
+  ],
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "categorizeByGroup": true,
+  "defaultCategory": "Other",
+  "categoryOrder": [
+    "API Routes",
+    "Configuration",
+    "Types",
+    "*"
+  ],
+  "kindSortOrder": [
+    "Module",
+    "Namespace",
+    "Enum",
+    "EnumMember",
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Constructor",
+    "Property",
+    "Method",
+    "Function",
+    "Variable"
+  ],
+  "theme": "default",
+  "gitRevision": "main",
+  "hostedBaseUrl": "https://github.com/unitn-ASA/Deliveroo.js",
+  "includeVersion": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  },
+  "commentStyle": "jsdoc",
+  "logLevel": "Error",
+}
