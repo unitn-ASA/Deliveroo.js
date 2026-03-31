@@ -40,10 +40,9 @@ export class DjsServer extends Server {
     /**
      * Broadcast a tile update to all connected clients
      * @param { IOTile } tile
-     * @param { IOInfo } info
      */
-    broadcastTile({ x, y, type }, info) {
-        this.emit('tile', { x, y, type }, info);
+    broadcastTile({ x, y, type }) {
+        this.emit('tile', { x, y, type });
     }
 
     /**

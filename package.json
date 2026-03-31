@@ -18,7 +18,7 @@
     "dev": "cd backend && npm run dev",
     "dev-ui": "cd frontend && npm run dev",
     "dev-all": "npm run dev & npm run dev-ui",
-    "docs": "cd backend && npm run docs"
+    "docs": "cd backend && npm run docs && cd ../frontend && npm run docs"
   },
   "repository": {
     "type": "git",

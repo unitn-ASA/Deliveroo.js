@@ -290,7 +290,7 @@ export class Grid {
         //     // this.tiles.delete( x + y*1000 ); // delete to avoid blocks from old maps
         // });
 
-        socket.on( "tile", ({x, y, type}, {ms, frame, fps}) => {
+        socket.on( "tile", ({x, y, type} ) => {
             // console.log( 'Grid.js tile', x, y, type );
             this.getTile(x, y).type = type;
             // if ( delivery )
@@ -315,10 +315,8 @@ export class Grid {
         //     AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
         // } )
 
-        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty }, info ) => {
+        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty } ) => {
             // console.log( "Grid.js socket.on(you)", id, name, teamId, teamName, x, y, score, clock )
-
-            this.info.value = info;
 
             let me = this.me.value = this.getOrCreateAgent( id );
             me.name = name;
@@ -328,6 +326,12 @@ export class Grid {
             me.y = y
             me.score = score
             me.penalty = penalty
+
+        });
+
+        this.socket.on( "info", ( info ) => {
+            
+            this.info.value = info;
 
         });
 

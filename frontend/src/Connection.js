@@ -43,12 +43,12 @@ export class Connection {
     });
 
     /**
-     * @type {Array<{ms:number, frame:number, message:string[]}>} serverLog
+     * @type {Array<{message:string[]}>} serverLog
      */
     serverLogs = shallowReactive (new Array());
 
     /**
-     * @type {Array<{ms:number, frame:number, socket:string, id:string, name:string, message:string[]}>} clientLogs
+     * @type {Array<{socket:string, id:string, name:string, message:string[]}>} clientLogs
      */
     clientLogs = shallowReactive (new Array());
 
@@ -153,19 +153,19 @@ export class Connection {
         this.listenAndRegister( "agents sensing" );
         this.listenAndRegister( "parcels sensing" );
 
-        ioClient.on( 'log', ( src, info, ...message ) => {
+        ioClient.on( 'log', ( src, ...message ) => {
 
             // this.grid.clock.ms = ms;
             // this.grid.clock.frame = frame;
 
             if ( src == 'server' ) {
-                this.serverLogs.push( { ms: info.ms, frame: info.frame, message } );
+                this.serverLogs.push( { message } );
                 // Limit array size to prevent memory leak - keep last 1000 logs
                 if ( this.serverLogs.length > 1000 ) {
                     this.serverLogs.shift();
                 }
             } else {
-                this.clientLogs.push( { ms: info.ms, frame: info.frame, socket: src.socket, id: src.id, name: src.name, message} );
+                this.clientLogs.push( { socket: src.socket, id: src.id, name: src.name, message} );
                 // Limit array size to prevent memory leak - keep last 1000 logs
                 if ( this.clientLogs.length > 1000 ) {
                     this.clientLogs.shift();

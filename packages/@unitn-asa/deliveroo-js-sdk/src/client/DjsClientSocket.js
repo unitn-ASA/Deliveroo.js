@@ -80,7 +80,7 @@ export class DjsClientSocket extends Socket {
     }
     
     /**
-     * @param { function( IOTile, IOInfo ) : void } callback
+     * @param { function( IOTile ) : void } callback
      */
     onTile ( callback ) {
         this.on( "tile", callback )
@@ -95,14 +95,14 @@ export class DjsClientSocket extends Socket {
     }
     
     /**
-     * @param { function( IOAgent, IOInfo ) : void } callback
+     * @param { function( IOAgent ) : void } callback
      */
     onYou ( callback ) {
         this.on( "you", callback )
     }
 
     /**
-     * @param { function( IOAgent, IOInfo ) : void } callback
+     * @param { function( IOAgent ) : void } callback
      */
     onceYou ( callback ) {
         this.once( "you", callback )
@@ -114,6 +114,14 @@ export class DjsClientSocket extends Socket {
      */
     onSensing ( callback ) {
         this.on( "sensing", callback )
+    }
+    
+    /**
+     * Listen to 'info' events
+     * @param { function( IOInfo ) : void } callback
+     */
+    onInfo ( callback ) {
+        this.on( "info", callback )
     }
     
     /**
@@ -190,11 +198,11 @@ export class DjsClientSocket extends Socket {
     /**
      * When movement completes, it resolves to true.
      * In case of failure when moving, it resolves to false
-     * @param { 'up' | 'right' | 'left' | 'down' | { x:number, y:number } } directionOrXy It can be either: 'up', 'right', 'left', 'down', or destination Xy
+     * @param { 'up' | 'right' | 'left' | 'down' } direction It can be either: 'up', 'right', 'left', 'down'
      * @returns { Promise < { x:number, y:number } | false > }
      */
-    async emitMove ( directionOrXy ) {
-        return this.emitAndResolveOnAck( 'move', directionOrXy );
+    async emitMove ( direction ) {
+        return this.emitAndResolveOnAck( 'move', direction );
     }
 
     /**

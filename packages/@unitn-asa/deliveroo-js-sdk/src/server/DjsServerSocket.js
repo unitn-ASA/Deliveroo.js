@@ -46,7 +46,7 @@ export class DjsServerSocket extends Socket {
      * @param { function() : void } callback
      */
     onDisconnect ( callback ) {
-        this.on( 'disconnect', callback);
+        super.on( 'disconnect', callback);
     }
 
     /**
@@ -67,10 +67,9 @@ export class DjsServerSocket extends Socket {
 
     /**
      * @param { IOTile } tile
-     * @param { IOInfo } info
      */
-    emitTile ( { x, y, type }, info ) {
-        super.emit( 'tile', {x, y, type}, info );
+    emitTile ( { x, y, type } ) {
+        super.emit( 'tile', {x, y, type} );
     }
 
     /**
@@ -83,10 +82,9 @@ export class DjsServerSocket extends Socket {
     
     /**
      * @param { IOAgent } you
-     * @param { IOInfo } info
      */
-    emitYou ( {id, name, teamId, teamName, x, y, score, penalty}, info ) {
-        super.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty}, info );
+    emitYou ( {id, name, teamId, teamName, x, y, score, penalty} ) {
+        super.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty} );
     }
 
     /**
@@ -95,19 +93,26 @@ export class DjsServerSocket extends Socket {
     emitSensing ( sensing ) {
         super.emit( 'sensing', sensing );
     }
+    
+    /**
+     * @param { IOInfo } info
+     */
+    emitInfo ( info ) {
+        super.emit( 'info', info );
+    }
 
 
 
     /**
      * @callback onMoveCallback
-     * @param { 'up' | 'right' | 'left' | 'down' | { x:number, y:number } } directionOrXy
+     * @param { 'up' | 'right' | 'left' | 'down' } direction
      * @param { function( { x:number, y:number } | false ) : void } replyAcknowledgmentCallback ( reply )
      */
     /**
      * @param { onMoveCallback } callback ( direction, acknowledgementCallback )
      */
     onMove ( callback ) {
-        this.on( 'move', callback );
+        super.on( 'move', callback );
     }
     
     /**
@@ -118,7 +123,7 @@ export class DjsServerSocket extends Socket {
      * @param { onPickupCallback } callback ( acknowledgementCallback )
      */
     onPickup ( callback ) {
-        this.on( 'pickup', callback );
+        super.on( 'pickup', callback );
     }
 
     /**
@@ -130,7 +135,7 @@ export class DjsServerSocket extends Socket {
      * @param { onPutdownCallback } callback ( selected, acknowledgementCallback )
      */
     onPutdown ( callback ) {
-        this.on( 'putdown', callback );
+        super.on( 'putdown', callback );
     }
 
 
@@ -139,21 +144,21 @@ export class DjsServerSocket extends Socket {
      * @param { function ( string, any, function ( 'successful' ) : void ) : void } callback ( toId, msg, ack )
      */
     onSay ( callback ) {
-        this.on( 'say', callback );
+        super.on( 'say', callback );
     }
 
     /**
      * @param { function ( string, any, function ( any ) : void ) : void } callback ( toId, msg, ack(reply) )
      */
     onAsk ( callback ) {
-        this.on( 'ask', callback );
+        super.on( 'ask', callback );
     }
 
     /**
      * @param { function ( any, function ( any ) : void ) : void } callback ( msg, ack(reply) )
      */
     onShout ( callback ) {
-        this.on( 'shout', callback );
+        super.on( 'shout', callback );
     }
 
     /**
@@ -208,7 +213,7 @@ export class DjsServerSocket extends Socket {
      * @param { function ( ...any ) : void } callback ( ...msgArgs )
      */
     onLog ( callback ) {
-        this.on( 'log', callback );
+        super.on( 'log', callback );
     }
     
     /**
@@ -229,7 +234,7 @@ export class DjsServerSocket extends Socket {
      * @param { function ( 'create' | 'dispose' | 'set', {id:string, x:number, y:number, reward:number} ) : void } callback 
      */
     onParcel ( callback ) {
-        this.on( 'parcel', callback );
+        super.on( 'parcel', callback );
     }
 
     /**
@@ -237,7 +242,7 @@ export class DjsServerSocket extends Socket {
      * @param { function ( IOTile ) : void } callback
      */
     onTile ( callback ) {
-        this.on( 'tile', callback );
+        super.on( 'tile', callback );
     }
 
     /**
@@ -245,7 +250,7 @@ export class DjsServerSocket extends Socket {
      * @param { function () : void } callback
      */
     onRestart ( callback ) {
-        this.on( 'restart', callback );
+        super.on( 'restart', callback );
     }
 
 

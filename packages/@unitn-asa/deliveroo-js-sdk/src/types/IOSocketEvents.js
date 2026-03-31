@@ -8,7 +8,7 @@
  * Client -> Server events. Emitted by the client and listened by the server.
  * @typedef {{
  *      'disconnect':   function () : void,
- *      'move':         function ( 'up' | 'right' | 'left' | 'down' | { x:number, y:number }, function ( { x:number, y:number } | false ) : void = ) : { x:number, y:number } | false,
+ *      'move':         function ( 'up' | 'right' | 'left' | 'down', function ( { x:number, y:number } | false ) : void = ) : { x:number, y:number } | false,
  *      'pickup':       function ( function ( { id:string } [] ) : void = ) : { id:string } [],
  *      'putdown':      function ( string [] =, function ( { id:string } [] ) : void = ) : { id:string } [],
  *      'say':          function ( string, any, function( 'successful' ) : void ) : void,
@@ -30,12 +30,13 @@
  *      'token':            function ( string ) : void,
  *      'config':           function ( any ) : void,
  *      'map':              function ( number, number, IOTile[] ) : void,
- *      'tile':             function ( IOTile, IOInfo ) : void,
+ *      'tile':             function ( IOTile ) : void,
  *      'controller':       function ( 'connected' | 'disconnected', {id:string, name:string, teamId:string, teamName:string, score:number} ) : void,
- *      'you':              function ( IOAgent, IOInfo ) : void,
+ *      'you':              function ( IOAgent ) : void,
  *      'sensing':          function ( IOSensing ) : void,
+ *      'info':             function ( IOInfo ) : void,
  *      'msg':              function ( string, string, Object, function ( Object ) : void = ) : Object,
- *      'log':              function ( 'server' | { socket:string, id:string, name:string }, IOInfo, ...any ) : void
+ *      'log':              function ( 'server' | { socket:string, id:string, name:string }, ...any ) : void
  * }} IOServerEvents
  */
 

@@ -207,14 +207,14 @@ class ioServer {
          */
         listeners.tileListener = ( { xy: {x,y}, type } ) => {
             // console.log( 'emit tile', x, y, type );
-            socket.emitTile( {x, y, type}, myClock.info );
+            socket.emitTile( {x, y, type} );
         };
         myGrid.emitter.onTile( listeners.tileListener );
         let tiles = []
         for (const { xy: {x, y}, type } of myGrid.tileRegistry.getIterator()) {
                 // console.log( 'emit tile', x, y, type );
-                socket.emitTile( {x, y, type}, myClock.info )
-                tiles.push( {x, y, type} )
+                socket.emitTile( {x, y, type} );
+                tiles.push( {x, y, type} );
         }
         socket.emitMap( myGrid.tileRegistry.getMaxX(), myGrid.tileRegistry.getMaxY(), tiles );
 
@@ -251,7 +251,7 @@ class ioServer {
         // Emit you
         listeners.meAnyListener = atNextTick( () => {
             // console.log( 'emit you', id, name, x, y, score );
-            socket.emitYou( me, myClock.info );
+            socket.emitYou( me );
         } );
         me.emitter.on( 'xy', listeners.meAnyListener );
         me.emitter.on( 'score', listeners.meAnyListener );
@@ -264,7 +264,7 @@ class ioServer {
             x: me.x, y: me.y,
             score: me.score,
             penalty: me.penalty
-        }, myClock.info );
+        } );
         
 
 
@@ -278,6 +278,13 @@ class ioServer {
         me.sensor.emitter.on( 'sensing', listeners.sensingListener );
         // Compute sensing to emit initial sensing on connection
         me.sensor.computeSensing();
+        
+
+
+        /**
+         * Emit info
+         */
+        myClock.on('frame', () => socket.emitInfo( myClock.info ) );
         
 
 
