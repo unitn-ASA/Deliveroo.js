@@ -5,7 +5,7 @@ import Xy from './Xy.js';
 import Grid from './Grid.js';
 import Parcel from './Parcel.js';
 import myClock from '../myClock.js';
-import Crate from './Crate.js';
+import Tile from './Tile.js';
 
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent} IOAgent */
@@ -48,19 +48,19 @@ class Controller {
 
 
     async up () {
-        return await this.#agent.actionMutex.execute( () => this.#move(this.#agent, 0, 1) );
+        return await this.#agent.actionMutex.execute( () => this.move(this.#agent, 0, 1) );
     }
 
     async down () {
-        return await this.#agent.actionMutex.execute( () => this.#move(this.#agent, 0, -1) );
+        return await this.#agent.actionMutex.execute( () => this.move(this.#agent, 0, -1) );
     }
 
     async left () {
-        return await this.#agent.actionMutex.execute( () => this.#move(this.#agent, -1, 0) );
+        return await this.#agent.actionMutex.execute( () => this.move(this.#agent, -1, 0) );
     }
 
     async right () {
-        return await this.#agent.actionMutex.execute( () => this.#move(this.#agent, 1, 0) );
+        return await this.#agent.actionMutex.execute( () => this.move(this.#agent, 1, 0) );
     }
 
     /**
@@ -70,7 +70,7 @@ class Controller {
      * @param {number} incr_y - Y increment (-1, 0, or 1)
      * @returns {Promise<Xy|boolean>} The new position if successful, false otherwise
      */
-    async #move(agent, incr_x, incr_y) {
+    async move(agent, incr_x, incr_y) {
         const fromTile = agent.tile;
         if (!fromTile) {
             return false;
@@ -128,7 +128,7 @@ class Controller {
         }
 
         // Execute step-by-step movement
-        await this.#stepByStep(agent, incr_x, incr_y);
+        await Controller.stepByStep(agent, fromTile, toTile);
 
         return agent.xy;
     }
@@ -138,14 +138,12 @@ class Controller {
     /**
      * Execute step-by-step animated movement
      * @param {import('../deliveroo/Agent.js').default} agent
-     * @param {number} incr_x
-     * @param {number} incr_y
+     * @param {Tile} fromTile
+     * @param {Tile} toTile
      */
-    async #stepByStep(agent, incr_x, incr_y) {
-        const fromTile = agent.tile;
-        const toTile = this.#grid.tileRegistry.getOneByXy(
-            { x: agent.x + incr_x, y: agent.y + incr_y }
-        );
+    static async stepByStep(agent, fromTile, toTile) {
+        const incr_x = toTile.x - fromTile.x;
+        const incr_y = toTile.y - fromTile.y;
 
         // Lock destination tile
         toTile.lock();
