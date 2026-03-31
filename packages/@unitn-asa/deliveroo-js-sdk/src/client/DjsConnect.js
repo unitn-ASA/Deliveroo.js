@@ -46,7 +46,7 @@ export function DjsConnect ( host = args['host'] || process.env.HOST, token = ar
     if ( autoconnect )
         enhancedClientSocket.connect();
 
-    console.log( `Connecting to ${host} as ${ token ? 'token '+ (token).substring(0,5)+'...' : name ? 'name '+name : 'guest' }` );
+    console.log( `Connecting to ${host} as ${ token ? 'token '+ (token).substring(0,5)+'...'+(token).substring(token.length-5) : name ? 'name '+name : 'guest' }` );
 
     return enhancedClientSocket;
 

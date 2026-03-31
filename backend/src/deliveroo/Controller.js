@@ -190,7 +190,7 @@ class Controller {
     async pickUp () {
         return await this.#agent.actionMutex.execute( async () => {
             const picked = new Array();
-            for (const parcel of this.#grid.parcelRegistry.getByXy(this.#agent.xy.rounded)) {
+            for (const parcel of this.#grid.parcelRegistry.getByXy(this.#agent?.xy?.rounded)) {
                 if (parcel.carriedBy == null) {
                     this.#agent.carryingParcels.add(parcel);
                     parcel.carriedBy = this.#agent;
