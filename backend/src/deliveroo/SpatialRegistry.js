@@ -15,10 +15,10 @@ class SpatialRegistry {
         return this.#emitter;
     }
 
-    /** @type {Map<string, { spatialKey: string, spatialIndex: number, item: T }>} */
+    /** @type {Map<string, { spatialKey: string, item: T }>} */
     #index = new Map();
 
-    /** @type {Map<string, T[]>} - Spatial index by spatialKey position */
+    /** @type {Map<string, Map<string, T>>} - Spatial index: spatialKey → (id → item) */
     #spatialIndex = new Map();
 
     /** Cached maximum x coordinate */
@@ -53,7 +53,7 @@ class SpatialRegistry {
 
         // Use rounded xy for spatial index
         const newSpatialKey = item.xy?.rounded?.toString() || `_` ;
-        
+
         // Retrieve stored
         let stored = this.#index.get( item.id );
 
@@ -69,29 +69,20 @@ class SpatialRegistry {
         // If new item
         else {
             // Create storage entry
-            stored = { spatialKey: '', spatialIndex: -1, item: item };
+            stored = { spatialKey: '', item: item };
 
             // Store entry
             this.#index.set( item.id, stored );
         }
-        
+
         // Update stored spatialKey with newSpatialKey
         stored.spatialKey = newSpatialKey;
-        
-        // Add to new position in spatial index if valid
-        if ( newSpatialKey ) {
-            // If no items at this position yet, create array
-            if (!this.#spatialIndex.has(newSpatialKey)) {
-                this.#spatialIndex.set(newSpatialKey, []);
-            }
 
-            // Store in spatial index and track the index
-            const items = this.#spatialIndex.get(newSpatialKey);
-            stored.spatialIndex = items.length;
-            items.push(item);
-        } else {
-            stored.spatialIndex = -1;
+        // Add to new position in spatial index
+        if (!this.#spatialIndex.has(newSpatialKey)) {
+            this.#spatialIndex.set(newSpatialKey, new Map());
         }
+        this.#spatialIndex.get(newSpatialKey).set(item.id, item);
 
         // Update cached max values
         if (item.x > this.#maxX) this.#maxX = item.x;
@@ -106,22 +97,19 @@ class SpatialRegistry {
 
 
     /**
-     * Remove from old spatialKey in spatialIndex using tracked index for O(1) removal
-     * @param {{ spatialKey: string, spatialIndex: number, item: T }} stored
+     * Remove from old spatialKey in spatialIndex
+     * @param {{ spatialKey: string, item: T }} stored
      */
     removeFromSpatialIndex ( stored ) {
-        const { spatialKey, spatialIndex } = stored;
+        const { spatialKey, item } = stored;
 
-        // Remove from old xy in spatial index
-        const oldItems = this.#spatialIndex.get(spatialKey);
-        if (oldItems && spatialIndex >= 0 && spatialIndex < oldItems.length) {
-            // Use tracked index for O(1) removal
-            oldItems.splice(spatialIndex, 1);
-            if (oldItems.length === 0) {
+        const innerMap = this.#spatialIndex.get(spatialKey);
+        if (innerMap) {
+            innerMap.delete(item.id);
+            if (innerMap.size === 0) {
                 this.#spatialIndex.delete(spatialKey);
             }
         }
-
     }
 
 
@@ -153,9 +141,11 @@ class SpatialRegistry {
         // console.log(xLength, yLength, x1, x2, y1, y2)
         for ( let x = x1; x < x2; x++ ) {
             for ( let y = y1; y < y2; y++ ) {
-                var items = this.#spatialIndex.get(`${x}_${y}`);
-                for ( const item of items || [] )
-                    yield item;
+                const innerMap = this.#spatialIndex.get(`${x}_${y}`);
+                if ( innerMap ) {
+                    for ( const item of innerMap.values() )
+                        yield item;
+                }
             }
         }
     }
@@ -167,7 +157,8 @@ class SpatialRegistry {
     getByXy ( xy ) {
         // @ts-ignore
         const spatialKey = xy?.rounded?.toString() || new Xy(xy).rounded.toString();
-        return this.#spatialIndex.get( spatialKey ) || [];
+        const innerMap = this.#spatialIndex.get( spatialKey );
+        return innerMap ? Array.from(innerMap.values()) : [];
     }
 
     /**
