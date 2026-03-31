@@ -172,6 +172,7 @@ export class Controller {
 
                 // Cycle to next direction
                 const nextIndex = (currentIndex + 1) % directionalTiles.length;
+                // @ts-ignore
                 socket.emit( 'tile', { x, y, type: directionalTiles[nextIndex] } );
 
                 // Prevent rapid cycling

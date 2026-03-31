@@ -75,7 +75,7 @@ export function createCrateSpawnerTexture() {
 
 /**
  * Get or create static tile textures (cached globally)
- * @returns {{ crateSpawner: THREE.CanvasTexture, dir_↑: THREE.CanvasTexture, dir_→: THREE.CanvasTexture, dir_↓: THREE.CanvasTexture, dir_←: THREE.CanvasTexture }}
+ * @returns {{ crateSpawner: THREE.CanvasTexture, 'dir_↑': THREE.CanvasTexture, 'dir_→': THREE.CanvasTexture, 'dir_↓': THREE.CanvasTexture, 'dir_←': THREE.CanvasTexture }}
  */
 export function getTileTextures() {
     /** @type {any} */ (globalThis).__tileTextures ??= {

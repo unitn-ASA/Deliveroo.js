@@ -29,7 +29,7 @@ export function playToken ( token ) {
         connection.connect();
 
         // set query param to payload.name e.g. ?name=marco
-        const url = new URL(window.location);
+        const url = new URL(window.location.href);
         url.searchParams.set('name', connection.payload.name);
         url.searchParams.set('token', connection.token);
         window.history.replaceState({}, '', url);

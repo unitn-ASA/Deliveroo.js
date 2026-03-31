@@ -2,6 +2,7 @@
 
 /**
  * @typedef {{
+ *   id: string,
  *   x: number,
  *   y: number,
  *   mesh?: import('three').Mesh,
