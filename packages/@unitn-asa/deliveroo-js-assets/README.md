@@ -73,8 +73,7 @@ export default {
     // Player Configuration
     MOVEMENT_DURATION: 50,               // Duration of each movement in ms
     AGENT_TIMEOUT: 10000,                // Timeout for agent actions in ms
-    AGENTS_OBSERVATION_DISTANCE: 5,      // How far agents can see
-    PARCELS_OBSERVATION_DISTANCE: 5,     // How far parcels are visible
+    OBSERVATION_DISTANCE: 5,             // How far agents can see
     AGENT_TYPE: 'DefaultAgent',          // Agent class to use
 
     // NPC Configuration

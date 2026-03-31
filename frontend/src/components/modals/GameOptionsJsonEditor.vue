@@ -87,8 +87,7 @@ function validateGameOptions(obj) {
         if (typeof obj.player !== 'object') errs.push('player must be an object');
         else {
             if ('movement_duration' in obj.player && typeof obj.player.movement_duration !== 'number') errs.push('player.movement_duration must be a number');
-            if ('agents_observation_distance' in obj.player && typeof obj.player.agents_observation_distance !== 'number') errs.push('player.agents_observation_distance must be a number');
-            if ('parcels_observation_distance' in obj.player && typeof obj.player.parcels_observation_distance !== 'number') errs.push('player.parcels_observation_distance must be a number');
+            if ('observation_distance' in obj.player && typeof obj.player.observation_distance !== 'number') errs.push('player.observation_distance must be a number');
             if ('capacity' in obj.player && typeof obj.player.capacity !== 'number') errs.push('player.capacity must be a number');
         }
     }

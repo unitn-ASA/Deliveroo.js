@@ -24,8 +24,7 @@
   },
   "player": {
     "movement_duration": 50,
-    "agents_observation_distance": 5,
-    "parcels_observation_distance": 5,
+    "observation_distance": 5,
     "capacity": 5
   }
 }

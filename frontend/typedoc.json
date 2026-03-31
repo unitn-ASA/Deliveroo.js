@@ -7,7 +7,6 @@
     "**/node_modules/**",
     "**/dist/**",
     "**/.git/**",
-    "**/*.vue"
   ],
   "excludePrivate": true,
   "excludeProtected": false,

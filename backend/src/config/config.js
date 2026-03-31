@@ -59,11 +59,8 @@ export async function loadGameConfig(json) {
     if (json.player?.movement_duration !== undefined) {
         config.GAME.player.movement_duration = json.player.movement_duration;
     }
-    if (json.player?.agents_observation_distance !== undefined) {
-        config.GAME.player.agents_observation_distance = json.player.agents_observation_distance;
-    }
-    if (json.player.parcels_observation_distance !== undefined) {
-        config.GAME.player.parcels_observation_distance = json.player.parcels_observation_distance;
+    if (json.player?.observation_distance !== undefined) {
+        config.GAME.player.observation_distance = json.player.observation_distance;
     }
 
     configEmitter.emit('GAME');
@@ -167,8 +164,7 @@ export const config = {
         player: {
             agent_type: undefined,
             movement_duration: 50,
-            agents_observation_distance: 6,
-            parcels_observation_distance: 5,
+            observation_distance: 5,
             capacity: 5,
         },
     }

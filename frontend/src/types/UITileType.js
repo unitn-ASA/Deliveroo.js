@@ -5,9 +5,7 @@
  *   mesh?: import('three').Mesh;
  *   hoovered?: boolean;
  *   selected?: boolean;
- *   perceivingAgents?: boolean;
- *   perceivingParcels?: boolean;
- *   perceivingCrates?: boolean;
+ *   sensed?: boolean;
  *   opacity?: number;
  * }} UITile
  */

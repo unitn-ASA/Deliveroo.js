@@ -57,26 +57,14 @@
         }
     });
 
-    watch( [ () => tile.perceivingAgents, () => tile.perceivingParcels, () => tile.perceivingCrates ], () => {
+    watch( () => tile.sensed, () => {
 
-        // console.log('Tile.vue tile', tile.x, tile.y, tile.perceivingAgents?'perceivingAgents':'', tile.perceivingParcels?'perceivingParcels':'', tile.perceivingCrates?'perceivingCrates':'' );
-
-        const perceptionCount = [tile.perceivingAgents, tile.perceivingParcels, tile.perceivingCrates].filter(Boolean).length;
-
-        if ( perceptionCount >= 2 ) {
-            material.opacity = 1;
-        }
-        else if ( perceptionCount === 1 ) {
-            material.opacity = 0.6;
-        }
-        else {
-            material.opacity = 0.2;
-        }
+        material.opacity = tile.sensed ? 1 : 0.3;
 
     }, { immediate: true } );
 
     // Get static textures (cached globally)
-    /** @type {{ crateSpawner: THREE.CanvasTexture, dir_↑: THREE.CanvasTexture, dir_→: THREE.CanvasTexture, dir_↓: THREE.CanvasTexture, dir_←: THREE.CanvasTexture }} */
+    /** @type {{ crateSpawner: THREE.CanvasTexture, 'dir_↑': THREE.CanvasTexture, 'dir_→': THREE.CanvasTexture, 'dir_↓': THREE.CanvasTexture, 'dir_←': THREE.CanvasTexture }} */
     const textures = getTileTextures();
 
     const TILE_STYLES = {

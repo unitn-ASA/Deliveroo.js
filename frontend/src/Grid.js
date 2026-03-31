@@ -46,15 +46,7 @@ export class Grid {
                 type: '0',
                 hoovered: false,
                 selected: false,
-                perceivingAgents: false,
-                perceivingParcels: false,
-                perceivingCrates: false,
-                // perceivingAgents: computed( () => {
-                //     return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.AGENTS_OBSERVATION_DISTANCE ) ? true : false;
-                // } ),
-                // perceivingParcels: computed( () => {
-                //     return ( Math.abs( this.me.value.x - x ) + Math.abs( this.me.value.y - y ) < this.configs.PARCELS_OBSERVATION_DISTANCE ) ? true : false;
-                // } )
+                sensed: false,
             };
             this.tiles.set( x + y*1000, newTile );
         }
@@ -307,12 +299,10 @@ export class Grid {
             this.height = height;
         });
 
-        // let PARCELS_OBSERVATION_DISTANCE;
-        // let AGENTS_OBSERVATION_DISTANCE;
-
+        // let OBSERVATION_DISTANCE;
+        
         // this.socket.on( "config", ( config ) => {
-        //     PARCELS_OBSERVATION_DISTANCE = config.PARCELS_OBSERVATION_DISTANCE;
-        //     AGENTS_OBSERVATION_DISTANCE = config.AGENTS_OBSERVATION_DISTANCE;
+        //     OBSERVATION_DISTANCE = config.OBSERVATION_DISTANCE;
         // } )
 
         this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty } ) => {
@@ -347,17 +337,15 @@ export class Grid {
 
         socket.on("sensing", (sensing) => {
 
-            console.log("sensing", sensing.agents.filter( a => a != undefined ).length, 'agents out of', sensing.positions.length, 'positions' )
+            // console.log("sensing", sensing.agents.filter( a => a != undefined ).length, 'agents out of', sensing.positions.length, 'positions' )
 
             // /** @type {IOSensing[]} */
             // var arrayOfSensing = Array.from(sensedReceived)
             
-            // for all tiles on the grid, check if sensed and update 'perceivingAgents' flag
+            // for all tiles on the grid, check if sensed
             for ( const tile of this.tiles.values() ) {
                 let theSensing = sensing.positions.find( xy => xy.x == tile.x && xy.y == tile.y );
-                // let isMytile = ( tile.x == this.me.value.x && tile.y == this.me.value.y );
-                // if ( sensing ) console.log('Grid.js agents sensing', tile.x, tile.y, isMytile?'(my tile)':'', tile.perceivingAgents?'already':'not yet', 'perceiving');
-                tile.perceivingAgents = theSensing ? true : false;
+                tile.sensed = theSensing ? true : false;
             }
 
             // for all known agents on the grid, if not sensed set status in 'out of range'
@@ -397,12 +385,6 @@ export class Grid {
             // /** @type {IOSensing[]} */
             // var arrayOfSensing = Array.from(arrayOfSensing)
 
-            // for all known tile, update perceivingParcels flag
-            for ( const tile of this.tiles.values() ) {
-                let oneSensing = sensing.parcels.find( s => s.x == tile.x && s.y == tile.y );
-                tile.perceivingParcels = oneSensing ? true : false;
-            }
-
             // for all known parcels, if not in sensed, remove
             var sensed_ids = sensing.parcels.map( ({id}) => id ).filter( id => id !== undefined )
             for ( const [id, was] of this.parcels.entries() ) {
@@ -439,12 +421,6 @@ export class Grid {
                     was.carriedBy = carriedBy;
                 }
 
-            }
-
-            // for all known tiles, update perceivingCrates flag
-            for ( const tile of this.tiles.values() ) {
-                let oneSensing = sensing.crates.find( c => c.x == tile.x && c.y == tile.y );
-                tile.perceivingCrates = oneSensing ? true : false;
             }
 
             // for all known crates, if not in sensed, remove

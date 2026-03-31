@@ -120,25 +120,26 @@
                             <div class="flex items-center justify-center gap-0.5">
                                 <!-- Agents to the left -->
                                 <div v-if=" // @ts-ignore
-                                            level?.player?.agents_observation_distance == 'infinite'">
+                                            level?.player?.observation_distance == 'infinite'">
                                     ∞
                                 </div>
                                 <div
                                     v-else
-                                    v-for="n in Math.max(0, level?.player?.agents_observation_distance - 1)"
-                                    :key="'left-' + n"
-                                    class="w-1 h-1 rounded-full bg-info">
+                                        v-for="// @ts-ignore
+                                            n in Math.max(0, level?.player?.observation_distance - 1)"
+                                            :key="'left-' + n"
+                                            class="w-1 h-1 rounded-full bg-info">
                                 </div>
                                 <!-- You in the middle -->
                                 <div class="w-1.5 h-1.5 rounded-full bg-primary" title="You"></div>
                                 <!-- Parcels to the right -->
                                 <div v-if=" // @ts-ignore
-                                            level?.player?.parcels_observation_distance == 'infinite'">
+                                            level?.player?.observation_distance == 'infinite'">
                                     ∞
                                 </div>
                                 <div
                                     v-else
-                                    v-for="n in Math.max(0, level?.player?.parcels_observation_distance - 1)"
+                                    v-for="n in Math.max(0, level?.player?.observation_distance - 1)"
                                     :key="'right-' + n"
                                     class="w-1 h-1 rounded-sm bg-warning">
                                 </div>

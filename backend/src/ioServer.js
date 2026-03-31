@@ -75,8 +75,7 @@ io.on('connection', async ( socket ) => {
     const me = myGrid.agentRegistry.get( id ) || myGrid.createAgent( identity );
     if ( !me ) return;
     if ( role == 'admin' ) { // former 'god' mod
-        // me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite';
-        // me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite';
+        // me.config.OBSERVATION_DISTANCE = 'infinite';
         // await me.putDown();
         if  (me && me.tile && me.tile.unlock )
             me.tile.unlock();
@@ -194,10 +193,6 @@ class ioServer {
         /**
          * Config
          */
-        // if ( me.identity.role == 'admin' ) { // former 'god' mod
-        //     me.config.PARCELS_OBSERVATION_DISTANCE = 'infinite'
-        //     me.config.AGENTS_OBSERVATION_DISTANCE = 'infinite'
-        // }
         socket.emitConfig( config )
 
         

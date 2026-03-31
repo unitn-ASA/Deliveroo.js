@@ -46,8 +46,7 @@
  * Player configuration object
  * @property {string} agent_type                        Agent class
  * @property {number} movement_duration                 Duration of each movement in ms
- * @property {number} agents_observation_distance       Observation distance for agents
- * @property {number} parcels_observation_distance      Observation distance for parcels
+ * @property {number|'infinite'} observation_distance   Observation distance
  * @property {number} capacity                          Capacity
  */
 

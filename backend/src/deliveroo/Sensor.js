@@ -47,21 +47,21 @@ class Sensor {
             this.#sensingDirty = true;
         }
         // On others movements within my range, emit agents sensing
-        else if ( !( Xy.distance(this.#me, who) > config.GAME.player.agents_observation_distance ) ) {
+        else if ( !( Xy.distance(this.#me, who) > config.GAME.player.observation_distance ) ) {
             this.#sensingDirty = true;
             }
     };
 
     /** @type {(parcel: Parcel) => void} - Grid parcel listener */
     #parcelListener = ( parcel ) => {
-        if ( !( Xy.distance(this.#me, parcel) > config.GAME.player.parcels_observation_distance ) ) {
+        if ( !( Xy.distance(this.#me, parcel) > config.GAME.player.observation_distance ) ) {
             this.#sensingDirty = true;
         }
     };
 
     /** @type {(crate: Crate) => void} - Grid crate listener */
     #crateListener = ( crate ) => {
-        if ( !( Xy.distance(this.#me, crate) > config.GAME.player.parcels_observation_distance ) ) {
+        if ( !( Xy.distance(this.#me, crate) > config.GAME.player.observation_distance ) ) {
             this.#sensingDirty = true;
         }
     };
@@ -165,7 +165,7 @@ class Sensor {
         // for each tile on the grid
         for ( let tile of this.#grid.tileRegistry.getIterator() ) {
             // only if my position is undefined OR if within observation distance
-            if ( ( this.#me.x == undefined && this.#me.y == undefined ) || Xy.distance(tile, this.#me) < config.GAME.player.agents_observation_distance ) {
+            if ( ( this.#me.x == undefined && this.#me.y == undefined ) || Xy.distance(tile, this.#me) < config.GAME.player.observation_distance ) {
                 positions.push( {x: tile.x, y: tile.y} );
             }
         }

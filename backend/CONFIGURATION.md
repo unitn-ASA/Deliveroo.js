@@ -74,8 +74,7 @@ Settings are applied in this order (later settings override earlier ones):
 |---------|------|---------|-------------|
 | `MOVEMENT_DURATION` | number | `50` | Movement duration (ms) |
 | `AGENT_TIMEOUT` | number | `10000` | Agent action timeout (ms) |
-| `AGENTS_OBSERVATION_DISTANCE` | number | `5` | Agent vision range |
-| `PARCELS_OBSERVATION_DISTANCE` | number | `5` | Parcel visibility range |
+| `OBSERVATION_DISTANCE` | number | `5` | vision range |
 | `AGENT_TYPE` | string | `'DefaultAgent'` | Agent class name |
 
 ### NPCs Settings

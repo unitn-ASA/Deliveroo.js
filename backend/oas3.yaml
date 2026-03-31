@@ -448,12 +448,9 @@ components:
         MOVEMENT_DURATION:
           type: integer
           description: 'Specify the duration of each movement, default is 50'
-        AGENTS_OBSERVATION_DISTANCE:
+        OBSERVATION_DISTANCE:
           type: integer
-          description: 'Specify the observation distance for agents, default is 5'
-        PARCELS_OBSERVATION_DISTANCE:
-          type: integer
-          description: 'Specify the observation distance for parcels, default is 5'
+          description: 'Specify the observation distance, default is 5'
         AGENT_TIMEOUT:
           type: integer
           description: 'Specify the timeout for agents, default is 10000'
