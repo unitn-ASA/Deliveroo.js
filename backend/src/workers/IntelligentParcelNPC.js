@@ -106,8 +106,8 @@ class IntelligentParcelNPC extends NPC {
      * @returns {boolean}
      */
     hasVisibleParcels() {
-        if (!this.agent?.sensor?.sensedParcels) return false;
-        return this.agent.sensor.sensedParcels.some(s => s.parcel && !s.parcel.carriedBy);
+        if (!this.agent?.sensor?.sensing.parcels) return false;
+        return this.agent.sensor.sensing.parcels.some( p => p && !p.carriedBy );
     }
 
     /**
@@ -165,20 +165,20 @@ class IntelligentParcelNPC extends NPC {
      * @returns {{x: number, y: number, reward: number} | null}
      */
     findNearestParcel() {
-        if (!this.agent?.sensor?.sensedParcels) return null;
+        if (!this.agent?.sensor?.sensing.parcels) return null;
 
         let nearest = null;
         let minDist = Infinity;
         const myPos = { x: this.agent.x, y: this.agent.y };
 
-        for (let sensed of this.agent.sensor.sensedParcels) {
-            if (sensed.parcel && !sensed.parcel.carriedBy) {
-                const dist = Xy.distance(myPos, { x: sensed.x, y: sensed.y });
+        for (let parcel of this.agent.sensor.sensing.parcels) {
+            if (parcel && !parcel.carriedBy) {
+                const dist = Xy.distance(myPos, { x: parcel.x, y: parcel.y });
                 // Prioritize higher reward parcels with slight weight
-                const weightedDist = dist - (sensed.parcel.reward * 0.1);
+                const weightedDist = dist - (parcel.reward * 0.1);
                 if (weightedDist < minDist) {
                     minDist = weightedDist;
-                    nearest = { x: sensed.x, y: sensed.y, reward: sensed.parcel.reward };
+                    nearest = { x: parcel.x, y: parcel.y, reward: parcel.reward };
                 }
             }
         }

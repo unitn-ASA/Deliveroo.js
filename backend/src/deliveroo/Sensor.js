@@ -9,6 +9,10 @@ import eventEmitter from 'events';
 import { watchProperty } from '../reactivity/watchProperty.js';
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOSensing.js").IOSensing} IOSensing */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTile} IOTile */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOAgent.js").IOAgent} IOAgent */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOParcel.js").IOParcel} IOParcel */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOCrate.js").IOCrate} IOCrate */
 
 
 
@@ -18,7 +22,7 @@ import { watchProperty } from '../reactivity/watchProperty.js';
 class Sensor {
 
     /**
-     * @typedef {{sensedAgents: [IOSensing[]], sensedParcels: [IOSensing[]], sensedCrates: [IOSensing[]]}} EventsMap
+     * @typedef {{ sensing: IOSensing[] }} EventsMap
      * @type { eventEmitter<EventsMap> }
     */
     #emitter = new eventEmitter();
@@ -28,88 +32,65 @@ class Sensor {
     #grid;
 
     /** @type {Agent} id */
-    #agent;
+    #me;
 
-    /** @type {IOSensing[]} */
-    sensedAgents = [];
+    /** @type {IOSensing} */
+    sensing;
 
-    /** @type {IOSensing[]} */
-    sensedParcels = [];
-
-    /** @type {IOSensing[]} */
-    sensedCrates = [];
-
-    #agentsDirty = true;
-    #parcelsDirty = true;
-    #cratesDirty = true;
+    /** @type {boolean} */
+    #sensingDirty = true;
 
     /** @type {(event: any, who: Agent) => void} - Grid agent listener */
     #agentListener = ( event, who ) => {
         // On my movements emit agents, parcels and crates sensing
-        if ( this.#agent.id == who.id ) {
-            this.#agentsDirty = true;
-            this.#parcelsDirty = true;
-            this.#cratesDirty = true;
+        if ( this.#me.id == who.id ) {
+            this.#sensingDirty = true;
         }
         // On others movements within my range, emit agents sensing
-        else if ( !( Xy.distance(this.#agent, who) > config.GAME.player.agents_observation_distance ) ) {
-                this.#agentsDirty = true;
+        else if ( !( Xy.distance(this.#me, who) > config.GAME.player.agents_observation_distance ) ) {
+            this.#sensingDirty = true;
             }
     };
 
     /** @type {(parcel: Parcel) => void} - Grid parcel listener */
     #parcelListener = ( parcel ) => {
-        if ( !( Xy.distance(this.#agent, parcel) > config.GAME.player.parcels_observation_distance ) ) {
-            this.#parcelsDirty = true;
+        if ( !( Xy.distance(this.#me, parcel) > config.GAME.player.parcels_observation_distance ) ) {
+            this.#sensingDirty = true;
         }
     };
 
     /** @type {(crate: Crate) => void} - Grid crate listener */
     #crateListener = ( crate ) => {
-        if ( !( Xy.distance(this.#agent, crate) > config.GAME.player.parcels_observation_distance ) ) {
-            this.#cratesDirty = true;
+        if ( !( Xy.distance(this.#me, crate) > config.GAME.player.parcels_observation_distance ) ) {
+            this.#sensingDirty = true;
         }
     };
 
     /** @type {(event: any) => void} - Agent xy listener */
     #myXyListener = ( event ) => {
-        this.#agentsDirty = true;
-        this.#parcelsDirty = true;
-        this.#cratesDirty = true;
+        this.#sensingDirty = true;
     };
 
     /**
      * @constructor Agent
      * @param {Grid} grid
-     * @param {Agent} agent
+     * @param {Agent} me
      */
-    constructor ( grid, agent ) {
+    constructor ( grid, me ) {
 
         this.#emitter.setMaxListeners(0); // unlimited listeners
 
         watchProperty({
             target: this,
-            key: 'sensedAgents',
-            callback: (target, key, value) => target.#emitter.emit(key, value)
-        });
-
-        watchProperty({
-            target: this,
-            key: 'sensedParcels',
-            callback: (target, key, value) => target.#emitter.emit(key, value)
-        });
-
-        watchProperty({
-            target: this,
-            key: 'sensedCrates',
+            key: 'sensing',
             callback: (target, key, value) => target.#emitter.emit(key, value)
         });
 
         this.#grid = grid;
 
-        this.#agent = agent;
+        this.#me = me;
 
-        if ( agent ) {
+        if ( me ) {
 
             // On my changes emit agents, parcels and crates sensing,
             // on others changes within my range, emit agents sensing
@@ -130,20 +111,11 @@ class Sensor {
 
         // Fire on each frame if dirty
         myClock.on('frame', () => {
-            if (this.#agentsDirty) {
-                this.#agentsDirty = false;
-                this.computeAgentSensing();
+
+            if (this.#sensingDirty) {
+                this.computeSensing();
             }
 
-            if (this.#parcelsDirty) {
-                this.#parcelsDirty = false;
-                this.computeParcelSensing();
-            }
-
-            if (this.#cratesDirty) {
-                this.#cratesDirty = false;
-                this.computeCrateSensing();
-            }
         });
 
     }
@@ -161,138 +133,91 @@ class Sensor {
         if ( this.#crateListener ) {
             this.#grid.emitter.offCrate( this.#crateListener );
         }
-        if ( this.#myXyListener && this.#agent ) {
-            this.#agent.emitter?.off( 'xy', this.#myXyListener );
+        if ( this.#myXyListener && this.#me ) {
+            this.#me.emitter?.off( 'xy', this.#myXyListener );
         }
+        this.emitter.removeAllListeners();
     }
 
 
 
     /**
-     * Agents sensend on the grid
+     * Compute current sensing from the Grid
      * @type {function(): void}
      */
-    computeAgentSensing () {
+    computeSensing () {
 
-        /** @type {Array<IOSensing>} */
-        let observedTiles = [];
+        // dirty flag is reset at the beginning of the sensing computation, so that if any change happens during the computation, it will be marked as dirty again and re-computed in the next frame
+        this.#sensingDirty = false;
+
+        /** @type {Array<{x:number, y:number}>} */
+        const positions = [];
+
+        /** @type {Array<IOAgent>} */
+        const agents = [];
+
+        /** @type {Array<IOParcel>} */
+        const parcels = [];
+
+        /** @type {Array<IOCrate>} */
+        const crates = [];
 
         // for each tile on the grid
         for ( let tile of this.#grid.tileRegistry.getIterator() ) {
             // only if my position is undefined OR if within observation distance
-            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.agents_observation_distance ) {
-                // agent sensed on this tile, assume at most one agent per tile
-                const sensedAgent = this.#grid.agentRegistry.getByXy( tile.xy )[0];
-                // if defined and not myself
-                if ( sensedAgent && sensedAgent != this.#agent )
-                    observedTiles.push( {x: tile.x, y: tile.y, agent: {
-                        id: sensedAgent.id,
-                        name: sensedAgent.name,
-                        teamId: sensedAgent.teamId,
-                        teamName: sensedAgent.teamName,
-                        x: sensedAgent.x,
-                        y: sensedAgent.y,
-                        score: sensedAgent.score,
-                        penalty: sensedAgent.penalty
-                    } } );
-                // no agent sensed on this tile
-                else
-                    observedTiles.push( { x: tile.x, y: tile.y } );
-                // if (sensedAgent && sensedAgent != this.#agent) console.log('Sensor.js', this.#agent.id, 'sensing', sensedAgent.id, 'at', sensedAgent.x, sensedAgent.y);
+            if ( ( this.#me.x == undefined && this.#me.y == undefined ) || Xy.distance(tile, this.#me) < config.GAME.player.agents_observation_distance ) {
+                positions.push( {x: tile.x, y: tile.y} );
             }
         }
 
-        // console.log('Sensor.js', this.#agent.id, 'sensing', observedTiles.filter( t => t.agent != undefined ).length, 'agents out of', observedTiles.length, 'tiles');
+        // for each observed tile, check if an agent is sensed on it
+        for ( let xy of positions ) {
+            // agent sensed on this tile, assume at most one agent per tile
+            const sensedAgent = this.#grid.agentRegistry.getByXy( xy )[0];
+            // if defined and not myself
+            if ( sensedAgent && sensedAgent != this.#me ) {
+                agents.push( {
+                    id: sensedAgent.id,
+                    name: sensedAgent.name,
+                    teamId: sensedAgent.teamId,
+                    teamName: sensedAgent.teamName,
+                    x: sensedAgent.x,
+                    y: sensedAgent.y,
+                    score: sensedAgent.score,
+                    penalty: sensedAgent.penalty
+                } );
+                // console.log('Sensor.js', this.#agent.id, 'sensing', sensedAgent.id, 'at', sensedAgent.x, sensedAgent.y);
+            }
+            // else // no agent sensed on this tile
+        }
 
-        this.sensedAgents = observedTiles;
-
-    }
-
-
-
-    /**
-     * Parcels sensend on the grid
-     * @type {function(): void}
-     */
-    computeParcelSensing () {
-
-        var observedTiles = [];
-        // Use a Set to track tiles with parcels, avoiding duplicates
-        const tilesWithParcels = new Set();
-
-        // Iterate directly over parcels instead of all tiles - O(parcels) instead of O(tiles * parcels)
-        for ( let parcel of this.#grid.parcelRegistry.getIterator() ) {
-            // only if my position is undefined OR if within observation distance
-            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(parcel, this.#agent) < config.GAME.player.parcels_observation_distance ) {
-                const x = Math.round(parcel.x);
-                const y = Math.round(parcel.y);
-                const key = `${x}_${y}`;
-                tilesWithParcels.add(key);
-                observedTiles.push( {x, y, parcel: {
-                    id: parcel.id,
-                    x: parcel.x,
-                    y: parcel.y,
-                    carriedBy: parcel.carriedBy ? parcel.carriedBy.id : null,
-                    reward: parcel.reward
-                } } );
+        // for each observed tile, check if a parcel is sensed on it
+        for ( let xy of positions ) {
+            for ( let p of this.#grid.parcelRegistry.getByXy( xy ) ) {
+                parcels.push( {
+                    id: p.id,
+                    x: p.x,
+                    y: p.y,
+                    carriedBy: p.carriedBy ? p.carriedBy.id : null,
+                    reward: p.reward
+                } );
             }
         }
 
-        // Add empty tiles within observation distance
-        for ( let tile of this.#grid.tileRegistry.getIterator() ) {
-            const key = `${tile.x}_${tile.y}`;
-            if ( ! tilesWithParcels.has(key) ) {
-                // only if my position is undefined OR if within observation distance
-                if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.parcels_observation_distance ) {
-                    observedTiles.push( { x: tile.x, y: tile.y } );
-                }
+        // for each observed tile, check if a crate is sensed on it
+        for ( let xy of positions ) {
+            for ( let c of this.#grid.crateRegistry.getByXy( xy ) ) {
+                crates.push( {
+                    id: c.id,
+                    x: c.x,
+                    y: c.y
+                } );
             }
         }
 
-        this.sensedParcels = observedTiles;
+        // console.log(`Sensor.js ${this.#agent.id} sensing an area of ${positions.length} tiles with: ${agents.length} agents, ${parcels.length} parcels, ${crates.length} crates`);
 
-    }
-
-
-
-    /**
-     * Crates sensed on the grid
-     * @type {function(): void}
-     */
-    computeCrateSensing () {
-
-        var observedTiles = [];
-        // Use a Set to track tiles with crates, avoiding duplicates
-        const tilesWithCrates = new Set();
-
-        // Iterate directly over crates instead of all tiles - O(crates) instead of O(tiles * crates)
-        for ( let crate of this.#grid.crateRegistry.getIterator() ) {
-            // only if my position is undefined OR if within observation distance
-            if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(crate, this.#agent) < config.GAME.player.parcels_observation_distance ) {
-                const x = Math.round(crate.x);
-                const y = Math.round(crate.y);
-                const key = `${x}_${y}`;
-                tilesWithCrates.add(key);
-                observedTiles.push( {x, y, crate: {
-                    id: crate.id,
-                    x: crate.x,
-                    y: crate.y
-                } } );
-            }
-        }
-
-        // Add empty tiles within observation distance
-        for ( let tile of this.#grid.tileRegistry.getIterator() ) {
-            const key = `${tile.x}_${tile.y}`;
-            if ( ! tilesWithCrates.has(key) ) {
-                // only if my position is undefined OR if within observation distance
-                if ( ( this.#agent.x == undefined && this.#agent.y == undefined ) || Xy.distance(tile, this.#agent) < config.GAME.player.parcels_observation_distance ) {
-                    observedTiles.push( { x: tile.x, y: tile.y } );
-                }
-            }
-        }
-
-        this.sensedCrates = observedTiles;
+        this.sensing = { positions, agents, parcels, crates };
 
     }
 

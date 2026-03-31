@@ -5,11 +5,10 @@
 
 /**
  * @typedef IOSensing
- * @property {number} x
- * @property {number} y
- * @property {IOAgent=} agent
- * @property {IOParcel=} parcel
- * @property {IOCrate=} crate
+ * @property {{x:number, y:number}[]} positions
+ * @property {IOAgent[]} agents
+ * @property {IOParcel[]} parcels
+ * @property {IOCrate[]} crates
  */
 
 export { };

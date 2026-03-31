@@ -14,6 +14,8 @@ import Identity from './deliveroo/Identity.js';
 import Xy from './deliveroo/Xy.js';
 import { atNextTick } from './reactivity/postponeAt.js';
 
+/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOSensing.js').IOSensing} IOSensing */
+
 
 const io = DjsServer.enhance( new Server( httpServer, {
     cors: {
@@ -109,6 +111,8 @@ class ioServer {
             agentCreatedListener: null,
             agentDeletedListener: null,
             meAnyListener: null,
+            /** @type {function(IOSensing): void} */
+            sensingListener: null,
             sensedParcelsListener: null,
             sensedAgentsListener: null,
             penaltyListener: null
@@ -145,10 +149,10 @@ class ioServer {
                     me.emitter.off( 'carryingParcels', listeners.meAnyListener );
                 }
                 if ( listeners.sensedParcelsListener ) {
-                    me.sensor.emitter.off( 'sensedParcels', listeners.sensedParcelsListener );
+                    me.sensor.emitter.off( 'sensing', listeners.sensedParcelsListener );
                 }
                 if ( listeners.sensedAgentsListener ) {
-                    me.sensor.emitter.off( 'sensedAgents', listeners.sensedAgentsListener );
+                    me.sensor.emitter.off( 'sensing', listeners.sensedAgentsListener );
                 }
                 if ( listeners.penaltyListener ) {
                     me.emitter.off( 'penalty', listeners.penaltyListener );
@@ -267,32 +271,13 @@ class ioServer {
         /**
          * Emit sensing
          */
-
-        // Parcels
-        listeners.sensedParcelsListener = () => {
+        listeners.sensingListener = ( sensing ) => {
             // console.log('emit parcels sensing', ...parcels);
-            socket.emitParcelSensing( me.sensor.sensedParcels, myClock.info )
+            socket.emitSensing( sensing );
         };
-        me.sensor.emitter.on( 'sensedParcels', listeners.sensedParcelsListener );
-        // Fire immediately to send initial sensing
-        listeners.sensedParcelsListener();
-
-        // Crates
-        listeners.sensedCratesListener = () => {
-            socket.emitCrateSensing( me.sensor.sensedCrates, myClock.info )
-        };
-        me.sensor.emitter.on( 'sensedCrates', listeners.sensedCratesListener );
-        // Fire immediately to send initial sensing
-        listeners.sensedCratesListener();
-
-        // Agents
-        listeners.sensedAgentsListener = () => {
-            // console.log('emit agents sensing', ...agents); // {id, name, x, y, score}
-            socket.emitAgentsSensing( me.sensor.sensedAgents, myClock.info );
-        };
-        me.sensor.emitter.on( 'sensedAgents', listeners.sensedAgentsListener );
-        // Fire immediately to send initial sensing
-        listeners.sensedAgentsListener();
+        me.sensor.emitter.on( 'sensing', listeners.sensingListener );
+        // Compute sensing to emit initial sensing on connection
+        me.sensor.computeSensing();
         
 
 

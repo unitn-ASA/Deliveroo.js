@@ -341,18 +341,16 @@ export class Grid {
             agent.status = action == 'connected' ? "online" : "offline";
         });
 
-        socket.on("agents sensing", (arrayOfSensing, info) => {
+        socket.on("sensing", (sensing) => {
 
-            // console.log("agents sensing", arrayOfSensing.filter( s => s.agent != undefined ).length, 'out of', arrayOfSensing.length, 'tiles' )
-
-            this.info.value = info;
+            console.log("sensing", sensing.agents.filter( a => a != undefined ).length, 'agents out of', sensing.positions.length, 'positions' )
 
             // /** @type {IOSensing[]} */
             // var arrayOfSensing = Array.from(sensedReceived)
             
             // for all tiles on the grid, check if sensed and update 'perceivingAgents' flag
             for ( const tile of this.tiles.values() ) {
-                let theSensing = arrayOfSensing.find( s => s.x == tile.x && s.y == tile.y );
+                let theSensing = sensing.positions.find( xy => xy.x == tile.x && xy.y == tile.y );
                 // let isMytile = ( tile.x == this.me.value.x && tile.y == this.me.value.y );
                 // if ( sensing ) console.log('Grid.js agents sensing', tile.x, tile.y, isMytile?'(my tile)':'', tile.perceivingAgents?'already':'not yet', 'perceiving');
                 tile.perceivingAgents = theSensing ? true : false;
@@ -361,7 +359,7 @@ export class Grid {
             // for all known agents on the grid, if not sensed set status in 'out of range'
             for ( const agent of this.agents.values() ) {
                 if ( agent.id != this.me.value.id ) {
-                    let sensedAgent = arrayOfSensing.find( s => s.agent?.id == agent.id );
+                    let sensedAgent = sensing.agents.find( a => a.id == agent.id );
                     if ( ! sensedAgent ) {
                         // agent.opacity = 0;
                         // this.agents.delete( agent.id );
@@ -371,7 +369,7 @@ export class Grid {
             }
 
             // for all sensed agents, update or create
-            for ( const {agent} of arrayOfSensing ) {
+            for ( const agent of sensing.agents ) {
                 // console.log('Grid.js agents sensing loop', agent, agent?.id)
                 if ( agent && agent.id ) {
                     const {id, name, teamId, teamName, x, y, score, penalty} = agent;
@@ -389,25 +387,20 @@ export class Grid {
                 }
             }
 
-        });
-
-        socket.on("parcels sensing", (arrayOfSensing, info) => {
-
             // console.log("parcels sensing", arrayOfSensing.length)
 
-            this.info.value = info;
 
             // /** @type {IOSensing[]} */
             // var arrayOfSensing = Array.from(arrayOfSensing)
 
             // for all known tile, update perceivingParcels flag
             for ( const tile of this.tiles.values() ) {
-                let oneSensing = arrayOfSensing.find( s => s.x == tile.x && s.y == tile.y );
+                let oneSensing = sensing.parcels.find( s => s.x == tile.x && s.y == tile.y );
                 tile.perceivingParcels = oneSensing ? true : false;
             }
 
             // for all known parcels, if not in sensed, remove
-            var sensed_ids = arrayOfSensing.map( ({parcel}) => parcel?.id ).filter( id => id !== undefined )
+            var sensed_ids = sensing.parcels.map( ({id}) => id ).filter( id => id !== undefined )
             for ( const [id, was] of this.parcels.entries() ) {
                 if ( ! sensed_ids.includes( was.id ) ) {
                     // console.log('no more sensing parcel', knownId)
@@ -421,9 +414,9 @@ export class Grid {
             }
 
             // for all sensed parcels, update or create
-            for ( const {x, y, parcel} of arrayOfSensing ) {
+            for ( const parcel of sensing.parcels ) {
                 if ( ! parcel ) continue;
-                const {id, carriedBy, reward} = parcel;
+                const {id, x, y, carriedBy, reward} = parcel;
 
                 const was = this.getOrCreateParcel( id );
                 was.x = x;
@@ -444,31 +437,22 @@ export class Grid {
 
             }
 
-        });
-
-        socket.on("crates sensing", (arrayOfSensing, info) => {
-
-            this.info.value = info;
-
             // for all known tiles, update perceivingCrates flag
             for ( const tile of this.tiles.values() ) {
-                let oneSensing = arrayOfSensing.find( s => s.x == tile.x && s.y == tile.y );
+                let oneSensing = sensing.crates.find( c => c.x == tile.x && c.y == tile.y );
                 tile.perceivingCrates = oneSensing ? true : false;
             }
 
             // for all known crates, if not in sensed, remove
-            var sensed_ids = arrayOfSensing.map( ({crate}) => crate?.id ).filter( id => id !== undefined )
+            var sensed_ids = sensing.crates.map( ({id}) => id ).filter( id => id !== undefined )
             for ( const [id, was] of this.crates.entries() ) {
-                if ( ! sensed_ids.includes( was.id ) ) {
-                    this.crates.delete( was.id );
+                if ( ! sensed_ids.includes( id ) ) {
+                    this.crates.delete( id );
                 }
             }
 
             // for all sensed crates, update or create
-            for ( const {x, y, crate} of arrayOfSensing ) {
-                if ( ! crate ) continue;
-                const {id} = crate;
-
+            for ( const {id, x, y} of sensing.crates ) {
                 const was = this.getOrCreateCrate( id );
                 was.x = x;
                 was.y = y;

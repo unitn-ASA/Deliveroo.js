@@ -33,9 +33,7 @@
  *      'tile':             function ( IOTile, IOInfo ) : void,
  *      'controller':       function ( 'connected' | 'disconnected', {id:string, name:string, teamId:string, teamName:string, score:number} ) : void,
  *      'you':              function ( IOAgent, IOInfo ) : void,
- *      'agents sensing':   function ( IOSensing[], IOInfo ) : void,
- *      'parcels sensing':  function ( IOSensing[], IOInfo ) : void,
- *      'crates sensing':   function ( IOSensing[], IOInfo ) : void,
+ *      'sensing':          function ( IOSensing ) : void,
  *      'msg':              function ( string, string, Object, function ( Object ) : void = ) : Object,
  *      'log':              function ( 'server' | { socket:string, id:string, name:string }, IOInfo, ...any ) : void
  * }} IOServerEvents

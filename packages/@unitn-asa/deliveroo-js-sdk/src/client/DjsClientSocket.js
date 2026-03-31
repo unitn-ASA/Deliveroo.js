@@ -109,27 +109,11 @@ export class DjsClientSocket extends Socket {
     }
     
     /**
-     * Listen to 'agents sensing' events
-     * @param { function( IOSensing [] ) : void } callback
+     * Listen to 'sensing' events
+     * @param { function( IOSensing ) : void } callback
      */
-    onAgentsSensing ( callback ) {
-        this.on( "agents sensing", callback )
-    }
-    
-    /**
-     * Listen to 'parcels sensing' events
-     * @param { function( IOSensing [] ) : void } callback
-     */
-    onParcelsSensing ( callback ) {
-        this.on( "parcels sensing", callback )
-    }
-
-    /**
-     * Listen to 'crates sensing' events
-     * @param { function( IOSensing [] ) : void } callback
-     */
-    onCratesSensing ( callback ) {
-        this.on( "crates sensing", callback )
+    onSensing ( callback ) {
+        this.on( "sensing", callback )
     }
     
     /**

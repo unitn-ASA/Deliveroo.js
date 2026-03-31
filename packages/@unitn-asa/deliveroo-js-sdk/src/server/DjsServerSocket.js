@@ -90,27 +90,10 @@ export class DjsServerSocket extends Socket {
     }
 
     /**
-     * @param { IOSensing [] } agents
-     * @param { IOInfo } info
+     * @param { IOSensing } sensing
      */
-    emitAgentsSensing ( agents, info ) {
-        super.emit( 'agents sensing', agents, info );
-    }
-    
-    /**
-     * @param { IOSensing [] } parcels
-     * @param { IOInfo } info
-     */
-    emitParcelSensing ( parcels, info ) {
-        super.emit( 'parcels sensing', parcels, info );
-    }
-
-    /**
-     * @param { IOSensing [] } crates
-     * @param { IOInfo } info
-     */
-    emitCrateSensing ( crates, info ) {
-        super.emit( 'crates sensing', crates, info );
+    emitSensing ( sensing ) {
+        super.emit( 'sensing', sensing );
     }
 
 
