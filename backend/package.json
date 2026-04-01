@@ -31,7 +31,6 @@
     "jest": "^27.5.1",
     "lerna": "^8.2.1",
     "nodemon": "^3.1.9",
-    "swagger-jsdoc": "^6.2.8",
     "typedoc": "^0.28.17"
   },
   "dependencies": {
@@ -47,6 +46,7 @@
     "socket.io": "^4.4.1",
     "swagger-ui-express": "^5.0.1",
     "uid": "^2.0.1",
+    "swagger-jsdoc": "^6.2.8",
     "yaml": "^2.8.1"
   },
   "engines": {

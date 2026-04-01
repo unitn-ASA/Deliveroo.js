@@ -446,7 +446,7 @@ class ioServer {
                     // Validate inputs
                     if ( typeof toId !== 'string' ) {
                         console.warn( 'Invalid toId in onSay' );
-                        if ( acknowledgementCallback ) acknowledgementCallback( 'failed' );
+                        // if ( acknowledgementCallback ) acknowledgementCallback( 'failed' );
                         return;
                     }
 
