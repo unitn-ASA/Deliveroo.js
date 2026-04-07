@@ -19,35 +19,35 @@
 
     const PARCELS_GENERATION_INTERVAL_index = computed( {
         get: () => {
-            if ( connection.configs.PARCELS_GENERATION_INTERVAL == 'frame' ) return 0;
-            if ( connection.configs.PARCELS_GENERATION_INTERVAL == '1s' ) return 1;
-            if ( connection.configs.PARCELS_GENERATION_INTERVAL == '2s' ) return 2;
-            if ( connection.configs.PARCELS_GENERATION_INTERVAL == '5s' ) return 3;
-            if ( connection.configs.PARCELS_GENERATION_INTERVAL == '10s' ) return 4;
+            if ( connection.configs.GAME.parcels.generation_event == 'frame' ) return 0;
+            if ( connection.configs.GAME.parcels.generation_event == '1s' ) return 1;
+            if ( connection.configs.GAME.parcels.generation_event == '2s' ) return 2;
+            if ( connection.configs.GAME.parcels.generation_event == '5s' ) return 3;
+            if ( connection.configs.GAME.parcels.generation_event == '10s' ) return 4;
         },
         set: (value) => {
-            if ( value == 0 ) connection.configs.PARCELS_GENERATION_INTERVAL = 'frame';
-            if ( value == 1 ) connection.configs.PARCELS_GENERATION_INTERVAL = '1s';
-            if ( value == 2 ) connection.configs.PARCELS_GENERATION_INTERVAL = '2s';
-            if ( value == 3 ) connection.configs.PARCELS_GENERATION_INTERVAL = '5s';
-            if ( value == 4 ) connection.configs.PARCELS_GENERATION_INTERVAL = '10s';
+            if ( value == 0 ) connection.configs.GAME.parcels.generation_event = 'frame';
+            if ( value == 1 ) connection.configs.GAME.parcels.generation_event = '1s';
+            if ( value == 2 ) connection.configs.GAME.parcels.generation_event = '2s';
+            if ( value == 3 ) connection.configs.GAME.parcels.generation_event = '5s';
+            if ( value == 4 ) connection.configs.GAME.parcels.generation_event = '10s';
         }
     } );
 
     const PARCEL_DECADING_INTERVAL_index = computed( {
         get: () => {
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == '1s' ) return 0;
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == '2s' ) return 1;
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == '5s' ) return 2;
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == '10s' ) return 3;
-            if ( connection.configs.PARCEL_DECADING_INTERVAL == 'infinite' ) return 4;
+            if ( connection.configs.GAME.parcels.decaying_event == '1s' ) return 0;
+            if ( connection.configs.GAME.parcels.decaying_event == '2s' ) return 1;
+            if ( connection.configs.GAME.parcels.decaying_event == '5s' ) return 2;
+            if ( connection.configs.GAME.parcels.decaying_event == '10s' ) return 3;
+            if ( connection.configs.GAME.parcels.decaying_event == 'infinite' ) return 4;
         },
         set: (value) => {
-            if ( value == 0 ) connection.configs.PARCEL_DECADING_INTERVAL = '1s';
-            if ( value == 1 ) connection.configs.PARCEL_DECADING_INTERVAL = '2s';
-            if ( value == 2 ) connection.configs.PARCEL_DECADING_INTERVAL = '5s';
-            if ( value == 3 ) connection.configs.PARCEL_DECADING_INTERVAL = '10s';
-            if ( value == 4 ) connection.configs.PARCEL_DECADING_INTERVAL = 'infinite';
+            if ( value == 0 ) connection.configs.GAME.parcels.decaying_event = '1s';
+            if ( value == 1 ) connection.configs.GAME.parcels.decaying_event = '2s';
+            if ( value == 2 ) connection.configs.GAME.parcels.decaying_event = '5s';
+            if ( value == 3 ) connection.configs.GAME.parcels.decaying_event = '10s';
+            if ( value == 4 ) connection.configs.GAME.parcels.decaying_event = 'infinite';
         }
     } );
 
@@ -77,18 +77,18 @@
                 <button
                     v-show="inputFocused == 'PARCELS_GENERATION_INTERVAL'" 
                     class="flex-none btn btn-outline btn-error btn-xs ml-5" 
-                    @click="setConfig('PARCELS_GENERATION_INTERVAL', connection.configs.PARCELS_GENERATION_INTERVAL)"
+                    @click="setConfig('PARCELS_GENERATION_INTERVAL', connection.configs.GAME.parcels.generation_event)"
                 >
                     Set
                 </button>
-                {{ connection.configs.PARCELS_GENERATION_INTERVAL }}
+                {{ connection.configs.GAME.parcels.generation_event }}
             </span>
             <div class="w-1/2 pr-5">
                 <input
                     type="range" min="0" max="4" step=""
                     v-model="PARCELS_GENERATION_INTERVAL_index"
                     class="range range-xs range-info"
-                    @focus="inputFocused = 'PARCELS_GENERATION_INTERVAL'"
+                    @focus="inputFocused = 'GAME.parcels.generation_event'"
                     v-bind:disabled="!admin"
                 />
                 <div class="flex w-full justify-between px-2 text-xs">
@@ -111,16 +111,16 @@
                 <button
                     v-show="inputFocused == 'PARCELS_MAX'" 
                     class="flex-none btn btn-outline btn-error btn-xs ml-5" 
-                    @click="setConfig('PARCELS_MAX', connection.configs.PARCELS_MAX)"
+                    @click="setConfig('PARCELS_MAX', connection.configs.GAME.parcels.max)"
                 >
                     Set
                 </button>
-                {{ connection.configs.PARCELS_MAX }}
+                {{ connection.configs.GAME.parcels.max }}
             </span>
             <div class="w-1/2 pr-5">
                 <input
                     type="range" min="0" max="200" step=""
-                    v-model="connection.configs.PARCELS_MAX"
+                    v-model="connection.configs.GAME.parcels.max"
                     class="range range-xs range-info"
                     @focus="inputFocused = 'PARCELS_MAX'"
                     v-bind:disabled="!admin"
@@ -145,16 +145,16 @@
                 <button
                     v-show="inputFocused == 'PARCEL_REWARD_AVG'" 
                     class="flex-none btn btn-outline btn-error btn-xs ml-5" 
-                    @click="setConfig('PARCEL_REWARD_AVG', connection.configs.PARCEL_REWARD_AVG)"
+                    @click="setConfig('PARCEL_REWARD_AVG', connection.configs.GAME.parcels.reward_avg)"
                 >
                     Set
                 </button>
-                {{ connection.configs.PARCEL_REWARD_AVG }}
+                {{ connection.configs.GAME.parcels.reward_avg }}
             </span>
             <div class="w-1/2 pr-5">
                 <input
                     type="range" min="0" max="200" step=""
-                    v-model="connection.configs.PARCEL_REWARD_AVG"
+                    v-model="connection.configs.GAME.parcels.reward_avg"
                     class="range range-xs range-info"
                     @focus="inputFocused = 'PARCEL_REWARD_AVG'"
                     v-bind:disabled="!admin"
@@ -179,16 +179,16 @@
                 <button
                     v-show="inputFocused == 'PARCEL_REWARD_VARIANCE'" 
                     class="flex-none btn btn-outline btn-error btn-xs ml-5" 
-                    @click="setConfig('PARCEL_REWARD_VARIANCE', connection.configs.PARCEL_REWARD_VARIANCE)"
+                    @click="setConfig('PARCEL_REWARD_VARIANCE', connection.configs.GAME.parcels.reward_variance)"
                 >
                     Set
                 </button>
-                {{ connection.configs.PARCEL_REWARD_VARIANCE }}
+                {{ connection.configs.GAME.parcels.reward_avg }}
             </span>
             <div class="w-1/2 pr-5">
                 <input
                     type="range" min="0" max="200" step=""
-                    v-model="connection.configs.PARCEL_REWARD_VARIANCE"
+                    v-model="connection.configs.GAME.parcels.reward_variance"
                     class="range range-xs range-info"
                     @focus="inputFocused = 'PARCEL_REWARD_VARIANCE'"
                     v-bind:disabled="!admin"
@@ -213,11 +213,11 @@
                 <button
                     v-show="inputFocused == 'PARCEL_DECADING_INTERVAL'" 
                     class="flex-none btn btn-outline btn-error btn-xs ml-5" 
-                    @click="setConfig('PARCEL_DECADING_INTERVAL', connection.configs.PARCEL_DECADING_INTERVAL)"
+                    @click="setConfig('PARCEL_DECADING_INTERVAL', connection.configs.GAME.parcels.decaying_event)"
                 >
                     Set
                 </button>
-                {{ connection.configs.PARCEL_DECADING_INTERVAL }}
+                {{ connection.configs.GAME.parcels.decaying_event }}
             </span>
             <div class="w-1/2 pr-5">
                 <input

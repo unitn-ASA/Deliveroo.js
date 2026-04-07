@@ -165,7 +165,7 @@ class Sensor {
         // for each tile on the grid
         for ( let tile of this.#grid.tileRegistry.getIterator() ) {
             // only if my position is undefined OR if within observation distance
-            if ( ( this.#me.x == undefined && this.#me.y == undefined ) || Xy.distance(tile, this.#me) < config.GAME.player.observation_distance ) {
+            if ( ( this.#me.x == undefined && this.#me.y == undefined ) || Xy.distance(tile, this.#me) <= config.GAME.player.observation_distance ) {
                 positions.push( {x: tile.x, y: tile.y} );
             }
         }

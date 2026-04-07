@@ -141,7 +141,7 @@ export class DjsServerSocket extends Socket {
 
 
     /**
-     * @param { function ( string, any, function ( 'successful' ) : void ) : void } callback ( toId, msg, ack )
+     * @param { function ( string, any, function ( 'successful' | 'failed' ) : void ) : void } callback ( toId, msg, ack )
      */
     onSay ( callback ) {
         super.on( 'say', callback );

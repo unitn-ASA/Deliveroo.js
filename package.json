@@ -12,6 +12,7 @@
   "scripts": {
     "prepublishOnly": "",
     "start": "cd backend && npm start",
+    "clean": "rm -r node_modules && rm -r backend/docs && rm backend/.git-revision && rm -r frontend/dist && rm -r frontend/docs && rm -r frontend/node_modules",
     "prebuild": "npm install && npm run docs",
     "build": "cd frontend && npm run build && cd ../backend && npm run build",
     "postbuild": "",

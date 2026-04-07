@@ -15,7 +15,7 @@
                     result.score = agent.score;
                 }
                 else {
-                    console.log('Adding new result for agent', id, agent);
+                    console.log('Adding new result for agent', id, agent.name);
                     current.results.set(id, {
                         id: id,
                         name: agent.name,

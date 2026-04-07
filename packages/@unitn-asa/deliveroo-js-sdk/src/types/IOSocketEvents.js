@@ -11,7 +11,7 @@
  *      'move':         function ( 'up' | 'right' | 'left' | 'down', function ( { x:number, y:number } | false ) : void = ) : { x:number, y:number } | false,
  *      'pickup':       function ( function ( { id:string } [] ) : void = ) : { id:string } [],
  *      'putdown':      function ( string [] =, function ( { id:string } [] ) : void = ) : { id:string } [],
- *      'say':          function ( string, any, function( 'successful' ) : void ) : void,
+ *      'say':          function ( string, any, function( 'successful' | 'failed' ) : void ) : void,
  *      'ask':          function ( string, any, function( any ) : void ) : void,
  *      'shout':        function ( any, function( any ) : void ) : void,
  *      'parcel':       function ( 'create' | 'dispose' | 'set', { x:number, y:number } | { id:string, reward?:number } ) : void,

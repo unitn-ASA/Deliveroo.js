@@ -204,6 +204,7 @@ export class Connection {
         // Update current configs.GAME.map.tiles on tile updates
         this.ioClient.onTile( ( {x, y, type} ) => {
             // console.log( 'Connection.js onTile', { x, y, type } );
+            if ( this.configs.GAME.map.tiles && this.configs.GAME.map.tiles[x] && this.configs.GAME.map.tiles[x][y] )
             this.configs.GAME.map.tiles[x][y] = type;
         } );
 

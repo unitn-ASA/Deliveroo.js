@@ -164,7 +164,7 @@ export class DjsClientSocket extends Socket {
     /**
      * @param {string} toId
      * @param {any} msg
-     * @returns { Promise < 'successful' > } status
+     * @returns { Promise < 'successful' | 'failed' > } status
      */
     async emitSay ( toId, msg ) {
         return new Promise( (success) => {

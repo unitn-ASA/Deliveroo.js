@@ -92,7 +92,7 @@ io.on('connection', async ( socket ) => {
             return;
         }
         if ( role == 'admin' ) { // former 'god' mod
-            // me.config.OBSERVATION_DISTANCE = 'infinite';
+            // me.config.OBSERVATION_DISTANCE = -1;
             // await me.putDown();
             try {
                 if  (me && me.tile && me.tile.unlock )

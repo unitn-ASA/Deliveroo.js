@@ -120,7 +120,7 @@
                             <div class="flex items-center justify-center gap-0.5">
                                 <!-- Agents to the left -->
                                 <div v-if=" // @ts-ignore
-                                            level?.player?.observation_distance == 'infinite'">
+                                            level?.player?.observation_distance == -1">
                                     ∞
                                 </div>
                                 <div
@@ -134,7 +134,7 @@
                                 <div class="w-1.5 h-1.5 rounded-full bg-primary" title="You"></div>
                                 <!-- Parcels to the right -->
                                 <div v-if=" // @ts-ignore
-                                            level?.player?.observation_distance == 'infinite'">
+                                            level?.player?.observation_distance == -1">
                                     ∞
                                 </div>
                                 <div
