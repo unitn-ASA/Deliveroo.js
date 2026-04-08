@@ -38,9 +38,9 @@
   "npcs": [
     {
       "moving_event": "frame",
-      "type": "aggressive",
+      "type": "intelligent",
       "count": 1,
-      "capacity": "infinite"
+      "capacity": -1
     }
   ],
   "parcels": {

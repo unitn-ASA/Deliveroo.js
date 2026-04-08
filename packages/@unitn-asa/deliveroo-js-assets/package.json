@@ -12,7 +12,8 @@
   "exports": {
     ".": "./index.js",
     "./games.js": "./src/games.js",
-    "./routes/games.js": "./src/routes/games.js"
+    "./routes/games.js": "./src/routes/games.js",
+    "./validation.js": "./src/validation.js"
   },
   "files": [
     "assets/",

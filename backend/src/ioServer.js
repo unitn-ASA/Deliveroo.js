@@ -354,7 +354,7 @@ class ioServer {
              * Emit info
              */
             try {
-                myClock.on('frame', () => {
+                myClock.on('1s', () => {
                     try {
                         socket.emitInfo( myClock.info );
                     } catch (e) {

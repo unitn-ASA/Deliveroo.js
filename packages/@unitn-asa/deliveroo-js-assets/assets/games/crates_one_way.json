@@ -3,8 +3,8 @@
   "description": "A small map with crates used to create one way paths.",
   "maxPlayers": 10,
   "map": {
-    "width": 2,
-    "height": 2,
+    "width": 10,
+    "height": 10,
     "tiles": [
                ["0","0","1","1","1","1","0","0","0","0"],
                ["0","0","3","3","3","3","0","0","0","0"],

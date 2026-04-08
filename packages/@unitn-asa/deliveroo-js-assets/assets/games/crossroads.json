@@ -42,7 +42,7 @@
     },
     {
       "moving_event": "frame",
-      "type": "aggressive",
+      "type": "intelligent",
       "count": 3,
       "capacity": 5
     }
