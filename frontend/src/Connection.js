@@ -158,6 +158,12 @@ export class Connection {
             // this.grid.clock.ms = ms;
             // this.grid.clock.frame = frame;
 
+            if ( src === 'server' ) {
+                console.log( 'LOG from server:', ...message );
+            } else {
+                console.log( `LOG from client ${src.name}(${src.id}):`, ...message );
+            }
+
             if ( src == 'server' ) {
                 this.serverLogs.push( { message } );
                 // Limit array size to prevent memory leak - keep last 1000 logs

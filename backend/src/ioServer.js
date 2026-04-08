@@ -3,7 +3,7 @@ console.log('ioServer.js loaded');
 import { Server } from 'socket.io';
 import httpServer from './httpServer.js';
 import { myGrid } from './myGrid.js';
-import { config } from './config/config.js';
+import { config, configEmitter } from './config/config.js';
 import myClock from './myClock.js';
 import events from 'events';
 events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners);
@@ -141,7 +141,8 @@ class ioServer {
                 sensingListener: null,
                 sensedParcelsListener: null,
                 sensedAgentsListener: null,
-                penaltyListener: null
+                penaltyListener: null,
+                logListener: null
             };
 
             /**
@@ -182,6 +183,10 @@ class ioServer {
                     if ( listeners.penaltyListener ) {
                         me.emitter.off( 'penalty', listeners.penaltyListener );
                     }
+                    if ( listeners.logListener ) {
+                        socket.off( 'log', listeners.logListener );
+                    }
+
 
                     if ( socketsLeft == 0 && me.xy ) {
 
@@ -492,15 +497,20 @@ class ioServer {
             /**
              * Bradcast client log
              */
-            if ( config.BROADCAST_LOGS ) {
-                socket.onLog( ( ...message ) => {
-                    try {
-                        socket.broadcast.emit( 'log', {socket: socket.id, id: me.id, name: me.name}, myClock.info, ...message );
-                    } catch (error) {
-                        console.warn( 'Error broadcasting log:', error.message );
-                    }
-                } )
+            listeners.logListener = ( ...message ) => {
+                try {
+                    socket.broadcast.emit( 'log', {socket: socket.id, id: me.id, name: me.name}, ...message );
+                } catch (error) {
+                    console.warn( 'Error broadcasting log:', error.message );
+                }
             }
+            configEmitter.on('BROADCAST_LOGS', v => {
+                if ( v ) {
+                    socket.on( 'log', listeners.logListener );
+                } else {
+                    socket.off( 'log', listeners.logListener );
+                }
+            });
 
 
 
@@ -651,7 +661,7 @@ try {
     global.console.log = function ( ...message ) {
         try {
             if ( config.BROADCAST_LOGS ) {
-                io.emit( 'log', 'server', myClock.info, ...message );
+                io.emit( 'log', 'server', ...message );
             };
         } catch (e) {
             // Ignore errors in log broadcasting

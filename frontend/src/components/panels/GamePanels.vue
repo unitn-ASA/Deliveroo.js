@@ -182,7 +182,7 @@
                         </div>
                     </div>
                     
-                    <div class="z-10 collapse collapse-arrow bg-neutral opacity-80 hover:opacity-100 min-h-16 max-h-96">
+                    <!-- <div class="z-10 collapse collapse-arrow bg-neutral opacity-80 hover:opacity-100 min-h-16 max-h-96">
                         <input type="checkbox" />
                         <div class="collapse-title font-medium">
                             Server Logs
@@ -196,7 +196,7 @@
                                 <br/>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     
                 </div>
             </div>
