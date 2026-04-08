@@ -31,7 +31,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "1e92cbbbce9d80903deac5ab82fb510b83df30e3",
   "dependencies": {
     "getopts": "^2.3.0"
   }

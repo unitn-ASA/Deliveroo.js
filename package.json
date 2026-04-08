@@ -19,15 +19,15 @@
     "dev": "cd backend && npm run dev",
     "dev-ui": "cd frontend && npm run dev",
     "dev-all": "npm run dev & npm run dev-ui",
-    "docs": "cd backend && npm run docs && cd ../frontend && npm run docs"
+    "docs": "cd backend && npm run docs && cd ../frontend && npm run docs",
+    "publish:sdk": "npm version --workspace=@unitn-asa/deliveroo-js-sdk patch && npm publish --workspace=@unitn-asa/deliveroo-js-sdk",
+    "publish:pddl": "npm version --workspace=@unitn-asa/pddl-client patch && npm publish --workspace=@unitn-asa/pddl-client"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/unitn-ASA/Deliveroo.js.git"
   },
-  "devDependencies": {
-    "lerna": "^8.2.1"
-  },
+  "devDependencies": {},
   "engines": {
     "node": "22.x"
   }

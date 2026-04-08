@@ -23,6 +23,5 @@
   },
   "dependencies": {
     "node-fetch": "^3.3.0"
-  },
-  "gitHead": "66b8c3ba9a75eb7c81e08a500fd3c216c5791f8c"
+  }
 }
