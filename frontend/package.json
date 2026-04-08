@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-webapp",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "private": true,
   "type": "module",
   "module": "es2022",
@@ -17,8 +17,8 @@
     "postbuild": "jq '. | del(.dependencies, .devDependencies, .scripts, .private) | .name=\"@unitn-asa/deliveroo-js-webapp-dist\" | .private=false' package.json > dist/package.json; cp README.md dist/"
   },
   "dependencies": {
-    "@unitn-asa/deliveroo-js-assets": "*",
-    "@unitn-asa/deliveroo-js-sdk": "*",
+    "@unitn-asa/deliveroo-js-assets": "^1.2.1",
+    "@unitn-asa/deliveroo-js-sdk": "^1.3.1",
     "jwt-decode": "^4.0.0",
     "node-fetch": "^3.3.2",
     "socket.io-client": "^4.7.2",
