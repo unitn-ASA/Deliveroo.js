@@ -36,8 +36,7 @@ class RandomlyMovingAgent extends NPC {
         this.options = options || {
             type: 'random',
             moving_event: 'frame',
-            count: 1,
-            capacity: 5
+            count: 1
         };
 
     }

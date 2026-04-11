@@ -100,7 +100,7 @@ Game configurations (`.json` files in `assets/games/`) define complete game setu
 | `random` | Standard random movement | speed, count |
 | `bombs` | Leaves bombs that explode | countdown, spawnRate, radius |
 | `ghost` | Moves through walls | speed, count |
-| `collector` | Actively collects parcels | speed, capacity |
+| `collector` | Actively collects parcels | speed, count |
 | `chaser` | Chases nearest agent | speed, detectionRange |
 
 #### NPC Configuration Examples
@@ -121,8 +121,7 @@ Game configurations (`.json` files in `assets/games/`) define complete game setu
     {
         "type": "collector",
         "count": 2,
-        "speed": "1s",
-        "capacity": 3
+        "speed": "1s"
     }
 ]
 ```
@@ -210,7 +209,7 @@ Game configurations (`.json` files in `assets/games/`) define complete game setu
     "map": { "file": "default_map" },
     "npcs": [
         { "type": "random", "count": 5, "speed": "2s" },
-        { "type": "collector", "count": 3, "speed": "1s", "capacity": 5 }
+        { "type": "collector", "count": 3, "speed": "1s" }
     ],
     "parcels": {
         "generationInterval": "1s",

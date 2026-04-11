@@ -186,13 +186,13 @@ class Grid {
         }
 
         // Propagate events at Grid-scope when agent properties change
-        agent.emitter.on( 'xy', () => this.emitter.emitAgent( 'xy', agent ) );
-        agent.emitter.on( 'score', () => this.emitter.emitAgent( 'score', agent ) );
+        agent.emitter.on( 'xy', () => this.emitter.emitAgentXy( agent ) );
+        agent.emitter.on( 'score', () => this.emitter.emitAgentScore( agent ) );
+        agent.emitter.on( 'deleted', () => this.emitter.emitAgentDeleted( agent ) );
         
         // Finally, emit 'created' event after setting up everything else
-        this.emitter.emitAgent( 'created', agent );
+        this.emitter.emitAgentCreated( agent );
 
-        agent.emitter.on( 'deleted', () => this.emitter.emitAgent( 'deleted', agent ) );
 
         return agent;
     }

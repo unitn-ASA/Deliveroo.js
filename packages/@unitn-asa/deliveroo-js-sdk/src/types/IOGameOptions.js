@@ -26,9 +26,8 @@
  * @typedef IONpcsOptions
  * NPC configuration object
  * @property {IOClockEvent} moving_event                Event whenever the NPC moves
- * @property {string} type                              NPC type (random, collector, etc.)
+ * @property {'random'|'intelligent'} type                              NPC type (random, collector, etc.)
  * @property {number} count                             Number of NPCs of this type
- * @property {number} capacity                          Capacity (for collector NPCs)
 */
 
 /**

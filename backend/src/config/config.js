@@ -150,8 +150,7 @@ export const config = {
             {
                 moving_event: 'frame',
                 type: 'random',
-                count: 1,
-                capacity: 5
+                count: 1
             }
         ],
         parcels: {

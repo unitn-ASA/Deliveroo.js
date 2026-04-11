@@ -40,8 +40,8 @@ class Sensor {
     /** @type {boolean} */
     #sensingDirty = true;
 
-    /** @type {(event: any, who: Agent) => void} - Grid agent listener */
-    #agentListener = ( event, who ) => {
+    /** @type {(who: Agent) => void} - Grid agent listener */
+    #agentListener = ( who ) => {
         // On my movements emit agents, parcels and crates sensing
         if ( this.#me.id == who.id ) {
             this.#sensingDirty = true;
@@ -94,9 +94,9 @@ class Sensor {
 
             // On my changes emit agents, parcels and crates sensing,
             // on others changes within my range, emit agents sensing
-            grid.emitter.onAgent( 'xy', this.#agentListener );
-            grid.emitter.onAgent( 'deleted', this.#agentListener );
-            grid.emitter.onAgent( 'score', this.#agentListener );
+            grid.emitter.onAgentXy( this.#agentListener );
+            grid.emitter.onAgentDeleted( this.#agentListener );
+            grid.emitter.onAgentScore( this.#agentListener );
 
             // On parcel and my movements emit parcels sensing
             grid.emitter.onParcel( this.#parcelListener );
@@ -106,6 +106,17 @@ class Sensor {
 
             // On my movements emit parcels and crates sensing
             // agent.emitter?.on( 'xy', this.#myXyListener );
+
+            me.emitter?.on( 'deleted', () => {
+                // Cleanup listeners when I'm deleted
+                grid.emitter.offAgentXy( this.#agentListener );
+                grid.emitter.offAgentDeleted( this.#agentListener );
+                grid.emitter.offAgentScore( this.#agentListener );
+                grid.emitter.offParcel( this.#parcelListener );
+                grid.emitter.offCrate( this.#crateListener );
+                me.emitter?.off( 'xy', this.#myXyListener );
+                this.emitter.removeAllListeners();
+            });
 
         }
 
@@ -118,25 +129,6 @@ class Sensor {
 
         });
 
-    }
-
-    /**
-     * Cleanup method to remove event listeners and prevent memory leaks
-     */
-    cleanup() {
-        if ( this.#agentListener ) {
-            this.#grid.emitter.offAgent( this.#agentListener );
-        }
-        if ( this.#parcelListener ) {
-            this.#grid.emitter.offParcel( this.#parcelListener );
-        }
-        if ( this.#crateListener ) {
-            this.#grid.emitter.offCrate( this.#crateListener );
-        }
-        if ( this.#myXyListener && this.#me ) {
-            this.#me.emitter?.off( 'xy', this.#myXyListener );
-        }
-        this.emitter.removeAllListeners();
     }
 
 

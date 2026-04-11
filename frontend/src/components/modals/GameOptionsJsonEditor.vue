@@ -68,7 +68,6 @@ function validateGameOptions(obj) {
             if (!('moving_event' in npc) || typeof npc.moving_event !== 'string') errs.push(`npcs[${i}].moving_event must be a string`);
             if (!('type' in npc) || typeof npc.type !== 'string') errs.push(`npcs[${i}].type must be a string`);
             if (!('count' in npc) || typeof npc.count !== 'number') errs.push(`npcs[${i}].count must be a number`);
-            if (!('capacity' in npc) || typeof npc.capacity !== 'number') errs.push(`npcs[${i}].capacity must be a number`);
         }
     }
 

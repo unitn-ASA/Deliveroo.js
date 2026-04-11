@@ -39,8 +39,7 @@
     {
       "moving_event": "frame",
       "type": "intelligent",
-      "count": 1,
-      "capacity": -1
+      "count": 1
     }
   ],
   "parcels": {
@@ -53,6 +52,6 @@
   "player": {
     "movement_duration": 100,
     "observation_distance": 5,
-    "capacity": 5
+    "capacity": -1
   }
 }

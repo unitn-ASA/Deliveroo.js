@@ -34,8 +34,7 @@
     {
       "moving_event": "frame",
       "type": "random",
-      "count": 10,
-      "capacity": 5
+      "count": 10
     }
   ],
   "parcels": {

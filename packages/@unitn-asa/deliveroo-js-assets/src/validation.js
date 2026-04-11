@@ -321,19 +321,6 @@ export function validateNpcsOptions(npcs, path = 'npcs') {
         // Validate count
         const countResult = validatePositiveNumber(npc.count, `${npcPath}.count`, 0);
         result.merge(countResult);
-
-        // Validate capacity (-1 represents infinity)
-        if (npc.capacity !== undefined) {
-            const capacityResult = new ValidationResult();
-            if (typeof npc.capacity !== 'number') {
-                capacityResult.addError(`Must be a number, got ${typeof npc.capacity}`, `${npcPath}.capacity`, npc.capacity);
-            } else if (!Number.isFinite(npc.capacity)) {
-                capacityResult.addError(`Must be a finite number`, `${npcPath}.capacity`, npc.capacity);
-            } else if (npc.capacity < -1) {
-                capacityResult.addError(`Must be >= -1, got ${npc.capacity}`, `${npcPath}.capacity`, npc.capacity);
-            }
-            result.merge(capacityResult);
-        }
     }
 
     return result;
@@ -417,9 +404,18 @@ export function validatePlayerOptions(player, path = 'player') {
         result.merge(obsResult);
     }
 
-    // Validate capacity
-    const capacityResult = validatePositiveNumber(player.capacity, `${path}.capacity`, 1);
-    result.merge(capacityResult);
+    // Validate capacity (-1 represents infinite capacity)
+    if (player.capacity !== undefined) {
+        const capacityResult = new ValidationResult();
+        if (typeof player.capacity !== 'number') {
+            capacityResult.addError(`Must be a number, got ${typeof player.capacity}`, `${path}.capacity`, player.capacity);
+        } else if (!Number.isFinite(player.capacity)) {
+            capacityResult.addError(`Must be a finite number`, `${path}.capacity`, player.capacity);
+        } else if (player.capacity < -1) {
+            capacityResult.addError(`Must be >= -1, got ${player.capacity}`, `${path}.capacity`, player.capacity);
+        }
+        result.merge(capacityResult);
+    }
 
     return result;
 }

@@ -12,7 +12,9 @@
     "lib": ["ES2022", "DOM"],
     "allowJs": true,
     "checkJs": true,
+    "types": ["node"],
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["src/*"]
     }

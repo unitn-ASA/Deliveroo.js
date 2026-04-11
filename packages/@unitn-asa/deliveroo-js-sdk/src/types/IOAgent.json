@@ -1,0 +1,62 @@
+[
+  {
+    "type": "object",
+    "title": "IOAgent",
+    "required": [
+      "id",
+      "name",
+      "teamId",
+      "teamName",
+      "x",
+      "y",
+      "score",
+      "penalty"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "teamId": {
+        "type": "string"
+      },
+      "teamName": {
+        "type": "string"
+      },
+      "x": {
+        "type": "object",
+        "anyOf": [
+          {
+            "classRelation": "is-a",
+            "$ref": "#/$defs/number"
+          },
+          {
+            "classRelation": "is-a",
+            "$ref": "#/$defs/undefined"
+          }
+        ]
+      },
+      "y": {
+        "type": "object",
+        "anyOf": [
+          {
+            "classRelation": "is-a",
+            "$ref": "#/$defs/number"
+          },
+          {
+            "classRelation": "is-a",
+            "$ref": "#/$defs/undefined"
+          }
+        ]
+      },
+      "score": {
+        "type": "number"
+      },
+      "penalty": {
+        "type": "number"
+      }
+    }
+  }
+]

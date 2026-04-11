@@ -5,6 +5,7 @@ import { Grid } from "./Grid.js";
 import { DjsClientSocket } from "@unitn-asa/deliveroo-js-sdk/client";
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOConfig.js').IOConfig} IOConfig */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOInfo.js").IOInfo} IOInfo */
 
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
@@ -61,6 +62,9 @@ export class Connection {
      * @type {Array<{timestamp:string, socket:string, id:string, name:string, msg:string}>} clientLogs
      */
     msgs = shallowReactive (new Array());
+
+    /** @type {import("vue").Ref<IOInfo>} */
+    info = ref();
 
     /**
      * @type {IOConfig} configs
@@ -196,6 +200,11 @@ export class Connection {
             }
 
         })
+
+        ioClient.on( "info", ( info ) => {
+            // console.log( 'Connection.js on info', info );
+            this.info.value = info;
+        } );
 
         // Update current configs on config updates
         this.ioClient.onConfig( ( config ) => {

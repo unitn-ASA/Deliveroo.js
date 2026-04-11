@@ -11,7 +11,8 @@
     "noEmit": true,
     "lib": ["ES2022"],
     "allowJs": true,
-    "checkJs": true
+    "checkJs": true,
+    "types": ["node"]
   },
   "include": [
     "src",

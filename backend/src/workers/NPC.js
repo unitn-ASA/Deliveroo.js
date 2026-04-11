@@ -27,6 +27,7 @@ class NPC {
     constructor () {
 
         this.agent = myGrid.createAgent( new Identity() );
+        // console.log(`NPC.js: Created NPC with id ${this.agent.id}`);
 
     }
 

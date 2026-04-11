@@ -200,74 +200,14 @@ class Agent {
         this.xy = undefined;
 
         // Emit deleted event before removing all listeners, automatically removes from spatial registry
+        // Automatically cleanup sensor listeners to prevent memory leak
         this.emitter.emit( 'deleted', this );
 
         // Unsubscribe all event listeners
         this.emitter.removeAllListeners();
-        
-        // Cleanup sensor listeners to prevent memory leak
-        if ( this.sensor && typeof this.sensor.cleanup === 'function' ) {
-            this.sensor.cleanup();
-        }
-        
-        // this.emitter.emitAgent( 'deleted', agent );
 
     }
 
-
-
-    // async move ( incr_x, incr_y ) {
-    //     // Use MovementSystem for validation and execution
-    //     const movementSystem = this.#grid.movementSystem;
-    //     if (!movementSystem) {
-    //         console.warn('MovementSystem not available');
-    //         return false;
-    //     }
-
-    //     const result = await movementSystem.#move(this, incr_x, incr_y);
-    //     return result;
-    // }
-
-    // async up () {
-    //     return await this.exclusivelyDo( () => this.move(0, 1) );
-    // }
-
-    // async down () {
-    //     return await this.exclusivelyDo( () => this.move(0, -1) );
-    // }
-
-    // async left () {
-    //     return await this.exclusivelyDo( () => this.move(-1, 0) );
-    // }
-
-    // async right () {
-    //     return await this.exclusivelyDo( () => this.move(1, 0) );
-    // }
-
-    // /**
-    //  * Pick up all parcels in the agent tile.
-    //  * @function pickUp
-    //  * @returns {Promise<Parcel[]>} An array of parcels that have been picked up
-    //  */
-    // async pickUp () {
-    //     return await this.exclusivelyDo( () => {
-    //         return this.#grid.pickupSystem.pickUp(this);
-    //     } ) || [];
-    // }
-
-    // /**
-    //  * Put down parcels:
-    //  * - if array of ids is provided: putdown only specified parcels
-    //  * - if no list is provided: put down all parcels
-    //  * @function putDown
-    //  * @param {string[]} ids An array of parcels id
-    //  * @returns {Promise<Parcel[]>} An array of parcels that have been put down
-    //  */
-    // async putDown ( ids = [] ) {
-    //     return await this.exclusivelyDo( () => {
-    //         return this.#grid.pickupSystem.putDown(this, ids);
-    //     } ) || [];
-    // }
 }
 
 

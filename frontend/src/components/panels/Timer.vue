@@ -3,7 +3,7 @@
     import { computed } from 'vue';
     import { connection } from '../../states/myConnection.js';
 
-    const info = connection?.grid?.info;
+    const info = connection?.info;
 
     // Funzioni di utilità per ottenere i valori rimanenti
     const remainingMilliseconds = (value) => Math.floor((value / 1) % 1000);
@@ -22,7 +22,7 @@
 </script>
 
 <template>
-    <main v-if="connection?.grid?.info?.value?.ms">
+    <main v-if="connection?.info?.value?.ms">
         <div class="grid grid-flow-col gap-2 text-center text-xs">
             <div class="bg-neutral rounded-lg text-neutral-content flex flex-col pt-1">
                 <span class="countdown font-mono text-lg mx-auto">

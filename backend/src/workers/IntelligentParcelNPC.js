@@ -2,6 +2,7 @@ import myClock from '../myClock.js';
 import timersPromises from 'timers/promises';
 import NPC from './NPC.js';
 import Xy from '../deliveroo/Xy.js';
+import { config } from '../config/config.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
 
@@ -24,8 +25,7 @@ class IntelligentParcelNPC extends NPC {
         this.options = options || {
             type: 'intelligent',
             moving_event: 'frame',
-            count: 1,
-            capacity: 5
+            count: 1
         };
 
         /** @type {Array<{x: number, y: number}>} Current path to target */
@@ -39,6 +39,9 @@ class IntelligentParcelNPC extends NPC {
 
         /** @type {Set<string>} Visited tiles for exploration */
         this.visitedTiles = new Set();
+
+        /** @type {number} NPC capacity (default to infinite) */
+        this.capacity = config?.GAME?.player?.capacity || -1;
     }
 
     /**
@@ -88,7 +91,8 @@ class IntelligentParcelNPC extends NPC {
 
         // Check if we need to deliver parcels
         if (agent.carryingParcels && agent.carryingParcels.size > 0) {
-            const hasCapacity = agent.carryingParcels.size < this.options.capacity;
+            // -1 means infinite capacity
+            const hasCapacity = this.capacity === -1 || agent.carryingParcels.size < this.capacity;
 
             // If at capacity or no parcels in sight, go deliver
             if (!hasCapacity || !this.hasVisibleParcels()) {

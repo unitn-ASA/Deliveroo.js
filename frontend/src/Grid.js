@@ -24,9 +24,6 @@ export class Grid {
      */
     configs = shallowReactive ({});
 
-    /** @type {import("vue").Ref<IOInfo>} */
-    info = ref();
-
     /** @type {number} */
     width = 0;
     /** @type {number} */
@@ -316,12 +313,6 @@ export class Grid {
             me.y = y
             me.score = score
             me.penalty = penalty
-
-        });
-
-        this.socket.on( "info", ( info ) => {
-            
-            this.info.value = info;
 
         });
 

@@ -8,9 +8,11 @@ import Crate from './Crate.js';
 
 /**
  * @class GridEventEmitter
- * @extends {EventEmitter<{tile: [Tile], parcel: [Parcel], crate: [Crate], agent: [agentEvent, Agent]}>}
+ * @extends {EventEmitter<{tile: [Tile], parcel: [Parcel], crate: [Crate], "agent created": [Agent], "agent xy": [Agent], "agent score": [Agent], "agent deleted": [Agent]}>}
  */
 class GridEventEmitter extends EventEmitter {
+
+
 
     /**
      * @constructor
@@ -92,30 +94,93 @@ class GridEventEmitter extends EventEmitter {
 
 
     /**
-     * @typedef { 'created' | 'xy' | 'score' | 'deleted' } agentEvent 
-     */
-
-    /**
-     * @param { agentEvent } agentEvent
      * @param { Agent } agent
      */
-    emitAgent ( agentEvent, agent ) {
-        this.emit('agent', agentEvent, agent);
+    emitAgentCreated ( agent ) {
+        this.emit('agent created', agent);
     }
 
     /**
-     * @param { agentEvent } agentEvent
-     * @param { function ( agentEvent, Agent ) : void } callback 
+     * @param { function ( Agent ) : void } callback
      */
-    onAgent ( agentEvent, callback ) {
-        this.on('agent', (ev, agent) => ( ev == agentEvent ? callback(ev, agent) : () => {} ) );
+    onAgentCreated ( callback ) {
+        return this.on('agent created', callback);
     }
 
     /**
-     * @param { function ( agentEvent, Agent ) : void } callback 
+     * @param { function ( Agent ) : void } callback
      */
-    offAgent ( callback ) {
-        this.off('agent', callback);
+    offAgentCreated ( callback ) {
+        this.off('agent created', callback );
+    }
+
+
+
+    /**
+     * @param { Agent } agent
+     */
+    emitAgentDeleted ( agent ) {
+        this.emit('agent deleted', agent);
+    }
+
+    /**
+     * @param { function ( Agent ) : void } callback
+     */
+    onAgentDeleted ( callback ) {
+        return this.on('agent deleted', callback);
+    }
+
+    /**
+     * @param { function ( Agent ) : void } callback
+     */
+    offAgentDeleted ( callback ) {
+        this.off('agent deleted', callback );
+    }
+
+
+
+    /**
+     * @param { Agent } agent
+     */
+    emitAgentXy ( agent ) {
+        this.emit('agent xy', agent);
+    }
+
+    /**
+     * @param { function ( Agent ) : void } callback
+     */
+    onAgentXy ( callback ) {
+        return this.on('agent xy', callback);
+    }
+
+    /**
+     * @param { function ( Agent ) : void } callback
+     */
+    offAgentXy ( callback ) {
+        this.off('agent xy', callback );
+    }
+
+    
+
+    /**
+     * @param { Agent } agent
+     */
+    emitAgentScore ( agent ) {
+        this.emit('agent score', agent);
+    }
+
+    /**
+     * @param { function ( Agent ) : void } callback
+     */
+    onAgentScore ( callback ) {
+        return this.on('agent score', callback);
+    }
+
+    /**
+     * @param { function ( Agent ) : void } callback
+     */
+    offAgentScore ( callback ) {
+        this.off('agent score', callback );
     }
 
 }

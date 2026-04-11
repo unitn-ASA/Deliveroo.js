@@ -103,9 +103,9 @@
                     <div class="bg-base-300 rounded-lg">
                         <div class="stat-title text-[10px]">Capacity</div>
                         <div class="flex flex-wrap gap-0.5 items-center">
-                            <div class="stat-value text-xs">{{ level?.player?.capacity }}</div>
+                            <div class="stat-value text-xs">{{ level?.player?.capacity == -1 ? '∞' : level?.player?.capacity }}</div>
                             <div
-                                v-for="n in level?.player?.capacity"
+                                v-for="n in Math.max(0, level?.player?.capacity > 0 ? level?.player?.capacity : 0)"
                                 :key="n"
                                 class="w-2 h-2 rounded-sm bg-warning"
                                 :title="`Parcel ${n}`">
@@ -161,21 +161,13 @@
                         {{ npc.count }}
                         <div class="flex flex-wrap gap-0.5">
                             <div
-                                v-for="n in npc.count"
+                                v-for="n in Math.max(0, npc.count || 0)"
                                 :key="n"
                                 class="w-2 h-2 rounded-full bg-info"
                                 :title="`NPC ${n}`">
                             </div>
                         </div>
                         {{ npc.type }}
-                        <div class="flex flex-wrap gap-0.5">
-                            <div
-                                v-for="n in npc.capacity"
-                                :key="n"
-                                class="w-2 h-2 rounded-sm bg-warning"
-                                :title="`Parcel ${n}`">
-                            </div>
-                        </div>
                     </span>
                 </div>
             </div>
@@ -193,7 +185,7 @@
                 <div class="mb-2">
                     <div class="flex flex-wrap gap-0.5">
                         <div
-                            v-for="n in level?.parcels.max"
+                            v-for="n in Math.max(0, level?.parcels?.max || 0)"
                             :key="n"
                             class="w-2 h-2 rounded-sm bg-warning">
                         </div>

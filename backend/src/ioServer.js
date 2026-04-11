@@ -131,20 +131,6 @@ class ioServer {
             const ioAgent = socket.to("agent:"+me.id);
             // const ioTeam = socket.to("team:"+me.teamId);
 
-            // Store all listener references for cleanup
-            const listeners = {
-                tileListener: null,
-                agentCreatedListener: null,
-                agentDeletedListener: null,
-                meAnyListener: null,
-                /** @type {function(IOSensing): void} */
-                sensingListener: null,
-                sensedParcelsListener: null,
-                sensedAgentsListener: null,
-                penaltyListener: null,
-                logListener: null
-            };
-
             /**
              * on Disconnect
              */
@@ -157,36 +143,6 @@ class ioServer {
                         `Other ${socketsLeft} connections to the agent.` :
                         `No other connections, agent will be removed in ${config.AGENT_TIMEOUT/1000} seconds.`
                     );
-
-                    // Cleanup listeners to prevent memory leak
-                    if ( listeners.tileListener ) {
-                        myGrid.emitter.offTile( listeners.tileListener );
-                    }
-                    if ( listeners.agentCreatedListener ) {
-                        myGrid.emitter.offAgent( listeners.agentCreatedListener );
-                    }
-                    if ( listeners.agentDeletedListener ) {
-                        myGrid.emitter.offAgent( listeners.agentDeletedListener );
-                    }
-                    if ( listeners.meAnyListener ) {
-                        me.emitter.off( 'xy', listeners.meAnyListener );
-                        me.emitter.off( 'score', listeners.meAnyListener );
-                        me.emitter.off( 'penalty', listeners.meAnyListener );
-                        me.emitter.off( 'carryingParcels', listeners.meAnyListener );
-                    }
-                    if ( listeners.sensedParcelsListener ) {
-                        me.sensor.emitter.off( 'sensing', listeners.sensedParcelsListener );
-                    }
-                    if ( listeners.sensedAgentsListener ) {
-                        me.sensor.emitter.off( 'sensing', listeners.sensedAgentsListener );
-                    }
-                    if ( listeners.penaltyListener ) {
-                        me.emitter.off( 'penalty', listeners.penaltyListener );
-                    }
-                    if ( listeners.logListener ) {
-                        socket.off( 'log', listeners.logListener );
-                    }
-
 
                     if ( socketsLeft == 0 && me.xy ) {
 
@@ -210,17 +166,27 @@ class ioServer {
             /**
              * Kick agent
              */
-            listeners.penaltyListener = () => {
-                try {
-                    if ( me.penalty < -1000 ) {
-                        console.log( `${me.name}-${me.teamName}-${me.id} is behaving too bad, automatically kicked with penalty ${me.penalty}` );
-                        socket.disconnect();
+            try {
+                // Listen for penalty changes to auto-kick bad behaving agents
+                const penaltyListener = () => {
+                    try {
+                        if ( me.penalty < -1000 ) {
+                            console.log( `${me.name}-${me.teamName}-${me.id} is behaving too bad, automatically kicked with penalty ${me.penalty}` );
+                            socket.disconnect();
+                        }
+                    } catch (error) {
+                        console.warn( 'Error in penalty listener:', error.message );
                     }
-                } catch (error) {
-                    console.warn( 'Error in penalty listener:', error.message );
-                }
-            };
-            me.emitter.on( 'penalty', listeners.penaltyListener );
+                };
+                me.emitter.on( 'penalty', penaltyListener );
+
+                // Cleanup listeners to prevent memory leak
+                socket.onDisconnect( () => {
+                    me.emitter.off( 'penalty', penaltyListener );
+                } );
+            } catch (error) {
+                console.error( 'Error setting up penalty listener:', error.message );
+            }
 
 
 
@@ -239,14 +205,17 @@ class ioServer {
              * Emit map (tiles)
              */
             try {
-                listeners.tileListener = ( { xy: {x,y}, type } ) => {
+                // Emit tile updates
+                const tileListener = ( { xy: {x,y}, type } ) => {
                     try {
                         socket.emitTile( {x, y, type} );
                     } catch (e) {
                         console.warn( 'Error emitting tile update:', e.message );
                     }
                 };
-                myGrid.emitter.onTile( listeners.tileListener );
+                myGrid.emitter.onTile( tileListener );
+
+                // Emit all tiles for initial map state
                 let tiles = []
                 for (const { xy: {x, y}, type } of myGrid.tileRegistry.getIterator()) {
                     try {
@@ -256,7 +225,15 @@ class ioServer {
                         console.warn( 'Error emitting initial tile:', e.message );
                     }
                 }
+
+                // Emit initial map state as bulk (optional, can be used by clients to optimize initial loading)
                 socket.emitMap( myGrid.tileRegistry.getMaxX(), myGrid.tileRegistry.getMaxY(), tiles );
+
+                // Cleanup listeners to prevent memory leak
+                socket.onDisconnect( () => {
+                    myGrid.emitter.offTile( tileListener );
+                } );
+
             } catch (error) {
                 console.error( 'Error setting up map emission:', error.message );
             }
@@ -266,6 +243,7 @@ class ioServer {
              * Emit agents connecting/disconnecting
              */
             try {
+                // Emit existing agents
                 Array.from( myGrid.agentRegistry.getIterator() ).forEach( agent => {
                     try {
                         if ( ! agent?.id ) return;
@@ -275,7 +253,9 @@ class ioServer {
                         console.warn( 'Error emitting agent controller:', e.message );
                     }
                 } );
-                listeners.agentCreatedListener = ( event, agent ) => {
+
+                // Listen for new agents
+                const agentCreatedListener = ( event, agent ) => {
                     try {
                         if ( ! agent?.id ) return;
                         let {id, name, teamName, teamId, score} = agent;
@@ -284,9 +264,10 @@ class ioServer {
                         console.warn( 'Error in agent created listener:', e.message );
                     }
                 };
-                myGrid.emitter.onAgent( 'created', listeners.agentCreatedListener );
+                myGrid.emitter.onAgentCreated( agentCreatedListener );
 
-                listeners.agentDeletedListener = ( event, agent ) => {
+                // Listen for deleted agents
+                const agentDeletedListener = ( event, agent ) => {
                     try {
                         if ( ! agent?.id ) return;
                         let {id, name, teamName, teamId, score} = agent;
@@ -295,7 +276,17 @@ class ioServer {
                         console.warn( 'Error in agent deleted listener:', e.message );
                     }
                 };
-                myGrid.emitter.onAgent( 'deleted', listeners.agentDeletedListener );
+                myGrid.emitter.onAgentDeleted( agentDeletedListener );
+                
+                // Cleanup listeners on disconnect
+                socket.onDisconnect( () => {
+                    if ( agentCreatedListener ) {
+                        myGrid.emitter.offAgentCreated( agentCreatedListener );
+                    }
+                    if ( agentDeletedListener ) {
+                        myGrid.emitter.offAgentDeleted( agentDeletedListener );
+                    }
+                } );
             } catch (error) {
                 console.error( 'Error setting up agent emission:', error.message );
             }
@@ -309,23 +300,31 @@ class ioServer {
 
             try {
                 // Emit you
-                listeners.meAnyListener = atNextTick( () => {
+                const meAnyListener = atNextTick( () => {
                     try {
                         socket.emitYou( me );
                     } catch (e) {
                         console.warn( 'Error emitting me update:', e.message );
                     }
                 } );
-                me.emitter.on( 'xy', listeners.meAnyListener );
-                me.emitter.on( 'score', listeners.meAnyListener );
-                me.emitter.on( 'penalty', listeners.meAnyListener );
-                me.emitter.on( 'carryingParcels', listeners.meAnyListener );
+                me.emitter.on( 'xy', meAnyListener );
+                me.emitter.on( 'score', meAnyListener );
+                me.emitter.on( 'penalty', meAnyListener );
+                me.emitter.on( 'carryingParcels', meAnyListener );
                 socket.emitYou( {
                     id: me.id, name: me.name,
                     teamId: me.teamId, teamName: me.teamName,
                     x: me.x, y: me.y,
                     score: me.score,
                     penalty: me.penalty
+                } );
+
+                // Cleanup listeners on disconnect to prevent memory leak
+                socket.onDisconnect( () => {
+                    me.emitter.off( 'xy', meAnyListener );
+                    me.emitter.off( 'score', meAnyListener );
+                    me.emitter.off( 'penalty', meAnyListener );
+                    me.emitter.off( 'carryingParcels', meAnyListener );
                 } );
             } catch (error) {
                 console.error( 'Error setting up me emission:', error.message );
@@ -338,36 +337,25 @@ class ioServer {
              * Emit sensing
              */
             try {
-                listeners.sensingListener = ( sensing ) => {
+                /** @type {function(IOSensing): void} */
+                const sensingListener = ( sensing ) => {
                     try {
                         socket.emitSensing( sensing );
                     } catch (e) {
                         console.warn( 'Error emitting sensing:', e.message );
                     }
                 };
-                me.sensor.emitter.on( 'sensing', listeners.sensingListener );
-                // Compute sensing to emit initial sensing on connection
+                me.sensor.emitter.on( 'sensing', sensingListener );
+                
+                // Trigger computeSensing() to emit initial sensing on connection
                 me.sensor.computeSensing();
-            } catch (error) {
-                console.error( 'Error setting up sensing:', error.message );
-            }
 
-
-
-
-            /**
-             * Emit info
-             */
-            try {
-                myClock.on('1s', () => {
-                    try {
-                        socket.emitInfo( myClock.info );
-                    } catch (e) {
-                        // Ignore errors in info emission to avoid spam
-                    }
+                // Cleanup listeners on disconnect to prevent memory leak
+                socket.onDisconnect( () => {
+                    me.sensor.emitter.off( 'sensing', sensingListener );
                 } );
             } catch (error) {
-                console.error( 'Error setting up info emission:', error.message );
+                console.error( 'Error setting up sensing:', error.message );
             }
 
 
@@ -497,20 +485,35 @@ class ioServer {
             /**
              * Bradcast client log
              */
-            listeners.logListener = ( ...message ) => {
-                try {
-                    socket.broadcast.emit( 'log', {socket: socket.id, id: me.id, name: me.name}, ...message );
-                } catch (error) {
-                    console.warn( 'Error broadcasting log:', error.message );
+            try {
+                const logListener = ( ...message ) => {
+                    try {
+                        socket.broadcast.emit( 'log', {socket: socket.id, id: me.id, name: me.name}, ...message );
+                    } catch (error) {
+                        console.warn( 'Error broadcasting log:', error.message );
+                    }
                 }
+                const configListener = ( v ) => {
+                    try {
+                        if ( v  && ! socket.listeners('log').includes( logListener ) ) {
+                            socket.on( 'log', logListener );
+                        } else {
+                            socket.off( 'log', logListener );
+                        }
+                    } catch (error) {
+                        console.warn( 'Error in config listener for logs:', error.message );
+                    }
+                } 
+                configEmitter.on('BROADCAST_LOGS', configListener);
+
+                // Cleanup listeners on disconnect to prevent memory leak
+                socket.onDisconnect( () => {
+                    socket.off( 'log', logListener );
+                    configEmitter.off('BROADCAST_LOGS', configListener);
+                });
+            } catch (error) {
+                console.error( 'Error setting up log listener:', error.message );
             }
-            configEmitter.on('BROADCAST_LOGS', v => {
-                if ( v ) {
-                    socket.on( 'log', listeners.logListener );
-                } else {
-                    socket.off( 'log', listeners.logListener );
-                }
-            });
 
 
 
@@ -650,6 +653,13 @@ class ioServer {
     }
 
 }
+
+
+
+/**
+ * Broadcast info
+ */
+myClock.on('1s', () => io.emit( 'info', myClock.info ) );
 
 
 
