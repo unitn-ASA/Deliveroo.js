@@ -341,12 +341,22 @@ export class Grid {
 
             // for all known agents on the grid, if not sensed set status in 'out of range'
             for ( const agent of this.agents.values() ) {
+                // if not me
                 if ( agent.id != this.me.value.id ) {
-                    let sensedAgent = sensing.agents.find( a => a.id == agent.id );
-                    if ( ! sensedAgent ) {
-                        // agent.opacity = 0;
-                        // this.agents.delete( agent.id );
-                        if ( agent.status == 'online' ) agent.status = 'out of range';
+                    // if not sensed
+                    if ( ! sensing.agents.find( a => a.id == agent.id ) ) {
+                        // If it was online it should be now considered 'out of range'
+                        if ( agent.status == 'online' ) {
+                            // console.log(`Agent ${agent.name}(${agent.id}) is now out of range at position (${agent.x},${agent.y})`);
+                            agent.status = 'out of range';
+                        }
+                        // if agent position is sensed, it means it is either out of range or offline
+                        else if ( agent.status == 'out of range' &&
+                                sensing.positions.find( xy => Math.round(agent.x) == xy.x && Math.round(agent.y) == xy.y )
+                           ) {
+                            // console.log(`Agent ${agent.name}(${agent.id}) is not anymore at position (${agent.x},${agent.y}), set 'offline'`);
+                            agent.status = "lost";
+                        }
                     }
                 }
             }
@@ -356,7 +366,8 @@ export class Grid {
                 // console.log('Grid.js agents sensing loop', agent, agent?.id)
                 if ( agent && agent.id ) {
                     const {id, name, teamId, teamName, x, y, score, penalty} = agent;
-                    var sensedAgent = this.getOrCreateAgent( id )
+                    var sensedAgent = this.getOrCreateAgent( id );
+                    // console.log(`Agent ${name}(${id}) is sensed at position (${x},${y})`);
                     sensedAgent.name = name;
                     sensedAgent.teamId = teamId
                     sensedAgent.teamName = teamName;

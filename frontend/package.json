@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@types/three": "^0.183.1",
     "@vitejs/plugin-vue": "^5.0.4",
     "autoprefixer": "^10.4.20",
     "daisyui": "^4.12.13",

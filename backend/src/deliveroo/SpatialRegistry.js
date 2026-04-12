@@ -131,9 +131,9 @@ class SpatialRegistry {
     }
 
     /**
-     * @type {function():Generator<T, void, T>}
+     * @type {function({x: number, y: number}, {x: number, y: number}):Generator<T, void, T>}
      */
-    *getByArea ( [x1,x2,y1,y2]=[0,10000,0,10000] ) {
+    *getByArea ( {x: x1, y: y1} = {x: 0, y:0}, {x: x2, y: y2} = {x: 10000, y: 10000} ) {
         x1 = Math.max(0,x1)
         x2 = Math.min(this.getMaxX(),x2);
         y1 = Math.max(0,y1)

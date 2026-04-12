@@ -46,8 +46,8 @@ class Sensor {
         if ( this.#me.id == who.id ) {
             this.#sensingDirty = true;
         }
-        // On others movements within my range, emit agents sensing
-        else if ( !( Xy.distance(this.#me, who) > config.GAME.player.observation_distance ) ) {
+        // On others movements within my range (plus border), emit agents sensing
+        else if ( ( Xy.distance(this.#me, who) < (config.GAME.player.observation_distance + 1) ) ) {
             this.#sensingDirty = true;
             }
     };
@@ -124,7 +124,16 @@ class Sensor {
         myClock.on('frame', () => {
 
             if (this.#sensingDirty) {
+
+                // start time
+                // const start = performance.now();
+                
                 this.computeSensing();
+                
+                // end time
+                // const end = performance.now();
+                // console.log(`Sensor.js ${me.name} at frame#${myClock.frame} computeSensing took ${end - start} ms`);
+
             }
 
         });
@@ -156,29 +165,35 @@ class Sensor {
 
         // for each tile on the grid
         for ( let tile of this.#grid.tileRegistry.getIterator() ) {
-            // only if my position is undefined OR if within observation distance
-            if ( ( this.#me.x == undefined && this.#me.y == undefined ) || Xy.distance(tile, this.#me) <= config.GAME.player.observation_distance ) {
+            // if my position is undefined
+            if ( this.#me.x == undefined && this.#me.y == undefined ) {
                 positions.push( {x: tile.x, y: tile.y} );
+                continue;
             }
+            // if within observation distance
+            const dist = Xy.distance(tile, this.#me);
+            if ( dist <= config.GAME.player.observation_distance )
+                positions.push( {x: tile.x, y: tile.y} );
         }
 
-        // for each observed tile, check if an agent is sensed on it
-        for ( let xy of positions ) {
-            // agent sensed on this tile, assume at most one agent per tile
-            const sensedAgent = this.#grid.agentRegistry.getByXy( xy )[0];
+        // for each observed agent at distance strict < observation_distance + 1 (to include agents moving out of sensed tiles)
+        for ( let a of this.#grid.agentRegistry.getIterator() ) {
             // if defined and not myself
-            if ( sensedAgent && sensedAgent != this.#me ) {
-                agents.push( {
-                    id: sensedAgent.id,
-                    name: sensedAgent.name,
-                    teamId: sensedAgent.teamId,
-                    teamName: sensedAgent.teamName,
-                    x: sensedAgent.x,
-                    y: sensedAgent.y,
-                    score: sensedAgent.score,
-                    penalty: sensedAgent.penalty
-                } );
-                // console.log('Sensor.js', this.#agent.id, 'sensing', sensedAgent.id, 'at', sensedAgent.x, sensedAgent.y);
+            if ( a && a != this.#me  ) {
+                const dist = Xy.distance(a, this.#me);
+                if ( dist < config.GAME.player.observation_distance + 1 ) {
+                    agents.push( {
+                        id: a.id,
+                        name: a.name,
+                        teamId: a.teamId,
+                        teamName: a.teamName,
+                        x: a.x,
+                        y: a.y,
+                        score: a.score,
+                        penalty: a.penalty
+                    } );
+                    // console.log('Sensor.js', this.#agent.id, 'sensing', sensedAgent.id, 'at', sensedAgent.x, sensedAgent.y);
+                }
             }
             // else // no agent sensed on this tile
         }
@@ -196,9 +211,10 @@ class Sensor {
             }
         }
 
-        // for each observed tile, check if a crate is sensed on it
-        for ( let xy of positions ) {
-            for ( let c of this.#grid.crateRegistry.getByXy( xy ) ) {
+        // for each observed crate at distance strict < observation_distance + 1 (to include agents moving out of sensed tiles)
+        for ( let c of this.#grid.crateRegistry.getIterator() ) {
+            const dist = Xy.distance(c, this.#me);
+            if ( dist < config.GAME.player.observation_distance + 1 ) {
                 crates.push( {
                     id: c.id,
                     x: c.x,

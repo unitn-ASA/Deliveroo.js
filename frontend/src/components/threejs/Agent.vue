@@ -74,10 +74,16 @@
             mesh.add(label);
             scene.add(mesh);
         }
+        if ( oldStatus == 'lost' ) {
+            mesh.add(label);
+        }
         if ( status == 'online') {
             material.opacity = 1;
         } else if ( status == 'out of range' ) {
             material.opacity = 0.3;
+        } else if ( status == 'lost' ) {
+            material.opacity = 0;
+            mesh.remove(label);
         } else if ( status == 'offline' ) {
             mesh.remove(label);
             scene.remove(mesh);
