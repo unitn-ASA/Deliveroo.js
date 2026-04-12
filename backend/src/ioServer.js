@@ -91,8 +91,12 @@ io.on('connection', async ( socket ) => {
             socket.disconnect();
             return;
         }
+
+        // Manually turn on sensing for this agent
+        me.sensor.turnOn();
+
+        // If admin, reset position and unlock tile to allow free movement and avoid issues with locked tiles when controlling other agents
         if ( role == 'admin' ) { // former 'god' mod
-            // me.config.OBSERVATION_DISTANCE = -1;
             // await me.putDown();
             try {
                 if  (me && me.tile && me.tile.unlock )
@@ -146,9 +150,13 @@ class ioServer {
 
                     if ( socketsLeft == 0 && me.xy ) {
 
-                        // console.log( `/${match.id}/${me.name}-${me.team}-${me.id} No connection left. In ${serverConfig.AGENT_TIMEOUT/1000} seconds agent will be removed.` );
+                        // stop sensing immediately to avoid unnecessary computations while waiting for potential reconnection
+                        me.sensor.turnOff();
+
+                        // wait for potential reconnection before deleting agent
                         await new Promise( res => setTimeout(res, config.AGENT_TIMEOUT) );
 
+                        // finally, check again if there are connections before deleting agent
                         let socketsLeft = (await ioAgent.fetchSockets()).length;
                         if ( socketsLeft == 0 && me.xy ) {
                             console.log( `${me.name}-${me.teamName}-${me.id} Agent deleted after ${config.AGENT_TIMEOUT/1000} seconds of no connections` );

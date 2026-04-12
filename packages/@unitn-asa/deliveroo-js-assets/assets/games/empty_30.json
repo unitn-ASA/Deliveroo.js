@@ -41,8 +41,8 @@
   "npcs": [
     {
       "moving_event": "frame",
-      "type": "random",
-      "count": 1
+      "type": "intelligent",
+      "count": 2
     }
   ],
   "parcels": {

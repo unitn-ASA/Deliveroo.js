@@ -151,6 +151,11 @@ export const config = {
                 moving_event: 'frame',
                 type: 'random',
                 count: 1
+            },
+            {
+                moving_event: 'frame',
+                type: 'intelligent',
+                count: 1
             }
         ],
         parcels: {
