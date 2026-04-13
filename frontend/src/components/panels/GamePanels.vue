@@ -17,6 +17,7 @@
     import ChatPanel from './ChatPanel.vue';
     import Chrono from './Chrono.vue';
     import Tournament from './Tournament.vue';
+    import PerformancePanel from './PerformancePanel.vue';
 
     const levelsModal = ref(false); // Reactive variable for overlay visibility
     const loginModal = ref(!connection); // Reactive variable for overlay visibility
@@ -82,7 +83,17 @@
                         <div class="collapse-content overflow-hidden p-0" style="min-height:auto!important">
 
                             <Tournament/>
-                            
+
+                        </div>
+                    </div>
+
+                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral" v-if="connection?.payload.role == 'admin'">
+                        <input type="checkbox" checked />
+                        <div class="collapse-title font-medium">Performance Dashboard</div>
+                        <div class="collapse-content overflow-hidden p-0" style="min-height:auto!important">
+
+                            <PerformancePanel/>
+
                         </div>
                     </div>
 
@@ -164,7 +175,7 @@
                         </button>
                     </div>
 
-                    <Keyboard class="z-10"/>
+                    <Keyboard v-if="connection?.payload.role != 'admin'" class="z-10"/>
                     
                     <div class="z-10 collapse collapse-arrow bg-neutral opacity-80 hover:opacity-100 min-h-16 max-h-64">
                         <input type="checkbox" v-model="chatOpen"/>

@@ -27,7 +27,7 @@ class Clock {
     #frame = 0;
     #startTime = 0;
     #isSynch = false;
-    
+
     constructor () {
         // (node:77250) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 5001 frame listeners added to [EventEmitter]. Use emitter.setMaxListeners() to increase limit
         // (Use `node --trace-warnings ...` to show where the warning was created)
@@ -89,12 +89,10 @@ class Clock {
             this.#isSynch = true;
             this.#ms += this.#base;
             this.#frame += 1;
-            this.sample();
             /** always emit frame event */      this.#eventEmitter.emit( 'frame' );
             if ( this.#ms % 1000 == 0 ) {       this.#eventEmitter.emit( '1s' );
                 if ( this.#ms % 2000 == 0 )     this.#eventEmitter.emit( '2s' );
                 if ( this.#ms % 5000 == 0 ) {   this.#eventEmitter.emit( '5s' );
-                    console.log( 'FRAME', `#${this.#frame}`, `@${this.#base}ms`, this.info.fps, `fps`, `Heap: ${this.info.heapUsed}MB used of ${this.info.heapTotal}MB total` );
                     if ( this.#ms % 10000 == 0 )this.#eventEmitter.emit( '10s' );
                 }
             }
@@ -103,50 +101,6 @@ class Clock {
                 this.#isSynch = false;
             });
         }, this.#base )
-    }
-
-    /**
-     * @type {IOInfo}
-     */
-    info = {
-        ms: 0,
-        frame: 0,
-        fps: 0,
-        heapUsed: 0,
-        heapTotal: 0
-    }
-
-    #samples = [];
-    #maxSamples = 100; // Keep only last 100 samples to prevent memory leak
-
-    sample () {
-        this.#samples.push( {
-            frame: this.frame,
-            time: Date.now()
-        } );
-        // Update info
-        const memoryUsage = process.memoryUsage();
-        this.info = {
-            ms: this.ms,
-            frame: this.frame,
-            fps: this.#computeFps(),
-            heapUsed: Math.round( memoryUsage.heapUsed / 1000000 ),
-            heapTotal: Math.round( memoryUsage.heapTotal / 1000000 )
-        };
-        // Remove old samples to prevent unbounded memory growth
-        if ( this.#samples.length > this.#maxSamples ) {
-            this.#samples.shift();
-        }
-    }
-
-    #computeFps ( back = 10 ) {
-        if ( this.#samples.length < 1 )
-            return Math.round( this.#frame / ( Date.now() - this.#startTime ) * 1000 * 10 ) / 10;
-        let lastI = this.#samples.length - 1;
-        let firstI = lastI - back < 0 ? 0 : lastI - back;
-        const last = this.#samples[ lastI ];
-        const first = this.#samples[ firstI ];
-        return Math.round( ( last.frame - first.frame ) / ( last.time - first.time ) * 1000 * 10 ) / 10;
     }
 
     async synch ( delay = 0 ) {
@@ -158,7 +112,7 @@ class Clock {
         while ( delay > ( this.#ms - initial ) ) {
             await new Promise( res => this.#eventEmitter.once('frame', res) )
         }
-        
+
         return this.#ms;
 
     }

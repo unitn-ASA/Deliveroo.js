@@ -25,15 +25,28 @@ export function DjsConnect ( host = process.env.HOST || 'http://localhost:8080',
     console.log( `Connecting to ${host} ${ token ? 'with token '+ (token).substring(0,5)+'...'+(token).substring(token.length-5) : name ? 'as '+name : 'with no token and no name' }` );
     
     enhancedClientSocket.onConnect( () => {
-        console.log( `Connected` )
+        console.log( `Connected` );
     });
 
     enhancedClientSocket.onceYou( me => {
-        console.log( `Authenticated as ${me.name}(${me.id}) in team ${me.teamName}(${me.teamId})` )
+        console.log( `Authenticated as ${me.name}(${me.id}) in team ${me.teamName}(${me.teamId})` );
     });
+
+    // Handle ping events to measure latency. The server will send a 'ping' event with a timestamp, and the client responds with a 'clientTimestamp' to allow the server to calculate round-trip time and network latency.
+    try {
+        enhancedClientSocket.on( "ping", ( pingData, callback ) => {
+            try {
+                callback( { clientTimestamp: performance.now() } );
+            } catch (error) {
+                console.warn("Error handling ping event");
+            }
+        } );
+    } catch (error) {
+        console.error("Error setting up ping event:", error);
+    }
     
     enhancedClientSocket.on( 'disconnect', (reason) => {
-        console.log( `Disconnected from ${host} because ${reason}` )
+        console.log( `Disconnected from ${host} because ${reason}` );
     });
 
     enhancedClientSocket.io.on("error", (error) => {

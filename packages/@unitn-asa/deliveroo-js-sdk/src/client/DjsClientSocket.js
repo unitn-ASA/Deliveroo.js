@@ -30,12 +30,12 @@ export class DjsClientSocket extends Socket {
     
     /** @type { Promise < IOAgent > } */
     me = new Promise( (res) => {
-        this.once( 'you', (agent, info) => {
+        this.once( 'you', (agent) => {
             res( agent );
         } );
     } );
     
-    /** @type { Promise } */
+    /** @type { Promise < IOConfig > } */
     config = new Promise( (res) => {
         this.once( 'config', (config) => {
             res( config );
@@ -129,7 +129,7 @@ export class DjsClientSocket extends Socket {
      * @param { string } id
      * @param { string } name
      * @param { {} } msg
-     * @param { function( any ) : void } replyAcknowledgmentCallback ( reply )
+     * @param { function( Object ) : void = } replyAcknowledgmentCallback ( reply )
      */
     /**
      * Listen to 'msg' events
@@ -187,6 +187,10 @@ export class DjsClientSocket extends Socket {
         } );
     }
 
+    /**ì
+     * @param {any} msg 
+     * @returns { Promise < { any } > } reply
+     */
     async emitShout ( msg ) {
         return new Promise( (success) => {
             this.emit( 'shout', msg, async ( status ) =>  {
@@ -219,10 +223,10 @@ export class DjsClientSocket extends Socket {
      * - if array of ids is provided: putdown only specified parcels
      * - if no list is provided: put down all parcels
      * When completed, resolves to the list of dropped parcels
-     * @param { string [] } selected array of parcels id to drop
+     * @param { string [] = } selected array of parcels id to drop
      * @returns { Promise < { id:string } [] >}
      */
-    async emitPutdown ( selected = null ) {
+    async emitPutdown ( selected = [] ) {
         return this.emitAndResolveOnAck( 'putdown', selected );
     }
 
@@ -235,7 +239,7 @@ export class DjsClientSocket extends Socket {
     
     /**
      * Listen to 'log' events from server and those redirected here from others client
-     * @param { function ( { src:'server'|'client', ms:number, frame: number, socket:string, id:string, name:string }, ...any) : void } callback ( { src, ms, frame, socket, id, name }, ...msgArgs )
+     * @param { function ( 'server' | { socket:string, id:string, name:string }, ...any) : void } callback ( { src, ms, frame, socket, id, name }, ...msgArgs )
      */
     onLog ( callback ) {
         this.on( "log", callback )
@@ -252,6 +256,8 @@ export class DjsClientSocket extends Socket {
 
         /**
          * Mixin function to copy methods from a class prototype to an object
+         * @param { any } target the object to enhance
+         * @param { any } MixinClass the class whose methods will be copied to the target
          */
         function applyMixin(target, MixinClass) {
             

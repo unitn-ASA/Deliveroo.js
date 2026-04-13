@@ -5,6 +5,7 @@ import httpServer from './httpServer.js';
 import { myGrid } from './myGrid.js';
 import { config, configEmitter } from './config/config.js';
 import myClock from './myClock.js';
+import myPerformanceMonitor from './myPerformanceMonitor.js';
 import events from 'events';
 events.EventEmitter.defaultMaxListeners = 200; // default is only 10! (https://nodejs.org/api/events.html#eventsdefaultmaxlisteners);
 import { signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
@@ -140,6 +141,9 @@ class ioServer {
              */
             socket.onDisconnect( async (cause) => {
 
+                // Clear latency samples for this socket
+                myPerformanceMonitor.clearLatencySamples(socket.id);
+
                 try{
                     let socketsLeft = (await ioAgent.fetchSockets()).length;
                     console.log( `${me.name}-${me.teamName}-${me.id} Socket disconnected.`,
@@ -169,6 +173,93 @@ class ioServer {
                 }
 
             });
+
+
+            /**
+             * Ping/Pong latency tracking using acknowledgements
+             */
+            try {
+                const PING_INTERVAL = 1000; // Send ping every 1 second
+
+                // Send periodic pings with acknowledgement callback
+                const pingInterval = setInterval(() => {
+                    try {
+                        const pingData = {
+                            timestamp: performance.now()
+                        };
+
+                        // Send ping to client with acknowledgement callback
+                        socket.emit('ping', pingData, (ackData) => {
+                            try {
+                                // Handle the acknowledgement (pong response) from client
+                                if (ackData && typeof ackData === 'object') {
+                                    // Pass agent information to associate with latency
+                                    const agentInfo = {
+                                        id: me.id,
+                                        name: me.name,
+                                        teamId: me.teamId,
+                                        teamName: me.teamName
+                                    };
+                                    const latencyData = myPerformanceMonitor.handlePong(socket.id, pingData, ackData, agentInfo);
+                                    if (latencyData) {
+                                        // Optional: log high latency
+                                        if (latencyData.roundTrip > 200) {
+                                            console.log(`${me.name}-${me.teamName}-${me.id} High latency: ${latencyData.roundTrip}ms (network: ${latencyData.networkLag}ms)`);
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                console.warn('Error handling ping acknowledgement:', error.message);
+                            }
+                        });
+                    } catch (error) {
+                        console.warn('Error sending ping:', error.message);
+                    }
+                }, PING_INTERVAL);
+
+                // Cleanup ping interval on disconnect
+                socket.onDisconnect(() => {
+                    clearInterval(pingInterval);
+                });
+
+            } catch (error) {
+                console.warn('Error setting up ping/pong:', error.message);
+            }
+
+
+            /**
+             * Admin Dashboard - Broadcast detailed performance metrics
+             */
+            if (me.identity?.role == 'admin') {
+                try {
+                    console.log(`[ioServer] Setting up admin metrics for ${me.name} (${socket.id})`);
+
+                    // Send initial metrics immediately
+                    const initialMetrics = myPerformanceMonitor.getPerformanceMetrics();
+                    // console.log('[ioServer] Sending initial metrics:', initialMetrics);
+                    socket.emit('metrics', initialMetrics);
+
+                    // Send metrics every second
+                    const metricsInterval = setInterval(() => {
+                        try {
+                            const metrics = myPerformanceMonitor.getPerformanceMetrics();
+                            // console.log('[ioServer] Sending metrics update:', metrics);
+                            socket.emit('metrics', metrics);
+                        } catch (error) {
+                            console.warn('Error sending metrics:', error.message);
+                        }
+                    }, 1000);
+
+                    // Cleanup on disconnect
+                    socket.onDisconnect(() => {
+                        clearInterval(metricsInterval);
+                    });
+
+                    console.log(`${me.name} connected as admin - broadcasting performance metrics`);
+                } catch (error) {
+                    console.warn('Error setting up admin metrics:', error.message);
+                }
+            }
 
 
             /**
@@ -667,7 +758,7 @@ class ioServer {
 /**
  * Broadcast info
  */
-myClock.on('1s', () => io.emit( 'info', myClock.info ) );
+myClock.on('1s', () => io.emit( 'info', myPerformanceMonitor.info ) );
 
 
 

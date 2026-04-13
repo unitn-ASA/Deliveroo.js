@@ -6,6 +6,7 @@ import { DjsClientSocket } from "@unitn-asa/deliveroo-js-sdk/client";
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOConfig.js').IOConfig} IOConfig */
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOInfo.js").IOInfo} IOInfo */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOSocketEvents.js").IOMetrics} IOMetrics */
 
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
 
@@ -65,6 +66,9 @@ export class Connection {
 
     /** @type {import("vue").Ref<IOInfo>} */
     info = ref();
+
+    /** @type {import("vue").Ref<IOMetrics>} */
+    metrics = ref();
 
     /**
      * @type {IOConfig} configs
@@ -204,6 +208,16 @@ export class Connection {
         ioClient.on( "info", ( info ) => {
             // console.log( 'Connection.js on info', info );
             this.info.value = info;
+        } );
+
+        ioClient.on( "metrics", ( metricsData ) => {
+            // console.log( 'Connection.js on metrics', metricsData );
+            this.metrics.value = metricsData;
+        } );
+
+        ioClient.on( "ping", ( pingData, callback ) => {
+            // console.log( 'Connection.js on ping', data );
+            callback( { clientTimestamp: performance.now() } );
         } );
 
         // Update current configs on config updates
