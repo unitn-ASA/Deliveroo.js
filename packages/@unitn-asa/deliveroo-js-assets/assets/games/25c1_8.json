@@ -33,7 +33,7 @@
   "npcs": [
     {
       "moving_event": "frame",
-      "type": "random",
+      "type": "intelligent",
       "count": 10
     }
   ],

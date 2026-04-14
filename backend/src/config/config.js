@@ -1,5 +1,5 @@
 import { args } from './argParser.js';
-import { loadGame } from '@unitn-asa/deliveroo-js-assets';
+import { loadGame, getGamesList } from '@unitn-asa/deliveroo-js-assets';
 import { readFileSync } from 'fs';
 import { watchProperty } from '../reactivity/watchProperty.js';
 import EventEmitter from 'events';
@@ -48,7 +48,7 @@ export async function loadGameConfig(json) {
         config.GAME.parcels.decaying_event = json.parcels.decaying_event;
     }
     if (json.parcels.max !== undefined) {
-        config.GAME.parcels.max ??= json.parcels.max;
+        config.GAME.parcels.max = json.parcels.max;
     }
     if (json.parcels?.reward_avg !== undefined || json.parcels?.reward_variance !== undefined) {
         config.GAME.parcels.reward_avg = json.parcels.reward_avg;
@@ -88,6 +88,19 @@ async function lazyLoading( config ) {
             loadGameConfig(json);
         } catch (err) {
             console.error('Error loading from process.env.GAME_NAME', process.env.GAME_NAME);
+        }
+    }
+    // Load a random game configuration
+    else {
+        console.log('No game configuration file specified. Trying a random game.');
+        try {
+            const list = getGamesList();
+            const randomIndex = Math.floor( Math.random() * list.length );
+            console.log('Randomly selected game:', list[randomIndex]);
+            const json = await loadGame( list[randomIndex] );
+            loadGameConfig(json);
+        } catch (err) {
+            console.error('Error loading random game configuration');
         }
     }
 

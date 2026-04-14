@@ -1,7 +1,8 @@
-FROM node:22.16.0-slim
+# Multi-stage build for better caching and faster rebuilds
+FROM node:22.16.0-slim AS base
 LABEL author="Marco Robol <marco.robol@unitn.it>"
 
-# Install dependencies
+# Install system dependencies (cached layer)
 RUN apt-get update && apt-get install -y \
     build-essential \
     libcairo2-dev \
@@ -10,19 +11,37 @@ RUN apt-get update && apt-get install -y \
     libgif-dev \
     librsvg2-dev \
     git \
-    jq # Aggiunge jq per elaborare file JSON \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
+# Create app directory
 RUN mkdir -p /app
-COPY . /app
 WORKDIR /app
-RUN rm -rf /app/node_modules && rm -rf /app/backend/node_modules && rm -rf /app/frontend/node_modules \
-    npm install && \
+
+# STAGE 1: Dependencies (cached unless package.json changes)
+# Copy package.json files first for better caching
+COPY package.json package-lock.json ./
+COPY packages packages/
+COPY backend/package.json backend/
+COPY frontend/package.json frontend/
+
+# Install all dependencies
+RUN npm ci --prefer-offline --silent
+
+# STAGE 2: Application code (rebuilds on code changes)
+# Copy application source code
+COPY backend/ backend/
+COPY frontend/ frontend/
+
+# Build application and cleanup dev dependencies to reduce image size
+RUN \
     npm run build && \
-    cd frontend && rm -rf node_modules &&  cd .. \
+    rm -rf /app/frontend/node_modules && \
     npm prune --production && \
-    cd backend && npm prune --production
+    cd backend && npm prune --production && cd ..
 
-EXPOSE  $PORT
+# Expose port
+EXPOSE $PORT
 
+# Start server
 CMD ["npm", "start"]

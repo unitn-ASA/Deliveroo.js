@@ -119,7 +119,7 @@ const getColor = (value, max) => {
                     <span class="text-sm font-bold font-mono">{{ metrics.timing?.frame || 0 }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-xs text-white/70">Time:</span>
+                    <span class="text-xs text-white/70">Virtual Time:</span>
                     <span class="text-sm font-bold font-mono">{{ metrics.timing?.ms || 0 }} ms</span>
                 </div>
                 <div class="flex justify-between items-center">
@@ -173,14 +173,6 @@ const getColor = (value, max) => {
             </div>
             <div class="grid grid-cols-2 gap-x-4 mb-4">
                 <div class="flex justify-between items-center">
-                    <span class="text-xs text-white/70">Heap Used:</span>
-                    <span class="text-sm font-bold font-mono">{{ heapUsed }} MB</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-white/70">Heap Total:</span>
-                    <span class="text-sm font-bold font-mono">{{ heapTotal }} MB</span>
-                </div>
-                <div class="flex justify-between items-center">
                     <span class="text-xs text-white/70">RSS:</span>
                     <span class="text-sm font-bold font-mono">{{ metrics.memory?.rss || 0 }} MB</span>
                 </div>
@@ -189,7 +181,6 @@ const getColor = (value, max) => {
                     <span class="text-sm font-bold font-mono">{{ metrics.memory?.external || 0 }} MB</span>
                 </div>
             </div>
-
         </div>
 
         <!-- Latency Metrics -->
@@ -197,22 +188,13 @@ const getColor = (value, max) => {
             <div class="flex justify-between items-center">
                 <h3 class="font-bold text-white">Latency</h3>
                 <span class="text-sm font-bold font-mono" :class="avgLatency > 100 ? 'text-red-500' : avgLatency > 50 ? 'text-yellow-500' : 'text-green-500'">
-                    {{ avgLatency }} ms
+                    {{ avgLatency }}ms
+                    ({{ minLatency }}-{{ maxLatency }}ms)
                 </span>
             </div>
             <!-- Latency Chart -->
             <div class="mt-2">
                 <div class="flex items-end gap-px h-[30px] bg-black/30 rounded-sm p-px overflow-hidden" v-html="createBars(latencyHistory, 200)"></div>
-            </div>
-            <div class="grid grid-cols-2 gap-x-4 mb-4">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-white/70">Min:</span>
-                    <span class="text-sm font-bold font-mono">{{ minLatency }} ms</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-white/70">Max:</span>
-                    <span class="text-sm font-bold font-mono">{{ maxLatency }} ms</span>
-                </div>
             </div>
             <!-- Agent Connections -->
             <div class="pt-2 border-t border-white/10" v-if="Object.keys(agentConnections).length > 0">

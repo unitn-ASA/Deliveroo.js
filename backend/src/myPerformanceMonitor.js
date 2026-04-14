@@ -2,7 +2,7 @@ import PerformanceMonitor from './PerformanceMonitor.js';
 import myClock from './myClock.js';
 import { config } from './config/config.js';
 
-const performanceMonitor = new PerformanceMonitor();
+const performanceMonitor = new PerformanceMonitor(myClock.ms, myClock.frame);
 
 // Listen to frame events to update performance metrics
 myClock.on('frame', () => {
