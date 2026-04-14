@@ -51,7 +51,7 @@ export class ActionMutex {
         // Lock immediately to prevent race conditions
         this.#isLocked = true;
         // Ensure the clock is synchronized before executing the action
-        await this.clock.synch();
+        // await this.clock.synch();
         const actionPromise = (async () => {
             try {
                 return await actionFn();

@@ -8,8 +8,6 @@ import { connection } from "./states/myConnection.js";
 /** @typedef {import('./types/UIParcelType.js').UIParcel} UIParcel */
 /** @typedef {import('./types/UICrateType.js').UICrate} UICrate */
 
-/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOInfo.js").IOInfo} IOInfo */
-
 
 
 export class Grid {

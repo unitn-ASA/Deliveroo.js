@@ -6,7 +6,7 @@ import { DjsServerSocket } from './DjsServerSocket.js';
  * @typedef {import("../types/IOParcel.js").IOParcel} IOParcel
  * @typedef {import("../types/IOTile.js").IOTile} IOTile
  * @typedef {import("../types/IOConfig.js").IOConfig} IOConfig
- * @typedef {import("../types/IOInfo.js").IOInfo} IOInfo
+ * @typedef {import("../types/IOMetrics.js").IOMetrics} IOMetrics
  *
  * @typedef {import("../types/IOSocketEvents.js").IOSensing} IOSensing
  * @typedef {import("../types/IOSocketEvents.js").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
@@ -67,11 +67,10 @@ export class DjsServer extends Server {
     /**
      * Broadcast a log message to all connected clients
      * @param { 'server' | { socket:string, id:string, name:string } } src - 'server' or client
-     * @param { IOInfo } info
      * @param { ...any } message
      */
-    broadcastLog(src, info, ...message) {
-        this.emit('log', src, info, ...message);
+    broadcastLog(src, ...message) {
+        this.emit('log', src, ...message);
     }
 
     // /**
@@ -117,6 +116,7 @@ export class DjsServer extends Server {
             let proto = MixinClass.prototype;
 
             const descriptors = Object.getOwnPropertyDescriptors(proto);
+            // @ts-ignore
             delete descriptors.constructor;
 
             Object.defineProperties(target, descriptors);

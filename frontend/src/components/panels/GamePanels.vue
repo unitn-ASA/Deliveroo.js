@@ -4,7 +4,7 @@
     import Settings from '../modals/Settings.vue';
     import ParcelSpawner from './ParcelSpawner.vue';
     import GameOptions from '../modals/GameOptions.vue';
-    import Timer from './Timer.vue';
+    import LatencyIndicator from '../LatencyIndicator.vue';
     import Levels from '../modals/Levels.vue';
     import Modal from '../modals/Modal.vue';
     import Login from '../modals/Login.vue';
@@ -134,8 +134,8 @@
         <div id="right-dashboard" class="text-sm">
             <div class="fixed z-10 w-80 right-4 top-4 max-h-full">
                 <div class="flex flex-col h-full rounded-lg space-y-2">
-                    
-                    <Timer class="z-10" v-if="connection?.info?.value?.ms"/>
+
+                    <LatencyIndicator class="z-10"/>
                     
                     <div class="z-10 grid grid-flow-col gap-2 text-center text-xs w-80">
                         <button class="btn btn-info btn-sm" @click="loginModal=true">

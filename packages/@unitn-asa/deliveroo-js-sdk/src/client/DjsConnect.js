@@ -36,7 +36,7 @@ export function DjsConnect ( host = process.env.HOST || 'http://localhost:8080',
     try {
         enhancedClientSocket.on( "ping", ( pingData, callback ) => {
             try {
-                callback( { clientTimestamp: performance.now() } );
+                callback();
             } catch (error) {
                 console.warn("Error handling ping event");
             }

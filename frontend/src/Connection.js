@@ -5,7 +5,6 @@ import { Grid } from "./Grid.js";
 import { DjsClientSocket } from "@unitn-asa/deliveroo-js-sdk/client";
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOConfig.js').IOConfig} IOConfig */
-/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOInfo.js").IOInfo} IOInfo */
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOSocketEvents.js").IOMetrics} IOMetrics */
 
 var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
@@ -64,11 +63,11 @@ export class Connection {
      */
     msgs = shallowReactive (new Array());
 
-    /** @type {import("vue").Ref<IOInfo>} */
-    info = ref();
-
     /** @type {import("vue").Ref<IOMetrics>} */
     metrics = ref();
+
+    /** @type {import("vue").Ref<{frame: number, roundTrip: number}>} */
+    latency = ref();
 
     /**
      * @type {IOConfig} configs
@@ -205,19 +204,18 @@ export class Connection {
 
         })
 
-        ioClient.on( "info", ( info ) => {
-            // console.log( 'Connection.js on info', info );
-            this.info.value = info;
-        } );
-
         ioClient.on( "metrics", ( metricsData ) => {
             // console.log( 'Connection.js on metrics', metricsData );
             this.metrics.value = metricsData;
         } );
 
-        ioClient.on( "ping", ( pingData, callback ) => {
-            // console.log( 'Connection.js on ping', data );
-            callback( { clientTimestamp: performance.now() } );
+        ioClient.on( "ping", ( latencyData, callback ) => {
+            // Store latency data received from server (null on first ping)
+            if (latencyData) {
+                this.latency.value = latencyData;
+            }
+            // Acknowledge the ping (no data needed)
+            callback();
         } );
 
         // Update current configs on config updates

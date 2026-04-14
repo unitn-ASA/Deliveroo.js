@@ -5,7 +5,7 @@ import { Socket } from 'socket.io';
  * @typedef {import("../types/IOParcel.js").IOParcel} IOParcel
  * @typedef {import("../types/IOTile.js").IOTile} IOTile
  * @typedef {import("../types/IOConfig.js").IOConfig} IOConfig
- * @typedef {import("../types/IOInfo.js").IOInfo} IOInfo
+ * @typedef {import("../types/IOMetrics.js").IOMetrics} IOMetrics
  * 
  * @typedef {import("../types/IOSocketEvents.js").IOSensing} IOSensing
  * @typedef {import("../types/IOSocketEvents.js").IOClientEvents} IOClientEvents on the client side these are to be emitted with .emit
@@ -28,7 +28,9 @@ export class DjsServerSocket extends Socket {
     //  * @param {IOClientEvents[K]} listener
     //  * @returns {void}
     //  */
+    // @ts-ignore
     on ( event, listener ) {
+        // @ts-ignore
         return super.on( event, (...args) => {
             try {
                 return listener.apply( this, args );
@@ -95,10 +97,10 @@ export class DjsServerSocket extends Socket {
     }
     
     /**
-     * @param { IOInfo } info
+     * @param { IOMetrics } metrics
      */
-    emitInfo ( info ) {
-        super.emit( 'info', info );
+    emitMetrics ( metrics ) {
+        super.emit( 'metrics', metrics );
     }
 
 
@@ -106,7 +108,7 @@ export class DjsServerSocket extends Socket {
     /**
      * @callback onMoveCallback
      * @param { 'up' | 'right' | 'left' | 'down' } direction
-     * @param { function( { x:number, y:number } | false ) : void } replyAcknowledgmentCallback ( reply )
+     * @param { function( { x:number, y:number } | false ) : void = } replyAcknowledgmentCallback ( reply )
      */
     /**
      * @param { onMoveCallback } callback ( direction, acknowledgementCallback )
@@ -117,7 +119,7 @@ export class DjsServerSocket extends Socket {
     
     /**
      * @callback onPickupCallback
-     * @param { function( { id:string } [] ) : void } acknowledgementCallback
+     * @param { function( { id:string } [] ) : void = } acknowledgementCallback
      */
     /**
      * @param { onPickupCallback } callback ( acknowledgementCallback )
@@ -128,11 +130,11 @@ export class DjsServerSocket extends Socket {
 
     /**
      * @callback onPutdownCallback
-     * @param { string [] } selected ids of parcels to drop
-     * @param { function( { id:string } [] ) : void } acknowledgementCallback
+     * @param { string [] = } selected ids of parcels to drop
+     * @param { function( { id:string } [] ) : void = } acknowledgementCallback
      */
     /**
-     * @param { onPutdownCallback } callback ( selected, acknowledgementCallback )
+     * @param { onPutdownCallback } callback
      */
     onPutdown ( callback ) {
         super.on( 'putdown', callback );
@@ -184,6 +186,7 @@ export class DjsServerSocket extends Socket {
         const sockets = await super.to( "agent:" + toId ).fetchSockets();
         const emissionPromises = sockets.map( socket => {
             return new Promise( (res) => {
+                // @ts-ignore
                 socket.timeout(1000).emit( 'msg', me.id, me.name, msg, (err, response) => {
                     if (err)
                         res('timeout');
@@ -202,6 +205,7 @@ export class DjsServerSocket extends Socket {
     }
 
     /**
+     * @param { IOAgent } me
      * @param { any } msg
      * @returns { void } reply
      */
@@ -217,21 +221,18 @@ export class DjsServerSocket extends Socket {
     }
     
     /**
-     * @param { string } myId
-     * @param { string } myName
      * @param { 'server' | { socket:string, id:string, name:string } } src - 'server' or client
-     * @param { IOInfo } info
      * @param { ...any } message
      */
-    broadcastLog ( myId, myName, src, info, ...message ) {
-        super.broadcast.emit( 'log', src, info, ...message );
+    broadcastLog ( src, ...message ) {
+        super.broadcast.emit( 'log', src, ...message );
     }
 
 
 
     /**
      * Process request for creating a parcel on x, y or disposing or setting its reward given the id
-     * @param { function ( 'create' | 'dispose' | 'set', {id:string, x:number, y:number, reward:number} ) : void } callback 
+     * @param { function ( 'create' | 'dispose' | 'set', { x:number, y:number } | { id:string, reward?:number } ) : void } callback 
      */
     onParcel ( callback ) {
         super.on( 'parcel', callback );
@@ -265,11 +266,13 @@ export class DjsServerSocket extends Socket {
         /**
          * Mixin function to copy methods from a class prototype to an object
          */
+        // @ts-ignore
         function applyMixin(target, MixinClass) {
             
             let proto = MixinClass.prototype;
 
             const descriptors = Object.getOwnPropertyDescriptors(proto);
+            // @ts-ignore
             delete descriptors.constructor;
             
             Object.defineProperties(target, descriptors);

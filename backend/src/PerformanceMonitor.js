@@ -2,17 +2,11 @@ import { performance } from 'perf_hooks';
 import EventEmitter from 'events';
 
 /**
- * @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOInfo.js').IOInfo} IOInfo
- */
-/**
  * @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOSocketEvents.js').IOMetrics} IOMetrics
- */
-/**
- * @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOSocketEvents.js').IOLatency} IOLatency
  */
 
 /**
- * @typedef {{id: string, name: string, teamId: string, teamName: string}} AgentInfo
+ * @typedef { {socketId: string, id: string, name: string, teamId: string, teamName: string, frame: number, roundTrip: number} } LogData
  */
 
 /**
@@ -21,122 +15,220 @@ import EventEmitter from 'events';
  */
 class PerformanceMonitor {
 
-    /** @type {number} Base clock interval in ms */
-    #base = 40; // 40ms = 25fps
-
     /** @type {number} Current milliseconds */
-    #ms = 0;
+    #sampledMs = 0;
 
     /** @type {number} Current frame */
-    #frame = 0;
+    #sampledFrame = 0;
 
     /** @type {number} Start time for fps calculation */
-    #startTime = 0;
+    #startTime = Date.now();
+
+    // Timing samples for FPS
+    #timingSamples = [];
+    #maxSamples = 50;
 
     // Performance monitoring
-    #lastCpuUsage = process.cpuUsage();
+    #lastSampledCpuUsage = process.cpuUsage();
+    #lastSampledCpuSampleTime = process.hrtime.bigint();
     #cpuSamples = [];
     #maxCpuSamples = 50;
 
     // Event loop lag monitoring
-    #lastEventLoopTime = null;
+    #lastSampledEventLoopTime = process.hrtime.bigint();
     #eventLoopLagSamples = [];
-    #maxLagSamples = 100;
+    #maxLagSamples = 50;
 
     // Ping/Pong latency tracking - per socket
-    /** @type {Map<string, IOLatency[]>} */
+    /** @type {Map<string, LogData[]>} */
     #latencySamplesBySocket = new Map();
     #maxLatencySamplesPerSocket = 50;
 
-    // Timing samples for FPS
-    #samples = [];
-    #maxSamples = 100;
 
-    /** @type {EventEmitter} */
-    #emitter = new EventEmitter();
 
     /**
-     * @type {IOInfo & {cpuUsage: number, eventLoopLag: number, avgLatency: number, minLatency: number, maxLatency: number}}
+     * Metrics cache, computed on demand every 10s or when computeMetrics() is called
+     * @type {IOMetrics}
      */
-    info = {
-        ms: 0,
-        frame: 0,
-        fps: 0,
-        heapUsed: 0,
-        heapTotal: 0,
-        cpuUsage: 0,
-        eventLoopLag: 0,
-        avgLatency: 0,
-        minLatency: 0,
-        maxLatency: 0
+    #metricsCache = {
+        timing: {
+            ms: this.#sampledMs,
+            frame: this.#sampledFrame,
+            fps: 0,
+            uptime: 0
+        },
+        memory: {
+            heapUsed: 0,
+            heapTotal: 0,
+            rss: 0,
+            external: 0
+        },
+        cpu: {
+            current: 0
+        },
+        eventLoop: {
+            currentLag: 0,
+            maxLag: 0,
+            avgLag: 0
+        },
+        latency: {
+            avg: 0,
+            min: 0,
+            max: 0,
+            byAgent: {}
+        }
     };
 
     constructor() {
-        this.#emitter.setMaxListeners(20000);
     }
 
     /**
-     * Set the base clock interval
-     * @param {number} base - Base interval in milliseconds
-     */
-    setBase(base) {
-        this.#base = base;
-    }
-
-    /**
-     * Update current time and frame
+     * Sample performance metrics given current time and frame.
+     * This should be called on every frame to update internal state, but expensive computations are deferred until requested.
      * @param {number} ms - Current milliseconds
      * @param {number} frame - Current frame number
      */
-    updateTime(ms, frame) {
-        this.#ms = ms;
-        this.#frame = frame;
+    sample(ms, frame) {
+        this.#sampledMs = ms;
+        this.#sampledFrame = frame;
+        
+        // Sample timing for FPS calculation
+        this.#sampleTiming();
+
+        // Sample CPU usage
+        this.#sampleCpuUsage();
+
+        // Monitor event loop lag
+        this.#sampleEventLoopLag();
+
+        this.#isdirty = true; // Mark metrics as dirty to trigger recomputation when requested
     }
 
     /**
-     * Set start time for fps calculation
-     * @param {number} startTime - Start timestamp
+     * Sample CPU usage
+     * @returns {void}
      */
-    setStartTime(startTime) {
-        this.#startTime = startTime;
-        this.#lastEventLoopTime = process.hrtime.bigint();
+    #sampleCpuUsage() {
+        const currentUsage = process.cpuUsage();
+        const now = process.hrtime.bigint();
+
+        const elapsedUsage = currentUsage.user - this.#lastSampledCpuUsage.user;
+        const elapsedTime = Number(now - this.#lastSampledCpuSampleTime) / 1000000; // Convert to ms
+
+        // Calculate CPU percentage (actual elapsed time, not expected base interval)
+        const cpuPercent = elapsedTime > 0
+            ? Math.min(100, (elapsedUsage / 1000) / elapsedTime * 100)
+            : 0;
+
+        this.#lastSampledCpuUsage = currentUsage;
+        this.#lastSampledCpuSampleTime = now;
+
+        // Store sample for averaging
+        this.#cpuSamples.push(cpuPercent);
+        if (this.#cpuSamples.length > this.#maxCpuSamples) {
+            this.#cpuSamples.shift();
+        }
     }
 
     /**
-     * Sample performance metrics (call on each frame)
+     * Sample timing for FPS calculation
+     * This should be called on every frame to update the timing samples, but the actual FPS calculation is deferred until requested to avoid expensive computations on every frame
      */
-    sample() {
-        this.#samples.push({
-            frame: this.#frame,
+    #sampleTiming() {
+        // Sample timing for FPS calculation
+        this.#timingSamples.push({
+            frame: this.#sampledFrame,
             time: Date.now(),
             hrtime: process.hrtime.bigint()
         });
-
-        // Update info with all metrics
-        const memoryUsage = process.memoryUsage();
-        const cpuUsage = this.#computeCpuUsage();
-
-        this.info = {
-            ms: this.#ms,
-            frame: this.#frame,
-            fps: this.#computeFps(),
-            heapUsed: Math.round(memoryUsage.heapUsed / 1000000),
-            heapTotal: Math.round(memoryUsage.heapTotal / 1000000),
-            cpuUsage: cpuUsage,
-            eventLoopLag: this.#getEventLoopLag(),
-            avgLatency: this.#getAverageLatency(),
-            minLatency: this.#getMinLatency(),
-            maxLatency: this.#getMaxLatency()
-        };
-
         // Remove old samples to prevent unbounded memory growth
-        if (this.#samples.length > this.#maxSamples) {
-            this.#samples.shift();
+        if (this.#timingSamples.length > this.#maxSamples) {
+            this.#timingSamples.shift();
+        }
+    }
+
+    /**
+     * Sample event loop lag using setImmediate timing
+     * This should be called on every frame to update the event loop lag samples, but the actual lag calculation is deferred until requested to avoid expensive computations on every frame
+     */
+    #sampleEventLoopLag() {
+        const now = process.hrtime.bigint();
+        const lag = Number(now - this.#lastSampledEventLoopTime) / 1000000; // Convert to ms
+
+        this.#eventLoopLagSamples.push(lag);
+        if (this.#eventLoopLagSamples.length > this.#maxLagSamples) {
+            this.#eventLoopLagSamples.shift();
         }
 
-        // Monitor event loop lag
-        this.#monitorEventLoopLag();
+        this.#lastSampledEventLoopTime = now;
     }
+
+
+
+    /**
+     * Flag to indicate if metrics need to be recomputed
+     * This is set to true whenever new samples are taken, and set to false after metrics are computed
+     * This allows us to avoid expensive computations on every frame and only compute when requested (e.g., every 10s)
+     * @type {boolean}
+     */
+    #isdirty = true;
+
+    /**
+     * Get detailed performance metrics
+     * @returns {IOMetrics} Performance metrics
+     */
+    getPerformanceMetrics() {
+        // recompute only if dirty, otherwise return cached values
+        return this.#computeMetrics();
+    }
+
+    /**
+     * Compute and return performance metrics.
+     * This method performs expensive computations like FPS calculation, CPU averaging, event loop lag analysis, and latency statistics, but only when the underlying samples have changed since the last computation (indicated by the #isdirty flag).
+     * @returns {IOMetrics} Computed performance metrics
+     */
+    #computeMetrics() {
+        // only if dirty, otherwise return cached values
+        if ( ! this.#isdirty )
+            return this.#metricsCache;
+        this.#isdirty = false;
+
+        // PreCompute memory usage and event loop lag
+        const memoryUsage = process.memoryUsage();
+        const eventLoopLag = this.#computeEventLoopLag();
+
+        // Update metrics cache
+        this.#metricsCache = {
+            timing: {
+                ms: this.#sampledMs,
+                frame: this.#sampledFrame,
+                fps: this.#computeFps(),
+                uptime: Date.now() - this.#startTime
+            },
+            memory: {
+                heapUsed: Math.round(memoryUsage.heapUsed / 1000000),
+                heapTotal: Math.round(memoryUsage.heapTotal / 1000000),
+                rss: Math.round(process.memoryUsage().rss / 1000000),
+                external: Math.round(process.memoryUsage().external / 1000000)
+            },
+            cpu: {
+                current: this.#computeAvgCpuUsage()
+            },
+            eventLoop: {
+                currentLag: eventLoopLag.current,
+                maxLag: eventLoopLag.max,
+                avgLag: eventLoopLag.avg
+            },
+            latency: {
+                ...this.#computeLatencyStats(),
+                byAgent: this.#computeLatencyByAgent()
+            }
+        };
+
+        return this.#metricsCache;
+    }
+
+
 
     /**
      * Compute FPS
@@ -144,34 +236,20 @@ class PerformanceMonitor {
      * @returns {number} FPS
      */
     #computeFps(back = 10) {
-        if (this.#samples.length < 1)
-            return Math.round(this.#frame / (Date.now() - this.#startTime) * 1000 * 10) / 10;
-        let lastI = this.#samples.length - 1;
+        if (this.#timingSamples.length < 1)
+            return Math.round(this.#sampledFrame / (Date.now() - this.#startTime) * 1000 * 10) / 10;
+        let lastI = this.#timingSamples.length - 1;
         let firstI = lastI - back < 0 ? 0 : lastI - back;
-        const last = this.#samples[lastI];
-        const first = this.#samples[firstI];
+        const last = this.#timingSamples[lastI];
+        const first = this.#timingSamples[firstI];
         return Math.round((last.frame - first.frame) / (last.time - first.time) * 1000 * 10) / 10;
     }
 
     /**
-     * Calculate CPU usage percentage since last sample
+     * Calculate avg CPU usage over the last samples
      * @returns {number} CPU usage percentage (0-100)
      */
-    #computeCpuUsage() {
-        const currentUsage = process.cpuUsage();
-        const elapsedUsage = currentUsage.user - this.#lastCpuUsage.user;
-
-        // Calculate CPU percentage
-        const cpuPercent = Math.min(100, (elapsedUsage / (this.#base * 1000)) * 100);
-
-        this.#lastCpuUsage = currentUsage;
-
-        // Store sample for averaging
-        this.#cpuSamples.push(cpuPercent);
-        if (this.#cpuSamples.length > this.#maxCpuSamples) {
-            this.#cpuSamples.shift();
-        }
-
+    #computeAvgCpuUsage() {
         // Return average CPU usage
         if (this.#cpuSamples.length === 0) return 0;
         const avgCpu = this.#cpuSamples.reduce((a, b) => a + b, 0) / this.#cpuSamples.length;
@@ -179,200 +257,81 @@ class PerformanceMonitor {
     }
 
     /**
-     * Monitor event loop lag using setImmediate timing
-     */
-    #monitorEventLoopLag() {
-        const now = process.hrtime.bigint();
-        const lag = Number(now - this.#lastEventLoopTime) / 1000000; // Convert to ms
-
-        this.#eventLoopLagSamples.push(lag);
-        if (this.#eventLoopLagSamples.length > this.#maxLagSamples) {
-            this.#eventLoopLagSamples.shift();
-        }
-
-        this.#lastEventLoopTime = now;
-    }
-
-    /**
      * Get current event loop lag in milliseconds
-     * @returns {number} Lag in milliseconds
+     * @returns {{current: number, avg: number, max: number}} Lag in milliseconds
      */
-    #getEventLoopLag() {
-        if (this.#eventLoopLagSamples.length === 0) return 0;
+    #computeEventLoopLag() {
+        if (this.#eventLoopLagSamples.length === 0) return { current: 0, avg: 0, max: 0 };
 
-        // Return average lag for smoother reporting
-        const avg = this.#eventLoopLagSamples.reduce((a, b) => a + b, 0) / this.#eventLoopLagSamples.length;
-        return Math.round(avg);
-    }
-
-    /**
-     * Handle pong response and calculate latency (call from server)
-     * @param {string} socketId - Unique socket identifier
-     * @param {{timestamp: number}} pingData - Original ping data with timestamp
-     * @param {{clientTimestamp: number}} pongData - Pong response data
-     * @param {AgentInfo} agentInfo - Agent information associated with this socket
-     * @returns {IOLatency | null} Latency information or null if ping not found
-     */
-    handlePong(socketId, pingData, pongData, agentInfo) {
-        // Calculate latencies using performance.now() for high precision
-        const roundTrip = performance.now() - pingData.timestamp;
-        const clientProcessing = pongData.clientTimestamp - pingData.timestamp;
-        const serverProcessing = performance.now() - pongData.clientTimestamp;
-        const networkLag = roundTrip - clientProcessing - serverProcessing;
-
-        // Store latency sample with socketId and agent info
-        /** @type {IOLatency & {socketId: string, agentInfo: AgentInfo}} */
-        const latencyData = {
-            socketId: socketId,
-            roundTrip: Math.round(roundTrip),
-            clientProcessing: Math.round(clientProcessing),
-            serverProcessing: Math.round(serverProcessing),
-            networkLag: Math.round(networkLag),
-            timestamp: pingData.timestamp,
-            agentInfo: agentInfo
+        // Return current, average, and max lag
+        return {
+            current: Math.round(this.#eventLoopLagSamples[this.#eventLoopLagSamples.length - 1]),
+            avg: Math.round( this.#eventLoopLagSamples.reduce((a, b) => a + b, 0) / this.#eventLoopLagSamples.length ),
+            max: Math.max(...this.#eventLoopLagSamples)
         };
-
-        // Get or create array for this socket
-        if (!this.#latencySamplesBySocket.has(socketId)) {
-            this.#latencySamplesBySocket.set(socketId, []);
-        }
-
-        const socketSamples = this.#latencySamplesBySocket.get(socketId);
-        socketSamples.push(latencyData);
-
-        // Keep only recent samples per socket
-        if (socketSamples.length > this.#maxLatencySamplesPerSocket) {
-            socketSamples.shift();
-        }
-
-        return latencyData;
-    }
-
-    /**
-     * Get average round-trip latency across all sockets
-     * @returns {number} Average latency in milliseconds
-     */
-    #getAverageLatency() {
-        let allSamples = this.#getAllLatencySamples();
-        if (allSamples.length === 0) return 0;
-        const sum = allSamples.reduce((acc, s) => acc + s.roundTrip, 0);
-        return Math.round(sum / allSamples.length);
-    }
-
-    /**
-     * Get minimum round-trip latency across all sockets
-     * @returns {number} Minimum latency in milliseconds
-     */
-    #getMinLatency() {
-        let allSamples = this.#getAllLatencySamples();
-        if (allSamples.length === 0) return 0;
-        return Math.min(...allSamples.map(s => s.roundTrip));
-    }
-
-    /**
-     * Get maximum round-trip latency across all sockets
-     * @returns {number} Maximum latency in milliseconds
-     */
-    #getMaxLatency() {
-        let allSamples = this.#getAllLatencySamples();
-        if (allSamples.length === 0) return 0;
-        return Math.max(...allSamples.map(s => s.roundTrip));
-    }
-
-    /**
-     * Get all latency samples from all sockets
-     * @returns {IOLatency[]} All latency samples
-     */
-    #getAllLatencySamples() {
-        const allSamples = [];
-        for (const samples of this.#latencySamplesBySocket.values()) {
-            allSamples.push(...samples);
-        }
-        return allSamples;
     }
 
     /**
      * Get latency statistics including per-socket breakdown
-     * @returns {object} Latency statistics
+     * @returns { { avg: number, min: number, max: number }} Latency statistics
      */
-    getLatencyStats() {
-        const allSamples = this.#getAllLatencySamples();
+    #computeLatencyStats() {
 
-        if (allSamples.length === 0) {
+        const allSampledRoundTrips = Array.from(this.#latencySamplesBySocket.values()).flat().map(s => s.roundTrip);
+
+        if (allSampledRoundTrips.length === 0) {
             return {
-                count: 0,
                 avg: 0,
                 min: 0,
-                max: 0,
-                samples: [],
-                bySocket: {}
+                max: 0
             };
         }
 
-        const roundTrips = allSamples.map(s => s.roundTrip);
-        const bySocket = {};
-
-        // Build per-socket data
-        for (const [socketId, samples] of this.#latencySamplesBySocket.entries()) {
-            if (samples.length > 0) {
-                const socketRoundTrips = samples.map(s => s.roundTrip);
-                bySocket[socketId] = {
-                    count: samples.length,
-                    avg: Math.round(socketRoundTrips.reduce((a, b) => a + b, 0) / socketRoundTrips.length),
-                    min: Math.min(...socketRoundTrips),
-                    max: Math.max(...socketRoundTrips),
-                    samples: [...samples] // Include socketId in each sample
-                };
-            }
-        }
-
         return {
-            count: allSamples.length,
-            avg: Math.round(roundTrips.reduce((a, b) => a + b, 0) / roundTrips.length),
-            min: Math.min(...roundTrips),
-            max: Math.max(...roundTrips),
-            samples: allSamples, // All samples with socketId included
-            bySocket: bySocket
+            avg: Math.round(allSampledRoundTrips.reduce((a, b) => a + b, 0) / allSampledRoundTrips.length),
+            min: Math.min(...allSampledRoundTrips),
+            max: Math.max(...allSampledRoundTrips)
         };
     }
 
     /**
-     * Get latency statistics grouped by agent
+     * Compute latency statistics grouped by agent
      * @returns {object} Agent-grouped latency statistics
      */
-    getLatencyByAgent() {
+    #computeLatencyByAgent() {
+
+        // Group latency samples by agent (id + teamId) and calculate average round trip time per socket for each agent
         const byAgent = {};
 
+        // for each socket
         for (const [socketId, samples] of this.#latencySamplesBySocket.entries()) {
-            if (samples.length === 0) continue;
+            
+            // if no samples for this socket, skip
+            if (samples.length === 0)
+                continue;
 
             const latestSample = samples[samples.length - 1];
-            // @ts-expect-error
-            const agentInfo = latestSample.agentInfo;
+            const agentKey = `${latestSample.id}-${latestSample.teamId}`;
 
-            if (!agentInfo) continue;
-
-            const agentKey = `${agentInfo.id}-${agentInfo.teamId}`;
-
-            if (!byAgent[agentKey]) {
+            // Initialize agent entry if not exists
+            if ( ! byAgent[agentKey] ) {
                 byAgent[agentKey] = {
-                    id: agentInfo.id,
-                    name: agentInfo.name,
-                    teamId: agentInfo.teamId,
-                    teamName: agentInfo.teamName,
+                    id: latestSample.id,
+                    name: latestSample.name,
+                    teamId: latestSample.teamId,
+                    teamName: latestSample.teamName,
                     sockets: []
                 };
             }
 
             // Calculate stats for this socket
             const socketRoundTrips = samples.map(s => s.roundTrip);
+
             byAgent[agentKey].sockets.push({
                 socketId: socketId,
-                count: samples.length,
                 avg: Math.round(socketRoundTrips.reduce((a, b) => a + b, 0) / socketRoundTrips.length),
                 min: Math.min(...socketRoundTrips),
-                max: Math.max(...socketRoundTrips),
-                latest: samples[samples.length - 1]
+                max: Math.max(...socketRoundTrips)
             });
         }
 
@@ -391,68 +350,30 @@ class PerformanceMonitor {
         }
     }
 
-    /**
-     * Get detailed performance metrics
-     * @returns {IOMetrics} Performance metrics
-     */
-    getPerformanceMetrics() {
-        return {
-            timing: {
-                ms: this.#ms,
-                frame: this.#frame,
-                fps: this.info.fps,
-                uptime: Date.now() - this.#startTime
-            },
-            memory: {
-                heapUsed: this.info.heapUsed,
-                heapTotal: this.info.heapTotal,
-                rss: Math.round(process.memoryUsage().rss / 1000000),
-                external: Math.round(process.memoryUsage().external / 1000000)
-            },
-            cpu: {
-                current: this.info.cpuUsage,
-                samples: [...this.#cpuSamples]
-            },
-            eventLoop: {
-                currentLag: this.#getEventLoopLag(),
-                maxLag: Math.max(...this.#eventLoopLagSamples),
-                avgLag: this.#eventLoopLagSamples.length > 0
-                    ? this.#eventLoopLagSamples.reduce((a, b) => a + b, 0) / this.#eventLoopLagSamples.length
-                    : 0
-            },
-            latency: {
-                ...this.getLatencyStats(),
-                byAgent: this.getLatencyByAgent()
-            }
-        };
-    }
+
 
     /**
-     * Register event listener
-     * @param {string} event - Event name
-     * @param {(...args: any[]) => void} cb - Callback function
+     * Handle pong response and calculate latency (call from server)
+     * @param { LogData } pingData - Original ping data with socket and agent info
+     * @returns {void}
      */
-    on(event, cb) {
-        this.#emitter.on(event, cb);
+    handlePong( pingData ) {
+
+        // Get or create array for this socket
+        if (!this.#latencySamplesBySocket.has( pingData.socketId )) {
+            this.#latencySamplesBySocket.set( pingData.socketId, [] );
+        }
+
+        const socketSamples = this.#latencySamplesBySocket.get(pingData.socketId);
+        socketSamples.push( pingData );
+
+        // Keep only recent samples per socket
+        if (socketSamples.length > this.#maxLatencySamplesPerSocket) {
+            socketSamples.shift();
+        }
+
     }
 
-    /**
-     * Register one-time event listener
-     * @param {string} event - Event name
-     * @param {(...args: any[]) => void} cb - Callback function
-     */
-    once(event, cb) {
-        this.#emitter.once(event, cb);
-    }
-
-    /**
-     * Remove event listener
-     * @param {string} event - Event name
-     * @param {(...args: any[]) => void} cb - Callback function
-     */
-    off(event, cb) {
-        this.#emitter.off(event, cb);
-    }
 }
 
 export default PerformanceMonitor;

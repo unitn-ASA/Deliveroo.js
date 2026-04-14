@@ -10,8 +10,8 @@
  * @typedef {import("../types/IOTile.js").IOTile} IOTile
  * 
  * @typedef {import("../types/IOIdentity.js").IOIdentity} IOIdentity
- * @typedef {import("../types/IOInfo.js").IOInfo} IOInfo
  * @typedef {import("../types/IOSensing.js").IOSensing} IOSensing
+ * @typedef {import("../types/IOMetrics.js").IOMetrics} IOMetrics
  * 
  * @typedef {import("../types/IOSocketEvents.js").IOClientEvents} IOClientEvents
  * @typedef {import("../types/IOSocketEvents.js").IOServerEvents} IOServerEvents

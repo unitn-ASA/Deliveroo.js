@@ -3,10 +3,9 @@ import { ref, computed, watch } from 'vue';
 import { connection } from '../../states/myConnection.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOSocketEvents.js').IOMetrics} IOMetrics */
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOSocketEvents.js').IOLatency} IOLatency */
 
 /**
- * @typedef {IOLatency & {socketId: string, agentInfo: {id: string, name: string, teamId: string, teamName: string}}} IOLatencyWithSocket
+ * @typedef {{frame: number, roundTrip: number, socketId: string, agentInfo: {id: string, name: string, teamId: string, teamName: string}}} IOLatencyWithSocket
  */
 
 // Computed property for metrics from connection
@@ -42,6 +41,7 @@ const formattedUptime = computed(() => {
 const cpuHistory = ref([]);
 const fpsHistory = ref([]);
 const latencyHistory = ref([]);
+const memoryHistory = ref([]);
 const maxHistoryLength = 60;
 
 // Watch metrics changes to update history arrays
@@ -67,6 +67,13 @@ watch(metrics, (data) => {
         latencyHistory.value.push(data.latency.avg);
         if (latencyHistory.value.length > maxHistoryLength) {
             latencyHistory.value.shift();
+        }
+    }
+
+    if (data.memory?.heapUsed !== undefined) {
+        memoryHistory.value.push(data.memory.heapUsed);
+        if (memoryHistory.value.length > maxHistoryLength) {
+            memoryHistory.value.shift();
         }
     }
 });
@@ -153,12 +160,17 @@ const getColor = (value, max) => {
         <div class="px-4">
             <div class="flex justify-between items-center">
                 <h3 class="font-bold text-white">Memory</h3>
-                <span class="text-sm font-bold font-mono" :class="((heapUsed / heapTotal) * 100) > 80 ? 'text-red-500' : ((heapUsed / heapTotal) * 100) > 50 ? 'text-yellow-500' : 'text-green-500'">
-                    {{ ((heapUsed / heapTotal) * 100).toFixed(1) }}%
+                <span class="text-sm font-bold font-mono" :class="heapUsed > 80 ? 'text-red-500' : heapUsed > 50 ? 'text-yellow-500' : 'text-green-500'">
+                    {{ (heapUsed).toFixed(0) }}MB
+                    ({{ ((heapUsed / heapTotal) * 100).toFixed(0) }}%)
+                    /
+                    {{ (heapTotal).toFixed(0) }}MB
                 </span>
             </div>
-            <!-- Memory Bar -->
-            <progress class="progress progress-primary w-full" :value="heapUsed" :max="heapTotal"></progress>
+            <!-- Memory Chart -->
+            <div class="mt-2">
+                <div class="flex items-end gap-px h-[30px] bg-black/30 rounded-sm p-px overflow-hidden" v-html="createBars(memoryHistory, heapTotal || 1000)"></div>
+            </div>
             <div class="grid grid-cols-2 gap-x-4 mb-4">
                 <div class="flex justify-between items-center">
                     <span class="text-xs text-white/70">Heap Used:</span>

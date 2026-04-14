@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client';
  * @typedef {import("../types/IOParcel.js").IOParcel} IOParcel
  * @typedef {import("../types/IOTile.js").IOTile} IOTile
  * @typedef {import("../types/IOConfig.js").IOConfig} IOConfig
- * @typedef {import("../types/IOInfo.js").IOInfo} IOInfo
+ * @typedef {import("../types/IOMetrics.js").IOMetrics} IOMetrics
  * 
  * @typedef {import("../types/IOSocketEvents.js").IOSensing} IOSensing
  * @typedef {import("../types/IOSocketEvents.js").IOClientEvents} IOClientEvents
@@ -118,10 +118,10 @@ export class DjsClientSocket extends Socket {
     
     /**
      * Listen to 'info' events
-     * @param { function( IOInfo ) : void } callback
+     * @param { function( ) : void } callback
+     * @deprecated 'info' events are deprecated, use 'metrics' instead (only for admin)
      */
     onInfo ( callback ) {
-        this.on( "info", callback )
     }
     
     /**
@@ -264,6 +264,7 @@ export class DjsClientSocket extends Socket {
             let proto = MixinClass.prototype;
 
             const descriptors = Object.getOwnPropertyDescriptors(proto);
+            // @ts-ignore
             delete descriptors.constructor;
             
             Object.defineProperties(target, descriptors);

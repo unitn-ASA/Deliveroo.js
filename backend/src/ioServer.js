@@ -180,34 +180,47 @@ class ioServer {
              */
             try {
                 const PING_INTERVAL = 1000; // Send ping every 1 second
+                
+                // timestamp and frame at ping time
+                let timestampAtPing;
+                let frameAtPing = myClock.frame;
+
+                // previous latency data to send with ping (initialized with agent info and updated on each pong) 
+                let lastLatencyData = {
+                    socketId: socket.id,
+                    id: me.id,
+                    name: me.name,
+                    teamId: me.teamId,
+                    teamName: me.teamName,
+                    frame: myClock.frame,
+                    roundTrip: -1
+                };
 
                 // Send periodic pings with acknowledgement callback
                 const pingInterval = setInterval(() => {
                     try {
-                        const pingData = {
-                            timestamp: performance.now()
-                        };
+                        // timestamp and frame at ping time 
+                        timestampAtPing = performance.now();
+                        frameAtPing = myClock.frame;
 
-                        // Send ping to client with acknowledgement callback
-                        socket.emit('ping', pingData, (ackData) => {
+                        // Send ping with previous latency data (or null on first ping)
+                        socket.emit('ping', {frame: lastLatencyData.frame, roundTrip: lastLatencyData.roundTrip}, () => { // acknoledgment callback
+                            
+                            // when pong is received
                             try {
-                                // Handle the acknowledgement (pong response) from client
-                                if (ackData && typeof ackData === 'object') {
-                                    // Pass agent information to associate with latency
-                                    const agentInfo = {
-                                        id: me.id,
-                                        name: me.name,
-                                        teamId: me.teamId,
-                                        teamName: me.teamName
-                                    };
-                                    const latencyData = myPerformanceMonitor.handlePong(socket.id, pingData, ackData, agentInfo);
-                                    if (latencyData) {
-                                        // Optional: log high latency
-                                        if (latencyData.roundTrip > 200) {
-                                            console.log(`${me.name}-${me.teamName}-${me.id} High latency: ${latencyData.roundTrip}ms (network: ${latencyData.networkLag}ms)`);
-                                        }
-                                    }
+
+                                // Update latencyData with current roundTrip and frame-at-ping-time
+                                lastLatencyData.roundTrip = Math.round( performance.now() - timestampAtPing );
+                                lastLatencyData.frame = frameAtPing;
+                                
+                                // Store latency data in performance monitor with agent info
+                                myPerformanceMonitor.handlePong( lastLatencyData );
+
+                                // Optional: log high latency
+                                if (lastLatencyData.roundTrip > 200) {
+                                    console.log(`${me.name}-${me.teamName}-${me.id} High latency: ${lastLatencyData.roundTrip}ms`);
                                 }
+
                             } catch (error) {
                                 console.warn('Error handling ping acknowledgement:', error.message);
                             }
@@ -752,13 +765,6 @@ class ioServer {
     }
 
 }
-
-
-
-/**
- * Broadcast info
- */
-myClock.on('1s', () => io.emit( 'info', myPerformanceMonitor.info ) );
 
 
 
