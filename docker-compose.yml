@@ -24,6 +24,12 @@ services:
       - GAME_NAME=circuit_directional
       - PORT=4001
 
+    env_file:
+      - path: .env
+        required: false
+      - path: backend/.env
+        required: false
+
     ports: # not needed if proxied by caddy
       - "4001:4001"
 
