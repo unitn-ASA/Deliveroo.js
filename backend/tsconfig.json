@@ -9,12 +9,12 @@
     "skipLibCheck": true,
     "jsx": "react",
     "noEmit": true,
-    "lib": ["ES2022"],
     "allowJs": true,
     "checkJs": true,
     "types": ["node"]
   },
   "include": [
+    "index.js",
     "src",
     "../packages/@unitn-asa/deliveroo-js-sdk/src",
     "../packages/@unitn-asa/deliveroo-js-assets/src"

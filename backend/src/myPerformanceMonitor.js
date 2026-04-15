@@ -10,7 +10,7 @@ myClock.on('frame', () => {
 });
 
 // Log performance info every 5 seconds
-myClock.on('10s', () => {
+myClock.on('1m', () => {
     const metrics = performanceMonitor.getPerformanceMetrics();
     console.log('FRAME', `#${myClock.frame}`, `@${config.CLOCK}ms/frame`, `${metrics.timing.fps}fps`,
         `Heap: ${metrics.memory.heapUsed}/${metrics.memory.heapTotal}MB`,

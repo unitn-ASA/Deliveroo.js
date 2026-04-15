@@ -11,7 +11,7 @@ async function start() {
     await new Promise( res => {
         httpServer.listen(PORT, () => {
             console.log(`Server listening on http://localhost:${PORT}`);
-            res();
+            res(undefined);
         });
     });
 
@@ -22,6 +22,7 @@ async function start() {
 
     /**
      * Graceful shutdown
+     * @param {string} signal - The signal that triggered the shutdown (e.g., 'SIGTERM', 'SIGINT')
      */
     const shutdown = (signal) => {
         console.log(`\n${signal} received: closing server gracefully...`);
@@ -41,6 +42,12 @@ async function start() {
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
     
+}
+
+// Add timestamp to all console logs
+const oldLog = console.log;
+global.console.log = function ( ...message ) {
+    oldLog.apply( console, [ new Date().toLocaleTimeString(), ...message ] );
 }
 
 start().catch((err) => {

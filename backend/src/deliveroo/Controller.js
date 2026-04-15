@@ -233,11 +233,13 @@ class Controller {
                 }
             }
 
-            // Update agent score and log
+            // Update agent score
             this.#agent.score += scoreAdded;
-            if (scoreAdded > 0) {
-                console.log(`${this.#agent.name}(${this.#agent.id}) putDown ${dropped.length} parcels (+ ${scoreAdded} pti -> ${this.#agent.score} pti)`);
-            }
+
+            // Log put down action and score change
+            // if (scoreAdded > 0) {
+            //     console.log(`${this.#agent.name}(${this.#agent.id}) putDown ${dropped.length} parcels (+ ${scoreAdded} pti -> ${this.#agent.score} pti)`);
+            // }
 
             return dropped;
         } ) || [];

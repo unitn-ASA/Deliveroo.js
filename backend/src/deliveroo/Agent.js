@@ -1,5 +1,3 @@
-console.log('Agent.js loaded');
-
 import { config } from '../config/config.js';
 import Xy from './Xy.js';
 import Grid from './Grid.js';

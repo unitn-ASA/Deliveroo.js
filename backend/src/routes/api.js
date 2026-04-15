@@ -5,18 +5,23 @@ const router = express.Router();
 const packageVersion = new Promise( res =>
     fs.readFile('./package.json', { encoding: 'utf8'}, (err, data) => {
         
+        let packageData = {};
+        let packageName = 'no package.json';
         let packageVersion = 'no package.json';
         
         try {
             if ( err )
                 throw err;
-            else if ( data )
-                packageVersion = JSON.parse(data).version;
+            else if ( data ) {
+                packageData = JSON.parse(data);
+                packageName = packageData.name;
+                packageVersion = packageData.version;
+            }
         } catch (error) {
             console.error('Error while reading package.json', error);
         }
         
-        console.log( 'api.js Version', packageVersion, 'has been read from package.json file' );
+        console.log( 'api.js Version', packageVersion, 'has been read from', packageName, 'package.json file' );
         res( packageVersion )
     } )
 );

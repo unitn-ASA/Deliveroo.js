@@ -36,6 +36,11 @@ class MapLoadingSystem {
         for (const crate of this.#grid.crateRegistry.getIterator()) {
             crate.delete();
         }
+
+        // Clear all parcels from the map before loading new map
+        for (const parcel of this.#grid.parcelRegistry.getIterator()) {
+            parcel.delete();
+        }
         
         // Process tiles
         this.#processTiles(tiles);

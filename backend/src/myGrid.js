@@ -16,13 +16,13 @@ configEmitter.on('GAME', async () => {
 });
 
 const myParcelSpawner = new ParcelSpawner(myGrid);
-console.log(`myGrid.js: ParcelSpawner initialized`);
+// console.log(`myGrid.js: ParcelSpawner initialized`);
 
 const myNPCSpawner = new NPCspawner(myGrid, config.GAME.npcs || []);
-console.log(`myGrid.js: NPCSpawner initialized with options`, config.GAME.npcs || []);
+// console.log(`myGrid.js: NPCSpawner initialized with options`, config.GAME.npcs || []);
 configEmitter.on('GAME', async () => {
     let npcsOptions = config?.GAME?.npcs || [];
-    console.log(`myGrid.js: NPCSpawner options updated`, npcsOptions);
+    // console.log(`myGrid.js: NPCSpawner options updated`, npcsOptions);
     myNPCSpawner.applyOptions( npcsOptions );
 });
 

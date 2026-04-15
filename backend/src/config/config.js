@@ -29,10 +29,12 @@ export async function loadGameConfig(json) {
     if (json.maxPlayers !== undefined) {
         config.GAME.maxPlayers = json.maxPlayers;
     }
-    if (json.map?.tiles && Array.isArray(json.map.tiles)) {
+
+    // Map configuration
+    if (json.map?.width !== undefined || json.map?.height !== undefined || (json.map?.tiles && Array.isArray(json.map.tiles)) ) {
+        config.GAME.map.width = json.map.width;
+        config.GAME.map.height = json.map.height;
         config.GAME.map.tiles = json.map.tiles;
-        // const { myGrid } = await import('../myGrid.js');
-        // myGrid.loadMap( json.map.tiles );
     }
 
     // NPCs configuration
@@ -56,20 +58,32 @@ export async function loadGameConfig(json) {
     }
 
     // Player configuration
+    if (json.player?.agent_type !== undefined) {
+        config.GAME.player.agent_type = json.player.agent_type;
+    }
     if (json.player?.movement_duration !== undefined) {
         config.GAME.player.movement_duration = json.player.movement_duration;
     }
     if (json.player?.observation_distance !== undefined) {
         config.GAME.player.observation_distance = json.player.observation_distance;
     }
+    if (json.player?.capacity !== undefined) {
+        config.GAME.player.capacity = json.player.capacity;
+    }
 
+    // Emit configuration change events
     configEmitter.emit('GAME');
+
+    // Log the loaded game configuration
+    console.log("config.js loadGameConfig() GAME:", { ...config.GAME });
 
 }
 
 
 
-
+/**
+ * @param {IOConfig} config 
+ */
 async function lazyLoading( config ) {
 
     // Load gameConfig by file as specified in args.GAME_FILE
@@ -78,7 +92,7 @@ async function lazyLoading( config ) {
             let json = readFileSync(args.GAME_FILE, 'utf-8')
             loadGameConfig(JSON.parse(json));
         } catch (err) {
-            console.error('Error loading from args.LEVEL', args.LEVEL);
+            console.error('config.js Error loading from args.LEVEL', args.LEVEL);
         }
     }
     // Load gameConfig by name as specified in args.GAME_NAME or process.env.GAME_NAME
@@ -87,20 +101,20 @@ async function lazyLoading( config ) {
             const json = await loadGame(process.env.GAME_NAME);
             loadGameConfig(json);
         } catch (err) {
-            console.error('Error loading from process.env.GAME_NAME', process.env.GAME_NAME);
+            console.error('config.js Error loading from process.env.GAME_NAME', process.env.GAME_NAME);
         }
     }
     // Load a random game configuration
     else {
-        console.log('No game configuration file specified. Trying a random game.');
+        // console.log('config.js No game configuration file specified. Trying a random game.');
         try {
             const list = getGamesList();
             const randomIndex = Math.floor( Math.random() * list.length );
-            console.log('Randomly selected game:', list[randomIndex]);
+            console.log('config.js Randomly selected game:', list[randomIndex]);
             const json = await loadGame( list[randomIndex] );
             loadGameConfig(json);
         } catch (err) {
-            console.error('Error loading random game configuration');
+            console.error('config.js Error loading random game configuration');
         }
     }
 
@@ -115,7 +129,7 @@ async function lazyLoading( config ) {
         config.BROADCAST_LOGS = args.BROADCAST_LOGS;
     }
 
-    console.log("Initial config:", config);
+    console.log("config.js lazyLoading() config:", { CLOCK: config.CLOCK, PENALTY: config.PENALTY, AGENT_TIMEOUT: config.AGENT_TIMEOUT, BROADCAST_LOGS: config.BROADCAST_LOGS });
     
 }
 

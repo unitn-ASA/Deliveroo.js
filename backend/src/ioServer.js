@@ -1,5 +1,3 @@
-console.log('ioServer.js loaded');
-
 import { Server } from 'socket.io';
 import httpServer from './httpServer.js';
 import { myGrid } from './myGrid.js';

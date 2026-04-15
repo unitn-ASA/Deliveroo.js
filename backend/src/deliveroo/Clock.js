@@ -14,7 +14,7 @@ import { config } from '../config/config.js';
  */
 class Clock {
 
-    /** @type {EventEmitter} */
+    /** @type {EventEmitter<{[K in IOClockEvent]: []}>} */
     #eventEmitter = new EventEmitter();
 
     #base = Number( config.CLOCK ); // 40ms are 25frame/s
@@ -28,6 +28,8 @@ class Clock {
     #ms2s = 0;
     #ms5s = 0;
     #ms10s = 0;
+    #ms1m = 0;
+    #ms1h = 0;
 
     constructor () {
         // (node:77250) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 5001 frame listeners added to [EventEmitter]. Use emitter.setMaxListeners() to increase limit
@@ -60,7 +62,8 @@ class Clock {
     
     /**
      * @arg { IOClockEvent } event
-     * @arg { ? function(...any) : void } cb
+     * @arg { function(...any) : void } cb
+     * @returns {Promise<void>}
      */
     async once ( event, cb = undefined ) {
         if ( cb )
@@ -91,6 +94,8 @@ class Clock {
         this.#ms2s = 0;
         this.#ms5s = 0;
         this.#ms10s = 0;
+        this.#ms1m = 0;
+        this.#ms1h = 0;
 
         this.#id = setInterval( () => {
 
@@ -116,6 +121,16 @@ class Clock {
                         if ( this.#ms - this.#ms10s >= 10000 ) {
                             this.#ms10s = this.#ms;
                             this.#eventEmitter.emit( '10s' );
+
+                            if ( this.#ms - this.#ms1m >= 60000 ) {
+                                this.#ms1m = this.#ms;
+                                this.#eventEmitter.emit( '1m' );
+
+                                if ( this.#ms - this.#ms1h >= 3600000 ) {
+                                    this.#ms1h = this.#ms;
+                                    this.#eventEmitter.emit( '1h' );
+                                }
+                            }
                         }
                     }
                 }
@@ -137,11 +152,11 @@ class Clock {
     async synchFrame ( frames = 0 ) {
 
         if ( ! this.#isSynch )
-            await new Promise( res => this.#eventEmitter.once('frame', res) );
+            await new Promise( res => this.#eventEmitter.once('frame', ()=>res()) );
 
         const initialFrame = this.#frame;
         while ( frames > ( this.#frame - initialFrame ) ) {
-            await new Promise( res => this.#eventEmitter.once('frame', res) )
+            await new Promise( res => this.#eventEmitter.once('frame', ()=>res()) )
         }
 
         return this.#ms;
@@ -158,7 +173,7 @@ class Clock {
         
         // const t0 = Date.now();
         if ( ! this.#isSynch )
-            await new Promise( res => this.#eventEmitter.once('frame', res) );
+            await new Promise( res => this.#eventEmitter.once('frame', ()=>res()) );
         
         // const t1 = Date.now();
         await new Promise( res => setTimeout(res, delay) );

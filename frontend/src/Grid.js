@@ -289,9 +289,14 @@ export class Grid {
         });
 
         socket.on( "map", (width, height, tiles) => {
-            // console.log( 'Grid.js map: width', width, 'height', height );
+            // console.log( 'Grid.js onMap: width', width, 'height', height );
             this.width = width;
             this.height = height;
+            for ( let [key,tile] of this.tiles.entries() ) {
+                if ( tile.x > width || tile.y > height ) {
+                    this.tiles.delete( tile.x + tile.y*1000 ); // delete to avoid blocks from old maps
+                }
+            }
         });
 
         // let OBSERVATION_DISTANCE;

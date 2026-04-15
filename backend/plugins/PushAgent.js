@@ -1,5 +1,3 @@
-console.log('PushAgent.js loaded');
-
 import Agent from '../src/deliveroo/Agent.js';
 import Grid from '../src/deliveroo/Grid.js';
 import Identity from '../src/deliveroo/Identity.js';

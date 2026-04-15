@@ -1,6 +1,6 @@
 
 /**
- * @typedef { 'frame' | '1s' | '2s' | '5s' | '10s' | 'infinite' } IOClockEvent
+ * @typedef { 'frame' | '1s' | '2s' | '5s' | '10s' | '1m' | '1h' | 'infinite' } IOClockEvent
  */
 
 
@@ -10,7 +10,7 @@
  * @returns { IOClockEvent }
  */
 function parseClockEvent ( event ) {
-    if ( event == 'frame' || event == '1s' || event == '2s' || event == '5s' || event == '10s' || event == 'infinite' )
+    if ( event == 'frame' || event == '1s' || event == '2s' || event == '5s' || event == '10s' || event == '1m' || event == '1h' || event == 'infinite' )
         return event;
     else
         console.warn( `IOClockEvent: invalid event '${event}', defaulting to '1s'` );

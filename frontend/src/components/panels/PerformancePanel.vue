@@ -119,7 +119,7 @@ const getColor = (value, max) => {
                     <span class="text-sm font-bold font-mono">{{ metrics.timing?.frame || 0 }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-xs text-white/70">Virtual Time:</span>
+                    <span class="text-xs text-white/70">Time:</span>
                     <span class="text-sm font-bold font-mono">{{ metrics.timing?.ms || 0 }} ms</span>
                 </div>
                 <div class="flex justify-between items-center">
@@ -132,14 +132,14 @@ const getColor = (value, max) => {
                         {{ eventLoopLag }} ms
                     </span>
                 </div>
-                <div class="flex justify-between items-center">
+                <!-- <div class="flex justify-between items-center">
                     <span class="text-xs text-white/70">Max Lag:</span>
                     <span class="text-sm font-bold font-mono">{{ metrics.eventLoop?.maxLag?.toFixed(2) || 0 }} ms</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-xs text-white/70">Avg Lag:</span>
                     <span class="text-sm font-bold font-mono">{{ metrics.eventLoop?.avgLag?.toFixed(2) || 0 }} ms</span>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -171,7 +171,7 @@ const getColor = (value, max) => {
             <div class="mt-2">
                 <div class="flex items-end gap-px h-[30px] bg-black/30 rounded-sm p-px overflow-hidden" v-html="createBars(memoryHistory, heapTotal || 1000)"></div>
             </div>
-            <div class="grid grid-cols-2 gap-x-4 mb-4">
+            <div class="grid grid-cols-2 gap-x-4 mb-1">
                 <div class="flex justify-between items-center">
                     <span class="text-xs text-white/70">RSS:</span>
                     <span class="text-sm font-bold font-mono">{{ metrics.memory?.rss || 0 }} MB</span>
@@ -197,10 +197,9 @@ const getColor = (value, max) => {
                 <div class="flex items-end gap-px h-[30px] bg-black/30 rounded-sm p-px overflow-hidden" v-html="createBars(latencyHistory, 200)"></div>
             </div>
             <!-- Agent Connections -->
-            <div class="pt-2 border-t border-white/10" v-if="Object.keys(agentConnections).length > 0">
-                <div class="text-xs mb-2">Connections:</div>
-                <div class="max-h-64 overflow-y-auto space-y-2">
-                    <div v-for="(agent, key) in agentConnections" :key="key" class="bg-black/20 rounded p-2">
+            <div class="pt-2" v-if="Object.keys(agentConnections).length > 0">
+                <div class="overflow-y-auto space-y-2">
+                    <div v-for="(agent, key) in agentConnections" :key="key" class="py-1">
                         <div class="font-medium text-white">
                             {{ agent.name }} <span class="text-xs opacity-70">({{ agent.id }})</span>
                             <span v-if="agent.teamName" class="text-xs opacity-70"> - {{ agent.teamName }}({{ agent.teamId }})</span>
@@ -218,6 +217,7 @@ const getColor = (value, max) => {
                 </div>
             </div>
         </div>
+        
     </div>
 
 </template>

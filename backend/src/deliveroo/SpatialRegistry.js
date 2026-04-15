@@ -194,16 +194,18 @@ class SpatialRegistry {
 
         const { item } = stored;
 
+        // Remove from spatial index
+        this.removeFromSpatialIndex( stored );
+
+        // Remove indexed item
+        this.#index.delete( id );
+
         // Check if removed item is at boundary - recompute if needed
         if (item.x >= this.#maxX || item.y >= this.#maxY) {
             this.#recomputeMaxBounds();
         }
 
-        // Remove from spatial index
-        this.removeFromSpatialIndex( stored );
-
-        // Remove indexed item
-        return this.#index.delete( id );
+        return true;
     }
 
 

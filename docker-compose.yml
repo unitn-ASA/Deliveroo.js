@@ -21,7 +21,7 @@ services:
           memory: 256M
     
     environment:
-      - LEVEL=levels/24c1_1
+      - GAME_NAME=circuit_directional
       - PORT=4001
 
     ports: # not needed if proxied by caddy

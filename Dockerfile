@@ -32,6 +32,7 @@ RUN npm ci --prefer-offline --silent
 # Copy application source code
 COPY backend/ backend/
 COPY frontend/ frontend/
+COPY .git ./
 
 # Build application and cleanup dev dependencies to reduce image size
 RUN \
