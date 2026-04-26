@@ -140,7 +140,7 @@
         controls.minAzimuthAngle = -Math.PI/6;
         controls.maxPolarAngle = Math.PI/2.2;
         controls.minPolarAngle = 0;
-        controls.listenToKeyEvents( window );
+        // controls.listenToKeyEvents( window ); // disable arrow keys panning
         controls.screenSpacePanning = false;
         controls.target.set(0, 0, 0);
         controls.update();

@@ -59,7 +59,7 @@ export class Connection {
     draw = ref();
 
     /**
-     * @type {Array<{timestamp:string, socket:string, id:string, name:string, msg:string}>} clientLogs
+     * @type {Array<{timestamp:number, socket:string, id:string, name:string, msg:string}>} clientLogs
      */
     msgs = shallowReactive (new Array());
 
@@ -191,7 +191,7 @@ export class Connection {
             if ( msg == 'who are you?' && reply ) reply('I am the web app')
 
             this.msgs.push( {
-                timestamp: new Date().toISOString(),
+                timestamp: Date.now(),
                 socket: this.ioClient.id,
                 id,
                 name,

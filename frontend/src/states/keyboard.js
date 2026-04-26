@@ -1,8 +1,21 @@
 import { reactive } from "vue";
 
+function isTypingInField() {
+    const el = document.activeElement;
+    if (!el) return false;
+    return (
+        el.tagName === 'TEXTAREA' ||
+        el.tagName === 'INPUT' ||
+        el.tagName === 'SELECT' ||
+        // @ts-ignore
+        el.isContentEditable
+    );
+}
+
 document.onkeydown = async (evt) => {
     // console.log('Keyboard.vue onkeydown', evt.code);
     if (evt.repeat) return; // ignore key continuosly pressed
+    if (isTypingInField()) return; // 🚫 ignore typing
     keys[evt.code] = true;
 }
 

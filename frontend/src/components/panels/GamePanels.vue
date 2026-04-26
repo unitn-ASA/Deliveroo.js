@@ -133,7 +133,7 @@
         
         <div id="right-dashboard" class="text-sm">
             <div class="fixed z-10 w-80 right-4 top-4 max-h-full">
-                <div class="flex flex-col h-full rounded-lg space-y-2">
+                <div class="flex flex-col h-full space-y-2">
 
                     <LatencyIndicator class="z-10"/>
                     
@@ -177,7 +177,7 @@
 
                     <Keyboard v-if="connection?.payload.role != 'admin'" class="z-10"/>
                     
-                    <div class="z-10 collapse collapse-arrow bg-neutral opacity-80 hover:opacity-100 min-h-16 max-h-64">
+                    <!-- <div class="z-10 collapse collapse-arrow bg-neutral opacity-80 hover:opacity-100 min-h-16 max-h-64">
                         <input type="checkbox" v-model="chatOpen"/>
                         <div class="collapse-title font-medium pb-0">
                             Chat
@@ -191,7 +191,7 @@
                         <div id="chat" class="collapse-content">
                             <ChatPanel />
                         </div>
-                    </div>
+                    </div> -->
                     
                     <!-- <div class="z-10 collapse collapse-arrow bg-neutral opacity-80 hover:opacity-100 min-h-16 max-h-96">
                         <input type="checkbox" />
@@ -209,6 +209,18 @@
                         </div>
                     </div> -->
                     
+                </div>
+            </div>
+        </div>
+
+        <div class="text-sm">
+            <div class="fixed w-80 z-10 w-1/2 right-4 bottom-0 max-h-full">
+                <div class="flex flex-col h-full space-y-2">
+                    
+                    <div class="z-10 bg-neutral- rounded-t-lg opacity-80- hover:opacity-100 min-h-16 max-h-64">
+                        <ChatPanel />
+                    </div>
+
                 </div>
             </div>
         </div>
