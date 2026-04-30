@@ -70,16 +70,16 @@
 
         <div id="left-dashboard" class="fixed z-10 top-14 max-h-screen text-sm">
 
-            <div class="ml-4 mb-2 z-10 grid grid-flow-col gap-2 font-mono text-center text-xs w-80" style="overflow: visible;" v-if="connection?.payload.role == 'admin'">
+            <div class="ml-2 mb-2 z-10 grid grid-flow-col gap-2 font-mono text-center text-xs w-80" style="overflow: visible;" v-if="connection?.payload.role == 'admin'">
                 <Chrono />
             </div>
 
             <div class="overflow-scroll" style="max-height: calc(100vh - 5rem); direction: rtl">
-                <div class="flex flex-col space-y-2" style="direction: ltr; overflow: unset;">
+                <div class="ml-2 flex flex-col space-y-2" style="direction: ltr; overflow: unset;">
 
-                    <div class="z-10 collapse collapse-arrow w-80 bg-neutral" v-if="connection?.payload.role == 'admin'">
+                    <div class="z-10 collapse collapse-arrow w-80 gap-1" v-if="connection?.payload.role == 'admin'">
                         <input type="checkbox" checked />
-                        <div class="collapse-title font-medium">Tournament</div>
+                        <div class="collapse-title font-medium rounded-lg bg-neutral">Tournament</div>
                         <div class="collapse-content overflow-hidden p-0" style="min-height:auto!important">
 
                             <Tournament/>

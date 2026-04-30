@@ -19,9 +19,9 @@ export const tournament = reactive(new Array());
 
 
 /**
- * @type {import("vue").ComputedRef< Array<{ id:number, status:string, results:{teamName:string, agents:*[], score:number}[] }>  >}
+ * @type {import("vue").ComputedRef< Array<{ id:number, status:string, results:{teamName:string, agents:{id: string, name:string, teamId: string, teamName: string, score:number}[], score:number}[] }>  >}
  */
-export const goupByTeam = computed(() => {
+export const groupByTeam = computed(() => {
     return tournament.map(round => {
         return {
             id: round.id,
@@ -43,11 +43,11 @@ export const goupByTeam = computed(() => {
 });
 
 /**
- * @type {import("vue").ComputedRef<{teamName:string, agents:*[], score:number}[]>}
+ * @type {import("vue").ComputedRef<{teamName:string, agents:{id: string, name:string, teamId: string, teamName: string, score:number}[], score:number}[]>}
  */
 export const overall = computed(() => {
     const result = new Map();
-    for (const round of goupByTeam.value) {
+    for (const round of groupByTeam.value) {
         for (const team of round.results.values()) {
             if (!result.has(team.teamName)) {
                 result.set(team.teamName, { teamName: team.teamName, agents: team.agents, score: 0 });

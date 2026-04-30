@@ -81,10 +81,10 @@
         </div>
             
         <!-- Area to send a msg -->
-        <div class="join w-full py-2 pointer-events-auto relative w-full">
+        <div class="join w-full py-2 pointer-events-auto relative w-full h-auto">
             <!-- Textarea -->
             <textarea
-                class="join-item textarea leading-tight w-full text-left h-10 text-base-content border-base-content/20"
+                class="join-item textarea leading-tight w-full text-left h-20 text-base-content border-base-content/20"
                 placeholder="Type a message..."
                 v-model="input"
                 @keydown.enter.exact.prevent="sendMsg"
