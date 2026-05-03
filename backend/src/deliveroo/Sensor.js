@@ -214,8 +214,8 @@ class Sensor {
             } );
         };
 
-        // if my position is undefined, sense everything
-        if ( this.#me.x == undefined || this.#me.y == undefined ) {
+        // if my position is undefined OR if unlimited observation_distance (-1), sense everything
+        if ( this.#me.x == undefined || this.#me.y == undefined || config.GAME.player.observation_distance == -1 ) {
             // All tiles
             for ( let tile of this.#grid.tileRegistry.getIterator() ) {
                 positions.push( {x: tile.x, y: tile.y} );
