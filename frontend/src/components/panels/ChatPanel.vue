@@ -1,6 +1,6 @@
 <script setup>
     
-    import { ref, watch, nextTick, computed } from 'vue';
+    import { ref, watch, nextTick, computed, onMounted } from 'vue';
     import { connection } from '../../states/myConnection.js';
 
     const admin = computed(() => {
@@ -39,6 +39,31 @@
                 d.getMinutes().toString().padStart(2, '0');
     }
 
+    const messageInput = ref(null);
+    const expandedMessages = ref(new Set());
+
+    const toggleMessage = (key) => {
+        if (expandedMessages.value.has(key)) {
+            expandedMessages.value.delete(key);
+        } else {
+            expandedMessages.value.add(key);
+        }
+    };
+
+    const autoResize = () => {
+        const textarea = messageInput.value;
+        textarea.style.height = 'auto'; // Reset height
+        textarea.style.height = textarea.scrollHeight + 2 + 'px'; // Set to content height
+    };
+
+    onMounted(() => {
+        autoResize();
+    });
+
+    watch(input, () => {
+        nextTick(() => autoResize());
+    });
+
 </script>
 
 <template>
@@ -47,17 +72,16 @@
         <!-- Messages container -->
         <div class="
             text-xs
-            flex flex-col-reverse overflow-auto
+            flex flex-col-reverse
+            overflow-auto hover:pointer-events-auto
             max-h-32 hover:max-h-screen transition-[max-height] duration-200
-            [mask-image:linear-gradient(to_top,black_70%,transparent)]
-            hover:[mask-image:none]
-            hover:[-webkit-mask-image:none]"
+            [mask-image:linear-gradient(to_top,black_70%,transparent)] hover:[mask-image:none] hover:[-webkit-mask-image:none]"
         >
             <!-- Each message -->
             <div v-for="{timestamp, socket, id, msg, name} of reversedMsgs"
                  :key="`${timestamp}-${socket}-${id}-${msg}`"
-                 class="chat chat-end"
-                 :class="id == me.id ? 'chat-end' : 'chat-start'"
+                 class="chat chat-end hover:pointer-events-auto"
+                 :class="id == me.id ? 'chat-start' : 'chat-end'"
             >
                 <!-- Message bubble -->
                  <div class="chat-bubble opacity-100 text-left rounded-md px-2 pt-0 pb-1 min-w-0 min-h-0 pointer-events-auto"
@@ -69,7 +93,25 @@
                         <span class="font-none opacity-50">{{ id == me.id ? '(me)' : `${id}` }}</span>
                     </div>
                     <span class="whitespace-pre-wrap">
-                        {{ msg.length > 100 ? msg.slice(0,80) + '\n   . . .' + msg.slice(-10) : msg }}
+                        <template v-if="msg.length > 100 && !expandedMessages.has(`${timestamp}-${socket}-${id}`)">
+                            {{ msg.slice(0,80) + ' . . .' }}
+                            <span
+                                class="link link-info link-hover cursor-pointer"
+                                @click="toggleMessage(`${timestamp}-${socket}-${id}`)"
+                            >
+                                (more)
+                            </span>
+                        </template>
+                        <template v-else>
+                            {{ msg }}
+                            <span
+                                v-if="msg.length > 100"
+                                class="link link-info link-hover cursor-pointer"
+                                @click="toggleMessage(`${timestamp}-${socket}-${id}`)"
+                            >
+                                (less)
+                            </span>
+                        </template>
                     </span>
                     <span class="opacity-50 float-right pl-1">
                         {{ formatTime(timestamp) }}
@@ -84,10 +126,12 @@
         <div class="join w-full py-2 pointer-events-auto relative w-full h-auto">
             <!-- Textarea -->
             <textarea
-                class="join-item textarea leading-tight w-full text-left h-20 text-base-content border-base-content/20"
+                ref="messageInput"
+                class="join-item textarea resize-none leading-tight w-full text-left max-h-60 text-base-content border-base-content/20"
                 placeholder="Type a message..."
                 v-model="input"
                 @keydown.enter.exact.prevent="sendMsg"
+                @input="autoResize"
             />
             <!-- Send button -->
             <div class="join-item btn btn-info btn-xs h-auto flex flex-col items-center gap-1"
