@@ -75,12 +75,17 @@
             </div>
 
             <div class="overflow-scroll" style="max-height: calc(100vh - 5rem); direction: rtl">
-                <div class="ml-2 flex flex-col space-y-2" style="direction: ltr; overflow: unset;">
+                <div class="flex flex-col space-y-2" style="direction: ltr; overflow: unset;">
 
-                    <div class="z-10 collapse collapse-arrow w-80 gap-1" v-if="connection?.payload.role == 'admin'">
-                        <input type="checkbox" checked />
-                        <div class="collapse-title font-medium rounded-lg bg-neutral">Tournament</div>
-                        <div class="collapse-content overflow-hidden p-0" style="min-height:auto!important">
+                    <div
+                        v-if="connection?.payload.role == 'admin'"
+                        class="z-10 collapse collapse-arrow rounded-2xl bg-neutral"
+                    >
+                        <input type="checkbox" class="bg-neutral w-80"/>
+                        <div class="collapse-title font-medium rounded-2xl bg-neutral w-80">Tournament</div>
+                        <div class="collapse-content overflow-hidden p-0
+                                    overflow-x-auto rounded-2xl resize-x w-80 min-w-80 max-w-full"
+                             style="min-height:auto!important">
 
                             <Tournament/>
 
@@ -88,7 +93,7 @@
                     </div>
 
                     <div class="z-10 collapse collapse-arrow w-80 bg-neutral" v-if="connection?.payload.role == 'admin'">
-                        <input type="checkbox" checked />
+                        <input type="checkbox" />
                         <div class="collapse-title font-medium">Performance Dashboard</div>
                         <div class="collapse-content overflow-hidden p-0" style="min-height:auto!important">
 
@@ -132,7 +137,7 @@
         </div>
         
         <div id="right-dashboard" class="text-sm">
-            <div class="fixed z-10 w-80 right-4 top-4 max-h-full">
+            <div class="fixed z-10 w-80 right-2 top-4 max-h-full">
                 <div class="flex flex-col h-full space-y-2">
 
                     <LatencyIndicator class="z-10"/>
@@ -214,7 +219,7 @@
         </div>
 
         <div class="text-sm">
-            <div class="fixed w-80 z-10 w-1/2 right-4 bottom-0 max-h-full">
+            <div class="fixed w-80 z-10 w-1/2 right-2 bottom-0 max-h-full">
                 <div class="flex flex-col h-full space-y-2">
                     
                     <div class="z-10 bg-neutral- rounded-t-lg opacity-80- hover:opacity-100 min-h-16 max-h-64">

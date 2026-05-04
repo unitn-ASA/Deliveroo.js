@@ -52,7 +52,7 @@
                                     'text-red-500': agent.status == 'offline',
                                     'text-2xl': agent.id==connection.payload.id
                                 }">
-                                    {{ agent.status == 'offline' ? '🔴' : agent.status == 'out of range' ? '🟡' : '🟢' }}
+                                    {{ agent.status == 'offline' || agent.status == 'lost' ? '🔴' : agent.status == 'out of range' ? '🟡' : '🟢' }}
                                 </span>
                             </div>
                         </td>

@@ -1,7 +1,7 @@
 <script setup>
         
-    import { watchEffect, ref, computed, onMounted } from 'vue';
-    import { saveRound } from '@/states/myTournament';
+    import { ref, computed, watch } from 'vue';
+    import { tournament, startRound, stopRound, saveRound } from '@/states/myTournament';
     import { connection } from '../../states/myConnection.js';
     import api from '../../utils/api.js';
 
@@ -39,13 +39,15 @@
                 timer.value -= 1000;
             }
         }, 1000);
+        startRound();
     }
 
     function clear() {
         clearInterval(interval);
+        stopRound();
         interval = null;
         timer.value = 1000*60*3; // 3min
-    }
+    };
     
 </script>
 

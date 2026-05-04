@@ -3,8 +3,8 @@
 </script>
 
 <template>
-    <main class="relative">
-        <div class="absolute left-0 marquee gap-4 width-auto">
+    <main class="relative overflow-hidden">
+        <div class="absolute left-0 marquee flex whitespace-nowrap gap-4 width-auto">
             <span>
                 <slot></slot>
             </span>
@@ -34,8 +34,6 @@
     100% { transform: translateX(-20%); }
 }
 .marquee {
-    display: flex;
-    white-space: nowrap;
     animation: scroll-text 3s linear infinite;
 }
 .marquee:hover {

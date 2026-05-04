@@ -73,7 +73,7 @@
         <div class="
             text-xs
             flex flex-col-reverse
-            overflow-auto hover:pointer-events-auto
+            overflow-y-scroll hover:pointer-events-auto
             max-h-32 hover:max-h-screen transition-[max-height] duration-200
             [mask-image:linear-gradient(to_top,black_70%,transparent)] hover:[mask-image:none] hover:[-webkit-mask-image:none]"
         >
@@ -85,7 +85,7 @@
             >
                 <!-- Message bubble -->
                  <div class="chat-bubble opacity-100 text-left rounded-md px-2 pt-0 pb-1 min-w-0 min-h-0 pointer-events-auto"
-                      :class="id == me.id ? 'chat-bubble-neutral' : 'chat-bubble-info'"
+                      :class="id == me.id ? 'chat-bubble-info' : 'chat-bubble-neutral'"
                 >
                     <div class="chat-header text-xs font-bold text-right">
                         <!-- <time class="text-xs opacity-50">{{timestamp}}</time> -->
@@ -96,7 +96,7 @@
                         <template v-if="msg.length > 100 && !expandedMessages.has(`${timestamp}-${socket}-${id}`)">
                             {{ msg.slice(0,80) + ' . . .' }}
                             <span
-                                class="link link-info link-hover cursor-pointer"
+                                class="link link-warning link-hover cursor-pointer"
                                 @click="toggleMessage(`${timestamp}-${socket}-${id}`)"
                             >
                                 (more)
@@ -106,7 +106,7 @@
                             {{ msg }}
                             <span
                                 v-if="msg.length > 100"
-                                class="link link-info link-hover cursor-pointer"
+                                class="link link-warning link-hover cursor-pointer"
                                 @click="toggleMessage(`${timestamp}-${socket}-${id}`)"
                             >
                                 (less)
