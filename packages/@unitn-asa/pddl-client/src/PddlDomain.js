@@ -8,12 +8,26 @@ export default class PddlDomain {
     
     static nextId = 0;
 
+    /**
+     * Name of the domain, automatically generated as 'domain-' + name + '-' + nextId, where nextId is a static variable incremented at each instantiation.
+     * @type {String}
+     */
     name = '';
+    
+    /**
+     * Predicates of the domain, in the form of an array of strings, e.g. ['light-on ?l', 'switched-off ?l'].
+     * @type {String[]}
+     */
     predicates = [];
+    
+    /**
+     * Actions of the domain, in the form of an array of PddlAction instances.
+     * @type {PddlAction[]}
+     */
     actions = [];
 
     /**
-     * 
+     * Constructor for creating a PDDL domain.
      * @param {string} name 
      * @param {PddlAction[]} actions 
      */
@@ -24,6 +38,11 @@ export default class PddlDomain {
         
     }
     
+    /**
+     * 
+     * @param {String} predicate - Predicate to add, in the form of a string, e.g. 'light-on ?l'. 
+     * @returns 
+     */
     addPredicate (predicate) { // predicate = 'light-on ?l'
         if ( this.predicates.find( (e) => e == predicate ) )
             return false;
@@ -41,11 +60,12 @@ export default class PddlDomain {
 
         for ( let action of actions ) {
             
-            /** @argument {Array<array|string>} tokenized e.g. [ 'and', [ 'switched-on', '?l' ], [ 'not', [ 'switched-off', '?l' ] ] ] */
+            /** @argument {Array<Array<Array<String>|String>|String>} tokenized e.g. [ 'and', [ 'switched-on', '?l' ], [ 'not', [ 'switched-off', '?l' ] ] ] */
             const recursiveNavigateTokenized = ( tokenized ) => {
                 if ( tokenized[1] && Array.isArray(tokenized[1]) ) {
                     for ( let subtokenized of tokenized.slice(1) )
-                        recursiveNavigateTokenized( subtokenized );
+                        if ( Array.isArray( subtokenized ) )
+                            recursiveNavigateTokenized( subtokenized );
                 } else {
                     this.addPredicate( tokenized.join(' ') );
                 }

@@ -6,6 +6,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Reads a file asynchronously.
+ * @param {string} filePath - The path to the file to read.
+ * @returns {Promise<string>} A promise resolving to the file content.
+ */
 function readFile ( filePath ) {
 
     filePath = path.join(__dirname, filePath);
@@ -36,8 +41,12 @@ async function main () {
     let domain = await readFile('./domain-lights.pddl' );
 
     var plan = await onlineSolver( domain, problem );
+    if ( ! plan ) {
+        console.log('No plan found');
+        return;
+    }
     
-    const pddlExecutor = new PddlExecutor( { name: 'lightOn', executor: (l) => console.log('lighton '+l) } );
+    const pddlExecutor = new PddlExecutor( { name: 'lightOn', executor: (/** @type {string} */ l) => console.log('lighton '+l) } );
     pddlExecutor.exec( plan );
 
 }

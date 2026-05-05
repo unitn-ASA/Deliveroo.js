@@ -1,4 +1,3 @@
-
 /**
  * @typedef { { parallel: boolean, action: string, args: string [] } } PddlPlanStep
  */
@@ -7,24 +6,40 @@
  * @typedef { PddlPlanStep [] } PddlPlan
  */
 
+/**
+ * @typedef { { name: string, executor: (...args: string[]) => any } } ExecutableAction
+ */
+
 export default class PddlExecutor {
-    
+
     /**
-     * 
-     * @param { ...{pddlAction} } actions 
+     * @type {Object.<string, ExecutableAction>} actions - A dictionary of executable actions, indexed by their name in lowercase.
+     */
+    actions = {}
+
+    /**
+     *
+     * @param { ...ExecutableAction } actions
      */
     constructor ( ...actions ) {
         this.addAction(...actions);
     }
 
-    actions = {}
-
+    /**
+     *
+     * @param  {...ExecutableAction} actions
+     */
     addAction (...actions) {
         for ( let action of actions ) {
             this.actions[action.name.toLowerCase()] = action;
         }
     }
 
+    /**
+     *
+     * @param {string} name
+     * @returns {ExecutableAction} the executable action with the given name
+     */
     getAction (name) {
         return this.actions[name.toLowerCase()]
     }
@@ -57,7 +72,7 @@ export default class PddlExecutor {
 
             var exec = action.executor(...step.args)
             if ( exec && exec.catch ) {
-                exec.catch( err => { throw err } ); //new Error('Step failed');
+                exec.catch(/** @param {Error} err */ err => { throw err } ); //new Error('Step failed');
                 previousStepGoals.push( exec );
             }
             else {

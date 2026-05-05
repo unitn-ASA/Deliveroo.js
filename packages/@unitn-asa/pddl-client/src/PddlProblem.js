@@ -6,6 +6,36 @@ export default class PddlProblem {
     
     static nextId = 0;
 
+    /**
+     * Name of the problem, automatically generated as 'problem-' + name + '-' + nextId, where nextId is a static variable incremented at each instantiation.
+     * @type {String}
+     */
+    name;
+    /**
+     * Objects of the problem, in the form of a string
+     * E.g. 'light1 light2'.
+     * @type {String}
+     */
+    objects;
+    /**
+     * Initial state of the problem, in the form of a string.
+     * E.g. '(switched-off light1) (switched-off light2)'
+     * @type {String}
+     */
+    inits;
+    /**
+     * Goal state of the problem, in the form of a string.
+     * E.g. '(switched-on light1) (switched-on light2)'
+     * @type {String}
+     */
+    goals;
+
+    /**
+     * @param {String} name 
+     * @param {String} objects 
+     * @param {String} init 
+     * @param {String} goal 
+     */
     constructor (name, objects, init, goal) {
         this.name = 'problem-' + name + '-' + PddlProblem.nextId++;
         this.objects = objects;

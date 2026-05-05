@@ -1,6 +1,9 @@
 export default class Beliefset {
     
+    /** @type {Set<String>} */
     #objects = new Set();
+
+    /** @type {Map<String, boolean>} */
     #facts = new Map();
     
     constructor () {
@@ -8,18 +11,29 @@ export default class Beliefset {
 
 
 
+    /**
+     * Add an object to the beliefset
+     * @param {String} obj 
+     */
     addObject (obj) {
         if (!(typeof obj === 'string'))
             throw('String expected, got ' + typeof obj + ': ' + obj)
         this.#objects.add(obj)
     }
 
+    /**
+     * Remove an object from the beliefset.
+     * @param {String} obj 
+     */
     removeObject (obj) {
         if (!(typeof obj === 'string'))
             throw('String expected, got ' + typeof obj + ': ' + obj)
         this.#objects.delete(obj);
     }
 
+    /**
+     * @returns {String[]} An array of objects in the beliefset
+     */
     get objects () {
         return Array.from( this.#objects );
     }
@@ -64,6 +78,7 @@ export default class Beliefset {
 
 
     /**
+     * Get the entries in the beliefset, in the form of an array of [fact:string, positive:boolean] e.g. [ ['light_on kitchen_light', true], ['light_on kitchen_light2', false] ]
      * @type { [fact:string, positive:boolean] [] }
      */
     get entries () {

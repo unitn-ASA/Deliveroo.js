@@ -4,6 +4,10 @@ const HOST = process.env.PAAS_HOST || 'https://solver.planning.domains:5001';
 const PATH = process.env.PAAS_PATH || '/package/dual-bfws-ffparser/solve';
 
 /**
+ * @typedef { {result: {stdout: string, call: string, output: {sas_plan: string, plan: string}}, status: string} } jsonResponse
+ */
+
+/**
  * @typedef { { parallel: boolean, action: string, args: string [] } } pddlPlanStep
  */
 
@@ -11,7 +15,7 @@ const PATH = process.env.PAAS_PATH || '/package/dual-bfws-ffparser/solve';
 /**
  * @param {String} pddlDomain 
  * @param {String} pddlProblem 
- * @returns { Promise < pddlPlanStep [] > }
+ * @returns { Promise < pddlPlanStep [] | undefined > }
  */
 export default async function onlineSolver (pddlDomain, pddlProblem) {
 
@@ -25,11 +29,18 @@ export default async function onlineSolver (pddlDomain, pddlProblem) {
 }
 
 
+/**
+ * @param {string} pddlDomain 
+ * @param {string} pddlProblem 
+ * @returns 
+ */
 async function postRequest (pddlDomain, pddlProblem) {
 
+    // @ts-ignore
     if ( typeof pddlDomain !== 'string' && ! (pddlDomain instanceof String) )
         throw new Error( 'pddlDomain is not a string' );
 
+    // @ts-ignore
     if ( typeof pddlProblem !== 'string' && ! (pddlProblem instanceof String) )
         throw new Error( 'pddlProblem is not a string' );
 
@@ -48,7 +59,7 @@ async function postRequest (pddlDomain, pddlProblem) {
         throw new Error( `Error at ${ HOST + PATH } ${ await res.text() }` );
     }
 
-    var json = await res.json();
+    var json = /** @type {jsonResponse} */ (await res.json());
     
     // console.log(res);
 
@@ -61,6 +72,11 @@ async function postRequest (pddlDomain, pddlProblem) {
 }
 
 
+/**
+ * 
+ * @param {String} responseCheckUrl 
+ * @returns {Promise<jsonResponse>}
+ */
 async function getResult (responseCheckUrl) {
 
     while (true) {
@@ -76,10 +92,10 @@ async function getResult (responseCheckUrl) {
         });
 
         if ( res.status != 200 ) {
-            throw new Error( `Received HTTP error from ${ HOST + res.result } ` + await res.text() );
+            throw new Error( `Received HTTP error from ${ responseCheckUrl } ` + await res.text() );
         }
     
-        var json = await res.json();
+        var json = /** @type {jsonResponse} */ (await res.json());
 
         if ( json.status == 'PENDING') {
             await new Promise( (res, rej) => setTimeout(res, 100) );
@@ -103,7 +119,7 @@ async function getResult (responseCheckUrl) {
         throw new Error( `No 'result' in response body from ${responseCheckUrl}` );
     }
     
-    if ( ! 'stdout' in json.result ) {
+    if ( ! ('stdout' in json.result) ) {
         console.log(json);
         throw new Error( `No 'result.stdout' in response from ${responseCheckUrl}` );
     }
@@ -113,7 +129,8 @@ async function getResult (responseCheckUrl) {
 }
 
 /**
- * @returns {Promise<pddlPlanStep[]>}
+ * @param {jsonResponse} json
+ * @returns {Promise<pddlPlanStep[] | undefined>}
  */
 async function parsePlan (json) {
 
@@ -127,7 +144,7 @@ async function parsePlan (json) {
 
         console.log( 'Using parser for /package/dual-bfws-ffparser/solve');
 
-        lines = lines.map( line => line.replace('(','').replace(')','').split(' ') );
+        lines = (/** @type {string[]} */ (lines)).map( line => line.replace('(','').replace(')','').split(' ') );
         lines = lines.slice(0,-1);
     }
 
@@ -136,7 +153,7 @@ async function parsePlan (json) {
         
         console.log( 'Using parser for /package/delfi/solve');
 
-        lines = lines.map( line => line.replace('(','').replace(')','').split(' ') );
+        lines = (/** @type {string[]} */ (lines)).map( line => line.replace('(','').replace(')','').split(' ') );
         lines = lines.slice(0,-1);
     }
 
@@ -148,8 +165,8 @@ async function parsePlan (json) {
         let startIndex = lines.indexOf('Problem Solved') + 1;
         let endIndex = lines.findIndex( (line) => line.includes('Plan-Length') );
         lines = lines.slice( startIndex, endIndex );
-        
-        lines = lines.map( line => line.replace('(','').replace(')','').split(' ').slice(1) );
+
+        lines = (/** @type {string[]} */ (lines)).map( line => line.replace('(','').replace(')','').split(' ').slice(1) );
     }
 
     // PARSING plan from /package/optic/solve
@@ -160,7 +177,7 @@ async function parsePlan (json) {
         let startIndex = lines.indexOf(';;;; Solution Found') + 1;
         lines = lines.slice( startIndex + 3 );
 
-        lines = lines.map( line => line.replace('(','').replace(')','').split(' ').slice(1, -1) );
+        lines = (/** @type {string[]} */ (lines)).map( line => line.replace('(','').replace(')','').split(' ').slice(1, -1) );
         lines = lines.slice(0,-1);
     }
 
@@ -170,7 +187,7 @@ async function parsePlan (json) {
         console.log( 'Using parser for /package/lama-first/solve');
 
         lines = json.result.output.sas_plan.split(';')[0].split('\n');
-        lines = lines.map( line => line.replace('(','').replace(')','').split(' ') );
+        lines = (/** @type {string[]} */ (lines)).map( line => line.replace('(','').replace(')','').split(' ') );
         lines = lines.slice(0,-1);
     }
 
@@ -185,12 +202,12 @@ async function parsePlan (json) {
 
     console.log( 'Plan found:' )
 
-    for ( let /**@type {string}*/ line of lines ) {
+    for ( let line of (/**@type {string[][]}*/ (lines)) ) {
 
         console.log('- ' + line);
 
         // var number = line.shift()
-        var action = line.shift()
+        var action = line.shift() || '';
         var args = line
         
         plan.push( { parallel: false/*number==previousNumber*/, action: action, args: args } );

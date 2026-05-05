@@ -21,7 +21,7 @@ async function main () {
         '?l',
         'and (switched-off ?l)',
         'and (switched-on ?l) (not (switched-off ?l))',
-        async ( l ) => console.log( 'exec lightOn', l )
+        async (/** @type {string} */ l ) => console.log( 'exec lightOn', l )
     );
     console.log( lightOn.toPddlString() )
     console.log( PddlAction.tokenize( lightOn.precondition ) )
@@ -36,6 +36,10 @@ async function main () {
     console.log( domain )
 
     var plan = await onlineSolver( domain, problem );
+    if ( ! plan ) {
+        console.log('No plan found');
+        return;
+    }
     
     /** Execute */
     const pddlExecutor = new PddlExecutor( lightOn );
