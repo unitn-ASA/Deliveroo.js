@@ -44,7 +44,7 @@
   ],
   "parcels": {
     "generation_event": "2s",
-    "decading_event": "1s",
+    "decaying_event": "1s",
     "max": 50,
     "reward_avg": 30,
     "reward_variance": 20

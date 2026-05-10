@@ -75,7 +75,7 @@ function validateGameOptions(obj) {
         if (typeof obj.parcels !== 'object') errs.push('parcels must be an object');
         else {
             if ('generation_event' in obj.parcels && ! ['frame','1s','2s','5s','10s'].includes(obj.parcels.generation_event)) errs.push('parcels.generation_event must be one of frame, 1s, 2s, 5s, 10s');
-            if ('decading_event' in obj.parcels && ! ['frame','1s','2s','5s','10s'].includes(obj.parcels.generation_event)) errs.push('parcels.decading_event must be one of frame, 1s, 2s, 5s, 10s');
+            if ('decaying_event' in obj.parcels && ! ['frame','1s','2s','5s','10s'].includes(obj.parcels.generation_event)) errs.push('parcels.decaying_event must be one of frame, 1s, 2s, 5s, 10s');
             if ('max' in obj.parcels && typeof obj.parcels.max !== 'number') errs.push('parcels.max must be a number');
             if ('reward_avg' in obj.parcels && typeof obj.parcels.reward_avg !== 'number') errs.push('parcels.reward_avg must be a number');
             if ('reward_variance' in obj.parcels && typeof obj.parcels.reward_variance !== 'number') errs.push('parcels.reward_variance must be a number');

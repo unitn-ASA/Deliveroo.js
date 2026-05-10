@@ -64,7 +64,7 @@ export function parseJson(json, strict = true) {
     try {
         parsed = JSON.parse(json, (key, value) => {
             // Convert event string into IOClockEvent
-            if (key === 'moving_event' || key === 'generation_event' || key === 'decading_event') {
+            if (key === 'moving_event' || key === 'generation_event' || key === 'decaying_event') {
                 return parseClockEvent(value);
             }
             return value;

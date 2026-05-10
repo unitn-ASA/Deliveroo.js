@@ -47,7 +47,7 @@
   ],
   "parcels": {
     "generation_event": "1s",
-    "decading_event": "infinite",
+    "decaying_event": "infinite",
     "max": 25,
     "reward_avg": 30,
     "reward_variance": 2

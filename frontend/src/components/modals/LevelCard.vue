@@ -37,6 +37,133 @@
         return transposed;
     });
 
+    // Check if a tile (in rendered coordinates) is within the sensing distance from center
+    function isInSensingArea(rowIndex, colIndex) {
+        if (!level.value?.map?.tiles) return false;
+        const WIDTH = level.value.map.tiles.length;
+        const HEIGHT = level.value.map.tiles[0].length;
+
+        const centerX = Math.floor(WIDTH / 2);
+        const centerY = Math.floor(HEIGHT / 2);
+
+        // Convert rendered coordinates back to original map coordinates
+        const originalX = colIndex;
+        const originalY = HEIGHT - 1 - rowIndex;
+
+        const manhattanDistance = Math.abs(originalX - centerX) + Math.abs(originalY - centerY);
+        const observationDistance = level.value?.player?.observation_distance ?? 0;
+
+        return observationDistance !== -1 && manhattanDistance <= observationDistance;
+    }
+
+    // Check if a grid cell in the vision indicator diamond should be highlighted
+    function isInVisionDiamond(rowIndex, colIndex, distance) {
+        const center = distance; // Center index in a (distance*2+1) grid
+        const manhattanDistance = Math.abs(rowIndex - center) + Math.abs(colIndex - center);
+        return manhattanDistance <= distance;
+    }
+
+    // Generate random positions for NPCs with animation parameters
+    const npcPositions = computed(() => {
+        if (!level.value?.npcs || !level.value?.map?.tiles) return [];
+
+        const WIDTH = level.value.map.tiles.length;
+        const HEIGHT = level.value.map.tiles[0].length;
+        const npcs = [];
+
+        // Use player.movement_duration for time taken to move one tile (in ms)
+        const movementDuration = level.value?.player?.movement_duration || 1000;
+
+        let id = 0;
+        for (const npcType of level.value.npcs) {
+            for (let i = 0; i < npcType.count; i++) {
+                // Generate random position
+                const x = Math.floor(Math.random() * WIDTH);
+                const y = Math.floor(Math.random() * HEIGHT);
+
+                // Parse npc.moving_event (wait time between movements)
+                // Can be: "frame", "1s", "2s", "5s", "10s", or "infinite"
+                let waitTime = 2000; // default 2 seconds wait between movements
+                let isFrameBased = false;
+
+                if (npcType.moving_event && npcType.moving_event !== 'infinite') {
+                    if (npcType.moving_event === 'frame') {
+                        // Frame-based movement (no wait, moves every frame)
+                        waitTime = 0;
+                        isFrameBased = true;
+                    } else {
+                        // Parse time-based values: "1s", "2s", "500ms", etc.
+                        const match = npcType.moving_event.match(/(\d+)\s*(s|ms)?/);
+                        if (match) {
+                            const value = parseInt(match[1]);
+                            const unit = match[2] === 'ms' ? 1 : 1000;
+                            waitTime = value * unit;
+                        }
+                    }
+                }
+
+                // Calculate animation parameters
+                // For each tile move: movementDuration (moving) + waitTime (waiting)
+                // We show NPCs moving 1 tile back and forth
+                const tilesToMove = 1; // Show simple 1-tile movement
+
+                // Total cycle for one direction and back:
+                // Move there (movementDuration) + Wait (waitTime) + Move back (movementDuration) + Wait (waitTime)
+                const totalCycleDuration = (movementDuration * 2 + waitTime * 2) / 1000; // in seconds
+
+                // Calculate actual percentage points for keyframe animation
+                const totalMs = movementDuration * 2 + waitTime * 2;
+                const p1 = (movementDuration / totalMs) * 100; // end of first move
+                const p2 = ((movementDuration + waitTime) / totalMs) * 100; // end of first wait
+                const p3 = ((movementDuration * 2 + waitTime) / totalMs) * 100; // end of second move
+
+                // Generate unique keyframe animation name for this NPC
+                const animNameH = `moveH-${id}`;
+                const animNameV = `moveV-${id}`;
+
+                // Inject dynamic keyframes for this NPC
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes ${animNameH} {
+                        0% { transform: translateX(0); }
+                        ${p1.toFixed(2)}% { transform: translateX(var(--movement)); }
+                        ${p2.toFixed(2)}% { transform: translateX(var(--movement)); }
+                        ${p3.toFixed(2)}% { transform: translateX(0); }
+                        100% { transform: translateX(0); }
+                    }
+                    @keyframes ${animNameV} {
+                        0% { transform: translateY(0); }
+                        ${p1.toFixed(2)}% { transform: translateY(var(--movement)); }
+                        ${p2.toFixed(2)}% { transform: translateY(var(--movement)); }
+                        ${p3.toFixed(2)}% { transform: translateY(0); }
+                        100% { transform: translateY(0); }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Random start delay for natural movement
+                const delay = Math.random() * 2; // 0-2 seconds
+                const direction = Math.random() > 0.5 ? 'horizontal' : 'vertical';
+
+                npcs.push({
+                    id: id++,
+                    type: npcType.type,
+                    x: x,
+                    y: y,
+                    tilesToMove: tilesToMove,
+                    duration: totalCycleDuration,
+                    delay: delay,
+                    direction: direction,
+                    movingEvent: npcType.moving_event,
+                    animNameH: animNameH,
+                    animNameV: animNameV
+                });
+            }
+        }
+
+        return npcs;
+    });
+
     async function loadLevel() {
         await api.patchConfig(connection.token, { GAME: level.value });
         // emit('update:modelValue', level);
@@ -116,34 +243,26 @@
                     <!-- Vision -->
                     <div class="bg-base-300 rounded-lg">
                         <div class="stat-title text-[10px]">Vision</div>
-                        <div class="stat-value text-sm mt-1 mb-2">
-                            <div class="flex items-center justify-center gap-0.5">
-                                <!-- Agents to the left -->
-                                <div v-if=" // @ts-ignore
-                                            level?.player?.observation_distance == -1">
-                                    ∞
-                                </div>
-                                <div
-                                    v-else
-                                        v-for="// @ts-ignore
-                                            n in Math.max(0, level?.player?.observation_distance - 1)"
-                                            :key="'left-' + n"
-                                            class="w-1 h-1 rounded-full bg-info">
-                                </div>
-                                <!-- You in the middle -->
-                                <div class="w-1.5 h-1.5 rounded-full bg-primary" title="You"></div>
-                                <!-- Parcels to the right -->
-                                <div v-if=" // @ts-ignore
-                                            level?.player?.observation_distance == -1">
-                                    ∞
-                                </div>
-                                <div
-                                    v-else
-                                    v-for="n in Math.max(0, level?.player?.observation_distance - 1)"
-                                    :key="'right-' + n"
-                                    class="w-1 h-1 rounded-sm bg-warning">
-                                </div>
+                        <div class="flex items-center justify-center gap-2">
+                            <div class="stat-value text-xs">{{ level?.player?.observation_distance == -1 ? '∞' : level?.player?.observation_distance }}</div>
+                            <div
+                                v-if="level?.player?.observation_distance != -1"
+                                class="grid gap-px"
+                                :style="{
+                                    gridTemplateColumns: `repeat(${level?.player?.observation_distance * 2 + 1}, 4px)`,
+                                    gridTemplateRows: `repeat(${level?.player?.observation_distance * 2 + 1}, 4px)`
+                                }"
+                            >
+                                <template v-for="(_, rowIndex) in (level?.player?.observation_distance * 2 + 1)" :key="`row-${rowIndex}`">
+                                    <div
+                                        v-for="(_, colIndex) in (level?.player?.observation_distance * 2 + 1)"
+                                        :key="`cell-${rowIndex}-${colIndex}`"
+                                        class="w-1 h-1"
+                                        :class="{ 'bg-info rounded-sm': isInVisionDiamond(rowIndex, colIndex, level?.player?.observation_distance) }"
+                                    />
+                                </template>
                             </div>
+                            <div v-else class="text-info text-xs">∞</div>
                         </div>
                     </div>
 
@@ -233,11 +352,45 @@
             <!-- Map Preview -->
             <div class="bg-base-300 rounded-lg p-2">
                 <div class="stat-value text-xs mb-1">{{ level?.map?.tiles?.length }}×{{ level?.map?.tiles?.[0]?.length }}</div>
-                <img v-if="level?.png" :src="HOST+level?.png" class="w-full h-auto bg-slate-800" :title="`${level?.map?.width}×${level?.map?.height}`"/>
-                <div v-else>
+                <div v-if="level?.png" class="relative w-full bg-slate-800">
+                    <img :src="HOST+level?.png" class="w-full h-auto block" :title="`${level?.map?.width}×${level?.map?.height}`"/>
+                    <div
+                        class="absolute inset-0"
+                        :style="{
+                            display: 'grid',
+                            gridTemplateColumns: `repeat(${level?.map?.tiles?.length}, 1fr)`,
+                            gridTemplateRows: `repeat(${level?.map?.tiles?.[0]?.length}, 1fr)`
+                        }"
+                    >
+                        <template v-for="(_, rowIndex) in level?.map?.tiles?.[0]" :key="`row-${rowIndex}`">
+                            <div
+                                v-for="(_, colIndex) in level?.map?.tiles"
+                                :key="`cell-${rowIndex}-${colIndex}`"
+                                class="w-full h-full"
+                                :class="{ 'bg-info/30 hover:bg-info/50 transition-colors': isInSensingArea(rowIndex, colIndex) }"
+                            />
+                        </template>
+                    </div>
+                    <!-- NPCs overlay -->
+                    <div
+                        v-for="npc in npcPositions"
+                        :key="`npc-${npc.id}`"
+                        class="npc-indicator"
+                        :style="{
+                            left: `${(npc.x / level?.map?.tiles?.length) * 100}%`,
+                            top: `${(npc.y / level?.map?.tiles?.[0]?.length) * 100}%`,
+                            '--movement': `${npc.tilesToMove * (100 / level?.map?.tiles?.length)}%`,
+                            'animation-name': npc.direction === 'horizontal' ? npc.animNameH : npc.animNameV,
+                            'animation-duration': `${npc.duration}s`,
+                            'animation-delay': `${npc.delay}s`
+                        }"
+                        :title="`${npc.type} NPC (${npc.movingEvent}) at (${npc.x}, ${npc.y})`"
+                    />
+                </div>
+                <div v-else class="relative">
                     <!-- <div class="text-xs text-center text-base-content/60">No map preview available</div> -->
-                    <div class="flex justify-center" v-for="row in transposeAndFlipVertically" >
-                        <div class="bg-purple-500 text-white" v-for="type in row" >
+                    <div class="flex justify-center" v-for="(row, rowIndex) in transposeAndFlipVertically" >
+                        <div class="bg-purple-500 text-white" v-for="(type, colIndex) in row" >
                             <div
                                 class="w-3 h-3 border border-base-content text-[10px] flex items-center justify-center overflow-hidden"
                                 :class="{
@@ -247,11 +400,27 @@
                                     'bg-gray-300 text-black': type == '3',
                                     'bg-blue-500 text-white': type == '↓' || type == '↑' || type == '→' || type == '←',
                                     'bg-yellow-400 text-black': type == '5',
-                                    'bg-yellow-500 text-black': type == '5!'
+                                    'bg-yellow-500 text-black': type == '5!',
+                                    'opacity-40': isInSensingArea(rowIndex, colIndex)
                                 }"
                             >{{ type }}</div>
                         </div>
                     </div>
+                    <!-- NPCs overlay for tile-based preview -->
+                    <div
+                        v-for="npc in npcPositions"
+                        :key="`npc-tile-${npc.id}`"
+                        class="npc-indicator"
+                        :style="{
+                            left: `${npc.x * 12 + 2}px`,
+                            top: `${npc.y * 12 + 2}px`,
+                            '--movement': `${npc.tilesToMove * 12}px`,
+                            'animation-name': npc.direction === 'horizontal' ? npc.animNameH : npc.animNameV,
+                            'animation-duration': `${npc.duration}s`,
+                            'animation-delay': `${npc.delay}s`
+                        }"
+                        :title="`${npc.type} NPC (${npc.movingEvent}) at (${npc.x}, ${npc.y})`"
+                    />
                 </div>
             </div>
 
@@ -288,6 +457,19 @@
     100% {
         width: 100%;
     }
+}
+
+.npc-indicator {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: oklch(0.6 0.2 250); /* info color equivalent */
+    border: 1px solid white;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
 }
 
 </style>
