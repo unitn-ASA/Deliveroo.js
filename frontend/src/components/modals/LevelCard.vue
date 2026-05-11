@@ -13,7 +13,7 @@
     const emit = defineEmits(['update:modelValue']);
 
     /** This is done only to forcefully apply JSDoc typing on props.level */
-    /** @type {import('vue').Ref< import('@unitn-asa/deliveroo-js-sdk/client').IOGameOptions & { self: string, png: string } >} */
+    /** @type {import('vue').Ref< import('@unitn-asa/deliveroo-js-sdk/client').IOGameOptions & { self: string, png: string, layers?: { npcs?: string, observation?: string } } >} */
     // @ts-ignore
     const level = ref({});
 
@@ -352,9 +352,28 @@
             <!-- Map Preview -->
             <div class="bg-base-300 rounded-lg p-2">
                 <div class="stat-value text-xs mb-1">{{ level?.map?.tiles?.length }}×{{ level?.map?.tiles?.[0]?.length }}</div>
-                <div v-if="level?.png" class="relative w-full bg-slate-800">
-                    <img :src="HOST+level?.png" class="w-full h-auto block" :title="`${level?.map?.width}×${level?.map?.height}`"/>
+                <div v-if="level?.png" class="relative w-full bg-slate-800" :style="{ aspectRatio: `${level?.map?.tiles?.length}/${level?.map?.tiles?.[0]?.length}` }">
+                    <!-- Base Map Layer -->
+                    <img :src="HOST+level?.png" class="absolute inset-0 w-full h-full" />
+
+                    <!-- NPC Animation Layer (if available) -->
+                    <img
+                        v-if="level?.layers?.npcs"
+                        :src="HOST+level.layers.npcs"
+                        class="absolute inset-0 w-full h-full"
+                        style="image-rendering: pixelated;"
+                    />
+
+                    <!-- Observation Area Layer (if available) -->
+                    <img
+                        v-if="level?.layers?.observation"
+                        :src="HOST+level.layers.observation"
+                        class="absolute inset-0 w-full h-full"
+                    />
+
+                    <!-- Fallback: CSS-based sensing area overlay if no observation layer -->
                     <div
+                        v-if="!level?.layers?.observation"
                         class="absolute inset-0"
                         :style="{
                             display: 'grid',
@@ -371,21 +390,6 @@
                             />
                         </template>
                     </div>
-                    <!-- NPCs overlay -->
-                    <div
-                        v-for="npc in npcPositions"
-                        :key="`npc-${npc.id}`"
-                        class="npc-indicator"
-                        :style="{
-                            left: `${(npc.x / level?.map?.tiles?.length) * 100}%`,
-                            top: `${(npc.y / level?.map?.tiles?.[0]?.length) * 100}%`,
-                            '--movement': `${npc.tilesToMove * (100 / level?.map?.tiles?.length)}%`,
-                            'animation-name': npc.direction === 'horizontal' ? npc.animNameH : npc.animNameV,
-                            'animation-duration': `${npc.duration}s`,
-                            'animation-delay': `${npc.delay}s`
-                        }"
-                        :title="`${npc.type} NPC (${npc.movingEvent}) at (${npc.x}, ${npc.y})`"
-                    />
                 </div>
                 <div v-else class="relative">
                     <!-- <div class="text-xs text-center text-base-content/60">No map preview available</div> -->

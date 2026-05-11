@@ -75,8 +75,9 @@ export function parseJson(json, strict = true) {
                 parsed.map.tiles[i][j] = ""+parsed.map.tiles[i][j];
             }
         }
-    } catch (error) {
-        const errorMsg = `Error parsing JSON string: ${error.message}`;
+    } catch (err) {
+      const error = /** @type {Error} */ (err);
+      const errorMsg = `Error parsing JSON string: ${error.message}`;
         console.error(errorMsg);
         if (strict) {
             throw new Error(errorMsg);
@@ -146,7 +147,7 @@ export function loadGameSync(gameName, strict = true) {
         return parseJson(data, strict);
     } catch (err) {
         if (strict) {
-            throw new Error(`Error reading game file ${gamePath}: ${err.message}`);
+            throw new Error(`Error reading game file ${gamePath}: ${err instanceof Error ? err.message : String(err)}`);
         }
         return null;
     }

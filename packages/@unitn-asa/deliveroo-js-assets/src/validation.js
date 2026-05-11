@@ -233,7 +233,7 @@ export function validateObject(value, path, required = false) {
 
 /**
  * Validate IOMapOptions
- * @param {any} map - Map options to validate
+ * @param {{width: number, height: number, tiles: string[][]}} map - Map options to validate
  * @param {string} [path='map'] - JSON path to the map
  * @returns {ValidationResult} Validation result
  */
@@ -263,12 +263,12 @@ export function validateMapOptions(map, path = 'map') {
             result.addError('Map tiles must be a 2D array', `${path}.tiles`, map.tiles);
         } else {
             // Check dimensions match width/height
-            if (map.tiles.length !== map.height) {
-                result.addError(`Map tiles height (${map.tiles.length}) does not match specified height (${map.height})`, `${path}.tiles`, map.tiles.length);
+            if (map.tiles.length !== map.width) {
+                result.addError(`Must match specified width (${map.width})`, `length of ${path}.tiles`, map.tiles.length);
             }
             for (let i = 0; i < map.tiles.length; i++) {
-                if (map.tiles[i].length !== map.width) {
-                    result.addError(`Map tiles row ${i} width (${map.tiles[i].length}) does not match specified width (${map.width})`, `${path}.tiles[${i}]`, map.tiles[i].length);
+                if (map.tiles[i].length !== map.height) {
+                    result.addError(`Must match specified height (${map.height})`, `length of ${path}.tiles[${i}]`, map.tiles[i].length);
                 }
                 // Validate each tile type
                 for (let j = 0; j < map.tiles[i].length; j++) {
@@ -402,6 +402,8 @@ export function validatePlayerOptions(player, path = 'player') {
             obsResult.addError(`Must be >= -1, got ${player.observation_distance}`, `${path}.observation_distance`, player.observation_distance);
         }
         result.merge(obsResult);
+    } else {
+        result.addError('Required property "observation_distance" is missing', `${path}.observation_distance`);
     }
 
     // Validate capacity (-1 represents infinite capacity)

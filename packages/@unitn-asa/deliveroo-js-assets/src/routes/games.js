@@ -2,8 +2,8 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createCanvas } from 'canvas';
 import { getGamesList, loadGame } from '../games.js';
+import { generatePng, generateObservationLayer, generateNpcAnimationGif } from '../image-generation.js';
 
 const router = express.Router();
 
@@ -20,10 +20,14 @@ router.get('/', async (req, res) => {
 
         for (const gameName of gameNames) {
             try {
-                /** @type {import('../games.js').IOGameOptions & {self: string, png: string}} */
+                /** @type {import('../games.js').IOGameOptions & {self: string, png: string, layers: {npcs?: string, observation?: string}}} */
                 const gameData = {
                     self: '/api/games/' + gameName,
                     png: '/api/games/' + gameName + '.png',
+                    layers: {
+                        npcs: '/api/games/' + gameName + '/layers/npcs.gif',
+                        observation: '/api/games/' + gameName + '/layers/observation.png'
+                    },
                     title: null,
                     description: null,
                     map: null,
@@ -33,8 +37,20 @@ router.get('/', async (req, res) => {
                     player: null
                 };
                 Object.assign(gameData, await loadGame(gameName));
-                gameData.map.width = gameData.map.tiles.length;
+                gameData.map.height = gameData.map.tiles.length;
                 gameData.map.height = gameData.map.tiles[0].length;
+
+                // Remove layer links if not applicable
+                if (!gameData.npcs || gameData.npcs.length === 0) {
+                    delete gameData.layers.npcs;
+                }
+                if (!gameData.player?.observation_distance || gameData.player.observation_distance === -1) {
+                    delete gameData.layers.observation;
+                }
+                if (Object.keys(gameData.layers).length === 0) {
+                    delete gameData.layers;
+                }
+
                 games.push(gameData);
             } catch (err) {
                 console.error(`Error reading game ${gameName}:`, err);
@@ -84,15 +100,60 @@ router.get('/:gameName.png', async (req, res) => {
     }
 });
 
+// Get NPC animation layer (must be before /:gameName route)
+router.get('/:gameName/layers/npcs.gif', async (req, res) => {
+    const gameName = req.params.gameName;
+
+    try {
+        const game = await loadGame(gameName);
+        const npcGif = generateNpcAnimationGif(
+            game.map.tiles,
+            game.npcs,
+            game.player.movement_duration
+        );
+
+        res.contentType('image/gif');
+        res.send(npcGif);
+
+    } catch (err) {
+        console.error(err);
+        res.status(404).send('NPC layer not found');
+    }
+});
+
+// Get observation layer (must be before /:gameName route)
+router.get('/:gameName/layers/observation.png', async (req, res) => {
+    const gameName = req.params.gameName;
+
+    try {
+        const game = await loadGame(gameName);
+        const obsPng = generateObservationLayer(
+            game.map.tiles,
+            game.player.observation_distance
+        );
+
+        res.contentType('image/png');
+        res.send(obsPng);
+
+    } catch (err) {
+        console.error(err);
+        res.status(404).send('Observation layer not found');
+    }
+});
+
 // Get a specific game as a json (eg /games/1)
 router.get('/:gameName', async (req, res) => {
     const gameName = req.params.gameName;
 
     try {
-        /** @type {import('../games.js').IOGameOptions & {self: string, png: string}} */
+        /** @type {import('../games.js').IOGameOptions & {self: string, png: string, layers: {npcs?: string, observation?: string}}} */
         const gameData = {
             self: '/api/games/' + gameName,
             png: '/api/games/' + gameName + '.png',
+            layers: {
+                npcs: '/api/games/' + gameName + '/layers/npcs.gif',
+                observation: '/api/games/' + gameName + '/layers/observation.png'
+            },
             title: null,
             description: null,
             map: null,
@@ -104,6 +165,18 @@ router.get('/:gameName', async (req, res) => {
         Object.assign(gameData, await loadGame(gameName));
         gameData.map.width = gameData.map.tiles.length;
         gameData.map.height = gameData.map.tiles[0].length;
+
+        // Remove layer links if not applicable
+        if (!gameData.npcs || gameData.npcs.length === 0) {
+            delete gameData.layers.npcs;
+        }
+        if (!gameData.player?.observation_distance || gameData.player.observation_distance === -1) {
+            delete gameData.layers.observation;
+        }
+        if (Object.keys(gameData.layers).length === 0) {
+            delete gameData.layers;
+        }
+
         res.json(gameData);
     } catch (err) {
         console.error(err);
@@ -112,92 +185,17 @@ router.get('/:gameName', async (req, res) => {
 });
 
 
-
-const DOT_PER_TILE = 10;
-const PADDING = 1;
-
-// Generate png from game
-function generatePng(matrix) {
-    const width = matrix.length;
-    const height = matrix[0].length;
-
-    // console.log(`Generating PNG: ${width}x${height} from matrix`, matrix);
-
-    const canvas = createCanvas(width * DOT_PER_TILE, height * DOT_PER_TILE);
-    const ctx = canvas.getContext('2d');
-
-    // fill background
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#252f3dff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    for (let x = 0; x < width; x++) {
-        for (let y = 0; y < height; y++) {
-            let value = '0';
-            try {
-                value = ( matrix[x][y] ).toString();
-            } catch (err) {
-                console.error('routes/games.js generatePng() Error accessing matrix at', x, y, ':', err);
-            }
-
-            // Handle directional tiles (Unicode arrows)
-            const directionalTiles = ['↑', '→', '↓', '←'];
-            const isDirectional = directionalTiles.includes(String(value));
-
-            // Default opacity
-            ctx.globalAlpha = 1;
-            if (isDirectional) {
-                ctx.fillStyle = '#3b82f6';
-                ctx.globalAlpha = 0.8;
-            } else if (value == '0') {
-                ctx.fillStyle = 'grey';
-                ctx.globalAlpha = 0.1;
-            } else if (value == '1') {
-                ctx.fillStyle = 'green';
-            } else if (value == '2') {
-                ctx.fillStyle = 'red';
-            } else if (value == '3') {
-                ctx.fillStyle = 'lightgray';
-            } else if (value == '5' || value == '5!') {
-                ctx.fillStyle = 'yellow';
-            } else {
-                ctx.fillStyle = 'purple';
-            }
-
-            const _left = x * DOT_PER_TILE + PADDING;
-            const _top = (height - 1 - y) * DOT_PER_TILE + PADDING;
-            const _width = DOT_PER_TILE - 2 * PADDING;
-            const _height = DOT_PER_TILE - 2 * PADDING;
-
-            ctx.fillRect(_left, _top, _width, _height);
-
-            // Draw arrow for directional tiles
-            if (isDirectional) {
-                ctx.fillStyle = 'black';
-                ctx.font = '8px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(value, _left + _width / 2, _top + _height / 2);
-            }
-
-            // Draw 'C' for crate spawning tiles
-            if (value.endsWith('!')) {
-                ctx.fillStyle = 'black';
-                ctx.font = '8px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('C', _left + _width / 2, _top + _height / 2);
-            }
-        }
-    }
-
-    return canvas.toBuffer("image/png");
-}
-
 // Save png on file
 function savePng(gameName, buffer) {
     const gamePath = path.join(GAMES_DIR, `${gameName}.png`);
     fs.writeFileSync(gamePath, buffer);
+}
+
+// Save layer on file
+function saveLayer(gameName, layerType, buffer) {
+    const extension = layerType === 'npcs' ? 'gif' : 'png';
+    const layerPath = path.join(GAMES_DIR, `${gameName}.${layerType}.${extension}`);
+    fs.writeFileSync(layerPath, buffer);
 }
 
 export default router;

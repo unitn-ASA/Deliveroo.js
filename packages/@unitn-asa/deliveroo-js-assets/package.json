@@ -13,7 +13,8 @@
     ".": "./index.js",
     "./games.js": "./src/games.js",
     "./routes/games.js": "./src/routes/games.js",
-    "./validation.js": "./src/validation.js"
+    "./validation.js": "./src/validation.js",
+    "./image-generation.js": "./src/image-generation.js"
   },
   "files": [
     "assets/",
@@ -32,6 +33,7 @@
   "dependencies": {
     "canvas": "^3.1.0",
     "commander": "^12.0.0",
-    "express": "^4.17.3"
+    "express": "^4.17.3",
+    "gifencoder": "^2.0.1"
   }
 }

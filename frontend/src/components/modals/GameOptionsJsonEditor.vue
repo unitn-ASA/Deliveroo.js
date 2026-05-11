@@ -3,6 +3,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { connection } from '@/states/myConnection.js';
 import api from '../../utils/api.js';
+import { validateGameOptions } from '@unitn-asa/deliveroo-js-assets/validation.js';
 
 const props = defineProps({
     modelValue: { type: Object, default: () => ({}) }
@@ -35,75 +36,23 @@ watch(() => props.modelValue, (newValue) => {
     }
 }, { immediate: true, deep: true });
 
-// Basic validation following IOGameOptions typedef (best-effort)
-function validateGameOptions(obj) {
-    const errs = [];
-    if (!obj || typeof obj !== 'object') {
-        errs.push('Root must be an object');
-        return errs;
-    }
-    if (!('title' in obj)) errs.push('Missing property: title');
-    else if (typeof obj.title !== 'string') errs.push('title must be a string');
-
-    if ('description' in obj && typeof obj.description !== 'string') errs.push('description must be a string');
-
-    if (!('map' in obj)) errs.push('Missing property: map');
-    else if (typeof obj.map !== 'object') errs.push('map must be an object');
-    else {
-        if (!('width' in obj.map) || typeof obj.map.width !== 'number') errs.push('map.width must be a number');
-        if (!('height' in obj.map) || typeof obj.map.height !== 'number') errs.push('map.height must be a number');
-        if (!('tiles' in obj.map) || !Array.isArray(obj.map.tiles)) errs.push('map.tiles must be a 2D array');
-    }
-
-    if ('maxPlayers' in obj && typeof obj.maxPlayers !== 'number') errs.push('maxPlayers must be a number');
-
-    if ('npcs' in obj && !Array.isArray(obj.npcs)) errs.push('npcs must be an array');
-    else {
-        for (let i = 0; i < obj.npcs.length; i++) {
-            const npc = obj.npcs[i];
-            if (typeof npc !== 'object') {
-                errs.push(`npcs[${i}] must be an object`);
-                continue;
-            }
-            if (!('moving_event' in npc) || typeof npc.moving_event !== 'string') errs.push(`npcs[${i}].moving_event must be a string`);
-            if (!('type' in npc) || typeof npc.type !== 'string') errs.push(`npcs[${i}].type must be a string`);
-            if (!('count' in npc) || typeof npc.count !== 'number') errs.push(`npcs[${i}].count must be a number`);
-        }
-    }
-
-    if ('parcels' in obj) {
-        if (typeof obj.parcels !== 'object') errs.push('parcels must be an object');
-        else {
-            if ('generation_event' in obj.parcels && ! ['frame','1s','2s','5s','10s'].includes(obj.parcels.generation_event)) errs.push('parcels.generation_event must be one of frame, 1s, 2s, 5s, 10s');
-            if ('decaying_event' in obj.parcels && ! ['frame','1s','2s','5s','10s'].includes(obj.parcels.generation_event)) errs.push('parcels.decaying_event must be one of frame, 1s, 2s, 5s, 10s');
-            if ('max' in obj.parcels && typeof obj.parcels.max !== 'number') errs.push('parcels.max must be a number');
-            if ('reward_avg' in obj.parcels && typeof obj.parcels.reward_avg !== 'number') errs.push('parcels.reward_avg must be a number');
-            if ('reward_variance' in obj.parcels && typeof obj.parcels.reward_variance !== 'number') errs.push('parcels.reward_variance must be a number');
-        }
-    }
-
-    if ('player' in obj) {
-        if (typeof obj.player !== 'object') errs.push('player must be an object');
-        else {
-            if ('movement_duration' in obj.player && typeof obj.player.movement_duration !== 'number') errs.push('player.movement_duration must be a number');
-            if ('observation_distance' in obj.player && typeof obj.player.observation_distance !== 'number') errs.push('player.observation_distance must be a number');
-            if ('capacity' in obj.player && typeof obj.player.capacity !== 'number') errs.push('player.capacity must be a number');
-        }
-    }
-
-    return errs;
-}
-
 // Validate JSON and update local state, returns the parsed object or null
 function validateJson() {
     try {
         const obj = JSON.parse(jsonText.value);
-        const errs = validateGameOptions(obj);
+        // Use the shared validation module from @unitn-asa/deliveroo-js-assets
+        const validationResult = validateGameOptions(obj);
         validation.errors.length = 0;
-        errs.forEach(e => validation.errors.push(e));
-        validation.valid = errs.length === 0;
-        parsed.value = obj;
-        return obj;
+        if (validationResult.valid) {
+            validation.valid = true;
+            parsed.value = obj;
+            return obj;
+        } else {
+            validation.valid = false;
+            // Convert ValidationError objects to simple strings for UI
+            validationResult.errors.forEach(e => validation.errors.push(e.toString()));
+            return null;
+        }
     } catch (e) {
         validation.valid = false;
         validation.errors.length = 0;
