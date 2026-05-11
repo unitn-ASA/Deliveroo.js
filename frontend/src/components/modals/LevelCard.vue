@@ -10,7 +10,7 @@
         modelValue: { type: Object, default: () => ({}) }
     });
 
-    const emit = defineEmits(['update:modelValue']);
+    const emit = defineEmits(['update:modelValue', 'openGameOptions']);
 
     /** This is done only to forcefully apply JSDoc typing on props.level */
     /** @type {import('vue').Ref< import('@unitn-asa/deliveroo-js-sdk/client').IOGameOptions & { self: string, png: string, layers?: { npcs?: string, observation?: string } } >} */
@@ -167,6 +167,10 @@
     async function loadLevel() {
         await api.patchConfig(connection.token, { GAME: level.value });
         // emit('update:modelValue', level);
+    }
+
+    function openGameOptions() {
+        emit('openGameOptions', level.value);
     }
 </script>
 
@@ -428,10 +432,15 @@
                 </div>
             </div>
 
-            <!-- Load Button -->
-            <button class="btn btn-primary btn-sm w-full" @click="loadLevel()">
-                Load {{ level?.title }}
-            </button>
+            <!-- Action Buttons -->
+            <div class="flex gap-2">
+                <button class="btn btn-primary btn-sm flex-1" @click="loadLevel()">
+                    Load {{ level?.title }}
+                </button>
+                <button class="btn btn-secondary btn-sm flex-1" @click="openGameOptions()">
+                    Open
+                </button>
+            </div>
         </div>
     </div>
 </template>

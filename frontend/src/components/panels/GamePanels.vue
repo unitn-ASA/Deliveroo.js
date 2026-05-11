@@ -53,14 +53,14 @@
         </Modal>
 
         <Modal v-model="levelsModal" title="Load level">
-            <Levels v-model="connection.configs.GAME"/>
+            <Levels/>
         </Modal>
 
         <Modal v-model="settingsModal" title="Settings">
             <div class="p-4 space-y-4">
                 <Settings class="max-w-lg m-auto" v-if="connection"/>
                 <!-- <ParcelSpawner v-if="connection"/> -->
-                <GameOptions v-if="connection"/>
+                <GameOptions v-if="connection" v-model="connection.configs.GAME"/>
             </div>
         </Modal>
             

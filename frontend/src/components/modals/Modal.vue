@@ -1,13 +1,19 @@
 <script setup>
-    
-    import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+    import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 
     const props = defineProps({
         title: {
             type: String,
             required: true
+        },
+        zIndex: {
+            type: Number,
+            default: 20
         }
     });
+
+    const contentZIndex = computed(() => props.zIndex + 10);
 
     // const isModalVisible = ref(true); // Reactive variable for modal visibility
     const isModalVisible = defineModel({ default: false });
@@ -39,12 +45,16 @@
 <template>
 
         <div v-if="isModalVisible">
-            <div class="absolute w-full h-screen pt-10">
-                <div class="w-5/6 mx-auto pb-10 grid grid-flow-row space-y-4">
-                    <div class="z-30 flex items-center space-x-4 float-right w-full">
+            <div class="fixed inset-0 overflow-y-auto pointer-events-none" :style="{ zIndex: contentZIndex }">
+                <div class="min-h-full px-4 pt-10 pb-10 flex items-start justify-center">
+                <div class="w-5/6 max-w-6xl grid grid-flow-row space-y-4 pointer-events-auto">
+                    <!-- Header -->
+                    <div class="flex items-center space-x-4 float-right w-full" :style="{ position: 'relative', zIndex: contentZIndex }">
+                        <!-- Title -->
                         <div class="text-center text-xl bg-neutral/85 dark:bg-gray-700 rounded-lg py-2 flex-1 h-full">
                             {{ title }}
                         </div>
+                        <!-- X Close modal -->
                         <button class="btn btn-square btn-error" @click="toggleModal">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,19 +62,21 @@
                             </svg>
                         </button>
                     </div>
-                    <div class="z-30 bg-neutral/85 dark:bg-gray-700 rounded-lg">
-
+                    <!-- Body slot -->
+                    <div class="bg-neutral/85 dark:bg-gray-700 rounded-lg" :style="{ position: 'relative', zIndex: contentZIndex }">
                         <slot/>
-
                     </div>
+                </div>
                 </div>
             </div>
         </div>
 
+        <!-- Backdrop -->
         <div :class="[
                 isModalVisible ? 'bg-black bg-opacity-50' : 'opacity-0 pointer-events-none'
             ]"
-            class="fixed z-20 top-0 bottom-0 right-0 left-0 backdrop-blur-md transition-all duration-300"
+            class="fixed top-0 bottom-0 right-0 left-0 backdrop-blur-md transition-all duration-300"
+            :style="{ zIndex: zIndex }"
             @click="toggleModal"
             >
         </div>

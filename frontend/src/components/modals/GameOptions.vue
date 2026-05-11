@@ -7,14 +7,17 @@ import { defineComponent } from 'vue';
 import LevelCard from './LevelCard.vue';
 import GameOptionsJsonEditor from './GameOptionsJsonEditor.vue';
 
+/** @type {import('vue').Ref<boolean>} */
 const admin = computed(() => connection?.payload?.role == 'admin');
 
 /** @type {import('vue').Ref< import('@unitn-asa/deliveroo-js-sdk/client').IOGameOptions & { self?: string, png?: string } >} */
-const GAME = ref( connection?.configs?.GAME || {} );
+const GAME = defineModel();
 
 watch(() => connection?.configs?.GAME, () => {
-    if( connection?.configs?.GAME )
+    // Only update from connection if GAME is still the default value (no v-model provided)
+    if( connection?.configs?.GAME && GAME.value === (connection?.configs?.GAME || {}) ) {
         GAME.value = connection.configs.GAME;
+    }
 }, { immediate: true });
 
 function loadGame() {

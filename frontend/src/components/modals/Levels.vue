@@ -3,6 +3,8 @@
     import { ref, inject } from 'vue'
     import { connection } from '@/states/myConnection.js';
     import LevelCard from './LevelCard.vue';
+    import Modal from './Modal.vue';
+    import GameOptions from './GameOptions.vue';
 
     // @ts-ignore
     var HOST = import.meta.env.VITE_SOCKET_IO_HOST || window.location.origin;
@@ -10,7 +12,13 @@
     /** @type {import('vue').Ref<import('@unitn-asa/deliveroo-js-sdk/client').IOGameOptions[]>} */
     const levels = ref([]);
 
-    const selectedLevel = defineModel(); // v-model for the selected level
+    const levelEditorModal = ref(false);
+    const selectedLevelForEditor = ref({});
+
+    function handleOpenGameOptions(levelData) {
+        selectedLevelForEditor.value = levelData;
+        levelEditorModal.value = true;
+    }
 
     fetch(HOST + "/api/games")
     .then( res => res.json() )
@@ -63,6 +71,7 @@
 </script>
 
 <template>
+
     <main class="p-4">
         <div class="w-full mx-auto pb-10">
             <!-- Header with Export Button -->
@@ -82,10 +91,21 @@
                     v-for="level of levels"
                     :key="level.title"
                     v-model="levels[levels.indexOf(level)]"
+                    @openGameOptions="handleOpenGameOptions"
                 />
             </div>
         </div>
     </main>
+
+    <!-- Level Editor Modal (teleported to body for proper z-index stacking) -->
+    <Teleport to="body">
+        <Modal v-model="levelEditorModal" title="Level Editor" :z-index="50">
+            <div class="p-4 space-y-4">
+                <GameOptions v-model="selectedLevelForEditor"/>
+            </div>
+        </Modal>
+    </Teleport>
+
 </template>
 
 <style scoped>
