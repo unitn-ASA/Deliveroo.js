@@ -59,9 +59,10 @@ export class Connection {
     draw = ref();
 
     /**
-     * @type {Array<{timestamp:number, socket:string, id:string, name:string, msg:string}>} clientLogs
+     * @type {Array<{msgId: number, timestamp:number, socket:string, id:string, name:string, msg:string}>} clientLogs
      */
     msgs = shallowReactive (new Array());
+    msgId = 0; // Incremental ID for messages
 
     /** @type {import("vue").Ref<IOMetrics>} */
     metrics = ref();
@@ -190,16 +191,27 @@ export class Connection {
             // console.log( 'CLIENT: msg', {id, name, msg, reply} )
             if ( msg == 'who are you?' && reply ) reply('I am the web app')
 
+            // Add new message at end (oldest-first) - O(1) operation
             this.msgs.push( {
+                msgId: this.msgId++,
                 timestamp: Date.now(),
                 socket: this.ioClient.id,
                 id,
                 name,
                 msg
             } );
-            // Limit array size to prevent memory leak - keep last 1000 messages
-            if ( this.msgs.length > 1000 ) {
-                this.msgs.shift();
+
+            // Role-based message limits to optimize admin performance
+            // Admins see ALL messages from ALL agents, so use smaller limit
+            // const MAX_MSGS_ADMIN = 200;  // Reduced from 1000 for admins
+            // const MAX_MSGS_AGENT = 100;  // For regular agents
+            // const limit = this.payload?.role === 'admin' ? MAX_MSGS_ADMIN : MAX_MSGS_AGENT;
+
+            // Batch cleanup: instead of O(n) shift() on every message,
+            // slice to first N when exceeding soft limit (amortized O(1))
+            if ( this.msgs.length > 200 ) {
+                // Keep only the last 100 messages
+                this.msgs.splice(0, this.msgs.length - 100);
             }
 
         })

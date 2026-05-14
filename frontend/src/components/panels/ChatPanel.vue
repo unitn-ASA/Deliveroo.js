@@ -12,10 +12,12 @@
     const selectedAgent = ref('All');
     const input = ref('');
 
-    const reversedMsgs = computed(() => connection?.msgs.slice().reverse() ?? []);
+    // Performance: Avoid O(n) slice().reverse() on every message (arrives at ~1ms)
+    // Instead, display messages in their natural order (oldest→newest) and scroll to bottom
+    const messages = computed(() => connection?.msgs ?? []);
 
     function sendMsg() {
-        console.log('sendMsg', selectedAgent.value, input.value);
+        // console.log('sendMsg', selectedAgent.value, input.value);
         if (input.value.length > 0) {
             if (selectedAgent.value == 'All') {
                 connection.ioClient.emitShout(input.value);
@@ -23,6 +25,7 @@
                 connection.ioClient.emitSay(selectedAgent.value, input.value);
             }
             connection?.msgs.push({
+                msgId: connection.msgId++,
                 timestamp: Date.now(),
                 socket: connection.ioClient.id,
                 id: me.value.id,
@@ -33,22 +36,37 @@
         }
     }
     
-    function formatTime(ts) {
+    function formatTime(/** @type {number} */ ts) {
         const d = new Date(ts);
         return d.getHours().toString().padStart(2, '0') + ':' +
                 d.getMinutes().toString().padStart(2, '0');
     }
 
+    /** @type {import('vue').Ref<HTMLTextAreaElement | null>} */
     const messageInput = ref(null);
+    /** @type {import('vue').Ref<HTMLDivElement | null>} */
+    const messagesContainer = ref(null);
     const expandedMessages = ref(new Set());
 
-    const toggleMessage = (key) => {
+    // Auto-scroll to bottom (newest messages) when new ones arrive
+    watch(() => connection?.msgs?.length, () => {
+        nextTick(() => {
+            if (messagesContainer.value) {
+                messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+            }
+        });
+    });
+
+    const toggleMessage = (/** @type {string} */ key) => {
         if (expandedMessages.value.has(key)) {
             expandedMessages.value.delete(key);
         } else {
             expandedMessages.value.add(key);
         }
     };
+
+    // Track expanded count for optimized v-memo
+    const expandedCount = computed(() => expandedMessages.value.size);
 
     const autoResize = () => {
         const textarea = messageInput.value;
@@ -70,16 +88,17 @@
     <main class="absolute left-0 right-0 bottom-0 pointer-events-none">
 
         <!-- Messages container -->
-        <div class="
+        <div ref="messagesContainer" class="
             text-xs
-            flex flex-col-reverse
+            flex flex-col
             overflow-y-scroll hover:pointer-events-auto
             max-h-32 hover:max-h-screen transition-[max-height] duration-200
             [mask-image:linear-gradient(to_top,black_70%,transparent)] hover:[mask-image:none] hover:[-webkit-mask-image:none]"
         >
-            <!-- Each message -->
-            <div v-for="{timestamp, socket, id, msg, name} of reversedMsgs"
-                 :key="`${timestamp}-${socket}-${id}-${msg}`"
+            <!-- Each message - v-memo optimized: only track expanded when count > 0 -->
+            <div v-for="{msgId, timestamp, id, msg, name} of messages"
+                 :key="`${msgId}`"
+                 v-memo="[msgId, expandedCount > 0 && expandedMessages.has(`${msgId}`)]"
                  class="chat chat-end hover:pointer-events-auto"
                  :class="id == me.id ? 'chat-start' : 'chat-end'"
             >
@@ -92,12 +111,12 @@
                         {{ name.length > 10 ? name.slice(0,4) + '...' + name.slice(-3) : name }}
                         <span class="font-none opacity-50">{{ id == me.id ? '(me)' : `${id}` }}</span>
                     </div>
-                    <span class="whitespace-pre-wrap">
-                        <template v-if="msg.length > 100 && !expandedMessages.has(`${timestamp}-${socket}-${id}`)">
+                    <span class="whitespace-pre-wrap break-words">
+                        <template v-if="msg.length > 100 && !expandedMessages.has(`${msgId}`)">
                             {{ msg.slice(0,80) + ' . . .' }}
                             <span
                                 class="link link-warning link-hover cursor-pointer"
-                                @click="toggleMessage(`${timestamp}-${socket}-${id}`)"
+                                @click="toggleMessage(`${msgId}`)"
                             >
                                 (more)
                             </span>
@@ -107,7 +126,7 @@
                             <span
                                 v-if="msg.length > 100"
                                 class="link link-warning link-hover cursor-pointer"
-                                @click="toggleMessage(`${timestamp}-${socket}-${id}`)"
+                                @click="toggleMessage(`${msgId}`)"
                             >
                                 (less)
                             </span>
