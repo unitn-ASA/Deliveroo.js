@@ -20,6 +20,7 @@
  *      'crate':        function ( 'create' | 'dispose', { x:number, y:number } ) : void,
  *      'restart':      function () : void,
  *      'tile':         function ( IOTile ) : void,
+ *      'reward':       function ( { agentId: string, points: number } ) : void,
  *      'log':          function ( ...any ) : void
  * }} IOClientEvents
  */

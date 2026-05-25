@@ -754,6 +754,15 @@ class ioServer {
                     }
                 } );
 
+                socket.onReward( ( { agentId, points } ) => {
+                    try {
+                        console.log( 'Rewarding agent:', agentId, points );
+                        myGrid.agentRegistry.get(agentId).score += points;
+                    } catch (error) {
+                        console.error( 'Error rewarding agent: '+agentId, error.message );
+                    }
+                } );
+
             }
 
         } catch (error) {

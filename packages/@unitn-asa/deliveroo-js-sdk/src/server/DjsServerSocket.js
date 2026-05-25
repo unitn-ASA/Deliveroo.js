@@ -254,6 +254,14 @@ export class DjsServerSocket extends Socket {
         super.on( 'restart', callback );
     }
 
+    /**
+     * Process request for rewarding an agent with a certain amount of points
+     * @param { function ( {agentId: string, points: number} ) : void } callback
+     */
+    onReward ( callback ) {
+        super.on( 'reward', callback );
+    }
+
 
 
     /**
