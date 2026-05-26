@@ -126,6 +126,26 @@ function loadGame() {
     api.patchConfig(connection.token, { GAME: parsed.value });
 }
 
+function saveJson() {
+    // Validate before saving
+    const obj = validateJson();
+    if (!obj) return;
+
+    // Create filename from title or default
+    const filename = (obj.title || 'level') + '.json';
+
+    // Create blob and download
+    const blob = new Blob([jsonText.value], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 </script>
 
 <template>
@@ -141,7 +161,7 @@ function loadGame() {
             </div>
 
             <!-- JSON editor -->
-            <textarea v-model="jsonText" rows="20" class="w-full textarea bg-base-300 text-base-content text-xs font-mono whitespace-nowrap"
+            <textarea v-model="jsonText" rows="40" class="w-full textarea bg-base-300 text-base-content text-xs font-mono whitespace-nowrap"
                 @focus="inputFocused = 'GAME_JSON'"
                 @input="onInputChange"
                 :disabled="!admin"
@@ -158,7 +178,8 @@ function loadGame() {
                 
                 <!-- Load Game Button -->
                 <div class="space-x-2">
-                    <button class="btn btn-sm btn-primary" @click="loadGame" :disabled="!admin || !validation.valid">Load Game</button>
+                    <button class="btn btn-sm btn-success" @click="saveJson" :disabled="!validation.valid">Save Json</button>
+                    <button class="btn btn-sm btn-primary" @click="loadGame" :disabled="!admin || !validation.valid">Start Game</button>
                 </div>
 
             </div>

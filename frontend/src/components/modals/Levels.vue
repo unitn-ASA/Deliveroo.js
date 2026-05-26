@@ -14,10 +14,50 @@
 
     const levelEditorModal = ref(false);
     const selectedLevelForEditor = ref({});
+    /** @type {import('vue').Ref<HTMLInputElement|null>} */
+    const fileInputRef = ref(null);
 
     function handleOpenGameOptions(levelData) {
         selectedLevelForEditor.value = levelData;
         levelEditorModal.value = true;
+    }
+
+    /**
+     * @param {Event} event
+     */
+    function openFromJson(event) {
+        const target = /** @type {HTMLInputElement} */ (event.target);
+        const file = target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const result = e.target?.result;
+                if (typeof result !== 'string') {
+                    throw new Error('File result is not a string');
+                }
+                const jsonContent = JSON.parse(result);
+                // Ensure the JSON has required structure
+                const levelData = {
+                    title: jsonContent.title || 'Imported Level',
+                    description: jsonContent.description || 'Imported from local file',
+                    ...jsonContent
+                };
+                handleOpenGameOptions(levelData);
+            } catch (error) {
+                alert('Error parsing JSON file: ' + error.message);
+            }
+        };
+        reader.onerror = () => {
+            alert('Error reading file');
+        };
+        reader.readAsText(file);
+
+        // Reset the input so the same file can be selected again if needed
+        if (target) {
+            target.value = '';
+        }
     }
 
     fetch(HOST + "/api/games")
@@ -74,12 +114,24 @@
 
     <main class="p-4">
         <div class="w-full mx-auto pb-10">
-            <!-- Header with Export Button -->
+            <!-- Header with Export and Import Buttons -->
             <div class="flex justify-between items-center mb-6 px-2">
                 <h2 class="text-xl font-bold">Select a Game</h2>
-                <button class="btn btn-info btn-sm" @click="exportMap()">
-                    Export Map
-                </button>
+                <div class="flex gap-2">
+                    <input
+                        ref="fileInputRef"
+                        type="file"
+                        accept=".json"
+                        class="hidden"
+                        @change="openFromJson"
+                    />
+                    <button class="btn btn-success btn-sm" @click="fileInputRef?.click()">
+                        Import Json
+                    </button>
+                    <button class="btn btn-info btn-sm" @click="exportMap()">
+                        Export Map
+                    </button>
+                </div>
             </div>
 
             <!-- Levels Grid -->

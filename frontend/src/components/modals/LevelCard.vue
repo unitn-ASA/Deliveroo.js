@@ -435,10 +435,10 @@
             <!-- Action Buttons -->
             <div class="flex gap-2">
                 <button class="btn btn-primary btn-sm flex-1" @click="loadLevel()">
-                    Load {{ level?.title }}
+                    Start {{ level?.title }}
                 </button>
                 <button class="btn btn-secondary btn-sm flex-1" @click="openGameOptions()">
-                    Open
+                    Edit
                 </button>
             </div>
         </div>
