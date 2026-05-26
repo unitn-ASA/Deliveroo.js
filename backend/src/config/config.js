@@ -163,8 +163,8 @@ export const config = {
         description: 'Default game configuration',
         maxPlayers: 10,
         map: {
-            width: 5,
-            height: 6,
+            width: 6,
+            height: 5,
             tiles: [
                 ['0','3','3','↑','1','1'],
                 ['2','3','3','0','1','1'],
