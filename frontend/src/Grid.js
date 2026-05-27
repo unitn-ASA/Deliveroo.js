@@ -354,12 +354,20 @@ export class Grid {
                 }
             }
 
+            // PERFORMANCE FIX: Create a Set of sensed agent IDs for O(1) lookup
+            const sensedAgentIds = new Set();
+            for (const agent of sensing.agents) {
+                if (agent && agent.id) {
+                    sensedAgentIds.add(agent.id);
+                }
+            }
+
             // for all known agents on the grid, if not sensed set status in 'out of range'
             for ( const agent of this.agents.values() ) {
                 // if not me
                 if ( agent.id != this.me.value.id ) {
-                    // if not sensed
-                    if ( ! sensing.agents.find( a => a.id == agent.id ) ) {
+                    // O(1) Set lookup instead of O(n) find()
+                    if ( ! sensedAgentIds.has( agent.id ) ) {
                         // If it was online it should be now considered 'out of range'
                         if ( agent.status == 'online' ) {
                             // console.log(`Agent ${agent.name}(${agent.id}) is now out of range at position (${agent.x},${agent.y})`);
@@ -367,7 +375,7 @@ export class Grid {
                         }
                         // if agent position is sensed, it means it is either out of range or offline
                         else if ( agent.status == 'out of range' &&
-                                sensing.positions.find( xy => Math.round(agent.x) == xy.x && Math.round(agent.y) == xy.y )
+                                sensedPositionKeys.has( `${Math.round(agent.x)},${Math.round(agent.y)}` )
                            ) {
                             // console.log(`Agent ${agent.name}(${agent.id}) is not anymore at position (${agent.x},${agent.y}), set 'offline'`);
                             agent.status = "lost";

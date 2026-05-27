@@ -24,7 +24,8 @@
 	scene = new THREE.Scene();
 	// scene.background = new THREE.Color( 0xffffff );
 	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 300 );
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer({ antialias: true }); // Consider disabling antialiasing for performance
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
 	// renderer.setClearColor('white');
 	// // Create a WebGLRenderer and turn on shadows in the renderer
 	// renderer.shadowMap.enabled = true;
@@ -76,40 +77,6 @@
 	/*
 	 * Mouse Over and Click
 	 */
-
-	/**
-	 * @type {import("vue").ComputedRef<Map<import("three").Mesh,Agent>>}
-	 */
-	const agentsByMesh = computed ( () => {
-		const map = new Map();
-		for ( let agent of connection.grid.agents.values() )
-			map.set( agent.mesh, agent );
-		return map;
-	})
-	const tilesByMesh = computed ( () => {
-		const map = new Map();
-		for ( let tile of connection.grid.tiles.values() )
-			map.set( tile.mesh, tile );
-		return map;
-	})
-	const parcelsByMesh = computed ( () => {
-		const map = new Map();
-		for ( let parcel of connection.grid.parcels.values() )
-			map.set( parcel.mesh, parcel );
-		return map;
-	})
-	/**
-	 * @type { import("vue").ComputedRef< import("three").Mesh [] > }
-	 */
-	const hoverable = computed ( () => {
-		// console.log( 'ThreeScene.js hoverable = computed()' );
-		const objects = [
-			...connection.grid.agents.values(),
-			...connection.grid.tiles.values(),
-			...connection.grid.parcels.values()
-		].map( ({ mesh }) => mesh );
-		return objects;
-	});
 
 	onMounted(() => {
 
@@ -203,8 +170,9 @@
 
 
 		/**
-		 * Camera following target
+		 * Continuous animation loop
 		 */
+		const tempVector3 = new THREE.Vector3(0,0,0);
 		const animate = () => {
 			
 			intersections.length = 0;
@@ -213,31 +181,31 @@
 			hoveredObj = intersections[ 0 ]?.object;
 			connection.grid.hooverByMesh( intersections[ 0 ]?.object );
 			
-			if ( targetMesh.value ) {
-				// current cam target
-				let current = new THREE.Vector3().copy( camTarget );
-				// lerp cam target toward mesh
-				camTarget.lerp( targetMesh.value.position, 0.04 );
-				// compute and apply camera offset
-				let diff = current.sub( camTarget );
-				camera.position.sub( diff );
-				controls.target.sub( diff );
-
-				// controls.target.lerp( targetMesh.value.position, 0.02 );
-				
+			// Update camera following - smooth move toward target
+			// This updates both camera.position and controls.target together,
+			// preserving the user's manual orbit/pan adjustments
+			if (targetMesh.value) {
+				// Current cam target (reuse existing tempVector3 to avoid allocation)
+				tempVector3.copy(camTarget);
+				let current = tempVector3;
+				// Lerp cam target toward mesh
+				camTarget.lerp(targetMesh.value.position, 0.04);
+				// Compute and apply camera offset to both camera and controls
+				let diff = current.sub(camTarget);
+				camera.position.sub(diff);
+				controls.target.sub(diff);
 			}
 			// required if controls.enableDamping or controls.autoRotate are set to true
 			controls.update();
-
 			stats.update();
-
 			renderer.render(scene, camera);
 			labelRenderer.render(scene, camera);
 
-			requestAnimationFrameID = requestAnimationFrame( animate );
+			requestAnimationFrameID = requestAnimationFrame(animate);
 		};
 
-		requestAnimationFrameID = requestAnimationFrame( animate );
+		// Start animation loop
+		requestAnimationFrameID = requestAnimationFrame(animate);
 
 		// Gestisci il ridimensionamento della finestra
 		window.addEventListener('resize', onWindowResize);

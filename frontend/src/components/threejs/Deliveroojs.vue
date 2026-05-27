@@ -43,7 +43,9 @@
     <main>
         <ThreeScene class="fixed">
             <Tile v-for="[key, t] in tiles.entries()" :key="key" :id="key" :tile="t" />
-            <Agent v-for="[key, a] in agents.entries()" :key="key" :id="key" :agent="a" />
+            <template v-for="[key, a] in agents.entries()" :key="key" :id="key" :agent="a">
+                <Agent :agent="a" v-if="a.x !== undefined && a.y !== undefined" />
+            </template>
             <Parcel v-for="[key, p] in parcels.entries()" :key="key" :id="key" :parcel="p" />
             <Crate v-for="[key, c] in crates.entries()" :key="key" :id="key" :crate="c" />
         </ThreeScene>
