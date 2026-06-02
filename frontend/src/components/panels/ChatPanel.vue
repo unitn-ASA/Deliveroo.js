@@ -1,6 +1,6 @@
 <script setup>
     
-    import { ref, watch, nextTick, computed, onMounted } from 'vue';
+    import { ref, watch, nextTick, computed, onMounted, onUnmounted } from 'vue';
     import { connection } from '../../states/myConnection.js';
 
     const admin = computed(() => {
@@ -55,6 +55,33 @@
                 messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
             }
         });
+    });
+
+    // Maintain scroll position at bottom during container resize (hover transitions)
+    const maintainScrollPosition = () => {
+        if (messagesContainer.value) {
+            messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+        }
+    };
+
+    // Use ResizeObserver to detect container size changes during hover
+    let resizeObserver;
+    onMounted(() => {
+        autoResize();
+
+        if (messagesContainer.value && typeof ResizeObserver !== 'undefined') {
+            resizeObserver = new ResizeObserver(() => {
+                // Keep scrolled to bottom during resize transitions
+                maintainScrollPosition();
+            });
+            resizeObserver.observe(messagesContainer.value);
+        }
+    });
+
+    onUnmounted(() => {
+        if (resizeObserver) {
+            resizeObserver.disconnect();
+        }
     });
 
     const toggleMessage = (/** @type {string} */ key) => {
