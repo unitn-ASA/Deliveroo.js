@@ -756,6 +756,11 @@ class ioServer {
 
                 socket.onReward( ( { agentId, points } ) => {
                     try {
+                        points = Number(points);
+                        if ( isNaN(points) ) {
+                            console.warn( 'Invalid points value in reward command' );
+                            return;
+                        }
                         console.log( 'Rewarding agent:', agentId, points );
                         myGrid.agentRegistry.get(agentId).score += points;
                     } catch (error) {
