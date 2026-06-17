@@ -201,8 +201,11 @@ class ioServer {
                         timestampAtPing = performance.now();
                         frameAtPing = myClock.frame;
 
-                        // Send ping with previous latency data (or null on first ping)
-                        socket.emit('ping', {frame: lastLatencyData.frame, roundTrip: lastLatencyData.roundTrip}, () => { // acknoledgment callback
+                        // Send the CURRENT frame for clock sync (frameAtPing), paired with the
+                        // previous round-trip (this ping's RTT is unknown until its pong returns).
+                        // Sending lastLatencyData.frame here lagged the clock anchor by a full ping
+                        // cycle (~PING_INTERVAL/CLOCK ticks) + RTT, skewing client tick interpolation.
+                        socket.emit('ping', {frame: frameAtPing, roundTrip: lastLatencyData.roundTrip}, () => { // acknoledgment callback
                             
                             // when pong is received
                             try {
