@@ -41,8 +41,14 @@ app.use( '/',
 );
 
 // Remote frontend package, as installed from npmjs registry
+// Resolved via import.meta.resolve rather than a hardcoded relative path,
+// since npm workspaces hoist this package to the repo root node_modules
+// instead of backend/node_modules.
+const webappDistDir = Path.dirname(
+    fileURLToPath(import.meta.resolve('@unitn-asa/deliveroo-js-webapp-dist/package.json'))
+);
 app.use( '/',
-    express.static( Path.join(__dirname, '../node_modules/@unitn-asa/deliveroo-js-webapp-dist'), {
+    express.static( webappDistDir, {
         setHeaders: (res, path) => {
             res.set('X-Frontend', 'deliveroo-js-webapp-dist;');
         }
