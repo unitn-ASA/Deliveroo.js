@@ -14,9 +14,11 @@
   "scripts": {
     "prepublishOnly": "",
     "prepare": "",
+    "prestart": "npm run schemas:generate",
     "start": "node index.js",
     "prebuild": "npm install",
     "build": "node scripts/build.js",
+    "predev": "npm run schemas:generate",
     "dev": "nodemon --inspect -r dotenv/config index.js --",
     "schemas:generate": "node scripts/generate-schemas.js",
     "swagger:generate": "npm run schemas:generate && node scripts/generate-swagger.js",
