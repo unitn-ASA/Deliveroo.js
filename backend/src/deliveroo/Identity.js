@@ -23,9 +23,9 @@ class Identity {
     
     /** @readonly @property {string} role */
     role;
-    
-    /** @readonly @property {string} socketId */
-    socketId;
+
+    /** @property {string[]} capabilities */
+    capabilities;
     
 
 
@@ -36,23 +36,23 @@ class Identity {
      * @param {string} teamId
      * @param {string} teamName
      * @param {string} role
-     * @param {string} socketId
+     * @param {string[]} capabilities
      */
-    constructor ( id = undefined, name = undefined, teamId = undefined, teamName = undefined, role = undefined, socketId = undefined ) {
+    constructor ( id = undefined, name = undefined, teamId = undefined, teamName = undefined, role = undefined, capabilities = [] ) {
 
         this.id = id || 'a' + Identity.#lastId++;
         this.name = name || this.id;
         this.teamId = teamId;
         this.teamName = teamName;
         this.role = role || 'user';
-        this.socketId = socketId;
+        this.capabilities = capabilities || [];
 
     }
 
 
 
     toString () {
-        return `${this.name} (${this.id}) of ${this.teamName} (${this.teamId}) as ${this.role} from socket ${this.socketId}`;
+        return `${this.name} (${this.id}) of ${this.teamName} (${this.teamId}) as ${this.role} with capabilities [${this.capabilities.join(', ')}]`;
     }
 
 }

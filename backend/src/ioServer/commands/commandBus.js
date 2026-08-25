@@ -1,0 +1,103 @@
+
+/** @typedef {import('../../deliveroo/Agent.js').default} Agent */
+
+/**
+ * @typedef {Object} MoveCommand
+ * @property {Agent} agent
+ * @property {'up'|'down'|'left'|'right'} direction
+ * @property {(result: any) => void} [ack] - Called with the destination Xy, or false when the move fails
+ */
+
+/**
+ * @typedef {Object} PickupCommand
+ * @property {Agent} agent
+ * @property {(picked: any[]) => void} [ack] - Called with the list of picked parcels
+ */
+
+/**
+ * @typedef {Object} PutdownCommand
+ * @property {Agent} agent
+ * @property {any[]} selected
+ * @property {(dropped: {id: string}[]) => void} [ack] - Called with the list of dropped parcels
+ */
+
+/**
+ * CommandBus dispatches commands entering at the server boundary (socket actions)
+ * to the component currently registered for each command type.
+ *
+ * Unlike the grid emitter (which broadcasts game-state facts to any number of
+ * listeners), a command has exactly ONE handler at a time — e.g. the movement
+ * plugin owning 'move'. This guarantees a command is executed and acknowledged
+ * once, never twice. Registering a new handler replaces the previous one.
+ */
+class CommandBus {
+
+    /** @type {Map<string, {owner: string, handler: Function}>} */
+    #handlers = new Map();
+
+    /**
+     * Register the (single) handler for a command, replacing any previous handler.
+     * @param {string} command - Command name, e.g. 'move'
+     * @param {Function} handler - Handler function receiving the command payload
+     * @param {string} owner - Id of the component taking ownership (e.g. plugin id)
+     */
+    handle ( command, handler, owner ) {
+        if ( typeof handler !== 'function' ) {
+            throw new Error( `CommandBus: handler for '${command}' must be a function` );
+        }
+        this.#handlers.set( command, { owner, handler } );
+    }
+
+    /**
+     * Remove the handler for a command, but only if it is owned by `owner`.
+     * @param {string} command
+     * @param {string} owner
+     */
+    release ( command, owner ) {
+        const current = this.#handlers.get( command );
+        if ( current && current.owner === owner ) {
+            this.#handlers.delete( command );
+        }
+    }
+
+    /**
+     * @param {string} command
+     * @returns {boolean}
+     */
+    hasHandler ( command ) {
+        return this.#handlers.has( command );
+    }
+
+    /**
+     * Dispatch a command payload to its handler.
+     * @param {string} command
+     * @param {MoveCommand|PickupCommand|PutdownCommand} payload
+     * @returns {boolean} true if a handler was found and invoked, false otherwise
+     */
+    dispatch ( command, payload ) {
+        const entry = this.#handlers.get( command );
+        if ( ! entry ) {
+            return false;
+        }
+        entry.handler( payload );
+        return true;
+    }
+
+    /**
+     * @returns {{command: string, owner: string}[]}
+     */
+    getRegisteredCommands () {
+        return Array.from( this.#handlers.entries() )
+            .map( ( [ command, { owner } ] ) => ( { command, owner } ) );
+    }
+
+}
+
+/**
+ * Shared command bus singleton for the server boundary.
+ * @type {CommandBus}
+ */
+const commandBus = new CommandBus();
+
+export { commandBus, CommandBus };
+export default CommandBus;

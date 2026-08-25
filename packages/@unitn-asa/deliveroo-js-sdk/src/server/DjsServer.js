@@ -19,60 +19,6 @@ import { DjsServerSocket } from './DjsServerSocket.js';
  */
 export class DjsServer extends Server {
 
-    /**
-     * Broadcast config to all connected clients
-     * @param { IOConfig } config
-     */
-    broadcastConfig(config) {
-        this.emit('config', config);
-    }
-
-    /**
-     * Broadcast map to all connected clients
-     * @param { number } width
-     * @param { number } height
-     * @param { IOTile[] } tiles
-     */
-    broadcastMap(width, height, tiles) {
-        this.emit('map', width, height, tiles);
-    }
-
-    /**
-     * Broadcast a tile update to all connected clients
-     * @param { IOTile } tile
-     */
-    broadcastTile({ x, y, type }) {
-        this.emit('tile', { x, y, type });
-    }
-
-    /**
-     * Broadcast controller status (agent connected/disconnected) to all clients
-     * @param { 'connected' | 'disconnected' } status
-     * @param { Parameters<IOServerEvents['controller']>[1] } agent
-     */
-    broadcastController(status, { id, name, teamId, teamName, score }) {
-        this.emit('controller', status, { id, name, teamId, teamName, score });
-    }
-
-    /**
-     * Broadcast a message to all connected clients
-     * @param { string } fromId
-     * @param { string } fromName
-     * @param { any } msg
-     */
-    broadcastMessage(fromId, fromName, msg) {
-        this.emit('msg', fromId, fromName, msg);
-    }
-
-    /**
-     * Broadcast a log message to all connected clients
-     * @param { 'server' | { socket:string, id:string, name:string } } src - 'server' or client
-     * @param { ...any } message
-     */
-    broadcastLog(src, ...message) {
-        this.emit('log', src, ...message);
-    }
-
     // /**
     //  * Get all sockets in a room
     //  * @param { string } roomName
@@ -104,32 +50,11 @@ export class DjsServer extends Server {
     // }
 
     /**
-     * Enhance a Socket.io Server into a DjsServer
+     * Enhance a Socket.io Server into a DjsServer with methods from DjsServerSocket
      * @param { Server } server
      * @returns { DjsServer }
      */
     static enhance(server) {
-        /**
-         * Mixin function to copy methods from a class prototype to an object
-         */
-        function applyMixin(target, MixinClass) {
-            let proto = MixinClass.prototype;
-
-            const descriptors = Object.getOwnPropertyDescriptors(proto);
-            // @ts-ignore
-            delete descriptors.constructor;
-
-            Object.defineProperties(target, descriptors);
-
-            return target;
-        }
-        applyMixin(server, DjsServer);
-
-        /**
-         * Original server enhanced with DjsServer methods
-         * @type { DjsServer }
-         */
-        // @ts-ignore
         return server;
     }
 }

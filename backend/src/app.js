@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import serveIndex from 'serve-index';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from '../swagger.config.js';
+import { pluginRegistry } from './plugins/runtime.js';
 
 const app = express();
 
@@ -15,6 +16,7 @@ import agentsRoutes from './routes/agents.js';
 import npcsRoutes from './routes/npcs.js';
 import parcelsRoutes from './routes/parcels.js';
 import { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware, authorizeAdmin } from './middlewares/token.js';
+import { createPluginRoutes } from './routes/plugins.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = Path.dirname(__filename);
@@ -114,6 +116,9 @@ app.use('/api/agents', agentsRoutes);           // api/agents       GET, POST, G
 app.use('/api/npcs', npcsRoutes);               // api/npcs         GET, GET/:id, PATCH, POST
 app.use('/api/parcels', parcelsRoutes);         // api/parcels      GET, GET/:id, POST
 
+// Plugin management routes
+app.use('/api/plugins', createPluginRoutes(pluginRegistry));
+
 // Content API routes (static content delivery - mounted at /api/content/*)
 // GET requests are public, POST requests require admin authorization
 app.post('/api/games', authorizeAdmin, gamesRouter);
@@ -139,5 +144,7 @@ app.use( (err, req, res, next) => {
 /**********************************************/
 
 
+
+export { pluginRegistry };
 
 export default app;

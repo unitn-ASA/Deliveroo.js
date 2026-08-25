@@ -1,30 +1,26 @@
 import Xy from '../deliveroo/Xy.js';
-import Grid from '../deliveroo/Grid.js';
-import Tile from '../deliveroo/Tile.js';
-import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
 
 /**
  * @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOTile.js').IOTileType} IOTileType
  */
 
 /**
+ * @typedef {import('../deliveroo/Grid.js').Grid} Grid
+ */
+
+/**
  * MapLoadingSystem handles map loading and tile management.
+ * Stateless utility: the target Grid is passed to each call.
  */
 class MapLoadingSystem {
 
-    /** @type {Grid} */
-    #grid;
-
-    constructor(grid) {
-        this.#grid = grid;
-    }
-
     /**
      * Load a new map
+     * @param {Grid} grid - The grid to load the map into
      * @param {IOTileType[][]} tiles - 2D array of tile types
      * @returns {{success: boolean, error?: string}}
      */
-    loadMap(tiles) {
+    loadMap(grid, tiles) {
         if (!Array.isArray(tiles)) {
             return {
                 success: false,
@@ -33,17 +29,17 @@ class MapLoadingSystem {
         }
 
         // Clear all crates from the map before loading new map
-        for (const crate of this.#grid.crateRegistry.getIterator()) {
+        for (const crate of grid.crateRegistry.getIterator()) {
             crate.delete();
         }
 
         // Clear all parcels from the map before loading new map
-        for (const parcel of this.#grid.parcelRegistry.getIterator()) {
+        for (const parcel of grid.parcelRegistry.getIterator()) {
             parcel.delete();
         }
-        
+
         // Process tiles
-        this.#processTiles(tiles);
+        this.#processTiles(grid, tiles);
 
         return {
             success: true
@@ -66,13 +62,14 @@ class MapLoadingSystem {
 
     /**
      * Process all tiles in the map
+     * @param {Grid} grid
      * @param {IOTileType[][]} tiles
      */
-    #processTiles(tiles) {
-        
+    #processTiles(grid, tiles) {
+
         // Calculate old dimensions
-        const { x: oldX, y: oldY } = this.#grid.tileRegistry.getMaxXy();
-        
+        const { x: oldX, y: oldY } = grid.tileRegistry.getMaxXy();
+
         // Calculate new dimensions
         const { x: newX, y: newY } = this.#calculateMaxXy(tiles);
 
@@ -83,10 +80,10 @@ class MapLoadingSystem {
 
                 if (x <= newX && y <= newY) {
                     // Create/update tile
-                    this.#grid.setTile(xy, tiles[x][y]);
+                    grid.setTile(xy, tiles[x][y]);
                 } else {
                     // Remove tile outside new dimensions
-                    this.#grid.tileRegistry.getOneByXy(xy)?.delete();
+                    grid.tileRegistry.getOneByXy(xy)?.delete();
                 }
             }
         }

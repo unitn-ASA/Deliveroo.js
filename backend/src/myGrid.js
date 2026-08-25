@@ -1,7 +1,8 @@
 import Grid from './deliveroo/Grid.js';
 import { config, configEmitter } from './config/config.js';
-import ParcelSpawner from './workers/ParcelSpawner.js';
-import NPCspawner from './workers/NPCspawner.js';
+import { pluginRegistry } from './plugins/runtime.js';
+import ParcelSpawnerPlugin from './plugins/builtins/ParcelSpawnerPlugin.js';
+import NPCSpawnerPlugin from './plugins/builtins/NPCSpawnerPlugin.js';
 
 
 
@@ -15,15 +16,32 @@ configEmitter.on('GAME', async () => {
     }
 });
 
-const myParcelSpawner = new ParcelSpawner(myGrid);
-// console.log(`myGrid.js: ParcelSpawner initialized`);
 
-const myNPCSpawner = new NPCspawner(myGrid, config.GAME.npcs || []);
-// console.log(`myGrid.js: NPCSpawner initialized with options`, config.GAME.npcs || []);
-configEmitter.on('GAME', async () => {
-    let npcsOptions = config?.GAME?.npcs || [];
-    // console.log(`myGrid.js: NPCSpawner options updated`, npcsOptions);
-    myNPCSpawner.applyOptions( npcsOptions );
-});
 
-export { myGrid, myParcelSpawner, myNPCSpawner };
+/**
+ * Expose the grid to plugins through the registry context.
+ * Plugin registration/startup happens in ioServer.js, where the command bus lives.
+ */
+pluginRegistry.attachGrid(myGrid);
+
+/**
+ * Game-behavior plugins: parcel and NPC spawning.
+ * Both depend only on the grid, so they start here rather than in ioServer.js.
+ */
+const parcelSpawnerPlugin = pluginRegistry.register(new ParcelSpawnerPlugin());
+pluginRegistry.start(parcelSpawnerPlugin.id)
+    .then(ok => ok
+        ? console.log(`✅ Plugin ${parcelSpawnerPlugin.id} started`)
+        : console.error(`❌ Failed to start plugin ${parcelSpawnerPlugin.id}:`, parcelSpawnerPlugin.lastError))
+    .catch(error => console.error(`❌ Failed to start plugin ${parcelSpawnerPlugin.id}:`, error));
+
+const npcSpawnerPlugin = pluginRegistry.register(new NPCSpawnerPlugin());
+pluginRegistry.start(npcSpawnerPlugin.id)
+    .then(ok => ok
+        ? console.log(`✅ Plugin ${npcSpawnerPlugin.id} started`)
+        : console.error(`❌ Failed to start plugin ${npcSpawnerPlugin.id}:`, npcSpawnerPlugin.lastError))
+    .catch(error => console.error(`❌ Failed to start plugin ${npcSpawnerPlugin.id}:`, error));
+
+
+
+export { myGrid };

@@ -6,9 +6,9 @@ This package exposes small helpers for interacting with the Deliveroo.js backend
 
 ## Key features
 
-- Small HTTP helper functions for the Deliveroo REST API (tokens, configs, agents, parcels).
-- Socket-related helpers and types for `Deliveroojs`.
-- JSDoc typedefs that can be used by editors/TypeScript for type hints.
+- **HTTP API Clients**: REST clients for game entities
+- **Socket Helpers**: Socket-related helpers and types for Deliveroo.js
+- **Type Definitions**: JSDoc typedefs that can be used by editors/TypeScript for type hints
 
 ## Installation
 
@@ -26,9 +26,50 @@ Import the functions and types you need from the package root:
 
 ```js
 import {
-    DeliveroojsRestClient,
-    DeliveroojsAsyncClient
-} from '@unitn-asa/deliveroo-js-sdk';
+    DjsRestClient,
+    DjsClientSocket,
+    DjsConnect
+} from '@unitn-asa/deliveroo-js-sdk/client';
+```
+
+### Game API Client
+
+```js
+import { DjsRestClient } from '@unitn-asa/deliveroo-js-sdk/client';
+
+const api = new DjsRestClient('http://localhost:8080');
+
+// Get authentication token
+const { token } = await api.getToken('MyAgent', 'MyTeam');
+
+// Get game configuration
+const config = await api.getConfig(token);
+
+// List agents
+const agents = await api.getAll('agents', token);
+```
+
+### Socket.IO Client
+
+```js
+import { DjsConnect } from '@unitn-asa/deliveroo-js-sdk/client';
+
+// Connect to game server
+const socket = await DjsConnect('http://localhost:8080', {
+    id: 'agent-1',
+    name: 'My Agent',
+    team: 'MyTeam'
+});
+
+// Listen to events
+socket.on('sensing', (data) => {
+    console.log('Sensing:', data);
+});
+
+// Send actions
+socket.emit('move', 'up', (result) => {
+    console.log('Move result:', result);
+});
 ```
 
 ## Types

@@ -9,38 +9,60 @@
 /**
  * Client -> Server events. Emitted by the client and listened by the server.
  * @typedef {{
- *      'disconnect':   function () : void,
- *      'move':         function ( 'up' | 'right' | 'left' | 'down', function ( { x:number, y:number } | false ) : void = ) : { x:number, y:number } | false,
- *      'pickup':       function ( function ( { id:string } [] ) : void = ) : { id:string } [],
- *      'putdown':      function ( string [] =, function ( { id:string } [] ) : void = ) : { id:string } [],
- *      'say':          function ( string, any, function( 'successful' | 'failed' ) : void ) : void,
- *      'ask':          function ( string, any, function( any ) : void ) : void,
- *      'shout':        function ( any, function( any ) : void ) : void,
- *      'parcel':       function ( 'create' | 'dispose' | 'set', { x:number, y:number } | { id:string, reward?:number } ) : void,
- *      'crate':        function ( 'create' | 'dispose', { x:number, y:number } ) : void,
- *      'restart':      function () : void,
- *      'tile':         function ( IOTile ) : void,
- *      'reward':       function ( { agentId: string, points: number } ) : void,
- *      'log':          function ( ...any ) : void
+ *      'disconnect':   (                                                                   ) => void,
+ *      'move':         ( direction: 'up' | 'right' | 'left' | 'down',
+ *                        ack ? : function ( { x:number, y:number } | false ) : void        ) => void,
+ *      'pickup':       ( ack ? : function ( { id:string } [] ) : void                      ) => void,
+ *      'putdown':      ( parcelsIds ? : string [],
+ *                        ack ? : function ( { id:string } [] ) : void                      ) => void,
+ *      'say':          ( toId: string,
+ *                        msg: any,
+ *                        ack ? : function( 'successful' | 'failed' ) : void                ) => 'successful' | 'failed',
+ *      'ask':          ( toId: string,
+ *                        msg: any,
+ *                        ack ? : function( any ) : void                                    ) => any,
+ *      'shout':        ( msg: any,
+ *                        ack ? : function( any ) : void                                    ) => void,
+ *      'log':          ( ...msg: any                                                       ) => void,
+ * } & {
+ *      'parcel':       ( what: 'create' | 'dispose' | 'set',
+ *                        where: { x:number, y:number } | { id:string, reward?:number }     ) => void,
+ *      'crate':        ( what: 'create' | 'dispose',
+ *                        where: { x:number, y:number }                                     ) => void,
+ *      'restart':      (                                                                   ) => void,
+ *      'tile':         ( tile: IOTile                                                      ) => void,
+ *      'reward':       ( agent: { agentId: string, points: number }                        ) => void,
+ *     'agent:teleport':( agentId: string, position: { x:number, y:number }                 ) => void
+ *      'agent:control':( agentId: string, action: string, params: any,
+ *                        ack ? : function( any ) : void                                    ) => void
  * }} IOClientEvents
  */
 
 /**
  * Server -> Client events. Emitted by the server and listened by the client.
  * @typedef {{
- *      'connect':          function () : void,
- *      'disconnect':       function () : void,
- *      'token':            function ( string ) : void,
- *      'config':           function ( any ) : void,
- *      'map':              function ( number, number, IOTile[] ) : void,
- *      'tile':             function ( IOTile ) : void,
- *      'controller':       function ( 'connected' | 'disconnected', {id:string, name:string, teamId:string, teamName:string, score:number} ) : void,
- *      'you':              function ( IOAgent ) : void,
- *      'sensing':          function ( IOSensing ) : void,
- *      'ping':             function ( { frame: number, roundTrip: number }, function () : void ) : void,
- *      'metrics':          function ( IOMetrics ) : void,
- *      'msg':              function ( string, string, Object, function ( Object ) : void = ) : Object,
- *      'log':              function ( 'server' | { socket:string, id:string, name:string }, ...any ) : void
+ *      'connect':          () => void,
+ *      'disconnect':       () => void,
+ *      'token':            ( token: string ) => void,
+ *      'config':           ( config: any ) => void,
+ *      'map':              ( width: number, height: number, tiles: IOTile[] ) => void,
+ *      'tile':             ( tile: IOTile ) => void,
+ *      'you':              ( agent: IOAgent ) => void,
+ *      'sensing':          ( sensing: IOSensing ) => void,
+ *      'msg':              ( fromId: string, fromName: string, content: Object,
+ *                            ack?: ( response: Object ) => void
+ *                          ) => Object,
+ *      'log':              ( source: 'server' | { socket:string, id:string, name:string },
+ *                            ...msg: any
+ *                          ) => void
+ *      'ping':             ( pingData: { frame: number, roundTrip: number },
+ *                            ack: () => void
+ *                          ) => void
+ * } & {
+ *      'controller':       ( status: 'connected' | 'disconnected',
+ *                            agentInfo: {id:string, name:string, teamId:string, teamName:string, score:number}
+ *                          ) => void,
+ *      'metrics':          ( metrics: IOMetrics ) => void
  * }} IOServerEvents
  */
 

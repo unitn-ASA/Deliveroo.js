@@ -1,7 +1,4 @@
 import Xy from './Xy.js';
-import myClock from '../myClock.js';
-import { myGrid } from '../myGrid.js';
-import { config } from '../config/config.js';
 import Agent from './Agent.js';
 import eventEmitter from 'events';
 import { watchProperty } from '../reactivity/watchProperty.js';
@@ -63,7 +60,7 @@ class Parcel {
      * @constructor
      * @param {Xy} xy - Initial position
      * @param {Agent} [carriedBy=null] - Optional carrier agent
-     * @param {number} [reward] - Optional reward value (auto-generated if not provided)
+     * @param {number} [reward] - Optional reward value (assigned as-is; reward policy is handled by the caller)
      * @override
      */
     constructor ( xy, carriedBy = null, reward ) {
@@ -95,8 +92,7 @@ class Parcel {
             key: 'reward',
             callback: (target, key, value) => target.emitter.emit(key, value)
         });
-        // Use RewardDecayingSystem for reward calculation
-        this.reward = myGrid.rewardDecayingSystem.calculateReward(reward);
+        this.reward = reward;
 
         // expired watching
         watchProperty({
@@ -110,10 +106,13 @@ class Parcel {
         const rewardListener = () => {
             if ( this.reward <= 0 ) {
                 this.expired = true;
-                this.emitter.off( 'reward', rewardListener );
             }
         };
         this.emitter.on( 'reward', rewardListener );
+        // Clean up reward listener when parcel is deleted
+        this.emitter.once( 'deleted', () => {
+            this.emitter.off( 'reward', rewardListener );
+        } );
 
     }
 

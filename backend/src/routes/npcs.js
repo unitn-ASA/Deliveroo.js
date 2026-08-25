@@ -1,8 +1,16 @@
 import express from 'express';
-import { myNPCSpawner } from '../myGrid.js';
+import { pluginRegistry } from '../plugins/runtime.js';
 import { authorizeAdmin } from '../middlewares/token.js';
 
 const router = express.Router();
+
+/**
+ * The NPC REST surface operates on the npc-spawner plugin.
+ * @returns {import('../plugins/builtins/NPCSpawnerPlugin.js').default | null} null when the plugin is not running
+ */
+function getNpcSpawner() {
+    return pluginRegistry.isRunning('npc-spawner') ? pluginRegistry.get('npc-spawner') : null;
+}
 
 /**
  * @swagger
@@ -27,7 +35,13 @@ router.get('/', async (req, res) => {
 
     console.log( `GET /api/npcs` );
 
-    const agents = Array.from( myNPCSpawner.NPCs.values() ).map( npc => {
+    const npcSpawner = getNpcSpawner();
+    if ( ! npcSpawner ) {
+        res.status(503).json( { message: `NPC spawner plugin is not running` } );
+        return;
+    }
+
+    const agents = Array.from( npcSpawner.npcs.values() ).map( npc => {
         return {
             id: npc.agent.id,
             name: npc.agent.name,
@@ -37,7 +51,7 @@ router.get('/', async (req, res) => {
         };
     });
     res.status(200).json( agents );
-  
+
 });
 
 
@@ -79,7 +93,13 @@ router.get('/:id', async (req, res) => {
 
     console.log( `GET /npcs/${req.params.id}` );
 
-    const npc = myNPCSpawner.NPCs.get( req.params.id );
+    const npcSpawner = getNpcSpawner();
+    if ( ! npcSpawner ) {
+        res.status(503).json( { message: `NPC spawner plugin is not running` } );
+        return;
+    }
+
+    const npc = npcSpawner.npcs.get( req.params.id );
     if ( npc ) {
         res.status(200).json( {
             id: npc.agent.id,
@@ -151,7 +171,13 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
 
     console.log( `PATCH /api/npcs/${req.params.id}`, req.body );
 
-    const npc = myNPCSpawner.NPCs.get( req.params.id );
+    const npcSpawner = getNpcSpawner();
+    if ( ! npcSpawner ) {
+        res.status(503).json( { message: `NPC spawner plugin is not running` } );
+        return;
+    }
+
+    const npc = npcSpawner.npcs.get( req.params.id );
     if ( npc ) {
         if ( req.body.running && ! npc.running ) {
             npc.start();
@@ -225,12 +251,18 @@ router.post('/', authorizeAdmin, async (req, res) => {
 
     console.log( `POST /api/npcs`, req.body );
 
-    if ( myNPCSpawner.NPCs.size === 0 ) {
+    const npcSpawner = getNpcSpawner();
+    if ( ! npcSpawner ) {
+        res.status(503).json( { message: `NPC spawner plugin is not running` } );
+        return;
+    }
+
+    if ( npcSpawner.npcs.size === 0 ) {
         res.status(500).json( { message: `No NPC spawners available` } );
         return;
     }
-    
-    const npc = myNPCSpawner.createNPC(req.body);
+
+    const npc = npcSpawner.createNPC(req.body);
 
     res.status(200).json( {
         id: npc.agent.id,

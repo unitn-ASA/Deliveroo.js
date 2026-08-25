@@ -16,6 +16,11 @@ import RewardDecayingSystem from '../systems/RewardDecayingSystem.js';
 import MapLoadingSystem from '../systems/MapLoadingSystem.js';
 import { atNextTick } from '../reactivity/postponeAt.js';
 
+// Shared reward policy system for parcel creation and decay
+const rewardDecayingSystem = new RewardDecayingSystem();
+// Shared map loading utility (stateless; grid passed per call)
+const mapLoadingSystem = new MapLoadingSystem();
+
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType} IOTileType */
 
 
@@ -26,7 +31,7 @@ import { atNextTick } from '../reactivity/postponeAt.js';
  */
 class Grid {
 
-    /** @property {GridEventEmitter} */
+    /** @property {import('./GridEventEmitter.js').GridEventEmitter} */
     #emitter;
     get emitter () {
         return this.#emitter;
@@ -70,17 +75,6 @@ class Grid {
 
 
 
-    /** @type {RewardDecayingSystem} */
-    #rewardDecayingSystem;
-    /** @type {MapLoadingSystem} */
-    #mapLoadingSystem;
-
-    /** Getters for systems */
-    get rewardDecayingSystem() { return this.#rewardDecayingSystem; }
-    get mapLoadingSystem() { return this.#mapLoadingSystem; }
-
-
-
     /**
      * @constructor Grid
      * @param {IOTileType[][]} map
@@ -102,10 +96,6 @@ class Grid {
         this.#crateRegistry = new SpatialRegistry();
         this.#crateFactory = new CrateFactory( this.#crateRegistry );
 
-        // Initialize systems (pass Grid reference to avoid circular dependency)
-        this.#rewardDecayingSystem = new RewardDecayingSystem();
-        this.#mapLoadingSystem = new MapLoadingSystem(this);
-
         this.loadMap( map );
 
     }
@@ -115,7 +105,7 @@ class Grid {
      */
     loadMap ( tiles ) {
         // Use MapLoadingSystem to handle map loading
-        const result = this.#mapLoadingSystem.loadMap(tiles);
+        const result = mapLoadingSystem.loadMap(this, tiles);
 
         if (!result.success) {
             console.error('Grid.js loadMap(tiles) failed:', result.error);
@@ -208,7 +198,8 @@ class Grid {
             return undefined;
 
         // Use factory to create parcel (auto-registers with parcelRegistry)
-        var parcel = this.#parcelFactory.create( xy );
+        // Initial reward is computed here via the reward system, keeping Parcel agnostic of reward policy
+        var parcel = this.#parcelFactory.create( xy, null, rewardDecayingSystem.calculateReward() );
 
         parcel.emitter.once( 'expired', (...args) => {
             parcel.delete();
@@ -240,10 +231,8 @@ class Grid {
 
 
 
-        // Set up decay listener on clock
-        const decayListener = () => {
-            parcel.reward = Math.floor(parcel.reward - 1);
-        };
+        // Set up decay listener on clock, delegating reward policy to the system
+        const decayListener = () => rewardDecayingSystem.decayParcel(parcel);
         const decaying_event = config.GAME.parcels.decaying_event;
         myClock.on(decaying_event, decayListener);
         // Ensure we unsubscribe from clock events when parcel is deleted to prevent memory leaks

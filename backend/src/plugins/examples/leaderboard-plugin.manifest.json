@@ -1,0 +1,7 @@
+{
+  "id": "leaderboard-plugin",
+  "name": "Leaderboard Plugin",
+  "version": "1.0.0",
+  "description": "Maintains a leaderboard from agent score updates",
+  "module": "./LeaderboardPlugin.js"
+}
