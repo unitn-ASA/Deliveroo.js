@@ -1,13 +1,14 @@
-import { atNextTick } from '../../reactivity/postponeAt.js';
+import { atPromise } from '../../reactivity/postponeAt.js';
 import { myGrid } from '../../myGrid.js';
+import myClock from '../../myClock.js';
 
 /**
  * GodSensingHandlers - Map-wide sensing for agent-less observers (admins).
  *
  * Emits the same 'sensing' payload the per-agent Sensor produces for
  * unlimited observation, but built directly from the grid registries:
- * on any game-state fact a fresh full snapshot is emitted, debounced at
- * the next tick so bursts collapse into a single update.
+ * on any game-state fact a fresh full snapshot is emitted, once per clock
+ * frame so bursts collapse into a single update.
  */
 
 /**
@@ -16,11 +17,22 @@ import { myGrid } from '../../myGrid.js';
  */
 export function emitGodSensing(socket) {
     try {
-        // Full snapshot; payload shapes mirror the Sensor positionless path
-        const snapshot = () => {
-            const positions = [];
+        // Tile positions are static between map edits, so do not rebuild them
+        // for every agent movement.
+        let positions = [];
+        let positionsDirty = true;
+        const refreshPositions = () => {
             for (const tile of myGrid.tileRegistry.getIterator()) {
                 positions.push({ x: tile.x, y: tile.y });
+            }
+            positionsDirty = false;
+        };
+
+        // Full snapshot; payload shapes mirror the Sensor positionless path
+        const snapshot = () => {
+            if (positionsDirty) {
+                positions = [];
+                refreshPositions();
             }
 
             const agents = [];
@@ -54,25 +66,37 @@ export function emitGodSensing(socket) {
                 crates.push({ id: c.id, x: c.x, y: c.y });
             }
 
-            return { positions, agents, parcels, crates };
+            return { frame: myClock.frame, positions, agents, parcels, crates };
         };
 
-        // Re-snapshot on any game-state fact, debounced at the next tick
-        const emitSnapshot = atNextTick(() => {
+        let disconnected = false;
+
+        // Re-snapshot on any game-state fact, but emit at most once per frame.
+        let emitSnapshot;
+        const flushSnapshot = () => {
+            if (disconnected) return;
             try {
                 socket.emitSensing(snapshot());
             } catch (error) {
                 console.warn('[emitGodSensing] Error emitting sensing:', error.message);
             }
-        });
+            // atPromise consumes its promise, so schedule the next frame anew.
+            emitSnapshot = atPromise(myClock.once('frame'), flushSnapshot);
+        };
+        emitSnapshot = atPromise(myClock.once('frame'), flushSnapshot);
+        const requestSnapshot = () => emitSnapshot();
+        const requestTileSnapshot = () => {
+            positionsDirty = true;
+            requestSnapshot();
+        };
 
-        myGrid.emitter.onTile(emitSnapshot);
-        myGrid.emitter.onParcel(emitSnapshot);
-        myGrid.emitter.onCrate(emitSnapshot);
-        myGrid.emitter.onAgentCreated(emitSnapshot);
-        myGrid.emitter.onAgentXy(emitSnapshot);
-        myGrid.emitter.onAgentScore(emitSnapshot);
-        myGrid.emitter.onAgentDeleted(emitSnapshot);
+        myGrid.emitter.onTile(requestTileSnapshot);
+        myGrid.emitter.onParcel(requestSnapshot);
+        myGrid.emitter.onCrate(requestSnapshot);
+        myGrid.emitter.onAgentCreated(requestSnapshot);
+        myGrid.emitter.onAgentXy(requestSnapshot);
+        myGrid.emitter.onAgentScore(requestSnapshot);
+        myGrid.emitter.onAgentDeleted(requestSnapshot);
 
         // Initial map-wide snapshot on connection
         socket.emitSensing(snapshot());
@@ -81,13 +105,14 @@ export function emitGodSensing(socket) {
 
         // Cleanup listeners on disconnect
         socket.onDisconnect(() => {
-            myGrid.emitter.offTile(emitSnapshot);
-            myGrid.emitter.offParcel(emitSnapshot);
-            myGrid.emitter.offCrate(emitSnapshot);
-            myGrid.emitter.offAgentCreated(emitSnapshot);
-            myGrid.emitter.offAgentXy(emitSnapshot);
-            myGrid.emitter.offAgentScore(emitSnapshot);
-            myGrid.emitter.offAgentDeleted(emitSnapshot);
+            disconnected = true;
+            myGrid.emitter.offTile(requestTileSnapshot);
+            myGrid.emitter.offParcel(requestSnapshot);
+            myGrid.emitter.offCrate(requestSnapshot);
+            myGrid.emitter.offAgentCreated(requestSnapshot);
+            myGrid.emitter.offAgentXy(requestSnapshot);
+            myGrid.emitter.offAgentScore(requestSnapshot);
+            myGrid.emitter.offAgentDeleted(requestSnapshot);
         });
     } catch (error) {
         console.error('[emitGodSensing] Error setting up god sensing:', error.message);

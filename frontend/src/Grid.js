@@ -413,9 +413,11 @@ export class Grid {
             // var arrayOfSensing = Array.from(arrayOfSensing)
 
             // for all known parcels, if not in sensed, remove
-            var sensed_ids = sensing.parcels.map( ({id}) => id ).filter( id => id !== undefined )
+            const sensedParcelIds = new Set(
+                sensing.parcels.map(({ id }) => id).filter(id => id !== undefined)
+            );
             for ( const [id, was] of this.parcels.entries() ) {
-                if ( ! sensed_ids.includes( was.id ) ) {
+                if ( ! sensedParcelIds.has(was.id) ) {
                     // console.log('no more sensing parcel', knownId)
                     this.parcels.delete( was.id );
                     if ( was.carriedBy ) {
@@ -451,9 +453,11 @@ export class Grid {
             }
 
             // for all known crates, if not in sensed, remove
-            var sensed_ids = sensing.crates.map( ({id}) => id ).filter( id => id !== undefined )
+            const sensedCrateIds = new Set(
+                sensing.crates.map(({ id }) => id).filter(id => id !== undefined)
+            );
             for ( const [id, was] of this.crates.entries() ) {
-                if ( ! sensed_ids.includes( id ) ) {
+                if ( ! sensedCrateIds.has(id) ) {
                     this.crates.delete( id );
                 }
             }

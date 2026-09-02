@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { connection } from '../states/myConnection.js';
 
 const latency = computed(() => connection?.latency?.value);
+const frame = computed(() => connection?.serverFrame?.value || latency.value?.frame || 0);
+const sensingPerFrame = computed(() => connection?.sensingPerFrame?.value || 0);
 
 const latencyClass = computed(() => {
     const rt = latency.value?.roundTrip || 0;
@@ -15,11 +17,12 @@ const latencyClass = computed(() => {
 
 <template>
     <div v-if="latency" class="text-xs font-mono flex items-center gap-1">
-        (frame {{ latency.frame }})
+        (frame {{ frame }})
         (ping
         <span :class="latencyClass">
             {{ latency.roundTrip }}ms
         </span>)
+        (sensing {{ sensingPerFrame.toFixed(1) }}/frame)
     </div>
     <div v-else class="text-xs text-white/50 font-mono">--ms</div>
 </template>

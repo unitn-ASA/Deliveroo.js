@@ -5,6 +5,7 @@
 
 /**
  * @typedef IOSensing
+ * @property {number} [frame] Server frame when the sensing snapshot was produced
  * @property {{x:number, y:number}[]} positions
  * @property {IOAgent[]} agents
  * @property {IOParcel[]} parcels

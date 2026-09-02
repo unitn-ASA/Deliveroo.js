@@ -235,7 +235,7 @@ class Sensor {
             for ( let c of this.#grid.crateRegistry.getIterator() ) {
                 pushCrate( c );
             }
-            this.sensing = { positions, agents, parcels, crates };
+            this.sensing = { frame: myClock.frame, positions, agents, parcels, crates };
             return;
         }
 
@@ -319,7 +319,7 @@ class Sensor {
 
         // console.log(`Sensor.js ${this.#agent.id} sensing an area of ${positions.length} tiles with: ${agents.length} agents, ${parcels.length} parcels, ${crates.length} crates`);
 
-        this.sensing = { positions, agents, parcels, crates };
+        this.sensing = { frame: myClock.frame, positions, agents, parcels, crates };
 
     }
 

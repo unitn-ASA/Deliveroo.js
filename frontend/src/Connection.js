@@ -70,6 +70,12 @@ export class Connection {
     /** @type {import("vue").Ref<{frame: number, roundTrip: number}>} */
     latency = ref();
 
+    /** @type {import("vue").Ref<number>} */
+    serverFrame = ref(0);
+
+    /** @type {import("vue").Ref<number>} */
+    sensingPerFrame = ref(0);
+
     /**
      * @type {IOConfig} configs
      */
@@ -219,6 +225,23 @@ export class Connection {
         ioClient.on( "metrics", ( metricsData ) => {
             // console.log( 'Connection.js on metrics', metricsData );
             this.metrics.value = metricsData;
+        } );
+
+        let previousSensingFrame;
+        let previousSensingCount = 0;
+        ioClient.on( "sensing", ( sensing ) => {
+            if ( typeof sensing?.frame !== 'number' ) return;
+
+            this.serverFrame.value = sensing.frame;
+            const sensingCount = previousSensingCount + 1;
+            if ( previousSensingFrame === undefined ) {
+                this.sensingPerFrame.value = 1;
+            } else if ( sensing.frame > previousSensingFrame ) {
+                this.sensingPerFrame.value =
+                    (sensingCount - previousSensingCount) / (sensing.frame - previousSensingFrame);
+            }
+            previousSensingFrame = sensing.frame;
+            previousSensingCount = sensingCount;
         } );
 
         ioClient.on( "ping", ( latencyData, callback ) => {
