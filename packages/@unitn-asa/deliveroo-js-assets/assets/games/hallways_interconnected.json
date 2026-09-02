@@ -1,7 +1,6 @@
 {
   "title": "hallways_interconnected",
   "description": "Hallways interconnected 30x30 map with the possibility to go from one hallway to another",
-  "maxPlayers": 10,
   "map": {
     "width": 30,
     "height": 30,

@@ -1,7 +1,6 @@
 {
   "title": "26c1_3",
   "description": "Wide paths 30x30 map with open areas and corridors",
-  "maxPlayers": 10,
   "map": {
     "width": 30,
     "height": 30,

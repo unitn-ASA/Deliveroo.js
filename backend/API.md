@@ -46,7 +46,6 @@ Get current game configuration (gameplay settings).
 {
   "title": "Tournament",
   "description": "Standard tournament configuration",
-  "maxPlayers": 10,
   "map": { "file": "default_map" },
   "npcs": [...],
   "parcels": {...},
@@ -63,14 +62,12 @@ List all available games with metadata.
   {
     "name": "basic",
     "title": "Basic Game",
-    "description": "Basic gameplay settings",
-    "maxPlayers": 10
+    "description": "Basic gameplay settings"
   },
   {
     "name": "tournament",
     "title": "Tournament",
-    "description": "Standard tournament configuration",
-    "maxPlayers": 10
+    "description": "Standard tournament configuration"
   }
 ]
 ```

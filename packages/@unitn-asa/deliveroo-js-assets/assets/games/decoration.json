@@ -1,7 +1,6 @@
 {
   "title": "decoration",
   "description": "Decoration themed 30x30 map with intricate patterns",
-  "maxPlayers": 10,
   "map": {
     "width": 30,
     "height": 30,

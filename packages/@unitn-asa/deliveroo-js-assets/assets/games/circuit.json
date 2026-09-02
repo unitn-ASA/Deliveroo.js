@@ -1,7 +1,6 @@
 {
   "title": "circuit",
   "description": "Circuit 30x30 map with obstacles forming a circuit path",
-  "maxPlayers": 10,
   "map": {
     "width": 30,
     "height": 30,

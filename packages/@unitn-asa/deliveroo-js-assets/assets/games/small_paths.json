@@ -1,7 +1,6 @@
 {
   "title": "small_paths",
   "description": "Small paths 20x20 map with narrow corridors",
-  "maxPlayers": 10,
   "map": {
     "width": 20,
     "height": 20,

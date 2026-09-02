@@ -1,7 +1,6 @@
 {
   "title": "26c1_2",
   "description": "A large simple map",
-  "maxPlayers": 10,
   "map": {
     "width": 30,
     "height": 30,

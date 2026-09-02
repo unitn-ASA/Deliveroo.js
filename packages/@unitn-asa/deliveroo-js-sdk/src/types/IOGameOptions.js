@@ -9,7 +9,6 @@
  * @property {string} title                             Game title
  * @property {string} description                       Game description
  * @property {IOMapOptions} map                         Map configuration
- * @property {number} maxPlayers                        Maximum number of players
  * @property {IONpcsOptions[]} npcs                     Array of NPC configurations
  * @property {IOParcelsOptions} parcels                 Parcels configuration
  * @property {IOPlayerOptions} player                   Player configuration * 

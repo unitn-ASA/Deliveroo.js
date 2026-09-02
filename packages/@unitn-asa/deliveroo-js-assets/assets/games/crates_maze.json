@@ -1,7 +1,6 @@
 {
   "title": "crates_maze",
   "description": "A small map with crates used to create a maze.",
-  "maxPlayers": 10,
   "map": {
     "width": 10,
     "height": 10,

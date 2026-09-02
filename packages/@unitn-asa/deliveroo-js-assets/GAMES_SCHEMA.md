@@ -15,7 +15,6 @@ Game configurations (`.json` files in `assets/games/`) define complete game setu
 {
     "title": "Game Title",
     "description": "Game description",
-    "maxPlayers": 4,
 
     "map": {
         "file": "map_name",
@@ -206,7 +205,6 @@ file row is the top row in the UI.
 ```json
 {
     "title": "Basic",
-    "maxPlayers": 4,
     "map": { "file": "default_map" },
     "npcs": [{ "type": "random", "count": 0 }],
     "parcels": {
@@ -227,7 +225,6 @@ file row is the top row in the UI.
 ```json
 {
     "title": "Competition",
-    "maxPlayers": 10,
     "map": { "file": "default_map" },
     "npcs": [
         { "type": "random", "count": 5, "speed": "2s" },
@@ -252,7 +249,6 @@ file row is the top row in the UI.
 ```json
 {
     "title": "Dungeon Crawler",
-    "maxPlayers": 4,
     "map": {
         "generation": {
             "width": 40,

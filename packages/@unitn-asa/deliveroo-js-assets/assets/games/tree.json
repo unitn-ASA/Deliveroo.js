@@ -1,7 +1,6 @@
 {
   "title": "tree",
   "description": "Tree shaped map with one-way paths",
-  "maxPlayers": 10,
   "map": {
     "width": 25,
     "height": 25,

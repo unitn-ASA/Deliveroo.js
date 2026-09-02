@@ -1,7 +1,6 @@
 {
   "title": "vortex",
   "description": "Vortex 20x20 map with narrow paths and obstacles",
-  "maxPlayers": 10,
   "map": {
     "width": 20,
     "height": 20,

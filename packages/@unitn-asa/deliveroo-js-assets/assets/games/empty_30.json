@@ -1,7 +1,6 @@
 {
   "title": "empty_30",
   "description": "Empty 30x30 map with few obstacles for testing purposes",
-  "maxPlayers": 10,
   "map": {
     "width": 30,
     "height": 30,

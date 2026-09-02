@@ -8,8 +8,21 @@ import { config } from '../config/config.js';
  */
 function pickUp(grid, agent) {
     const picked = [];
+    const capacity = config.GAME.player.capacity;
+    // carryingParcels is a mutation-tracking Proxy (watchProperty): its `size`
+    // getter throws on the proxy receiver, so count through iteration instead
+    const carrying = Array.from(agent.carryingParcels).length;
+    const canCarry = capacity === -1 || carrying < capacity;
+    const freeSlots = capacity === -1 ? Infinity : Math.max(0, capacity - carrying);
+
+    if (!canCarry) {
+        return picked;
+    }
+
     for (const parcel of grid.parcelRegistry.getByXy(agent?.xy?.rounded)) {
         if (parcel.carriedBy == null) {
+            if (picked.length >= freeSlots) break;
+
             agent.carryingParcels.add(parcel);
             parcel.carriedBy = agent;
             picked.push(parcel);

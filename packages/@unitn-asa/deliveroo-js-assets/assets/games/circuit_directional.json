@@ -1,7 +1,6 @@
 {
   "title": "circuit_directional",
   "description": "Clockwise racing circuit with directional arrows enforcing one-way movement",
-  "maxPlayers": 10,
   "map": {
     "width": 26,
     "height": 26,

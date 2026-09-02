@@ -31,7 +31,6 @@ export default {
 {
     "title": "Tournament",
     "description": "Balanced competitive gameplay",
-    "maxPlayers": 10,
     "map": {
         "file": "default_map"
     },
@@ -95,8 +94,7 @@ Games include titles and descriptions:
 ```json
 {
     "title": "Chaos Mode",
-    "description": "Maximum chaos with bombs and many NPCs",
-    "maxPlayers": 8
+    "description": "Maximum chaos with bombs and many NPCs"
 }
 ```
 

@@ -1,7 +1,6 @@
 {
   "title": "chaotic_maze",
   "description": "Chaotic maze 30x30 map with dense narrow paths",
-  "maxPlayers": 10,
   "map": {
     "width": 30,
     "height": 30,

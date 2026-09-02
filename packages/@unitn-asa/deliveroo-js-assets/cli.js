@@ -50,8 +50,7 @@ program
                 if (result.valid) {
                     console.log('✅ PASSED\n');
                     console.log(`  Title: ${gameConfig.title}`);
-                    console.log(`  Map: ${gameConfig.map.width}x${gameConfig.map.height}`);
-                    console.log(`  Max Players: ${gameConfig.maxPlayers}\n`);
+                    console.log(`  Map: ${gameConfig.map.width}x${gameConfig.map.height}\n`);
                 } else {
                     console.log('❌ FAILED\n');
                     console.log('  Errors found:');
@@ -140,9 +139,6 @@ program
             }
             if (gameConfig.description) {
                 console.log(`  Description: ${gameConfig.description}`);
-            }
-            if (gameConfig.maxPlayers) {
-                console.log(`  Max Players: ${gameConfig.maxPlayers}`);
             }
 
             console.log('\n  Configuration:');
@@ -345,7 +341,6 @@ program
                             if (gameConfig.map?.tiles) {
                                 console.log(`    Map: ${gameConfig.map.width}x${gameConfig.map.height}`);
                             }
-                            if (gameConfig.maxPlayers) console.log(`    Max Players: ${gameConfig.maxPlayers}`);
                             console.log('');
                         } else {
                             console.log('  Usage: show <gamename>\n');

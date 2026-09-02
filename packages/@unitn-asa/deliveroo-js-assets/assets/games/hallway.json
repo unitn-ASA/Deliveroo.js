@@ -1,7 +1,6 @@
 {
   "title": "hallway",
   "description": "Hallway",
-  "maxPlayers": 10,
   "map": {
     "width": 20,
     "height": 1,

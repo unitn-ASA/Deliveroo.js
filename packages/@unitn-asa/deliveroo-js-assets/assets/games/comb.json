@@ -1,7 +1,6 @@
 {
   "title": "comb",
   "description": "Migrated from 25c2_4.js",
-  "maxPlayers": 1,
   "map": {
     "name": "25c2_4",
     "description": "Migrated from 25c2_4.js",

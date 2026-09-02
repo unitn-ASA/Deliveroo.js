@@ -1,7 +1,6 @@
 {
   "title": "e2e-test-map",
   "description": "Deterministic 5x3 map for E2E tests. Wall at (2,1), parcel spawner at (0,1), delivery at (0,2); rows y=0 and y=2 are fully walkable corridors.",
-  "maxPlayers": 10,
   "map": {
     "width": 5,
     "height": 3,

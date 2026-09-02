@@ -1,7 +1,6 @@
 {
   "title": "e2e-ghost-default",
   "description": "Same as e2e-test-map but with ghost as the default agent preset",
-  "maxPlayers": 10,
   "map": {
     "width": 5,
     "height": 3,

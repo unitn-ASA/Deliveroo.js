@@ -1,7 +1,6 @@
 {
   "title": "crates_one_way",
   "description": "A small map with crates used to create one way paths.",
-  "maxPlayers": 10,
   "map": {
     "width": 10,
     "height": 10,

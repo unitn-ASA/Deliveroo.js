@@ -1,7 +1,6 @@
 {
   "title": "long_hallways",
   "description": "Long hallways 20x20 map with extended corridors",
-  "maxPlayers": 10,
   "map": {
     "width": 20,
     "height": 20,

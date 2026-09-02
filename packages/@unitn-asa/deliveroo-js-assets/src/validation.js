@@ -445,10 +445,6 @@ export function validateGameOptions(game) {
         result.addError('Required property "map" is missing', 'map');
     }
 
-    // Validate maxPlayers
-    const maxPlayersResult = validatePositiveNumber(game.maxPlayers, 'maxPlayers', 1);
-    result.merge(maxPlayersResult);
-
     // Validate npcs
     if (game.npcs !== undefined) {
         const npcsResult = validateNpcsOptions(game.npcs, 'npcs');

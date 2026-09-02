@@ -26,9 +26,6 @@ export async function loadGameConfig(json) {
     if (json.description) {
         config.GAME.description = json.description;
     }
-    if (json.maxPlayers !== undefined) {
-        config.GAME.maxPlayers = json.maxPlayers;
-    }
 
     // Map configuration
     if (json.map?.width !== undefined || json.map?.height !== undefined || (json.map?.tiles && Array.isArray(json.map.tiles)) ) {
@@ -161,7 +158,6 @@ export const config = {
                                                                         || {
         title: 'Default Game',
         description: 'Default game configuration',
-        maxPlayers: 10,
         map: {
             width: 5,
             height: 6,

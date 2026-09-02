@@ -1,7 +1,6 @@
 {
   "title": "26c1_4",
   "description": "Anti-clockwise loop",
-  "maxPlayers": 10,
   "map": {
     "width": 26,
     "height": 26,

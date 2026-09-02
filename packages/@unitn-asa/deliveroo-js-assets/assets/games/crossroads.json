@@ -1,7 +1,6 @@
 {
   "title": "crossroads",
   "description": "Crossroads 25x25 map",
-  "maxPlayers": 2,
   "map": {
     "width": 25,
     "height": 25,

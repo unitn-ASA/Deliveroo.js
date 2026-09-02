@@ -1,7 +1,6 @@
 {
   "title": "atom",
   "description": "Atom shaped 25x25 map with a delivery center and eight loops",
-  "maxPlayers": 10,
   "map": {
     "width": 25,
     "height": 25,

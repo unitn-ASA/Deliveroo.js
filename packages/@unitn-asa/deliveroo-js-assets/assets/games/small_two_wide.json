@@ -1,7 +1,6 @@
 {
   "title": "small_two_wide",
   "description": "Small 20x20 map with 2-tiles wide corridors",
-  "maxPlayers": 10,
   "map": {
     "width": 20,
     "height": 20,

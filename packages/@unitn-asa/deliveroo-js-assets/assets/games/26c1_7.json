@@ -1,7 +1,6 @@
 {
   "title": "26c1_7",
   "description": "40x40 map",
-  "maxPlayers": 10,
   "map": {
     "width": 40,
     "height": 40,

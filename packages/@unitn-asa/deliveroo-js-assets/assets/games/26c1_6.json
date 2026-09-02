@@ -1,7 +1,6 @@
 {
   "title": "26c1_6",
   "description": "A map with two big obstacles.",
-  "maxPlayers": 10,
   "map": {
     "width": 30,
     "height": 30,

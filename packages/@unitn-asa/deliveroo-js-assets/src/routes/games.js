@@ -31,7 +31,6 @@ router.get('/', async (req, res) => {
                     title: null,
                     description: null,
                     map: null,
-                    maxPlayers: null,
                     npcs: [],
                     parcels: null,
                     player: null
@@ -155,7 +154,6 @@ router.get('/:gameName', async (req, res) => {
             title: null,
             description: null,
             map: null,
-            maxPlayers: null,
             npcs: [],
             parcels: null,
             player: null

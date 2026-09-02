@@ -1,7 +1,6 @@
 {
   "title": "empty_10",
   "description": "Migrated from empty_10.js",
-  "maxPlayers": 10,
   "map": {
     "name": "empty_10",
     "description": "Migrated from empty_10.js",
