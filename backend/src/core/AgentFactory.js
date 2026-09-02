@@ -8,8 +8,8 @@ import SpatialRegistry from './SpatialRegistry.js';
 /**
  * Factory for creating Agent entities with automatic spatial registration.
  *
- * Agent behaviour variants (ghost, push, rotation, ...) are movement plugins
- * owning the 'move' command, swappable at runtime — see src/plugins/builtins/.
+ * Agent behaviour variants are components attached after creation. Components
+ * register their handlers directly on the agent-local command bus.
  *
  * @class Factory
  * @classdesc AgentFactory for creating agents

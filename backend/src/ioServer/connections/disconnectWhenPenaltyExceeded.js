@@ -2,7 +2,7 @@
 /**
  * Disconnect socket when penalty is exceeded
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Enhanced socket
- * @param {import('../../deliveroo/Agent.js').default} agent - Agent instance
+ * @param {import('../../core/Agent.js').default} agent - Agent instance
  */
 export function disconnectWhenPenaltyExceeded(socket, agent) {
     try {

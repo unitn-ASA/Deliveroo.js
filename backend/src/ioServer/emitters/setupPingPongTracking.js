@@ -5,7 +5,7 @@ import myPerformanceMonitor from '../../myPerformanceMonitor.js';
 /**
  * Setup ping/pong latency tracking
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Enhanced socket
- * @param {import('../../deliveroo/Identity.js').default} identity - Agent identity
+ * @param {import('../../core/Identity.js').default} identity - Agent identity
  */
 export function setupPingPongTracking(socket, identity) {
     try {

@@ -4,7 +4,7 @@ import myPerformanceMonitor from '../../myPerformanceMonitor.js';
 /**
  * Delete the agent when no sockets are left connected to it, with a timeout to allow for quick reconnections without losing the agent state.
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Enhanced socket
- * @param {import('../../deliveroo/Agent.js').default} agent - Agent instance
+ * @param {import('../../core/Agent.js').default} agent - Agent instance
  */
 export function deleteAgentWhenNoConnectionsLeft(socket, agent) {
     socket.onDisconnect(async (cause) => {

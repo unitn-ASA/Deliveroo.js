@@ -18,7 +18,7 @@ class PlayerConnectionComponent {
 
     /**
      * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket
-     * @param {import('../../deliveroo/Identity.js').default} identity
+     * @param {import('../../core/Identity.js').default} identity
      * @returns {Promise<boolean>} false when the agent could not be created
      */
     async start(socket, identity) {

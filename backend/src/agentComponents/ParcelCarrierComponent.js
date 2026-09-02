@@ -1,4 +1,4 @@
-import { applyPickup, applyPutdown } from '../../../deliveroo/parcelActions.js';
+import { applyPickup, applyPutdown } from '../core/parcelActions.js';
 
 class ParcelCarrierComponent {
     id = 'parcel-carrier';

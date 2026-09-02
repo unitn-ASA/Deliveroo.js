@@ -1,7 +1,7 @@
-import { config } from '../../../config/config.js';
-import { DELTAS } from '../../../deliveroo/movement/directions.js';
-import { applyMove } from '../../../deliveroo/movement/applyMove.js';
-import * as worldRules from '../../../deliveroo/movement/worldRules.js';
+import { config } from '../../config/config.js';
+import { DELTAS } from '../../core/movement/directions.js';
+import { applyMove } from '../../core/movement/applyMove.js';
+import * as worldRules from '../../core/movement/worldRules.js';
 
 class PushMovementComponent {
     id = 'push-movement';

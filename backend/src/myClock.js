@@ -1,3 +1,3 @@
-import Clock from './deliveroo/Clock.js';
+import Clock from './core/Clock.js';
 
 export default new Clock();

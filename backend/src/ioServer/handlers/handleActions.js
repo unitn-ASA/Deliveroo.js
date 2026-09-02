@@ -4,11 +4,11 @@ const VALID_DIRECTIONS = ['up', 'down', 'left', 'right'];
 
 /**
  * Setup action handlers for an agent socket.
- * Actions are dispatched to the command bus, where the command dispatcher owns
- * built-in commands and plugins may replace individual handlers.
+ * Actions are dispatched to the agent-local command bus. Attached components
+ * register the handlers that implement each command.
  *
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Enhanced socket
- * @param {import('../../deliveroo/Agent.js').default} agent - Agent entity
+ * @param {import('../../core/Agent.js').default} agent - Agent entity
  */
 export function handleActions(socket, agent) {
 

@@ -1,6 +1,6 @@
-import { DELTAS } from '../../../deliveroo/movement/directions.js';
-import { applyMove } from '../../../deliveroo/movement/applyMove.js';
-import * as worldRules from '../../../deliveroo/movement/worldRules.js';
+import { DELTAS } from '../../core/movement/directions.js';
+import { applyMove } from '../../core/movement/applyMove.js';
+import * as worldRules from '../../core/movement/worldRules.js';
 
 class StandardMovementComponent {
     id = 'standard-movement';

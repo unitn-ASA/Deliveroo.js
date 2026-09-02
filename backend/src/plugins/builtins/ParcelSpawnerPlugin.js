@@ -79,8 +79,8 @@ class ParcelSpawnerPlugin extends PluginBase {
     }
 
     /**
-     * @param {import('../../deliveroo/Grid.js').default} grid
-     * @returns {import('../../deliveroo/Tile.js').default[]}
+     * @param {import('../../core/Grid.js').default} grid
+     * @returns {import('../../core/Tile.js').default[]}
      */
     #tilesWithNoParcels(grid) {
         return Array.from(grid.tileRegistry.getIterator())

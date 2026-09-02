@@ -1,5 +1,5 @@
 import express from 'express';
-import { agentComponentRegistry } from '../agentComponents/runtime.js';
+import { agentComponentRegistry } from '../agentComponents/registry.js';
 
 const router = express.Router();
 

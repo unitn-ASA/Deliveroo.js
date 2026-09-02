@@ -18,7 +18,7 @@ const ROLE_CONNECTION_COMPONENTS = {
  * Instantiate and start the connection components for an identity's role.
  * Unknown roles fall back to the 'user' set.
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket
- * @param {import('../../deliveroo/Identity.js').default} identity
+ * @param {import('../../core/Identity.js').default} identity
  * @returns {Promise<boolean>} false when a component aborted the chain
  */
 async function attachConnectionComponents(socket, identity) {

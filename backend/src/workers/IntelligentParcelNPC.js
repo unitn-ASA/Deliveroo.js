@@ -1,7 +1,7 @@
 import myClock from '../myClock.js';
 import timersPromises from 'timers/promises';
 import NPC from './NPC.js';
-import Xy from '../deliveroo/Xy.js';
+import Xy from '../core/Xy.js';
 import { config } from '../config/config.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */

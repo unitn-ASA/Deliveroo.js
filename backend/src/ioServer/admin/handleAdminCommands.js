@@ -1,5 +1,5 @@
 import { myGrid } from '../../myGrid.js';
-import Xy from '../../deliveroo/Xy.js';
+import Xy from '../../core/Xy.js';
 import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
 
 /**

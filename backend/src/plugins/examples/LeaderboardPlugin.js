@@ -16,7 +16,7 @@ class LeaderboardPlugin extends PluginBase {
     /** @type {LeaderboardItem[]} sorted by score, descending */
     leaderboard = [];
 
-    /** @type {(agent: import('../../deliveroo/Agent.js').default) => void} */
+    /** @type {(agent: import('../../core/Agent.js').default) => void} */
     #handler = null;
 
     constructor() {
@@ -46,7 +46,7 @@ class LeaderboardPlugin extends PluginBase {
     }
 
     /**
-     * @param {import('../../deliveroo/Agent.js').default} agent
+     * @param {import('../../core/Agent.js').default} agent
      */
     #onAgentScore(agent) {
         if (!agent.id) {

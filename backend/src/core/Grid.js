@@ -15,7 +15,7 @@ import TileFactory from './TileFactory.js';
 import RewardDecayingSystem from '../systems/RewardDecayingSystem.js';
 import MapLoadingSystem from '../systems/MapLoadingSystem.js';
 import { atNextTick } from '../reactivity/postponeAt.js';
-import { agentComponentRegistry } from '../agentComponents/runtime.js';
+import { agentComponentRegistry } from '../agentComponents/registry.js';
 
 // Shared reward policy system for parcel creation and decay
 const rewardDecayingSystem = new RewardDecayingSystem();

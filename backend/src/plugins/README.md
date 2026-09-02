@@ -29,11 +29,12 @@ that agent's local command bus.
 
 Directory layout:
 
-- `src/agentComponents/` — the agent component registry singleton
+- `src/agentComponents/registry.js` — the agent component registry singleton
   (`agentComponentRegistry`): factories and presets, no command management.
+- `src/agentComponents/movement/` and `ParcelCarrierComponent.js` — built-in
+  per-agent behavior components.
 - `builtins/AgentComponentsPlugin.js` — global provider that registers the
   built-in components and presets into the registry.
-- `builtins/agentComponents/` — the built-in per-agent behavior components.
 - `builtins/` — global plugins shipped with the server, such as parcel/NPC
   spawners.
 - `examples/` — demonstration plugins, loaded on demand.
@@ -108,7 +109,7 @@ parcels keep decaying but are not replaced; starting it resumes spawning.
 
 Creates and supervises the NPCs configured for the current game
 (`config.GAME.npcs`), removing them all on stop and re-applying on configuration
-changes. NPC behaviors live in `workers/`. Also backs the REST surface
+changes. NPC behaviors currently live in `workers/`. Also backs the REST surface
 `GET /api/npcs`, which answers 503 while the plugin is stopped.
 
 ## Example Plugins

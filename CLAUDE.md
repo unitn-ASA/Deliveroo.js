@@ -30,15 +30,16 @@ The backend follows an **Entity-Component-System** pattern with event-driven sta
 - **Spatial Registries**: O(1) lookup by XY coordinates for all entities
 - **Event System**: Custom `GridEventEmitter` for efficient state change propagation
 - **Game Systems**: `RewardDecayingSystem`, `MapLoadingSystem` for specific game mechanics
-- **Workers**: `ParcelSpawner`, `NPCspawner` for autonomous entities
+- **Plugins and Workers**: Runtime plugins manage spawning; workers currently drive autonomous NPCs
 
 Key files:
-- `backend/src/deliveroo/Grid.js` - Central game state and entity management
-- `backend/src/deliveroo/Agent.js` - Agent entities with sensor/controller components
-- `backend/src/deliveroo/Parcel.js`, `Tile.js`, `Crate.js` - Game entities
+- `backend/src/core/Grid.js` - Central game state and entity management
+- `backend/src/core/Agent.js` - Agent entities with sensors and local command buses
+- `backend/src/core/Parcel.js`, `Tile.js`, `Crate.js` - Game entities
 - `backend/src/ioServer.js` - Socket.io server with enhanced event handling
 - `backend/src/systems/` - Game system implementations
-- `backend/src/workers/` - NPC and parcel spawning logic
+- `backend/src/agentComponents/` - Per-agent behavior components and preset registry
+- `backend/src/workers/` - NPC decision loops pending migration to `backend/src/npc/`
 
 ### Frontend Architecture
 

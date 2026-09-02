@@ -28,8 +28,8 @@ import { randomUUID } from 'crypto';
 
 /**
  * @typedef {Object} PluginContext
- * @property {import('../deliveroo/Grid.js').default} grid - The game grid; `grid.emitter` broadcasts game-state facts
- * @property {import('../ioServer/commands/commandBus.js').CommandBus} commands - Server command bus; one handler per command
+ * @property {import('../core/Grid.js').default} grid - The game grid; `grid.emitter` broadcasts game-state facts
+ * @property {import('../utils/CommandBus.js').CommandBus} commands - Server command bus; one handler per command
  * @property {PluginBase} plugin
  */
 

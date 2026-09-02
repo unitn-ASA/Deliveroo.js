@@ -18,7 +18,7 @@ class AdminConnectionComponent {
 
     /**
      * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket
-     * @param {import('../../deliveroo/Identity.js').default} identity
+     * @param {import('../../core/Identity.js').default} identity
      * @returns {Promise<boolean>}
      */
     async start(socket, identity) {

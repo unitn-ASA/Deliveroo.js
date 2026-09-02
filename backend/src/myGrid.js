@@ -1,4 +1,4 @@
-import Grid from './deliveroo/Grid.js';
+import Grid from './core/Grid.js';
 import { config, configEmitter } from './config/config.js';
 import { pluginRegistry } from './plugins/runtime.js';
 import ParcelSpawnerPlugin from './plugins/builtins/ParcelSpawnerPlugin.js';

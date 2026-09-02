@@ -1,6 +1,6 @@
 import { myGrid } from '../myGrid.js';
-import Identity from '../deliveroo/Identity.js';
-import Agent from '../deliveroo/Agent.js';
+import Identity from '../core/Identity.js';
+import Agent from '../core/Agent.js';
 
 
 

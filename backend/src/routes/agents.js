@@ -2,7 +2,7 @@ import express from 'express';
 const router = express.Router();
 import { myGrid } from '../myGrid.js';
 import { authorizeAdmin } from '../middlewares/token.js';
-import { agentComponentRegistry } from '../agentComponents/runtime.js';
+import { agentComponentRegistry } from '../agentComponents/registry.js';
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent */
 

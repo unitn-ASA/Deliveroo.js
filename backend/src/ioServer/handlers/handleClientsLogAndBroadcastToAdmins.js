@@ -12,7 +12,7 @@ import { config, configEmitter } from '../../config/config.js';
  * Setup client log broadcasting
  * @private
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Enhanced socket
- * @param {import('../../deliveroo/Identity.js').default} identity - Identity instance
+ * @param {import('../../core/Identity.js').default} identity - Identity instance
  */
 export function handleClientsLogAndBroadcastToAdmins(socket, identity) {
     try {

@@ -3,8 +3,8 @@ import { EventEmitter } from 'events';
 /**
  * @typedef {Object} AgentComponent
  * @property {string} id
- * @property {(agent: import('../deliveroo/Agent.js').default) => void} [start] - Registers commands on agent.commands
- * @property {(agent: import('../deliveroo/Agent.js').default) => void} [stop] - Releases what start acquired
+ * @property {(agent: import('../core/Agent.js').default) => void} [start] - Registers commands on agent.commands
+ * @property {(agent: import('../core/Agent.js').default) => void} [stop] - Releases what start acquired
  */
 
 /**
@@ -128,9 +128,9 @@ class AgentComponentRegistry extends EventEmitter {
      * Instantiate the components of a preset and attach them to the agent.
      * Only attaches: callers own the agent component lifecycle (stop first
      * when re-attaching, see routes/agents.js).
-     * @param {import('../deliveroo/Agent.js').default} agent
+     * @param {import('../core/Agent.js').default} agent
      * @param {string} presetName
-     * @returns {import('../deliveroo/Agent.js').default}
+     * @returns {import('../core/Agent.js').default}
      */
     applyPreset(agent, presetName) {
         const componentIds = this.#presets.get(presetName);

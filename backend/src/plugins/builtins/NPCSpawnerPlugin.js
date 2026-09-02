@@ -13,7 +13,7 @@ import IntelligentParcelNPC from '../../workers/IntelligentParcelNPC.js';
  */
 class NPCSpawnerPlugin extends PluginBase {
 
-    /** @type {Map<string, {agent: import('../../deliveroo/Agent.js').default, stop: () => Promise<void>}>} agentId -> NPC */
+    /** @type {Map<string, {agent: import('../../core/Agent.js').default, stop: () => Promise<void>}>} agentId -> NPC */
     #npcs = new Map();
 
     /** @type {(() => void) | null} */
@@ -92,7 +92,7 @@ class NPCSpawnerPlugin extends PluginBase {
      * @returns {any} the NPC
      */
     createNPC(options) {
-        /** @type {{agent: import('../../deliveroo/Agent.js').default, start: () => void, stop: () => Promise<void>}} */
+        /** @type {{agent: import('../../core/Agent.js').default, start: () => void, stop: () => Promise<void>}} */
         let npc;
         switch (options.type) {
             case 'random':

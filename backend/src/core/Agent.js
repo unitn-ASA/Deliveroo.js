@@ -10,7 +10,7 @@ import eventEmitter from 'events';
 import { watchProperty } from '../reactivity/watchProperty.js';
 import { atNextTick } from '../reactivity/postponeAt.js';
 import { ActionMutex } from '../utils/ActionMutex.js';
-import { CommandBus } from '../ioServer/commands/commandBus.js';
+import { CommandBus } from '../utils/CommandBus.js';
 import { applyPutdown } from './parcelActions.js';
 
 

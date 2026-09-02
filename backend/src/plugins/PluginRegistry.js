@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import fs from 'fs/promises';
 import path from 'path';
 import { pathToFileURL } from 'url';
-import { commandBus } from '../ioServer/commands/commandBus.js';
+import CommandBus from '../utils/CommandBus.js';
 import PluginBase from './PluginBase.js';
 
 /**
@@ -36,17 +36,17 @@ class PluginRegistry extends EventEmitter {
         this.plugins = new Map();
         /** @type {Set<string>} */
         this.runningPlugins = new Set();
-        /** @type {import('../deliveroo/Grid.js').default | null} */
+        /** @type {import('../core/Grid.js').default | null} */
         this.grid = null;
-        /** @type {import('../ioServer/commands/commandBus.js').CommandBus} */
-        this.commandBus = commandBus;
+        /** @type {import('../utils/CommandBus.js').CommandBus} */
+        this.commandBus = new CommandBus();
         /** @type {Map<string, PluginSource>} */
         this.pluginSources = new Map();
     }
 
     /**
      * Attach the grid so plugins receive it in their context.
-     * @param {import('../deliveroo/Grid.js').default} grid
+     * @param {import('../core/Grid.js').default} grid
      */
     attachGrid(grid) {
         this.grid = grid;

@@ -1,11 +1,11 @@
-import Xy from '../deliveroo/Xy.js';
+import Xy from '../core/Xy.js';
 
 /**
  * @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOTile.js').IOTileType} IOTileType
  */
 
 /**
- * @typedef {import('../deliveroo/Grid.js').default} Grid
+ * @typedef {import('../core/Grid.js').default} Grid
  */
 
 /**

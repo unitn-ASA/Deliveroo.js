@@ -13,7 +13,7 @@ import { atNextTick } from '../../reactivity/postponeAt.js';
 /**
  * Setup "me" state handlers
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Enhanced socket
- * @param {import('../../deliveroo/Agent.js').default} agent - Agent instance
+ * @param {import('../../core/Agent.js').default} agent - Agent instance
  */
 export function emitYou(socket, agent) {
     try {

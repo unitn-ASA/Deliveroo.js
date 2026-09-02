@@ -1,4 +1,4 @@
-import Identity from '../../deliveroo/Identity.js';
+import Identity from '../../core/Identity.js';
 import myClock from '../../myClock.js';
 
 /**

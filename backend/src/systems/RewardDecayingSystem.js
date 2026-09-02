@@ -25,7 +25,7 @@ class RewardDecayingSystem {
 
     /**
      * Decay reward for a parcel by 1.
-     * @param {import('../deliveroo/Parcel.js').default} parcel
+     * @param {import('../core/Parcel.js').default} parcel
      * @returns {boolean} True if parcel expired (reward <= 0)
      */
     decayParcel(parcel) {

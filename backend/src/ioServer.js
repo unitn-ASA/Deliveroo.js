@@ -4,7 +4,7 @@ import { EventEmitter } from 'events';
 EventEmitter.defaultMaxListeners = 200;
 import { signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
 import { DjsServer, DjsServerSocket } from '@unitn-asa/deliveroo-js-sdk/server';
-import Identity from './deliveroo/Identity.js';
+import Identity from './core/Identity.js';
 import { config } from './config/config.js';
 import { broadcastConfig } from './ioServer/broadcast/broadcastConfig.js';
 import { broadcastControllersConnections } from './ioServer/broadcast/broadcastControllersConnections.js';

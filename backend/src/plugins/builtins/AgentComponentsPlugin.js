@@ -1,10 +1,10 @@
 import PluginBase from '../PluginBase.js';
-import { agentComponentRegistry } from '../../agentComponents/runtime.js';
-import StandardMovementComponent from './agentComponents/StandardMovementComponent.js';
-import GhostMovementComponent from './agentComponents/GhostMovementComponent.js';
-import PushMovementComponent from './agentComponents/PushMovementComponent.js';
-import RotationMovementComponent from './agentComponents/RotationMovementComponent.js';
-import ParcelCarrierComponent from './agentComponents/ParcelCarrierComponent.js';
+import { agentComponentRegistry } from '../../agentComponents/registry.js';
+import StandardMovementComponent from '../../agentComponents/movement/StandardMovementComponent.js';
+import GhostMovementComponent from '../../agentComponents/movement/GhostMovementComponent.js';
+import PushMovementComponent from '../../agentComponents/movement/PushMovementComponent.js';
+import RotationMovementComponent from '../../agentComponents/movement/RotationMovementComponent.js';
+import ParcelCarrierComponent from '../../agentComponents/ParcelCarrierComponent.js';
 
 /**
  * Global provider for the built-in agent components and presets.
@@ -38,7 +38,7 @@ class AgentComponentsPlugin extends PluginBase {
     async init(context) {
         void context;
 
-        /** @type {[string, new () => import('../../agentComponents/runtime.js').AgentComponent][]} */
+        /** @type {[string, new () => import('../../agentComponents/registry.js').AgentComponent][]} */
         const components = [
             ['standard-movement', StandardMovementComponent],
             ['ghost-movement', GhostMovementComponent],

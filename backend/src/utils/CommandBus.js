@@ -1,34 +1,9 @@
-
-/** @typedef {import('../../deliveroo/Agent.js').default} Agent */
-
 /**
- * @typedef {Object} MoveCommand
- * @property {Agent} agent
- * @property {'up'|'down'|'left'|'right'} direction
- * @property {(result: any) => void} [ack] - Called with the destination Xy, or false when the move fails
- */
-
-/**
- * @typedef {Object} PickupCommand
- * @property {Agent} agent
- * @property {(picked: any[]) => void} [ack] - Called with the list of picked parcels
- */
-
-/**
- * @typedef {Object} PutdownCommand
- * @property {Agent} agent
- * @property {any[]} selected
- * @property {(dropped: {id: string}[]) => void} [ack] - Called with the list of dropped parcels
- */
-
-/**
- * CommandBus dispatches commands entering at the server boundary (socket actions)
- * to the component currently registered for each command type.
+ * CommandBus executes commands through the handler registered on this bus.
  *
  * Unlike the grid emitter (which broadcasts game-state facts to any number of
- * listeners), a command has exactly ONE handler at a time — e.g. the movement
- * plugin owning 'move'. This guarantees a command is executed and acknowledged
- * once, never twice. Registering a new handler replaces the previous one.
+ * listeners), a command has exactly one handler. This guarantees a command is
+ * executed and acknowledged once, never twice.
  */
 class CommandBus {
 
@@ -141,11 +116,5 @@ class CommandBus {
 
 }
 
-/**
- * Shared command bus singleton for the server boundary.
- * @type {CommandBus}
- */
-const commandBus = new CommandBus();
-
-export { commandBus, CommandBus };
+export { CommandBus };
 export default CommandBus;
