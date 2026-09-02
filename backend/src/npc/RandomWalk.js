@@ -1,6 +1,6 @@
 import myClock from '../myClock.js';
 import timersPromises from 'timers/promises'; // await timersPromises.setImmediate();
-import NPC from './NPC.js';
+import Autopilot from './Autopilot.js';
 
 /** @type {('up'|'right'|'down'|'left')[]} */
 const actions = [ 'up', 'right', 'down', 'left' ];
@@ -11,7 +11,7 @@ const actions = [ 'up', 'right', 'down', 'left' ];
 
 
 /**
- * Timeline of RandomlyMovingAgent
+ * Timeline of RandomWalk
  *
  * Events:                start()      stop()      stopped      start()
  * runningPromise          | pending                | res/rej   | pending
@@ -22,9 +22,9 @@ const actions = [ 'up', 'right', 'down', 'left' ];
  * prechecks keep wandering penalty-free when available.
  *
  * @class
- * @extends { NPC }
+ * @extends { Autopilot }
  */
-class RandomlyMovingAgent extends NPC {
+class RandomWalk extends Autopilot {
 
 
 
@@ -82,4 +82,4 @@ class RandomlyMovingAgent extends NPC {
 }
 
 
-export default RandomlyMovingAgent;
+export default RandomWalk;

@@ -109,8 +109,9 @@ parcels keep decaying but are not replaced; starting it resumes spawning.
 
 Creates and supervises the NPCs configured for the current game
 (`config.GAME.npcs`), removing them all on stop and re-applying on configuration
-changes. NPC behaviors currently live in `workers/`. Also backs the REST surface
-`GET /api/npcs`, which answers 503 while the plugin is stopped.
+changes. Autopilot behaviors live in `npc/` and are attached to agents created
+by this plugin. Also backs the REST surface `GET /api/npcs`, which answers 503
+while the plugin is stopped.
 
 ## Example Plugins
 

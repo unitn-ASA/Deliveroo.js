@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    bootServer, connectClient, disconnectAll, rest, sleep, teleport
+    adminRest, bootServer, connectClient, disconnectAll, rest, sleep
 } from './helpers.mjs';
 
 /**
@@ -33,6 +33,35 @@ after(async () => {
 test('NPCs are created with a movement component', async () => {
     const npc = await npcState();
     assert.ok(npc, 'fixture NPC is running');
+});
+
+test('NPC autopilots can be created, stopped, and restarted', async () => {
+    const created = await adminRest(server.baseUrl, 'POST', '/api/npcs', {
+        type: 'random',
+        moving_event: 'frame'
+    });
+    assert.equal(created.status, 200, JSON.stringify(created.body));
+    assert.ok(created.body.id);
+    assert.equal(created.body.running, true);
+
+    const id = created.body.id;
+    const stopped = await adminRest(server.baseUrl, 'PATCH', `/api/npcs/${id}`, {
+        stopRequested: true
+    });
+    assert.equal(stopped.status, 200, JSON.stringify(stopped.body));
+
+    const stateAfterStop = await poll(
+        async () => (await rest(server.baseUrl, 'GET', `/api/npcs/${id}`)).body,
+        (npc) => npc?.running === false,
+        5000
+    );
+    assert.equal(stateAfterStop.running, false);
+
+    const restarted = await adminRest(server.baseUrl, 'PATCH', `/api/npcs/${id}`, {
+        running: true
+    });
+    assert.equal(restarted.status, 200, JSON.stringify(restarted.body));
+    assert.equal(restarted.body.running, true);
 });
 
 // local poll (kept self-contained: the helpers' poll works on any async fn)

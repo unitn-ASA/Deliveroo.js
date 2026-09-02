@@ -1,11 +1,9 @@
-import { myGrid } from '../myGrid.js';
-import Identity from '../core/Identity.js';
 import Agent from '../core/Agent.js';
 
 
 
 /**
- * Timeline of NPC
+ * Timeline of an autopilot
  * 
  * Events:            constructor() start()       stop()        stopped       start()
  * completedPromise    | resolved    | pending     |             | res/rej     | pending
@@ -16,20 +14,10 @@ import Agent from '../core/Agent.js';
  * @abstract
  * @interface
  */
-class NPC {
+class Autopilot {
 
     /** @type {Agent} */
     agent;
-
-    /**
-     * @constructor
-     */
-    constructor () {
-
-        this.agent = myGrid.createAgent( new Identity() );
-        // console.log(`NPC.js: Created NPC with id ${this.agent.id}`);
-
-    }
 
     /** @type {Promise} Resolves when it stops */
     completedPromise = Promise.resolve();
@@ -41,13 +29,17 @@ class NPC {
     stopRequested = false;
 
     /**
-     * Start moving
-     * @returns {Promise} Resolves when agent starts after completing presious stop request
+     * Start controlling an agent.
+     * @param {Agent} [agent]
+     * @returns {Promise<boolean|undefined>}
      */
-    async start() {
+    async start(agent = this.agent) {
         // check if still running
         if ( this.running )
             return false;
+        if ( ! agent )
+            throw new Error('Autopilot.start(): an agent is required');
+        this.agent = agent;
         // start
         this.running = true;
         this.completedPromise = this.execute ()
@@ -58,7 +50,7 @@ class NPC {
     }
 
     /**
-     * Metodo per fermare il movimento casuale dell'agente
+     * Stop controlling the agent.
      * @returns {Promise} Resolves when agent finally stops
      */
     async stop() {
@@ -69,7 +61,7 @@ class NPC {
     }
 
     /**
-     * Metodo per muovere l'agente finché non viene richiesto di fermarsi
+     * Run until a stop is requested.
      * @abstract
      * @interface moveUntilStopRequested
      * @returns {Promise} Resolves when agent stops
@@ -81,4 +73,4 @@ class NPC {
 }
 
 
-export default NPC;
+export default Autopilot;

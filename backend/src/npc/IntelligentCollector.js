@@ -1,6 +1,6 @@
 import myClock from '../myClock.js';
 import timersPromises from 'timers/promises';
-import NPC from './NPC.js';
+import Autopilot from './Autopilot.js';
 import Xy from '../core/Xy.js';
 import { config } from '../config/config.js';
 
@@ -11,18 +11,16 @@ const actions = ['up', 'right', 'down', 'left'];
 const relPos = [{ x: 0, y: 1 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: -1, y: 0 }];
 
 /**
- * Intelligent NPC that collects and delivers parcels using pathfinding
- * @extends { NPC }
+ * Autopilot that collects and delivers parcels using pathfinding.
+ * @extends { Autopilot }
  */
-class IntelligentParcelNPC extends NPC {
+class IntelligentCollector extends Autopilot {
 
     /**
      * @param {IONpcsOptions} options
      */
     constructor(options) {
         super();
-        // console.log('[IntelligentParcelNPC] Constructor called with options:', options);
-
         /** @type {IONpcsOptions} */
         this.options = options || {
             type: 'intelligent',
@@ -51,7 +49,6 @@ class IntelligentParcelNPC extends NPC {
      * @returns {Promise}
      */
     async execute() {
-        // console.log('[IntelligentParcelNPC] execute() called for agent', this.agent?.id || 'unknown');
         // Initialize by sensing delivery tiles
         this.senseDeliveryTiles();
 
@@ -61,7 +58,7 @@ class IntelligentParcelNPC extends NPC {
                 // Wait before next action
                 await new Promise(res => myClock.once(this.options.moving_event, res));
             } catch (e) {
-                console.error('[IntelligentParcelNPC] Error in execute loop:', e);
+                console.error('[IntelligentCollector] Error in execute loop:', e);
                 // Handle any errors and continue
                 await timersPromises.setImmediate();
             }
@@ -497,4 +494,4 @@ class IntelligentParcelNPC extends NPC {
     }
 }
 
-export default IntelligentParcelNPC;
+export default IntelligentCollector;

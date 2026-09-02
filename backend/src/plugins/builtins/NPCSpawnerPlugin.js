@@ -1,15 +1,16 @@
 import PluginBase from '../PluginBase.js';
 import { config, configEmitter } from '../../config/config.js';
-import RandomlyMovingNPC from '../../workers/RandomlyMovingNPC.js';
-import IntelligentParcelNPC from '../../workers/IntelligentParcelNPC.js';
+import Identity from '../../core/Identity.js';
+import RandomWalk from '../../npc/RandomWalk.js';
+import IntelligentCollector from '../../npc/IntelligentCollector.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
 
 /**
  * Creates and supervises the NPCs configured for the current game.
- * NPC behaviors (random, intelligent) stay in workers/; this plugin owns
- * their lifecycle: create on start, remove all on stop, and re-apply
- * whenever the game configuration changes.
+ * Autopilot behaviors stay in npc/; this plugin owns the agents and their
+ * lifecycle: create on start, remove all on stop, and re-apply whenever the
+ * game configuration changes.
  */
 class NPCSpawnerPlugin extends PluginBase {
 
@@ -18,6 +19,9 @@ class NPCSpawnerPlugin extends PluginBase {
 
     /** @type {(() => void) | null} */
     #onGameChanged = null;
+
+    /** @type {import('../../core/Grid.js').default | null} */
+    #grid = null;
 
     constructor() {
         super({
@@ -33,6 +37,7 @@ class NPCSpawnerPlugin extends PluginBase {
      * @returns {Promise<boolean>}
      */
     async init(context) {
+        this.#grid = context.grid;
         this.#onGameChanged = () => {
             void this.#applyOptions(context, config.GAME.npcs || []);
         };
@@ -52,6 +57,7 @@ class NPCSpawnerPlugin extends PluginBase {
             configEmitter.off('GAME', this.#onGameChanged);
             this.#onGameChanged = null;
         }
+        this.#grid = null;
         // Deleting each agent triggers the NPC's own 'deleted' cleanup
         for (const npc of this.#npcs.values()) {
             await npc.agent.delete();
@@ -92,32 +98,36 @@ class NPCSpawnerPlugin extends PluginBase {
      * @returns {any} the NPC
      */
     createNPC(options) {
-        /** @type {{agent: import('../../core/Agent.js').default, start: () => void, stop: () => Promise<void>}} */
-        let npc;
+        if (!this.#grid) {
+            throw new Error('NPCSpawnerPlugin: grid is not available');
+        }
+        const agent = this.#grid.createAgent(new Identity());
+        /** @type {import('../../npc/Autopilot.js').default} */
+        let autopilot;
         switch (options.type) {
             case 'random':
-                npc = new RandomlyMovingNPC(options);
+                autopilot = new RandomWalk(options);
                 break;
             case 'intelligent':
-                npc = new IntelligentParcelNPC(options);
+                autopilot = new IntelligentCollector(options);
                 break;
             default:
-                console.warn(`Unknown NPC type '${options.type}', defaulting to randomlyMoving`);
-                npc = new RandomlyMovingNPC(options);
+                console.warn(`Unknown NPC type '${options.type}', defaulting to random`);
+                autopilot = new RandomWalk(options);
         }
 
-        const id = npc.agent.identity.id;
-        this.#npcs.set(id, npc);
+        agent.attachComponent(autopilot);
+        const id = agent.identity.id;
+        this.#npcs.set(id, autopilot);
 
         // Clean up when the NPC's agent is deleted by any other path
-        npc.agent.emitter.once('deleted', async () => {
-            if (this.#npcs.get(id) === npc) {
+        agent.emitter.once('deleted', () => {
+            if (this.#npcs.get(id) === autopilot) {
                 this.#npcs.delete(id);
             }
-            await npc.stop();
         });
 
-        npc.start();
+        return autopilot;
     }
 
     /**

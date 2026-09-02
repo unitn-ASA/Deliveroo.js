@@ -30,7 +30,7 @@ The backend follows an **Entity-Component-System** pattern with event-driven sta
 - **Spatial Registries**: O(1) lookup by XY coordinates for all entities
 - **Event System**: Custom `GridEventEmitter` for efficient state change propagation
 - **Game Systems**: `RewardDecayingSystem`, `MapLoadingSystem` for specific game mechanics
-- **Plugins and Workers**: Runtime plugins manage spawning; workers currently drive autonomous NPCs
+- **Plugins and NPCs**: Runtime plugins manage spawning; autopilots drive autonomous NPC agents
 
 Key files:
 - `backend/src/core/Grid.js` - Central game state and entity management
@@ -39,7 +39,7 @@ Key files:
 - `backend/src/ioServer.js` - Socket.io server with enhanced event handling
 - `backend/src/systems/` - Game system implementations
 - `backend/src/agentComponents/` - Per-agent behavior components and preset registry
-- `backend/src/workers/` - NPC decision loops pending migration to `backend/src/npc/`
+- `backend/src/npc/` - Autonomous NPC autopilots and their lifecycle base
 
 ### Frontend Architecture
 
