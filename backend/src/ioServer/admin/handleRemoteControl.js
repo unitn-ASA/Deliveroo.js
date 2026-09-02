@@ -1,7 +1,8 @@
 import { myGrid } from '../../myGrid.js';
 
 /**
- * Setup agent control handlers for identities with control:agents capability
+ * Setup admin handlers to remotely control any agent.
+ * Actions: move, pickup, putdown
  *
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Socket instance
  * @param {object} identity - Identity object
@@ -16,11 +17,11 @@ export function handleRemoteControl(socket, identity) {
      */
     socket.on('agent:control', async ( agentId, action, params, ack) => {
 
-        // Verify capability
-        if (!socket.rooms.has('control:agents')) {
+        // Verify admin role
+        if (identity.role !== 'admin') {
             console.warn(`[ControlHandlers] Unauthorized control attempt by ${identity.name}`);
             if (ack && typeof ack === 'function') {
-                ack({ success: false, error: 'Unauthorized - requires control:agents capability' });
+                ack({ success: false, error: 'Unauthorized - admin role required' });
             }
             return;
         }
@@ -42,18 +43,17 @@ export function handleRemoteControl(socket, identity) {
 
             switch (action) {
                 case 'move':
-                    const direction = params.direction;
-                    result = await agent.controller[direction]();
+                    result = await agent.commands.execute('move', { direction: params.direction }, false);
                     break;
 
                 case 'pickup':
-                    result = await agent.controller.pickUp();
+                    result = await agent.commands.execute('pickup', {}, []);
                     break;
 
                 case 'putdown':
                     // If selected parcels not provided, putdown all
                     const selected = params.selected || [];
-                    result = await agent.controller.putDown(selected);
+                    result = await agent.commands.execute('putdown', { selected }, []);
                     break;
 
                 default:

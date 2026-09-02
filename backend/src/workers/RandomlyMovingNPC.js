@@ -1,9 +1,9 @@
 import myClock from '../myClock.js';
 import timersPromises from 'timers/promises'; // await timersPromises.setImmediate();
 import NPC from './NPC.js';
-        
+
+/** @type {('up'|'right'|'down'|'left')[]} */
 const actions = [ 'up', 'right', 'down', 'left' ];
-const relPos = [ {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0} ];
 
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
@@ -12,12 +12,15 @@ const relPos = [ {x:0, y:1}, {x:1, y:0}, {x:0, y:-1}, {x:-1, y:0} ];
 
 /**
  * Timeline of RandomlyMovingAgent
- * 
+ *
  * Events:                start()      stop()      stopped      start()
  * runningPromise          | pending                | res/rej   | pending
  * running                 | true                   | false     | true
- * stopRequested    false               | true      | false     
- * 
+ * stopRequested    false               | true      | false
+ *
+ * Moves through the agent-local command bus. Component-specific plausibility
+ * prechecks keep wandering penalty-free when available.
+ *
  * @class
  * @extends { NPC }
  */
@@ -31,7 +34,7 @@ class RandomlyMovingAgent extends NPC {
     constructor ( options ) {
 
         super();
-        
+
         /** @type {IONpcsOptions} */
         this.options = options || {
             type: 'random',
@@ -47,21 +50,17 @@ class RandomlyMovingAgent extends NPC {
      * @returns {Promise} Resolves when it stops
      */
     async execute ( ) {
-    
+
         let index =  Math.floor( Math.random()*4 );
 
         while ( ! this.stopRequested ) {
 
-            let tile = this.agent.grid.tileRegistry.getOneByXy( { x: this.agent.x + relPos[index].x, y: this.agent.y + relPos[index].y } );
             let moved = false;
-            if ( tile && tile.walkable && ! tile.locked ) {
-                switch ( actions[index] ) {
-                    case 'up':    moved = await this.agent.controller.up(); break;
-                    case 'right': moved = await this.agent.controller.right(); break;
-                    case 'down':  moved = await this.agent.controller.down(); break;
-                    case 'left':  moved = await this.agent.controller.left(); break;
-                }
+            const plausible = this.agent.commands.ask('move', 'plausible', { direction: actions[index] }, true);
+            if ( plausible ) {
+                moved = await this.agent.commands.execute( 'move', { direction: actions[index] }, false );
             }
+
             if (moved)
                 // wait before continue
                 await new Promise( res => myClock.once( this.options.moving_event, res ) );

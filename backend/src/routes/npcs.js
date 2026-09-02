@@ -6,10 +6,14 @@ const router = express.Router();
 
 /**
  * The NPC REST surface operates on the npc-spawner plugin.
- * @returns {import('../plugins/builtins/NPCSpawnerPlugin.js').default | null} null when the plugin is not running
+ * @returns {(import('../plugins/PluginBase.js').default & { npcs: Map<string, any>, createNPC: (options: object) => any }) | null} null when the plugin is not running
  */
 function getNpcSpawner() {
-    return pluginRegistry.isRunning('npc-spawner') ? pluginRegistry.get('npc-spawner') : null;
+    if (!pluginRegistry.isRunning('npc-spawner')) {
+        return null;
+    }
+    // The registered plugin is the NPCSpawnerPlugin: expose its npcs surface
+    return /** @type {import('../plugins/PluginBase.js').default & { npcs: Map<string, any>, createNPC: (options: object) => any }} */ (pluginRegistry.get('npc-spawner'));
 }
 
 /**

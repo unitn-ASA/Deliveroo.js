@@ -94,8 +94,8 @@ export class DjsServerSocket extends Socket {
     /**
      * @type { IOServerEvents['you'] }
      */
-    emitYou ( {id, name, teamId, teamName, x, y, score, penalty} ) {
-        super.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty} );
+    emitYou ( {id, name, teamId, teamName, x, y, score, penalty, rotation} ) {
+        super.emit( 'you', {id, name, teamId, teamName, x, y, score, penalty, rotation} );
     }
 
     /**

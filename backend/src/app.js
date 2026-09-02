@@ -15,6 +15,7 @@ import { gamesRouter } from '@unitn-asa/deliveroo-js-assets';
 import agentsRoutes from './routes/agents.js';
 import npcsRoutes from './routes/npcs.js';
 import parcelsRoutes from './routes/parcels.js';
+import agentPresetsRoutes from './routes/agentPresets.js';
 import { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware, authorizeAdmin } from './middlewares/token.js';
 import { createPluginRoutes } from './routes/plugins.js';
 
@@ -113,6 +114,7 @@ app.use('/api/tokens', signTokenMiddleware, (req, res) => {
 // Game server routes (core game logic)
 app.use('/api/configs', configsRoutes);          // api/configs      GET configs, PATCH configs
 app.use('/api/agents', agentsRoutes);           // api/agents       GET, POST, GET/:id, PATCH/:id agents on the grid
+app.use('/api/agent-presets', agentPresetsRoutes); // api/agent-presets GET built-in presets
 app.use('/api/npcs', npcsRoutes);               // api/npcs         GET, GET/:id, PATCH, POST
 app.use('/api/parcels', parcelsRoutes);         // api/parcels      GET, GET/:id, POST
 

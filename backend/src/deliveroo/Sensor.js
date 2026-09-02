@@ -186,7 +186,8 @@ class Sensor {
                 x: a.x,
                 y: a.y,
                 score: a.score,
-                penalty: a.penalty
+                penalty: a.penalty,
+                rotation: a.rotation
             } );
         }
 

@@ -43,7 +43,7 @@
 /**
  * @typedef IOPlayerOptions
  * Player configuration object
- * @property {string} agent_type                        Agent class
+ * @property {string} agent_preset                      Default agent component preset ('standard' | 'rotation' | 'ghost' | 'push')
  * @property {number} movement_duration                 Duration of each movement in ms
  * @property {number} observation_distance              Observation distance
  * @property {number} capacity                          Capacity

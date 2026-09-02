@@ -24,10 +24,6 @@ class Identity {
     /** @readonly @property {string} role */
     role;
 
-    /** @property {string[]} capabilities */
-    capabilities;
-    
-
 
     /**
      * @constructor
@@ -36,23 +32,21 @@ class Identity {
      * @param {string} teamId
      * @param {string} teamName
      * @param {string} role
-     * @param {string[]} capabilities
      */
-    constructor ( id = undefined, name = undefined, teamId = undefined, teamName = undefined, role = undefined, capabilities = [] ) {
+    constructor ( id = undefined, name = undefined, teamId = undefined, teamName = undefined, role = undefined ) {
 
         this.id = id || 'a' + Identity.#lastId++;
         this.name = name || this.id;
         this.teamId = teamId;
         this.teamName = teamName;
         this.role = role || 'user';
-        this.capabilities = capabilities || [];
 
     }
 
 
 
     toString () {
-        return `${this.name} (${this.id}) of ${this.teamName} (${this.teamId}) as ${this.role} with capabilities [${this.capabilities.join(', ')}]`;
+        return `${this.name} (${this.id}) of ${this.teamName} (${this.teamId}) as ${this.role}`;
     }
 
 }

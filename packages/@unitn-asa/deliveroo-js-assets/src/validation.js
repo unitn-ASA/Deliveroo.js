@@ -381,10 +381,10 @@ export function validatePlayerOptions(player, path = 'player') {
         return objectResult;
     }
 
-    // Validate agent_type (optional field)
-    if (player.agent_type !== undefined) {
-        const agentTypeResult = validateString(player.agent_type, `${path}.agent_type`, false);
-        result.merge(agentTypeResult);
+    // Validate agent_preset (optional field)
+    if (player.agent_preset !== undefined) {
+        const agentPresetResult = validateString(player.agent_preset, `${path}.agent_preset`, false);
+        result.merge(agentPresetResult);
     }
 
     // Validate movement_duration

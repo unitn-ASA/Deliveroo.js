@@ -15,9 +15,11 @@
     "prepublishOnly": "",
     "prepare": "",
     "start": "node index.js",
-    "prebuild": "npm install",
+    "prebuild": "npm install && npm run typecheck",
+    "typecheck": "tsc --noEmit",
     "build": "node scripts/build.js",
     "dev": "nodemon --inspect -r dotenv/config index.js --",
+    "test": "node --test tests/e2e/*.test.mjs",
     "schemas:generate": "node scripts/generate-schemas.js",
     "swagger:generate": "npm run schemas:generate && node scripts/generate-swagger.js",
     "docs": "npm run schemas:generate && typedoc"
@@ -30,6 +32,7 @@
     "dotenv": "^16.0.3",
     "jest": "^27.5.1",
     "nodemon": "^3.1.9",
+    "socket.io-client": "^4.7.2",
     "typedoc": "^0.28.17"
   },
   "dependencies": {

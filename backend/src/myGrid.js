@@ -3,6 +3,7 @@ import { config, configEmitter } from './config/config.js';
 import { pluginRegistry } from './plugins/runtime.js';
 import ParcelSpawnerPlugin from './plugins/builtins/ParcelSpawnerPlugin.js';
 import NPCSpawnerPlugin from './plugins/builtins/NPCSpawnerPlugin.js';
+import AgentComponentsPlugin from './plugins/builtins/AgentComponentsPlugin.js';
 
 
 
@@ -23,6 +24,23 @@ configEmitter.on('GAME', async () => {
  * Plugin registration/startup happens in ioServer.js, where the command bus lives.
  */
 pluginRegistry.attachGrid(myGrid);
+
+/**
+ * Agent component provider: populates the preset registry used by
+ * Grid.createAgent. npc-spawner creates agents in its own init, so this
+ * start is AWAITED before the spawners run.
+ */
+const agentComponentsPlugin = pluginRegistry.register(new AgentComponentsPlugin());
+try {
+    const ok = await pluginRegistry.start(agentComponentsPlugin.id);
+    if (ok) {
+        console.log(`✅ Plugin ${agentComponentsPlugin.id} started`);
+    } else {
+        console.error(`❌ Failed to start plugin ${agentComponentsPlugin.id}:`, agentComponentsPlugin.lastError);
+    }
+} catch (error) {
+    console.error(`❌ Failed to start plugin ${agentComponentsPlugin.id}:`, error);
+}
 
 /**
  * Game-behavior plugins: parcel and NPC spawning.

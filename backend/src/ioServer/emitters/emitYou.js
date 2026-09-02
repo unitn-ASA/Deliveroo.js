@@ -17,7 +17,7 @@ import { atNextTick } from '../../reactivity/postponeAt.js';
  */
 export function emitYou(socket, agent) {
     try {
-        // Emit state updates (position, score, penalty, parcels)
+        // Emit state updates (position, score, penalty, parcels, rotation)
         const meAnyListener = atNextTick(() => {
             try {
                 socket.emitYou({
@@ -28,7 +28,8 @@ export function emitYou(socket, agent) {
                     x: agent.x,
                     y: agent.y,
                     score: agent.score,
-                    penalty: agent.penalty
+                    penalty: agent.penalty,
+                    rotation: agent.rotation ?? null
                 });
             } catch (error) {
                 console.warn('[emitYou] Error emitting me update:', error.message);
@@ -40,6 +41,7 @@ export function emitYou(socket, agent) {
         agent.emitter.on('score', meAnyListener);
         agent.emitter.on('penalty', meAnyListener);
         agent.emitter.on('carryingParcels', meAnyListener);
+        agent.emitter.on('rotation', meAnyListener);
 
         // Emit initial state
         meAnyListener();
@@ -52,6 +54,7 @@ export function emitYou(socket, agent) {
             agent.emitter.off('score', meAnyListener);
             agent.emitter.off('penalty', meAnyListener);
             agent.emitter.off('carryingParcels', meAnyListener);
+            agent.emitter.off('rotation', meAnyListener);
         });
     } catch (error) {
         console.error('[emitYou] Error setting up me emission:', error.message);

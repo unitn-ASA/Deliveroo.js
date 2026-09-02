@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import { myGrid } from '../myGrid.js';
 import { authorizeAdmin } from '../middlewares/token.js';
+import { agentComponentRegistry } from '../agentComponents/runtime.js';
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent */
 
@@ -130,6 +131,10 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *               penalty:
  *                 type: number
  *                 description: Current penalty of the agent
+ *               agentPreset:
+ *                 type: string
+ *                 description: Built-in agent preset to attach, replacing current components
+ *                 example: ghost
  *     responses:
  *       200:
  *         description: Agent information updated successfully
@@ -145,7 +150,7 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *                 penalty:
  *                   type: number
  *       400:
- *         description: Score or penalty not provided
+ *         description: No supported field provided
  *         content:
  *           application/json:
  *             schema:
@@ -163,7 +168,7 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *                 message:
  *                   type: string
  */
-// PATCH /agents/:id update an agent's score
+// PATCH /agents/:id update an agent's score, penalty, or component preset
 router.patch('/:id', authorizeAdmin, async (req, res) => {
 
     // log a message on same line as previous log
@@ -172,15 +177,28 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
     const id = req.params.id;
     const agent = myGrid.agentRegistry.get( id );
     if ( agent ) {
+        if ( req.body.agentPreset !== undefined ) {
+            if ( ! agentComponentRegistry.hasPreset(req.body.agentPreset) ) {
+                return res.status(400).json( { message: `Unknown agent preset '${req.body.agentPreset}'` } );
+            }
+            await agent.stopComponents();
+            agentComponentRegistry.applyPreset(agent, req.body.agentPreset);
+        }
         if ( req.body.score !== undefined || req.body.penalty !== undefined ) {
             if ( req.body.score !== undefined )
                 agent.score = Number.parseInt(req.body.score);
             if ( req.body.penalty !== undefined )
                 agent.penalty = Number.parseInt(req.body.penalty);
-            res.status(200).json( { message: `Agent ${id} updated`, score: agent.score, penalty: agent.penalty } );
-        } else {
-            res.status(400).json( { message: `Score or penalty not provided` } );
         }
+        if ( req.body.score === undefined && req.body.penalty === undefined && req.body.agentPreset === undefined ) {
+            return res.status(400).json( { message: `Score, penalty, or agentPreset not provided` } );
+        }
+        res.status(200).json( {
+            message: `Agent ${id} updated`,
+            score: agent.score,
+            penalty: agent.penalty,
+            components: agent.commands.getRegisteredCommands()
+        } );
         console.log( `${agent.name}(${agent.id})`, JSON.stringify({score: agent.score, penalty: agent.penalty}) );
     } else {
         res.status(404).json( { message: `Agent ${id} not found` } );

@@ -36,7 +36,7 @@ class CommandBus {
     #handlers = new Map();
 
     /**
-     * Register the (single) handler for a command, replacing any previous handler.
+     * Register the single handler for a command on this bus.
      * @param {string} command - Command name, e.g. 'move'
      * @param {Function} handler - Handler function receiving the command payload
      * @param {string} owner - Id of the component taking ownership (e.g. plugin id)
@@ -44,6 +44,9 @@ class CommandBus {
     handle ( command, handler, owner ) {
         if ( typeof handler !== 'function' ) {
             throw new Error( `CommandBus: handler for '${command}' must be a function` );
+        }
+        if ( this.#handlers.has( command ) ) {
+            throw new Error( `CommandBus: handler for '${command}' is already registered` );
         }
         this.#handlers.set( command, { owner, handler } );
     }
@@ -71,7 +74,7 @@ class CommandBus {
     /**
      * Dispatch a command payload to its handler.
      * @param {string} command
-     * @param {MoveCommand|PickupCommand|PutdownCommand} payload
+     * @param {object} payload
      * @returns {boolean} true if a handler was found and invoked, false otherwise
      */
     dispatch ( command, payload ) {
@@ -81,6 +84,51 @@ class CommandBus {
         }
         entry.handler( payload );
         return true;
+    }
+
+    /**
+     * Dispatch a query-like command to an optional handler method. This keeps
+     * callers owner-agnostic while still allowing components to expose cheap
+     * checks such as movement plausibility.
+     * @param {string} command
+     * @param {string} method
+     * @param {object} payload
+     * @param {any} [fallback]
+     * @returns {any}
+     */
+    ask ( command, method, payload, fallback = undefined ) {
+        const entry = this.#handlers.get( command );
+        const fn = entry?.handler?.[method];
+        if ( typeof fn !== 'function' ) {
+            return fallback;
+        }
+        return fn( payload );
+    }
+
+    /**
+     * Dispatch a command and resolve with the acknowledgement value.
+     * Useful for internal actors that should use the same replaceable command
+     * path as sockets, without manually wiring callbacks every time.
+     * @param {string} command
+     * @param {object} payload
+     * @param {any} [fallback]
+     * @returns {Promise<any>}
+     */
+    execute ( command, payload, fallback = undefined ) {
+        return new Promise( (resolve) => {
+            const dispatched = this.dispatch( command, { ...payload, ack: resolve } );
+            if ( ! dispatched ) {
+                resolve( fallback );
+            }
+        } );
+    }
+
+    /**
+     * @param {string} command
+     * @returns {string | null}
+     */
+    getOwner ( command ) {
+        return this.#handlers.get( command )?.owner ?? null;
     }
 
     /**

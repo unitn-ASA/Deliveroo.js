@@ -58,8 +58,8 @@ export async function loadGameConfig(json) {
     }
 
     // Player configuration
-    if (json.player?.agent_type !== undefined) {
-        config.GAME.player.agent_type = json.player.agent_type;
+    if (json.player?.agent_preset !== undefined) {
+        config.GAME.player.agent_preset = json.player.agent_preset;
     }
     if (json.player?.movement_duration !== undefined) {
         config.GAME.player.movement_duration = json.player.movement_duration;
@@ -193,7 +193,7 @@ export const config = {
             reward_variance: 10,
         },
         player: {
-            agent_type: undefined,
+            agent_preset: 'standard',
             movement_duration: 50,
             observation_distance: 5,
             capacity: 5,

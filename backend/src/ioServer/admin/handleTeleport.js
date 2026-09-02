@@ -4,7 +4,7 @@ import Xy from '../../deliveroo/Xy.js';
 const logPrefix = '[TeleportHandlers]';
 
 /**
- * Setup teleport handlers for identities with control:agents capability
+ * Setup admin handlers to teleport any agent.
  *
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Socket instance
  * @param {object} identity - Identity object

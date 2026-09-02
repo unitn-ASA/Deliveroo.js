@@ -15,6 +15,7 @@ import TileFactory from './TileFactory.js';
 import RewardDecayingSystem from '../systems/RewardDecayingSystem.js';
 import MapLoadingSystem from '../systems/MapLoadingSystem.js';
 import { atNextTick } from '../reactivity/postponeAt.js';
+import { agentComponentRegistry } from '../agentComponents/runtime.js';
 
 // Shared reward policy system for parcel creation and decay
 const rewardDecayingSystem = new RewardDecayingSystem();
@@ -154,6 +155,18 @@ class Grid {
 
         // Create agent using factory, it is automatically registered in spatial registry
         var agent = this.#agentFactory.createAgent( this, identity );
+
+        // Attach the default preset: components register commands on agent.commands
+        try {
+            agentComponentRegistry.applyPreset(agent, config.GAME.player.agent_preset);
+        } catch (error) {
+            console.warn(`Grid.createAgent(): ${error.message}; falling back to 'standard' preset`);
+            try {
+                agentComponentRegistry.applyPreset(agent, 'standard');
+            } catch (fallbackError) {
+                console.error(`Grid.createAgent(): cannot attach 'standard' preset (${fallbackError.message}); agent created without command components`);
+            }
+        }
 
         // Initial position
         let tiles_unlocked =

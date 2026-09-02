@@ -5,18 +5,19 @@ import Tile from './Tile.js';
 import Parcel from './Parcel.js';
 import myClock from '../myClock.js';
 import Sensor from './Sensor.js';
-import Controller from './Controller.js';
 import Identity from './Identity.js';
 import eventEmitter from 'events';
 import { watchProperty } from '../reactivity/watchProperty.js';
 import { atNextTick } from '../reactivity/postponeAt.js';
 import { ActionMutex } from '../utils/ActionMutex.js';
+import { CommandBus } from '../ioServer/commands/commandBus.js';
+import { applyPutdown } from './parcelActions.js';
 
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent} IOAgent */
 
 /**
- * @typedef {{xy: [Xy], score: [number], penalty: [number], carryingParcels: [Set<Parcel>], deleted: [Agent]}} AgentEventsMap
+ * @typedef {{xy: [Xy], score: [number], penalty: [number], rotation: [number|undefined], carryingParcels: [Set<Parcel>], deleted: [Agent]}} AgentEventsMap
 */
 
 
@@ -73,7 +74,15 @@ class Agent {
 
     /** @type {Number} */
     penalty = 0;
-    
+
+    /**
+     * Facing direction when a rotation-based movement component is active:
+     * 0 = up (North), 1 = right (East), 2 = down (South), 3 = left (West).
+     * Undefined until the agent rotates.
+     * @type {number | undefined}
+     */
+    rotation;
+
     /** @type {Set<Parcel>} #carryingParcels */
     carryingParcels = new Set();
 
@@ -82,16 +91,19 @@ class Agent {
     /** @property {Sensor} sensor */
     get sensor () { return this.#sensor; }
 
-    /** @type {Controller} controller */
-    #controller;
-    /** @property {Controller} controller */
-    get controller () { return this.#controller; }
-       
     // Create action mutex to prevent concurrent actions
     /** @type { function( function():Promise ) : Promise } */
     /** @type {ActionMutex} */
     #actionMutex;
     get actionMutex () { return this.#actionMutex; }
+
+    /** @type {CommandBus} */
+    #commands;
+    get commands () { return this.#commands; }
+
+    /** @type {Set<any>} */
+    #components = new Set();
+    get components () { return this.#components; }
 
 
 
@@ -128,6 +140,12 @@ class Agent {
 
         watchProperty({
             target: this,
+            key: 'rotation',
+            callback: atNextTick( (target, key, value) => target.#emitter.emit(key, value) )
+        });
+
+        watchProperty({
+            target: this,
             key: 'carryingParcels',
             callback: atNextTick( (target, key, value) => this.#emitter.emit('carryingParcels', value) )
         });
@@ -157,7 +175,7 @@ class Agent {
 
         this.#sensor = new Sensor( grid, this );
 
-        this.#controller = new Controller( grid, this );
+        this.#commands = new CommandBus();
 
         // Group 'xy', 'score' => into 'agent' event
         // this.onTick( 'xy', this.emitOnePerTick.bind(this, 'agent') );
@@ -178,12 +196,32 @@ class Agent {
     }
 
     /**
+     * Attach a per-agent component and let it register local commands.
+     * @param {{id?: string, start?: Function, stop?: Function}} component
+     */
+    attachComponent(component) {
+        if (this.#components.has(component)) return component;
+        component.start?.(this);
+        this.#components.add(component);
+        return component;
+    }
+
+    async stopComponents() {
+        for (const component of this.#components) {
+            await component.stop?.(this);
+        }
+        this.#components.clear();
+    }
+
+    /**
      * Deletes the agent, emitting a 'deleted' event and cleaning up listeners.
      * Also handles unlocking tiles and putting down parcels to ensure proper cleanup.
      */
     async delete () {
 
         await this.actionMutex.waitIdle();
+
+        await this.stopComponents();
 
         if ( this.tile )
             this.tile.unlock();
@@ -192,7 +230,7 @@ class Agent {
         //     this.tileRegistry.getOneByXy(agent.xy.roundedFrom).unlock();
 
         // Put down all parcels if carrying any, to handle score updates
-        await this.#controller.putDown();
+        await applyPutdown(this);
         
         // Clear position to prevent further interactions
         this.xy = undefined;

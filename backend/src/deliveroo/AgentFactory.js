@@ -1,18 +1,18 @@
 import Agent from './Agent.js';
-import GhostAgent from '../../plugins/GhostAgent.js';
-import PushAgent from '../../plugins/PushAgent.js';
 import Identity from './Identity.js';
 import Grid from './Grid.js';
 import SpatialRegistry from './SpatialRegistry.js';
-import { config } from '../config/config.js';
 
 
 
 /**
  * Factory for creating Agent entities with automatic spatial registration.
  *
+ * Agent behaviour variants (ghost, push, rotation, ...) are movement plugins
+ * owning the 'move' command, swappable at runtime — see src/plugins/builtins/.
+ *
  * @class Factory
- * @classdesc AgentFactory for creating different types of agents
+ * @classdesc AgentFactory for creating agents
  */
 class AgentFactory {
 
@@ -28,31 +28,14 @@ class AgentFactory {
     }
 
     /**
-     * Creates an agent based on the configured agent type and registers it.
+     * Creates an agent and registers it.
      * @param {Grid} grid - The game grid
      * @param {Identity} identity - The agent's identity
      * @returns {Agent} The created agent
      */
     createAgent ( grid, identity ) {
 
-        /** @type {Agent} */
-        let agent;
-
-        if ( config.GAME.player.agent_type ) {
-
-            if ( config.GAME.player.agent_type === 'GhostAgent' ) {
-                agent = new GhostAgent( grid, identity );
-            }
-
-            if ( config.GAME.player.agent_type === 'PushAgent' ) {
-                agent = new PushAgent( grid, identity );
-            }
-
-        }
-
-        if ( ! agent || config.GAME.player.agent_type === 'DefaultAgent' ) {
-            agent = new Agent( grid, identity );
-        }
+        const agent = new Agent( grid, identity );
 
         // Register with spatial registry
         this.#registry.updateSpatialIndex( agent );

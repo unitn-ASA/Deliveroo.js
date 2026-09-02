@@ -5,7 +5,7 @@ import Xy from '../deliveroo/Xy.js';
  */
 
 /**
- * @typedef {import('../deliveroo/Grid.js').Grid} Grid
+ * @typedef {import('../deliveroo/Grid.js').default} Grid
  */
 
 /**

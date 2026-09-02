@@ -1,31 +1,19 @@
 import { Server } from 'socket.io';
 import httpServer from './httpServer.js';
-import { myGrid } from './myGrid.js';
-import { config, configEmitter } from './config/config.js';
-import myClock from './myClock.js';
 import { EventEmitter } from 'events';
 EventEmitter.defaultMaxListeners = 200;
 import { signTokenMiddleware, verifyTokenMiddleware } from './middlewares/token.js';
 import { DjsServer, DjsServerSocket } from '@unitn-asa/deliveroo-js-sdk/server';
 import Identity from './deliveroo/Identity.js';
+import { config } from './config/config.js';
 import { broadcastConfig } from './ioServer/broadcast/broadcastConfig.js';
-import { emitMapAndTiles } from './ioServer/emitters/emitMapAndTiles.js';
 import { broadcastControllersConnections } from './ioServer/broadcast/broadcastControllersConnections.js';
-import { emitYou } from './ioServer/emitters/emitYou.js';
-import { emitSensing } from './ioServer/emitters/emitSensing.js';
+import { broadcastMetrics } from './ioServer/broadcast/broadcastMetrics.js';
 import { handleCommunications } from './ioServer/handlers/handleCommunications.js';
 import { handleClientsLogAndBroadcastToAdmins } from './ioServer/handlers/handleClientsLogAndBroadcastToAdmins.js';
-import { handleActions } from './ioServer/handlers/handleActions.js';
-import { handleRemoteControl } from './ioServer/admin/handleRemoteControl.js';
-import { handleTeleport } from './ioServer/admin/handleTeleport.js';
-import { handleAdminCommands } from './ioServer/admin/handleAdminCommands.js';
-import { deleteAgentWhenNoConnectionsLeft } from './ioServer/connections/deleteAgentWhenNoConnectionsLeft.js';
 import { setupPingPongTracking } from './ioServer/emitters/setupPingPongTracking.js';
-import { broadcastMetrics } from './ioServer/broadcast/broadcastMetrics.js';
-import { disconnectWhenPenaltyExceeded } from './ioServer/connections/disconnectWhenPenaltyExceeded.js';
-import { emitNowAndListenToEmitterUntilDisconnect, enhanceEmitter } from './ioServer/utils/emitNowAndListenToEmitterUntilDisconnect.js';
-import { pluginRegistry } from './plugins/runtime.js';
-import MovementPlugin from './plugins/builtins/MovementPlugin.js';
+import { emitMapAndTiles } from './ioServer/emitters/emitMapAndTiles.js';
+import { attachConnectionComponents } from './ioServer/connectionComponents/attachConnectionComponents.js';
 
 
 
@@ -78,20 +66,6 @@ broadcastControllersConnections(enhancedIoServer);
 
 
 
-/**
- * Default plugins: movement is a plugin owning the 'move' command.
- * Stop it (REST /api/plugins/movement-standard/stop) and register+start
- * another movement plugin to switch scheme at runtime.
- */
-const movementPlugin = pluginRegistry.register(new MovementPlugin());
-pluginRegistry.start(movementPlugin.id)
-    .then(ok => ok
-        ? console.log(`✅ Plugin ${movementPlugin.id} started`)
-        : console.error(`❌ Failed to start plugin ${movementPlugin.id}:`, movementPlugin.lastError))
-    .catch(error => console.error(`❌ Failed to start plugin ${movementPlugin.id}:`, error));
-
-
-
 enhancedIoServer.on('connection', async ( socket ) => {
 
     try {
@@ -119,12 +93,11 @@ enhancedIoServer.on('connection', async ( socket ) => {
         // Enhance socket once with DjsServerSocket
         const enhancedIoSocket = DjsServerSocket.enhance(socket);
 
-        // Join agent-specific rooms
-        await enhancedIoSocket.join("agent:"+id);
-        await enhancedIoSocket.join("team:"+teamId);
-
         // broadcast Config to clients on connection and on updates
         broadcastConfig(enhancedIoSocket);
+
+        // Map/tiles broadcasting (universal: players and admin observers)
+        emitMapAndTiles(enhancedIoSocket);
 
         // Setup ping/pong latency tracking
         setupPingPongTracking(enhancedIoSocket, identity);
@@ -135,61 +108,12 @@ enhancedIoServer.on('connection', async ( socket ) => {
         // Setup log broadcasting for this socket
         handleClientsLogAndBroadcastToAdmins(enhancedIoSocket, identity);
 
-        // Only if agent
-        if ( true ) {
-
-            // Create Agent entity on map
-            const me = myGrid.agentRegistry.get( id ) || myGrid.createAgent( identity );
-            if ( !me ) {
-                console.error( `Failed to get or create agent for ${id}` );
-                socket.disconnect();
-                return;
-            }
-            // Turn on sensing for this agent
-            me.sensor.turnOn();
-    
-            // Setup connection lifecycle handlers
-            deleteAgentWhenNoConnectionsLeft(enhancedIoSocket, me);
-
-            // Setup penalty-based auto-kick
-            disconnectWhenPenaltyExceeded(enhancedIoSocket, me);
-            // enhanceEmitter( me.emitter ).on( 'penalty', () => {
-            //     if (me.penalty < -1000) {
-            //         console.log(`${me.name}-${me.teamName}-${me.id} is behaving too bad, automatically kicked with penalty ${me.penalty}`);
-            //         socket.disconnect();
-            //     }
-            // } ).untilDisconnect( enhancedIoSocket );
-
-            // Map/tiles broadcasting
-            emitMapAndTiles(enhancedIoSocket);
-            // enhanceEmitter( myGrid.emitter ).on( 'map', () => {
-            //     enhancedIoSocket.emitMap(myGrid.tileRegistry.getMaxX(), myGrid.tileRegistry.getMaxY(), [...myGrid.tileRegistry.getIterator()].map( ({x,y,type}) => ({x,y,type}) ) );
-            // } ).untilDisconnect( enhancedIoSocket ).emitNow();
-            
-            // "Me" state updates
-            emitYou(enhancedIoSocket, me);
-            
-            // Sensing updates
-            emitSensing(enhancedIoSocket, me);
-            
-            // Setup action handlers (dispatched through the command bus)
-            handleActions(enhancedIoSocket, me);
-
-        }
-
-        if ( role === 'admin' ) {
-
-            socket.join("admins");
-
-            // Setup on agent:control handler for admin to control any agent
-            handleRemoteControl(enhancedIoSocket, identity);
-
-            // Setup agent:teleport handler for admin to teleport any agent
-            handleTeleport(enhancedIoSocket, identity);
-            
-            // Setup admin command handlers: parcel, crate, tile, restart, reward
-            handleAdminCommands(enhancedIoSocket, identity);
-
+        // Role-specific connection components (player/admin). No role
+        // knowledge here: the map in attachConnectionComponents decides.
+        const attached = await attachConnectionComponents(enhancedIoSocket, identity);
+        if ( ! attached ) {
+            socket.disconnect();
+            return;
         }
 
     } catch (error) {

@@ -1,8 +1,9 @@
 import { myGrid } from '../../myGrid.js';
 import Xy from '../../deliveroo/Xy.js';
+import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
 
 /**
- * Setup admin command handlers for identities with modify:map capability
+ * Setup admin command handlers: parcel, crate, tile, restart, reward commands
  * Handles: parcel, crate, tile, restart, reward commands
  *
  * @param {import('@unitn-asa/deliveroo-js-sdk/server').DjsServerSocket} socket - Socket instance
@@ -324,7 +325,7 @@ async function handleTileCommand(t, socket, identity) {
 
         const tile = myGrid.tileRegistry.getOneByXy({ x, y });
         if (tile) {
-            tile.type = type;
+            tile.type = parseIOTileType(type);
             console.log(`✅ ${identity.name} set tile at (${x}, ${y}) to ${type}`);
             socket.emit('tile:updated', { x, y, type });
         } else {

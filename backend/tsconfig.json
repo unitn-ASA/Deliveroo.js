@@ -16,13 +16,13 @@
   "include": [
     "index.js",
     "src",
+    "tests",
     "../packages/@unitn-asa/deliveroo-js-sdk/src",
     "../packages/@unitn-asa/deliveroo-js-assets/src"
   ],
   "exclude": [
     "swagger.config.js",
     "node_modules",
-    "dist",
-    "test"
+    "dist"
   ]
 }

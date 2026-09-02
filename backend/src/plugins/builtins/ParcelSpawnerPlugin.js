@@ -12,7 +12,11 @@ class ParcelSpawnerPlugin extends PluginBase {
     /** @type {(() => void) | null} stable listener reference, needed for cancellation */
     #tick = null;
 
-    /** @type {string | null} event name the current schedule is pending on */
+    /**
+     * Event name the current schedule is pending on.
+     * Config values are clock events ('1s', '2s', ...) but typed as plain strings.
+     * @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent | null}
+     */
     #scheduledEvent = null;
 
     constructor() {
@@ -53,7 +57,7 @@ class ParcelSpawnerPlugin extends PluginBase {
     #spawnAndSchedule(context) {
         this.#spawn(context);
         // Read the event at scheduling time so config changes take effect on the next spawn
-        this.#scheduledEvent = config.GAME.parcels.generation_event;
+        this.#scheduledEvent = /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent} */ (config.GAME.parcels.generation_event);
         myClock.once(this.#scheduledEvent, this.#tick);
     }
 

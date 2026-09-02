@@ -6,6 +6,7 @@ import { config } from '../config/config.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
 
+/** @type {('up'|'right'|'down'|'left')[]} */
 const actions = ['up', 'right', 'down', 'left'];
 const relPos = [{ x: 0, y: 1 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: -1, y: 0 }];
 
@@ -153,7 +154,7 @@ class IntelligentParcelNPC extends NPC {
         // Find the action that moves us in the right direction
         for (let i = 0; i < 4; i++) {
             if (relPos[i].x === dx && relPos[i].y === dy) {
-                const moved = await agent.controller[actions[i]]();
+                const moved = await agent.commands.execute('move', { direction: actions[i] }, false);
                 // console.log(`[IntelligentParcelNPC] ${agent.id || 'NPC'}: Move ${actions[i]} returned ${moved}`);
                 if (!moved) {
                     // Path blocked, recalculate
@@ -184,14 +185,14 @@ class IntelligentParcelNPC extends NPC {
 
             // If on delivery tile and carrying parcels, deliver
             if (currentTile && currentTile.delivery && agent.carryingParcels.size > 0) {
-                await agent.controller.putDown();
+                await agent.commands.execute('putdown', {}, []);
                 this.currentTarget = null;
                 return;
             }
 
             // Try to pick up parcels
             if (currentTile && agent.grid.parcelRegistry.getByXy(currentTile.xy).length > 0) {
-                await agent.controller.pickUp();
+                await agent.commands.execute('pickup', {}, []);
                 this.currentTarget = null;
                 return;
             }
@@ -317,7 +318,7 @@ class IntelligentParcelNPC extends NPC {
         const currentTile = agent.grid.tileRegistry.getOneByXy({ x: agent.x, y: agent.y });
         if (currentTile && agent.grid.parcelRegistry.getByXy(currentTile.xy).length > 0) {
             // console.log(`[IntelligentParcelNPC] ${agent.id || 'NPC'}: Picking up parcel on current tile`);
-            await agent.controller.pickUp();
+            await agent.commands.execute('pickup', {}, []);
             return;
         }
 
@@ -343,7 +344,7 @@ class IntelligentParcelNPC extends NPC {
 
         // If on delivery tile, deliver
         if (currentTile && currentTile.delivery) {
-            await agent.controller.putDown();
+            await agent.commands.execute('putdown', {}, []);
             this.currentPath = [];
             this.currentTarget = null;
             return;
@@ -491,7 +492,7 @@ class IntelligentParcelNPC extends NPC {
             this.visitedTiles.clear();
             // Make a random move
             const index = Math.floor(Math.random() * 4);
-            await agent.controller[actions[index]]();
+            await agent.commands.execute('move', { direction: actions[index] }, false);
         }
     }
 }

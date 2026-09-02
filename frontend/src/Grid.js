@@ -305,7 +305,7 @@ export class Grid {
         //     OBSERVATION_DISTANCE = config.OBSERVATION_DISTANCE;
         // } )
 
-        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty } ) => {
+        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty, rotation } ) => {
             // console.log( "Grid.js socket.on(you)", id, name, teamId, teamName, x, y, score, clock )
 
             let me = this.me.value = this.getOrCreateAgent( id );
@@ -316,6 +316,7 @@ export class Grid {
             me.y = y
             me.score = score
             me.penalty = penalty
+            me.rotation = rotation
 
         });
 
@@ -388,7 +389,7 @@ export class Grid {
             for ( const agent of sensing.agents ) {
                 // console.log('Grid.js agents sensing loop', agent, agent?.id)
                 if ( agent && agent.id ) {
-                    const {id, name, teamId, teamName, x, y, score, penalty} = agent;
+                    const {id, name, teamId, teamName, x, y, score, penalty, rotation} = agent;
                     var sensedAgent = this.getOrCreateAgent( id );
                     // console.log(`Agent ${name}(${id}) is sensed at position (${x},${y})`);
                     sensedAgent.name = name;
@@ -398,6 +399,7 @@ export class Grid {
                     sensedAgent.y = y;
                     sensedAgent.score = score;
                     sensedAgent.penalty = penalty;
+                    sensedAgent.rotation = rotation;
                     sensedAgent.opacity = 1;
                     sensedAgent.status = 'online';
                     // console.log('Grid.js sensed agent', id, name, 'at', x, y);
