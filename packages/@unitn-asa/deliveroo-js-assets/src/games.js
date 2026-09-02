@@ -56,7 +56,7 @@ export function validateGame(game) {
  * Parse and validate a JSON string as game options
  * @param {string} json - JSON string to parse
  * @param {boolean} [strict=true] - Whether to throw on validation errors
- * @returns {IOGameOptions} Parsed and validated game options
+ * @returns {IOGameOptions | null} Parsed and validated game options, or null in non-strict mode
  * @throws {Error} If JSON parsing fails or validation fails (in strict mode)
  */
 export function parseJson(json, strict = true) {
@@ -98,8 +98,8 @@ export function parseJson(json, strict = true) {
  * @function loadGame
  * @param {string} gameName - Name of the game (with or without .json extension)
  * @param {boolean} [strict=true] - Whether to throw on validation errors
- * @returns {Promise<IOGameOptions>} The game configuration object
- * @throws {Error} If file reading fails or validation fails (in strict mode)
+ * @returns {Promise<IOGameOptions | null>} The game configuration object, or null in non-strict mode
+ * @throws {Error} If file reading fails or validation fails (strict mode)
  */
 export async function loadGame(gameName, strict = true) {
     if (!gameName.endsWith('.json')) {
@@ -127,8 +127,8 @@ export async function loadGame(gameName, strict = true) {
  * @function loadGameSync
  * @param {string} gameName - Name of the game (with or without .json extension)
  * @param {boolean} [strict=true] - Whether to throw on validation errors
- * @returns {IOGameOptions} The game configuration object
- * @throws {Error} If file reading fails or validation fails (in strict mode)
+ * @returns {IOGameOptions | null} The game configuration object, or null in non-strict mode
+ * @throws {Error} If file reading fails or validation fails (strict mode)
  */
 export function loadGameSync(gameName, strict = true) {
     if (!gameName.endsWith('.json')) {
