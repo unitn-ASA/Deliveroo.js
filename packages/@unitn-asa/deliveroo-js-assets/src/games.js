@@ -69,12 +69,6 @@ export function parseJson(json, strict = true) {
             }
             return value;
         });
-        // ensure all cells are strings for consistency
-        for (let i=0; i<parsed.map.tiles.length; i++) {
-            for (let j=0; j<parsed.map.tiles[i].length; j++) {
-                parsed.map.tiles[i][j] = ""+parsed.map.tiles[i][j];
-            }
-        }
     } catch (err) {
       const error = /** @type {Error} */ (err);
       const errorMsg = `Error parsing JSON string: ${error.message}`;

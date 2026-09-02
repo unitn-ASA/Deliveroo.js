@@ -51,6 +51,28 @@ app.use('/api/content/levels', contentRoutes.levels);
 
 ## Level Configuration
 
+### Map File Format
+
+Embedded maps use fixed-width rows stored in visual order, from top to bottom.
+Each tile occupies two character positions: single-character tile types are
+followed by a space, while `5!` occupies both positions.
+
+```json
+"map": {
+  "width": 5,
+  "height": 3,
+  "tiles": [
+    "2 3 3 3 3",
+    "1 3 0 3 3",
+    "3 3 3 3 3"
+  ]
+}
+```
+
+The first row is the top row shown in the UI. Internally, the server converts
+these rows to its coordinate-oriented tile representation, where `x` grows
+left-to-right and `y` grows bottom-to-top.
+
 Levels are JavaScript files that export configuration objects. When a level is loaded, all its configuration values are applied to the game server.
 
 ### Configuration Options

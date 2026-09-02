@@ -1,30 +1,28 @@
 {
-    "title": "e2e-ghost-default",
-    "description": "Same as e2e-test-map but with ghost as the default agent preset",
-    "maxPlayers": 10,
-    "map": {
-        "width": 5,
-        "height": 3,
-        "tiles": [
-            [3, 1, 2],
-            [3, 3, 3],
-            [3, 0, 3],
-            [3, 3, 3],
-            [3, 3, 3]
-        ]
-    },
-    "npcs": [],
-    "parcels": {
-        "generation_event": "1s",
-        "decaying_event": "1s",
-        "max": 3,
-        "reward_avg": 2,
-        "reward_variance": 0
-    },
-    "player": {
-        "agent_preset": "ghost",
-        "movement_duration": 50,
-        "observation_distance": 5,
-        "capacity": 5
-    }
+  "title": "e2e-ghost-default",
+  "description": "Same as e2e-test-map but with ghost as the default agent preset",
+  "maxPlayers": 10,
+  "map": {
+    "width": 5,
+    "height": 3,
+    "tiles": [
+      "2 3 3 3 3",
+      "1 3 0 3 3",
+      "3 3 3 3 3"
+    ]
+  },
+  "npcs": [],
+  "parcels": {
+    "generation_event": "1s",
+    "decaying_event": "1s",
+    "max": 3,
+    "reward_avg": 2,
+    "reward_variance": 0
+  },
+  "player": {
+    "agent_preset": "ghost",
+    "movement_duration": 50,
+    "observation_distance": 5,
+    "capacity": 5
+  }
 }

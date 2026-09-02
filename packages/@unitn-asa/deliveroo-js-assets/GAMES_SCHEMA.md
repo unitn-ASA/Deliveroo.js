@@ -70,6 +70,28 @@ Game configurations (`.json` files in `assets/games/`) define complete game setu
 
 ### Map Settings
 
+#### Embedded Fixed Map
+
+Embedded maps use one fixed-width string per visual row, ordered from
+top-to-bottom. Each tile occupies two character positions: single-character
+types are padded with a space and two-character types such as `5!` use both
+positions.
+
+```json
+"map": {
+    "width": 5,
+    "height": 3,
+    "tiles": [
+        "2 3 3 3 3",
+        "1 3 0 3 3",
+        "3 3 3 3 3"
+    ]
+}
+```
+
+The server converts these rows to internal `[x][y]` coordinates. The first
+file row is the top row in the UI.
+
 #### Using a Fixed Map
 ```json
 "map": {

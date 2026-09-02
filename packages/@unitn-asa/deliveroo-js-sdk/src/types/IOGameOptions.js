@@ -19,7 +19,7 @@
  * @typedef IOMapOptions
  * @property {number} width                             Map width in tiles
  * @property {number} height                            Map height in tiles
- * @property {IOTileType[][]} tiles                     2D array of tile types
+ * @property {string[]} tiles                            Fixed-width rows, stored top-to-bottom
 */
 
 /**

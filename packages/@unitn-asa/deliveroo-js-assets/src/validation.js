@@ -233,7 +233,7 @@ export function validateObject(value, path, required = false) {
 
 /**
  * Validate IOMapOptions
- * @param {{width: number, height: number, tiles: string[][]}} map - Map options to validate
+ * @param {{width: number, height: number, tiles: string[]}} map - Map options to validate
  * @param {string} [path='map'] - JSON path to the map
  * @returns {ValidationResult} Validation result
  */
@@ -255,28 +255,22 @@ export function validateMapOptions(map, path = 'map') {
 
     // Validate tiles
     if (!Array.isArray(map.tiles)) {
-        result.addError('Map tiles must be a 2D array', `${path}.tiles`, map.tiles);
-    } else {
-        // Check that tiles is a 2D array
-        const is2DArray = map.tiles.every(row => Array.isArray(row));
-        if (!is2DArray) {
-            result.addError('Map tiles must be a 2D array', `${path}.tiles`, map.tiles);
-        } else {
-            // Check dimensions match width/height
-            if (map.tiles.length !== map.width) {
-                result.addError(`Must match specified width (${map.width})`, `length of ${path}.tiles`, map.tiles.length);
+        result.addError('Map tiles must be an array of fixed-width rows', `${path}.tiles`, map.tiles);
+    } else if (map.tiles.every(row => typeof row === 'string')) {
+        const rowErrors = map.tiles.flatMap((row, y) => {
+            if (row.length < map.width * 2 - 1 || row.length > map.width * 2) {
+                return [`Row ${y} must be ${map.width * 2 - 1} or ${map.width * 2} characters`];
             }
-            for (let i = 0; i < map.tiles.length; i++) {
-                if (map.tiles[i].length !== map.height) {
-                    result.addError(`Must match specified height (${map.height})`, `length of ${path}.tiles[${i}]`, map.tiles[i].length);
-                }
-                // Validate each tile type
-                for (let j = 0; j < map.tiles[i].length; j++) {
-                    const tileResult = validateTileType(map.tiles[i][j], `${path}.tiles[${i}][${j}]`);
-                    result.merge(tileResult);
-                }
-            }
+            return Array.from({ length: map.width }, (_, x) => row.slice(x * 2, x * 2 + 2).trim())
+                .filter(tile => !VALID_TILE_TYPES.includes(tile))
+                .map(tile => `Invalid tile '${tile}' in row ${y}`);
+        });
+        if (map.tiles.length !== map.height) {
+            rowErrors.push(`Must match specified height (${map.height})`);
         }
+        for (const error of rowErrors) result.addError(error, `${path}.tiles`, map.tiles);
+    } else {
+        result.addError('Map tiles must be fixed-width strings', `${path}.tiles`, map.tiles);
     }
 
     return result;

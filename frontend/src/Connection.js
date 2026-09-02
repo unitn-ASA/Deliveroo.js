@@ -263,11 +263,15 @@ export class Connection {
             }
         } )
 
-        // Update current configs.GAME.map.tiles on tile updates
+        // Update the fixed-width, top-to-bottom map row on tile updates.
         this.ioClient.onTile( ( {x, y, type} ) => {
             // console.log( 'Connection.js onTile', { x, y, type } );
-            if ( this.configs.GAME.map.tiles && this.configs.GAME.map.tiles[x] && this.configs.GAME.map.tiles[x][y] )
-            this.configs.GAME.map.tiles[x][y] = type;
+            const tiles = this.configs.GAME?.map?.tiles;
+            const height = this.configs.GAME?.map?.height;
+            if (!Array.isArray(tiles) || typeof height !== 'number' || typeof tiles[height - 1 - y] !== 'string') return;
+            const rowIndex = height - 1 - y;
+            const row = tiles[rowIndex];
+            tiles[rowIndex] = row.slice(0, x * 2) + String(type).padEnd(2, ' ') + row.slice(x * 2 + 2);
         } );
 
         // console.log( 'Connection.js', this );

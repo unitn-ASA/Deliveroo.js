@@ -74,9 +74,9 @@
         // const HEIGHT = grid.height;
         const tiles = grid.tiles;
         const map = [];
-        for ( let x=0; x<WIDTH; x++ ) {
-            const row = []
-            for ( let y=0; y<HEIGHT; y++ ) {
+        for ( let y=HEIGHT - 1; y>=0; y-- ) {
+            let row = '';
+            for ( let x=0; x<WIDTH; x++ ) {
                 if ( tiles.has(x + y*1000) ) {
                     let tile = tiles.get( x + y*1000 );
                     let tileType = tile.type;
@@ -87,20 +87,15 @@
                         tileType = tileType + '!';
                     }
 
-                    row.push(tileType);
+                    row += String(tileType).padEnd(2, ' ');
                 }
                 else {
-                    row.push(0);
+                    row += '0 ';
                 }
             }
             map.push(row);
         }
-        var string = "[\n";
-        string += map.map( row => '\t[' + row.join(', ') + ']' ).join( ',\n' )
-        // for (const row of map) {
-        //     string += '\t[' + row.join(', ') + '],\n';
-        // }
-        string += "\n]";
+        var string = JSON.stringify(map, null, 4);
         console.log( string );
         // copy into clipboard
         navigator.clipboard.writeText( string );

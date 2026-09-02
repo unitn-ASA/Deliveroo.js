@@ -21,27 +21,17 @@
         Object.assign(level.value, newValue);
     }, { immediate: true, deep: true });
 
-    // Create a transposed (columns on rows) and vertically flipped copy of tiles
-    const transposeAndFlipVertically = computed(() => {
+    // Rows are already stored top-to-bottom in the file representation.
+    const mapRows = computed(() => {
         if (!level.value?.map?.tiles) return [];
-        const transposed = [];
-        const WIDTH = level.value.map.tiles.length;
-        const HEIGHT = level.value.map.tiles[0].length;
-        for (let y = HEIGHT-1; y >= 0; y--) {
-            const row = [];
-            for (let x = 0; x < WIDTH; x++) {
-                row.push(level.value.map.tiles[x][y]);
-            }
-            transposed.push(row);
-        }
-        return transposed;
+        return level.value.map.tiles.map(row => row.match(/.{1,2}/g)?.map(tile => tile.trim()) || []);
     });
 
     // Check if a tile (in rendered coordinates) is within the sensing distance from center
     function isInSensingArea(rowIndex, colIndex) {
         if (!level.value?.map?.tiles) return false;
-        const WIDTH = level.value.map.tiles.length;
-        const HEIGHT = level.value.map.tiles[0].length;
+        const WIDTH = level.value.map.width;
+        const HEIGHT = level.value.map.height;
 
         const centerX = Math.floor(WIDTH / 2);
         const centerY = Math.floor(HEIGHT / 2);
@@ -67,8 +57,8 @@
     const npcPositions = computed(() => {
         if (!level.value?.npcs || !level.value?.map?.tiles) return [];
 
-        const WIDTH = level.value.map.tiles.length;
-        const HEIGHT = level.value.map.tiles[0].length;
+        const WIDTH = level.value.map.width;
+        const HEIGHT = level.value.map.height;
         const npcs = [];
 
         // Use player.movement_duration for time taken to move one tile (in ms)
@@ -355,8 +345,8 @@
 
             <!-- Map Preview -->
             <div class="bg-base-300 rounded-lg p-2">
-                <div class="stat-value text-xs mb-1">{{ level?.map?.tiles?.length }}×{{ level?.map?.tiles?.[0]?.length }}</div>
-                <div v-if="level?.png" class="relative w-full bg-slate-800" :style="{ aspectRatio: `${level?.map?.tiles?.length}/${level?.map?.tiles?.[0]?.length}` }">
+                <div class="stat-value text-xs mb-1">{{ level?.map?.width }}×{{ level?.map?.height }}</div>
+                <div v-if="level?.png" class="relative w-full bg-slate-800" :style="{ aspectRatio: `${level?.map?.width}/${level?.map?.height}` }">
                     <!-- Base Map Layer -->
                     <img :src="HOST+level?.png" class="absolute inset-0 w-full h-full" />
 
@@ -381,13 +371,13 @@
                         class="absolute inset-0"
                         :style="{
                             display: 'grid',
-                            gridTemplateColumns: `repeat(${level?.map?.tiles?.length}, 1fr)`,
-                            gridTemplateRows: `repeat(${level?.map?.tiles?.[0]?.length}, 1fr)`
+                            gridTemplateColumns: `repeat(${level?.map?.width}, 1fr)`,
+                            gridTemplateRows: `repeat(${level?.map?.height}, 1fr)`
                         }"
                     >
-                        <template v-for="(_, rowIndex) in level?.map?.tiles?.[0]" :key="`row-${rowIndex}`">
+                        <template v-for="(_, rowIndex) in mapRows" :key="`row-${rowIndex}`">
                             <div
-                                v-for="(_, colIndex) in level?.map?.tiles"
+                                v-for="(_, colIndex) in level?.map?.width"
                                 :key="`cell-${rowIndex}-${colIndex}`"
                                 class="w-full h-full"
                                 :class="{ 'bg-info/30 hover:bg-info/50 transition-colors': isInSensingArea(rowIndex, colIndex) }"
@@ -397,7 +387,7 @@
                 </div>
                 <div v-else class="relative">
                     <!-- <div class="text-xs text-center text-base-content/60">No map preview available</div> -->
-                    <div class="flex justify-center" v-for="(row, rowIndex) in transposeAndFlipVertically" >
+                    <div class="flex justify-center" v-for="(row, rowIndex) in mapRows" >
                         <div class="bg-purple-500 text-white" v-for="(type, colIndex) in row" >
                             <div
                                 class="w-3 h-3 border border-base-content text-[10px] flex items-center justify-center overflow-hidden"

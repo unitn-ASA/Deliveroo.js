@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { getGamesList, loadGame } from './index.js';
 import { validateGameOptions } from './src/validation.js';
+import { mapRowsToColumns } from '@unitn-asa/deliveroo-js-sdk/types/mapRows.js';
 
 const program = new Command();
 
@@ -193,9 +194,9 @@ program
                 return;
             }
 
-            const mapData = gameConfig.map.tiles;
             const width = gameConfig.map.width;
             const height = gameConfig.map.height;
+            const mapData = mapRowsToColumns(gameConfig.map.tiles, width, height);
 
             console.log(`\n🗺️  Map: ${name}`);
             console.log('─'.repeat(40));
@@ -206,7 +207,7 @@ program
             const tileCounts = {};
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
-                    const tile = mapData[y][x];
+                    const tile = mapData[x][y];
                     tileCounts[tile] = (tileCounts[tile] || 0) + 1;
                 }
             }
@@ -240,9 +241,9 @@ program
                 return;
             }
 
-            const mapData = gameConfig.map.tiles;
             const width = gameConfig.map.width;
             const height = gameConfig.map.height;
+            const mapData = mapRowsToColumns(gameConfig.map.tiles, width, height);
             const maxHeight = parseInt(options.size);
 
             console.log(`\n🗺️  Preview: ${name} (${width}x${height})`);
@@ -265,10 +266,10 @@ program
                 '←': '←'
             };
 
-            for (let y = 0; y < height; y += step) {
+            for (let y = height - 1; y >= 0; y -= step) {
                 let line = '';
                 for (let x = 0; x < width; x++) {
-                    const tile = String(mapData[y][x]);
+                    const tile = String(mapData[x][y]);
                     line += symbols[tile] || '?';
                 }
                 console.log(line);
@@ -356,13 +357,13 @@ program
                         if (args[0]) {
                             const gameConfig = await loadGame(args[0]);
                             if (gameConfig.map?.tiles) {
-                                const mapData = gameConfig.map.tiles;
                                 const width = gameConfig.map.width;
                                 const height = gameConfig.map.height;
+                                const mapData = mapRowsToColumns(gameConfig.map.tiles, width, height);
                                 const counts = {};
                                 for (let y = 0; y < height; y++) {
                                     for (let x = 0; x < width; x++) {
-                                        const t = mapData[y][x];
+                                        const t = mapData[x][y];
                                         counts[t] = (counts[t] || 0) + 1;
                                     }
                                 }
@@ -385,16 +386,16 @@ program
                         if (args[0]) {
                             const gameConfig = await loadGame(args[0]);
                             if (gameConfig.map?.tiles) {
-                                const mapData = gameConfig.map.tiles;
                                 const width = gameConfig.map.width;
                                 const height = gameConfig.map.height;
+                                const mapData = mapRowsToColumns(gameConfig.map.tiles, width, height);
                                 console.log(`\n  ${args[0]} (${width}x${height}):\n`);
                                 const symbols = { '0': '░', '1': '█', '2': '▓', '3': '▒', '↑': '↑', '→': '→', '↓': '↓', '←': '←' };
                                 const maxLines = 20;
                                 const step = Math.ceil(height / maxLines);
-                                for (let y = 0; y < height; y += step) {
+                                 for (let y = height - 1; y >= 0; y -= step) {
                                     let line = '';
-                                    for (let x = 0; x < width; x++) line += symbols[String(mapData[y][x])] || '?';
+                                    for (let x = 0; x < width; x++) line += symbols[String(mapData[x][y])] || '?';
                                     console.log('  ' + line);
                                 }
                                 if (height > maxLines) console.log(`  ... (${height - maxLines} more rows)`);

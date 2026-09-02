@@ -37,8 +37,6 @@ router.get('/', async (req, res) => {
                     player: null
                 };
                 Object.assign(gameData, await loadGame(gameName));
-                gameData.map.height = gameData.map.tiles.length;
-                gameData.map.height = gameData.map.tiles[0].length;
 
                 // Remove layer links if not applicable
                 if (!gameData.npcs || gameData.npcs.length === 0) {
@@ -163,8 +161,6 @@ router.get('/:gameName', async (req, res) => {
             player: null
         };
         Object.assign(gameData, await loadGame(gameName));
-        gameData.map.width = gameData.map.tiles.length;
-        gameData.map.height = gameData.map.tiles[0].length;
 
         // Remove layer links if not applicable
         if (!gameData.npcs || gameData.npcs.length === 0) {

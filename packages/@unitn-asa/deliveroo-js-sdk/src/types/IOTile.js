@@ -1,4 +1,9 @@
 
+/** @type {readonly IOTileType[]} */
+export const VALID_TILE_TYPES = Object.freeze([
+    '0', '1', '2', '3', '4', '5', '5!', '←', '↑', '→', '↓'
+]);
+
 /**
  * @typedef IOTileType
  * Tile type representation (string)
@@ -17,12 +22,11 @@
  * @returns {IOTileType}
  */
 export function parseIOTileType(typeStr) {
-    typeStr = String(typeStr);
-    const validTypes = ['0', '1', '2', '3', '4', '5', '5!', '←', '↑', '→', '↓'];
-    if ( validTypes.includes(typeStr[0]) && typeStr[1] == '!' || typeStr.length === 1 ) {
-        return /** @type {IOTileType} */ (typeStr);
-    } else {
-        console.warn(`Invalid IOTileType: ${typeStr}, defaulting to '0'`);
-        return '0';
+    const normalized = String(typeStr).trim();
+    if (VALID_TILE_TYPES.includes(/** @type {IOTileType} */ (normalized))) {
+        return /** @type {IOTileType} */ (normalized);
     }
+
+    console.warn(`Invalid IOTileType: ${normalized}, defaulting to '0'`);
+    return '0';
 }

@@ -78,9 +78,9 @@ class Grid {
 
     /**
      * @constructor Grid
-     * @param {IOTileType[][]} map
+     * @param {string[]} map - Fixed-width map rows stored top-to-bottom
      */
-    constructor ( map = new Array(10).map( c=>new Array(10) ) ) {
+    constructor ( map = new Array(10).fill('0 '.repeat(9) + '0') ) {
 
         this.#emitter = new GridEventEmitter();
 
@@ -102,7 +102,7 @@ class Grid {
     }
 
     /**
-     * @param {IOTileType[][]} tiles
+     * @param {string[]} tiles - Fixed-width map rows stored top-to-bottom
      */
     loadMap ( tiles ) {
         // Use MapLoadingSystem to handle map loading

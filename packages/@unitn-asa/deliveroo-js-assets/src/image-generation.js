@@ -5,6 +5,7 @@
 
 import { createCanvas } from 'canvas';
 import GIFEncoder from 'gifencoder';
+import { mapRowsToColumns } from '@unitn-asa/deliveroo-js-sdk/types/mapRows.js';
 
 /** @type {number} Pixels per tile in generated images */
 export const DOT_PER_TILE = 10;
@@ -14,12 +15,13 @@ export const PADDING = 1;
 
 /**
  * Generate PNG from game tiles
- * @param {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType[][]} matrix - Map tiles matrix
+ * @param {string[]} rows - Fixed-width map rows
  * @returns {Buffer} PNG buffer
  */
-export function generatePng(matrix) {
-    const width = matrix.length;
-    const height = matrix[0].length;
+export function generatePng(rows) {
+    const height = rows.length;
+    const width = Math.max(...rows.map(row => Math.ceil(row.length / 2)));
+    const matrix = mapRowsToColumns(rows, width, height);
 
     const canvas = createCanvas(width * DOT_PER_TILE, height * DOT_PER_TILE);
     const ctx = canvas.getContext('2d');
@@ -94,13 +96,13 @@ export function generatePng(matrix) {
 
 /**
  * Generate observation area overlay (black outside, transparent inside)
- * @param {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType[][]} tiles - Map tiles
+ * @param {string[]} tiles - Fixed-width map rows
  * @param {number} observationDistance - Player observation distance
  * @returns {Buffer} PNG buffer
  */
 export function generateObservationLayer(tiles, observationDistance) {
-    const width = tiles.length;
-    const height = tiles[0].length;
+    const height = tiles.length;
+    const width = Math.max(...tiles.map(row => Math.ceil(row.length / 2)));
 
     const canvas = createCanvas(width * DOT_PER_TILE, height * DOT_PER_TILE);
     const ctx = canvas.getContext('2d');
@@ -132,14 +134,14 @@ export function generateObservationLayer(tiles, observationDistance) {
 
 /**
  * Generate animated GIF showing NPC movement patterns
- * @param {import("@unitn-asa/deliveroo-js-sdk/types/IOTile.js").IOTileType[][]} tiles - Map tiles
+ * @param {string[]} tiles - Fixed-width map rows
  * @param {import("@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js").IONpcsOptions[]} npcs - NPC configurations
  * @param {number} movementDuration - Player movement duration in ms
  * @returns {Buffer} GIF buffer
  */
 export function generateNpcAnimationGif(tiles, npcs, movementDuration) {
-    const width = tiles.length;
-    const height = tiles[0].length;
+    const height = tiles.length;
+    const width = Math.max(...tiles.map(row => Math.ceil(row.length / 2)));
 
     const canvas = createCanvas(width * DOT_PER_TILE, height * DOT_PER_TILE);
     const ctx = canvas.getContext('2d');

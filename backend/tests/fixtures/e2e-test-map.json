@@ -1,35 +1,33 @@
 {
-    "title": "e2e-test-map",
-    "description": "Deterministic 5x3 map for E2E tests. Wall at (2,1), parcel spawner at (0,1), delivery at (0,2); rows y=0 and y=2 are fully walkable corridors.",
-    "maxPlayers": 10,
-    "map": {
-        "width": 5,
-        "height": 3,
-        "tiles": [
-            [3, 1, 2],
-            [3, 3, 3],
-            [3, 0, 3],
-            [3, 3, 3],
-            [3, 3, 3]
-        ]
-    },
-    "npcs": [
-        {
-            "moving_event": "1s",
-            "type": "random",
-            "count": 1
-        }
-    ],
-    "parcels": {
-        "generation_event": "1s",
-        "decaying_event": "1s",
-        "max": 3,
-        "reward_avg": 2,
-        "reward_variance": 0
-    },
-    "player": {
-        "movement_duration": 50,
-        "observation_distance": 5,
-        "capacity": 5
+  "title": "e2e-test-map",
+  "description": "Deterministic 5x3 map for E2E tests. Wall at (2,1), parcel spawner at (0,1), delivery at (0,2); rows y=0 and y=2 are fully walkable corridors.",
+  "maxPlayers": 10,
+  "map": {
+    "width": 5,
+    "height": 3,
+    "tiles": [
+      "2 3 3 3 3",
+      "1 3 0 3 3",
+      "3 3 3 3 3"
+    ]
+  },
+  "npcs": [
+    {
+      "moving_event": "1s",
+      "type": "random",
+      "count": 1
     }
+  ],
+  "parcels": {
+    "generation_event": "1s",
+    "decaying_event": "1s",
+    "max": 3,
+    "reward_avg": 2,
+    "reward_variance": 0
+  },
+  "player": {
+    "movement_duration": 50,
+    "observation_distance": 5,
+    "capacity": 5
+  }
 }

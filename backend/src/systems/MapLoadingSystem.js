@@ -1,8 +1,6 @@
 import Xy from '../core/Xy.js';
-
-/**
- * @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOTile.js').IOTileType} IOTileType
- */
+import { mapRowsToColumns } from '@unitn-asa/deliveroo-js-sdk/types/mapRows.js';
+import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
 
 /**
  * @typedef {import('../core/Grid.js').default} Grid
@@ -17,7 +15,7 @@ class MapLoadingSystem {
     /**
      * Load a new map
      * @param {Grid} grid - The grid to load the map into
-     * @param {IOTileType[][]} tiles - 2D array of tile types
+     * @param {string[]} tiles - Fixed-width rows stored top-to-bottom
      * @returns {{success: boolean, error?: string}}
      */
     loadMap(grid, tiles) {
@@ -48,14 +46,12 @@ class MapLoadingSystem {
 
     /**
      * Calculate map dimensions from tile array
-     * @param {IOTileType[][]} tiles
+     * @param {string[]} tiles
      * @returns {Xy} - Maximum x and y coordinates of the map
      */
     #calculateMaxXy(tiles) {
-        const xLength = tiles.length;
-        const yLength = Array.from(tiles).reduce(
-            (longest, current) => (current.length > longest.length ? current : longest)
-        ).length;
+        const yLength = tiles.length;
+        const xLength = Math.max(...tiles.map(row => Math.ceil(row.length / 2)));
 
         return new Xy({ x: xLength - 1, y: yLength - 1 }); // -1 for 0-based indexing
     }
@@ -63,15 +59,15 @@ class MapLoadingSystem {
     /**
      * Process all tiles in the map
      * @param {Grid} grid
-     * @param {IOTileType[][]} tiles
+     * @param {string[]} tiles
      */
     #processTiles(grid, tiles) {
 
+        const { x: newX, y: newY } = this.#calculateMaxXy(tiles);
+        const columns = mapRowsToColumns(tiles, newX + 1, newY + 1);
+
         // Calculate old dimensions
         const { x: oldX, y: oldY } = grid.tileRegistry.getMaxXy();
-
-        // Calculate new dimensions
-        const { x: newX, y: newY } = this.#calculateMaxXy(tiles);
 
         // Iterate over the maximum area
         for (let x = 0; x <= Math.max(newX, oldX); x++) {
@@ -80,7 +76,7 @@ class MapLoadingSystem {
 
                 if (x <= newX && y <= newY) {
                     // Create/update tile
-                    grid.setTile(xy, tiles[x][y]);
+                    grid.setTile(xy, parseIOTileType(columns[x][y]));
                 } else {
                     // Remove tile outside new dimensions
                     grid.tileRegistry.getOneByXy(xy)?.delete();
