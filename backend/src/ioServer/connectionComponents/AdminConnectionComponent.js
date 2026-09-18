@@ -7,8 +7,8 @@ import { emitGodSensing } from '../emitters/emitGodSensing.js';
  * Per-connection behavior for admin identities: map-wide observers with
  * no physical agent on the map.
  *
- * Emits an identity-only 'you' (no position, no score) plus god sensing
- * (all tiles, agents, parcels, crates, kept up to date), and registers
+ * Emits god sensing (all tiles, agents, parcels, crates, kept up to date)
+ * and registers
  * the remote-control, teleport and admin command handlers. Acting on the
  * game happens through remote control of other agents, never as a self.
  */
@@ -24,17 +24,6 @@ class AdminConnectionComponent {
     async start(socket, identity) {
 
         await socket.join("admins");
-
-        // Identity-only 'you': an observer has no map position; neutral score
-        socket.emitYou({
-            id: identity.id,
-            name: identity.name,
-            teamId: identity.teamId,
-            teamName: identity.teamName,
-            score: 0,
-            penalty: 0,
-            rotation: null
-        });
 
         // Map-wide sensing updates (all tiles, agents, parcels, crates)
         emitGodSensing(socket);

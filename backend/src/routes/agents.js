@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
     console.log( `GET /api/agents` );
 
     /** @type {IOAgent[]} */
-    const agents = Array.from( await myGrid.agentRegistry.getIterator() ).map( agent => {
+    const agents = Array.from( await myGrid.agents.getIterator() ).map( agent => {
         return {
             id: agent.id,
             name: agent.name,
@@ -88,7 +88,7 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
     console.log( `DELETE /api/agents/${req.params.id}` );
 
     const id = req.params.id;
-    const agent = myGrid.agentRegistry.get( id );
+    const agent = myGrid.agents.get( id );
     if ( agent ) {
         agent.delete();
         res.status(200).json( { message: `Agent ${id} deleted` } );
@@ -175,7 +175,7 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
     process.stdout.write( `PATCH /api/agents/${req.params.id} ${JSON.stringify(req.body)}: ` );
 
     const id = req.params.id;
-    const agent = myGrid.agentRegistry.get( id );
+    const agent = myGrid.agents.get( id );
     if ( agent ) {
         if ( req.body.agentPreset !== undefined ) {
             if ( ! agentComponentRegistry.hasPreset(req.body.agentPreset) ) {

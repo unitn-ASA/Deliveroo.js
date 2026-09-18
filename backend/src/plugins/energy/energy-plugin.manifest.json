@@ -1,0 +1,7 @@
+{
+    "id": "energy",
+    "name": "Energy",
+    "version": "1.0.0",
+    "description": "Agent energy resource, batteries on '6' tiles, action costs and passive recharge",
+    "module": "./EnergyPlugin.js"
+}

@@ -1,0 +1,7 @@
+{
+    "id": "double-delivery",
+    "name": "Double Delivery",
+    "version": "1.0.0",
+    "description": "Parcels delivered on '9' tiles are scored twice their reward",
+    "module": "./DoubleDeliveryPlugin.js"
+}

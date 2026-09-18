@@ -145,14 +145,20 @@ import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
         watchProperty({
             target: this,
             key: 'type',
-            callback: (target, key, value) => target.#emitter.emit(key, value)
+            callback: (target, key, value) => {
+                target.#emitter.emit(key, value);
+                target.#emitter.emit('changed', { object: target, key });
+            }
         });
         this.type = parseIOTileType(type); // Ensure type is always a string
 
         watchProperty({
             target: this,
             key: 'locked',
-            callback: (target, key, value) => target.#emitter.emit(key, value)
+            callback: (target, key, value) => {
+                target.#emitter.emit(key, value);
+                target.#emitter.emit('changed', { object: target, key });
+            }
         });
         this.locked = false;
 

@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    bootServer, connectClient, disconnectAll, move, poll, rest,
+    adminRest, bootServer, connectClient, disconnectAll, move, poll, rest,
     setAgentPreset, sleep, teleport
 } from './helpers.mjs';
 
@@ -13,7 +13,7 @@ let a, b;
 
 before(async () => {
     server = await bootServer();
-    await rest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
+    await adminRest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
     admin = await connectClient(server.baseUrl, 'boss', { admin: true });
     a = await connectClient(server.baseUrl, 'agentA');
     b = await connectClient(server.baseUrl, 'agentB');

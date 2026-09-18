@@ -1,4 +1,7 @@
 import { Router } from 'express';
+import path from 'path';
+import fs from 'fs/promises';
+import { authorizeAdmin } from '../middlewares/token.js';
 
 /**
  * @typedef {Object} PluginApiResponse
@@ -130,10 +133,86 @@ export function createPluginRoutes(pluginRegistry) {
 
     /**
      * @swagger
+     * /api/plugins/available:
+     *   get:
+     *     summary: List available plugins
+     *     description: Scans the plugins directories for manifest files and reports which ones are registered and running.
+     *     tags: [Plugins]
+     *     responses:
+     *       200:
+     *         description: Available plugins retrieved successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 success:
+     *                   type: boolean
+     *                 count:
+     *                   type: number
+     *                 plugins:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       id:
+     *                         type: string
+     *                       name:
+     *                         type: string
+     *                       version:
+     *                         type: string
+     *                       description:
+     *                         type: string
+     *                       manifestPath:
+     *                         type: string
+     *                       modulePath:
+     *                         type: string
+     *                       registered:
+     *                         type: boolean
+     *                       running:
+     *                         type: boolean
+     *       500:
+     *         description: Plugin registry error
+     */
+    router.get('/available', async (req, res) => {
+        try {
+            const pluginsDir = path.resolve(process.cwd(), 'src/plugins');
+            const available = [];
+
+            const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
+            for (const entry of entries) {
+                if (!entry.isDirectory()) continue;
+                const dir = path.join(pluginsDir, entry.name);
+
+                const files = await fs.readdir(dir);
+                for (const file of files.filter((f) => f.endsWith('.manifest.json'))) {
+                    try {
+                        const manifestPath = path.join(dir, file);
+                        const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+                        const modulePath = path.resolve(dir, manifest.module || '');
+                        available.push({
+                            ...manifest,
+                            manifestPath: path.relative(process.cwd(), manifestPath),
+                            modulePath: path.relative(process.cwd(), modulePath),
+                            registered: manifest.id ? pluginRegistry.has(manifest.id) : false,
+                            running: manifest.id ? pluginRegistry.isRunning(manifest.id) : false
+                        });
+                    } catch { /* skip unreadable manifests */ }
+                }
+            }
+
+            res.json({ success: true, count: available.length, plugins: available });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    /**
+     * @swagger
      * /api/plugins/load:
      *   post:
      *     summary: Load a plugin
-     *     description: Dynamically loads a plugin from module and manifest files, optionally starting it immediately.
+     *     description: Dynamically loads a plugin from module and manifest files, optionally starting it immediately. Requires admin privileges.
      *     tags: [Plugins]
      *     requestBody:
      *       required: true
@@ -171,7 +250,7 @@ export function createPluginRoutes(pluginRegistry) {
      *       400:
      *         description: Plugin load failed
      */
-    router.post('/load', async (req, res) => {
+    router.post('/load', authorizeAdmin, async (req, res) => {
         try {
             const { manifestPath, modulePath, options, autoStart } = req.body || {};
             const plugin = await pluginRegistry.loadFromFiles({ manifestPath, modulePath, options });
@@ -195,7 +274,7 @@ export function createPluginRoutes(pluginRegistry) {
      * /api/plugins/{id}/start:
      *   post:
      *     summary: Start a plugin
-     *     description: Starts a registered plugin by id.
+     *     description: Starts a registered plugin by id. Requires admin privileges.
      *     tags: [Plugins]
      *     parameters:
      *       - name: id
@@ -223,7 +302,7 @@ export function createPluginRoutes(pluginRegistry) {
      *       500:
      *         description: Plugin registry error
      */
-    router.post('/:id/start', async (req, res) => {
+    router.post('/:id/start', authorizeAdmin, async (req, res) => {
         try {
             const { id } = req.params;
             if (!pluginRegistry.has(id)) {
@@ -246,7 +325,7 @@ export function createPluginRoutes(pluginRegistry) {
      * /api/plugins/{id}/stop:
      *   post:
      *     summary: Stop a plugin
-     *     description: Stops a running plugin by id.
+     *     description: Stops a running plugin by id. Requires admin privileges.
      *     tags: [Plugins]
      *     parameters:
      *       - name: id
@@ -274,7 +353,7 @@ export function createPluginRoutes(pluginRegistry) {
      *       500:
      *         description: Plugin registry error
      */
-    router.post('/:id/stop', async (req, res) => {
+    router.post('/:id/stop', authorizeAdmin, async (req, res) => {
         try {
             const { id } = req.params;
             if (!pluginRegistry.has(id)) {
@@ -297,7 +376,7 @@ export function createPluginRoutes(pluginRegistry) {
      * /api/plugins/{id}/reload:
      *   post:
      *     summary: Reload a plugin
-     *     description: Reloads a plugin from its original module and manifest source.
+     *     description: Reloads a plugin from its original module and manifest source. Requires admin privileges.
      *     tags: [Plugins]
      *     parameters:
      *       - name: id
@@ -333,7 +412,7 @@ export function createPluginRoutes(pluginRegistry) {
      *       400:
      *         description: Plugin reload failed
      */
-    router.post('/:id/reload', async (req, res) => {
+    router.post('/:id/reload', authorizeAdmin, async (req, res) => {
         try {
             const { id } = req.params;
             const { autoStart } = req.body || {};
@@ -405,7 +484,7 @@ export function createPluginRoutes(pluginRegistry) {
      * /api/plugins/{id}:
      *   delete:
      *     summary: Unregister a plugin
-     *     description: Stops and unregisters a plugin from the registry.
+     *     description: Stops and unregisters a plugin from the registry. Requires admin privileges.
      *     tags: [Plugins]
      *     parameters:
      *       - name: id
@@ -431,7 +510,7 @@ export function createPluginRoutes(pluginRegistry) {
      *       500:
      *         description: Plugin registry error
      */
-    router.delete('/:id', async (req, res) => {
+    router.delete('/:id', authorizeAdmin, async (req, res) => {
         try {
             const { id } = req.params;
             const ok = await pluginRegistry.unregister(id);

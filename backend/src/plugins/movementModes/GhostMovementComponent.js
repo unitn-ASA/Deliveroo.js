@@ -21,7 +21,7 @@ class GhostMovementComponent {
         if (!fromTile) return false;
 
         const [dx, dy] = DELTAS[direction];
-        const toTile = grid.tileRegistry.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
+        const toTile = grid.tiles.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
         if (!toTile) return false;
 
         fromTile.unlock();
@@ -31,7 +31,7 @@ class GhostMovementComponent {
 
     isMovePlausible(agent, direction, grid = agent.grid) {
         const [dx, dy] = DELTAS[direction];
-        return Boolean(grid.tileRegistry.getOneByXy({ x: agent.x + dx, y: agent.y + dy }));
+        return Boolean(grid.tiles.getOneByXy({ x: agent.x + dx, y: agent.y + dy }));
     }
 }
 

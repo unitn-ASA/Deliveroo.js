@@ -201,6 +201,35 @@ class PluginRegistry extends EventEmitter {
     }
 
     /**
+     * Discover and load a plugin by id, scanning the plugins directories
+     * for a manifest with a matching id. Unreadable or invalid manifests
+     * are skipped; load errors of the matching manifest propagate.
+     * @param {string} pluginId
+     * @param {object} [options]
+     * @returns {Promise<PluginBase>}
+     */
+    async loadById(pluginId, options = {}) {
+        const pluginsDir = path.resolve(process.cwd(), 'src/plugins');
+        const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
+        for (const entry of entries) {
+            if (!entry.isDirectory()) continue;
+            const dir = path.join(pluginsDir, entry.name);
+            const files = await fs.readdir(dir);
+            for (const file of files.filter((f) => f.endsWith('.manifest.json'))) {
+                const manifestPath = path.join(dir, file);
+                let manifest;
+                try {
+                    manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+                } catch { /* skip unreadable/invalid manifests */ }
+                if (manifest?.id !== pluginId) continue;
+                // Matching manifest found: load errors propagate to the caller
+                return this.loadFromFiles({ manifestPath, options });
+            }
+        }
+        throw new Error(`No manifest found for plugin '${pluginId}'`);
+    }
+
+    /**
      * Reload a plugin from its original source files.
      * @param {string} pluginId
      * @param {{autoStart?: boolean}} params

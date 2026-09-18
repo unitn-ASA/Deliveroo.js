@@ -1,20 +1,16 @@
 import PluginBase from '../PluginBase.js';
 import { agentComponentRegistry } from '../../agentComponents/registry.js';
-import StandardMovementComponent from '../../agentComponents/movement/StandardMovementComponent.js';
-import GhostMovementComponent from '../../agentComponents/movement/GhostMovementComponent.js';
-import PushMovementComponent from '../../agentComponents/movement/PushMovementComponent.js';
-import RotationMovementComponent from '../../agentComponents/movement/RotationMovementComponent.js';
-import ParcelCarrierComponent from '../../agentComponents/ParcelCarrierComponent.js';
+import GhostMovementComponent from './GhostMovementComponent.js';
+import PushMovementComponent from './PushMovementComponent.js';
+import RotationMovementComponent from './RotationMovementComponent.js';
 
 /**
- * Global provider for the built-in agent components and presets.
+ * Runtime provider for optional movement modes and presets.
  *
- * Runs once at startup and populates the agent component registry before
- * any agent is created (npc-spawner creates agents in its own init).
- * Stopping it empties the registry: new agents are created without command
- * components, while already-attached agents keep working unchanged.
+ * The core standard preset remains available when this plugin is stopped.
+ * Already-attached optional components keep working unchanged.
  */
-class AgentComponentsPlugin extends PluginBase {
+class MovementModesPlugin extends PluginBase {
 
     /** @type {string[]} */
     #registeredComponents = [];
@@ -24,10 +20,10 @@ class AgentComponentsPlugin extends PluginBase {
 
     constructor() {
         super({
-            id: 'agent-components',
-            name: 'Agent Components',
+            id: 'movement-modes',
+            name: 'Movement Modes',
             version: '1.0.0',
-            description: 'Provides built-in agent components and presets (standard, ghost, push, rotation)'
+            description: 'Provides optional ghost, push, and rotation movement presets'
         });
     }
 
@@ -40,11 +36,9 @@ class AgentComponentsPlugin extends PluginBase {
 
         /** @type {[string, new () => import('../../agentComponents/registry.js').AgentComponent][]} */
         const components = [
-            ['standard-movement', StandardMovementComponent],
             ['ghost-movement', GhostMovementComponent],
             ['push-movement', PushMovementComponent],
-            ['rotation-movement', RotationMovementComponent],
-            ['parcel-carrier', ParcelCarrierComponent]
+            ['rotation-movement', RotationMovementComponent]
         ];
         for (const [id, ComponentClass] of components) {
             agentComponentRegistry.registerComponent(id, ComponentClass);
@@ -52,7 +46,6 @@ class AgentComponentsPlugin extends PluginBase {
         }
 
         const presets = {
-            standard: ['standard-movement', 'parcel-carrier'],
             ghost: ['ghost-movement', 'parcel-carrier'],
             push: ['push-movement', 'parcel-carrier'],
             rotation: ['rotation-movement', 'parcel-carrier']
@@ -86,4 +79,4 @@ class AgentComponentsPlugin extends PluginBase {
 
 }
 
-export default AgentComponentsPlugin;
+export default MovementModesPlugin;

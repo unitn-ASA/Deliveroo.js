@@ -28,7 +28,7 @@ async function move(grid, agent, incr_x, incr_y, { penalize = true } = {}) {
         return false;
     };
 
-    const toTile = grid.tileRegistry.getOneByXy({ x: agent.x + incr_x, y: agent.y + incr_y });
+    const toTile = grid.tiles.getOneByXy({ x: agent.x + incr_x, y: agent.y + incr_y });
 
     if (fromTile.isDirectional && !fromTile.allowsExitInDirection(incr_x, incr_y)) {
         return fail('directional exit restriction');
@@ -48,15 +48,15 @@ async function move(grid, agent, incr_x, incr_y, { penalize = true } = {}) {
         return fail('tile locked (another agent standing or moving there)');
     }
 
-    const crate = grid.crateRegistry.getOneByXy({ x: agent.x + incr_x, y: agent.y + incr_y });
+    const crate = grid.crates.getOneByXy({ x: agent.x + incr_x, y: agent.y + incr_y });
     if (crate) {
-        const crateDestTile = grid.tileRegistry.getOneByXy({ x: crate.x + incr_x, y: crate.y + incr_y });
+        const crateDestTile = grid.tiles.getOneByXy({ x: crate.x + incr_x, y: crate.y + incr_y });
 
         if (!crateDestTile || !crateDestTile.type.startsWith('5') || crateDestTile.locked) {
             return fail();
         }
 
-        const crateAtDest = grid.crateRegistry.getOneByXy(new Xy({ x: crate.x + incr_x, y: crate.y + incr_y }));
+        const crateAtDest = grid.crates.getOneByXy(new Xy({ x: crate.x + incr_x, y: crate.y + incr_y }));
         if (crateAtDest) {
             return fail();
         }

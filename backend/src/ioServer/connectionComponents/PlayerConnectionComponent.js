@@ -1,7 +1,6 @@
 import { myGrid } from '../../myGrid.js';
 import { deleteAgentWhenNoConnectionsLeft } from '../connections/deleteAgentWhenNoConnectionsLeft.js';
 import { disconnectWhenPenaltyExceeded } from '../connections/disconnectWhenPenaltyExceeded.js';
-import { emitYou } from '../emitters/emitYou.js';
 import { emitSensing } from '../emitters/emitSensing.js';
 import { handleActions } from '../handlers/handleActions.js';
 
@@ -29,7 +28,7 @@ class PlayerConnectionComponent {
         await socket.join("team:" + identity.teamId);
 
         // Create Agent entity on map
-        const me = myGrid.agentRegistry.get(identity.id) || myGrid.createAgent(identity);
+        const me = myGrid.agents.get(identity.id) || myGrid.createAgent(identity);
         if (!me) {
             console.error(`Failed to get or create agent for ${identity.id}`);
             return false;
@@ -43,9 +42,6 @@ class PlayerConnectionComponent {
 
         // Setup penalty-based auto-kick
         disconnectWhenPenaltyExceeded(socket, me);
-
-        // "Me" state updates
-        emitYou(socket, me);
 
         // Sensing updates
         emitSensing(socket, me);

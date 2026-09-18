@@ -60,6 +60,18 @@ export function generatePng(rows) {
                 ctx.fillStyle = 'lightgray';
             } else if (value == '5' || value == '5!') {
                 ctx.fillStyle = 'yellow';
+            } else if (value == '6') {
+                // battery spawner: orange
+                ctx.fillStyle = '#f97316';
+            } else if (value == '7') {
+                // door: brown
+                ctx.fillStyle = '#92400e';
+            } else if (value == '8') {
+                // key spawner: gold
+                ctx.fillStyle = '#facc15';
+            } else if (value == '9') {
+                // double delivery: dark red
+                ctx.fillStyle = '#7f1d1d';
             } else {
                 ctx.fillStyle = 'purple';
             }

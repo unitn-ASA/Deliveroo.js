@@ -410,6 +410,227 @@ export class DjsRestClient {
 
 
 
+    /**
+     * Build request headers; the auth header is set only when a token is
+     * provided, so that public endpoints work for anonymous users too.
+     * @param {string} [token]
+     * @returns {Record<string, string>}
+     */
+    #authHeaders ( token ) {
+        const headers = { 'Content-Type': 'application/json' };
+        if ( token ) headers['x-token'] = token;
+        return headers;
+    }
+
+
+
+    /**
+     * List registered plugins with lifecycle status.
+     * @param {string} [token]
+     * @returns {Promise<{success: boolean, count: number, plugins: object[]}>}
+     */
+    async getPlugins ( token ) {
+        return new Promise((resolve, reject) => {
+            fetch(this.HOST+'/api/plugins', {
+                method: 'GET',
+                headers: this.#authHeaders(token)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error(`Error getting plugins, Status code: ${response.status}`);
+            })
+            .then(data => resolve(data))
+            .catch(error => {
+                console.warn('An error occurred:', error);
+                reject('Error getting plugins');
+            });
+        });
+    }
+
+
+
+    /**
+     * List plugins discoverable on the server (manifest files), with registration state.
+     * @param {string} [token]
+     * @returns {Promise<{success: boolean, count: number, plugins: object[]}>}
+     */
+    async getAvailablePlugins ( token ) {
+        return new Promise((resolve, reject) => {
+            fetch(this.HOST+'/api/plugins/available', {
+                method: 'GET',
+                headers: this.#authHeaders(token)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error(`Error getting available plugins, Status code: ${response.status}`);
+            })
+            .then(data => resolve(data))
+            .catch(error => {
+                console.warn('An error occurred:', error);
+                reject('Error getting available plugins');
+            });
+        });
+    }
+
+
+
+    /**
+     * Load a plugin from its manifest or module file, optionally starting it. Requires admin.
+     * @param {string} token
+     * @param {{manifestPath?: string, modulePath?: string, options?: object, autoStart?: boolean}} params
+     * @returns {Promise<{success: boolean, plugin: object, running: boolean}>}
+     */
+    async loadPlugin ( token, params ) {
+        return new Promise((resolve, reject) => {
+            fetch(this.HOST+'/api/plugins/load', {
+                method: 'POST',
+                headers: this.#authHeaders(token),
+                body: JSON.stringify(params)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return response.json().then( (body) => {
+                    throw new Error(body.error || `Error loading plugin, Status code: ${response.status}`);
+                });
+            })
+            .then(data => resolve(data))
+            .catch(error => {
+                console.warn('An error occurred:', error);
+                reject(error);
+            });
+        });
+    }
+
+
+
+    /**
+     * Start a registered plugin. Requires admin.
+     * @param {string} token
+     * @param {string} id
+     * @returns {Promise<{success: boolean, plugin: object}>}
+     */
+    async startPlugin ( token, id ) {
+        return new Promise((resolve, reject) => {
+            fetch(this.HOST+`/api/plugins/${id}/start`, {
+                method: 'POST',
+                headers: this.#authHeaders(token)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return response.json().then( (body) => {
+                    throw new Error(body.error || `Error starting plugin ${id}, Status code: ${response.status}`);
+                });
+            })
+            .then(data => resolve(data))
+            .catch(error => {
+                console.warn('An error occurred:', error);
+                reject(error);
+            });
+        });
+    }
+
+
+
+    /**
+     * Stop a running plugin. Requires admin.
+     * @param {string} token
+     * @param {string} id
+     * @returns {Promise<{success: boolean, plugin: object}>}
+     */
+    async stopPlugin ( token, id ) {
+        return new Promise((resolve, reject) => {
+            fetch(this.HOST+`/api/plugins/${id}/stop`, {
+                method: 'POST',
+                headers: this.#authHeaders(token)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return response.json().then( (body) => {
+                    throw new Error(body.error || `Error stopping plugin ${id}, Status code: ${response.status}`);
+                });
+            })
+            .then(data => resolve(data))
+            .catch(error => {
+                console.warn('An error occurred:', error);
+                reject(error);
+            });
+        });
+    }
+
+
+
+    /**
+     * Reload a plugin from its original source. Requires admin.
+     * @param {string} token
+     * @param {string} id
+     * @param {{autoStart?: boolean}} [params]
+     * @returns {Promise<{success: boolean, plugin: object, running: boolean}>}
+     */
+    async reloadPlugin ( token, id, params = {} ) {
+        return new Promise((resolve, reject) => {
+            fetch(this.HOST+`/api/plugins/${id}/reload`, {
+                method: 'POST',
+                headers: this.#authHeaders(token),
+                body: JSON.stringify(params)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return response.json().then( (body) => {
+                    throw new Error(body.error || `Error reloading plugin ${id}, Status code: ${response.status}`);
+                });
+            })
+            .then(data => resolve(data))
+            .catch(error => {
+                console.warn('An error occurred:', error);
+                reject(error);
+            });
+        });
+    }
+
+
+
+    /**
+     * Stop and unregister a plugin. Requires admin.
+     * @param {string} token
+     * @param {string} id
+     * @returns {Promise<{success: boolean, message: string}>}
+     */
+    async unloadPlugin ( token, id ) {
+        return new Promise((resolve, reject) => {
+            fetch(this.HOST+`/api/plugins/${id}`, {
+                method: 'DELETE',
+                headers: this.#authHeaders(token)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return response.json().then( (body) => {
+                    throw new Error(body.error || `Error unloading plugin ${id}, Status code: ${response.status}`);
+                });
+            })
+            .then(data => resolve(data))
+            .catch(error => {
+                console.warn('An error occurred:', error);
+                reject(error);
+            });
+        });
+    }
+
+
+
 }
 
 

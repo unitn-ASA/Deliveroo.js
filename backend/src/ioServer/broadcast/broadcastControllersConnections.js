@@ -17,7 +17,7 @@ import { myGrid } from '../../myGrid.js';
 export function broadcastControllersConnections(server) {
     try {
         // Emit existing agents
-        Array.from(myGrid.agentRegistry.getIterator()).forEach((agent) => {
+        Array.from(myGrid.agents.getIterator()).forEach((agent) => {
             try {
                 if (!agent?.id) return;
                 const { id, name, teamName, teamId, score } = agent;
@@ -28,8 +28,9 @@ export function broadcastControllersConnections(server) {
         });
 
         // Listen for new agents
-        const agentCreatedListener = (event, agent) => {
+        const agentCreatedListener = ({ object: agent, type }) => {
             try {
+                if (type !== 'added') return;
                 if (!agent?.id) return;
                 const { id, name, teamName, teamId, score } = agent;
                 server.emit('controller', 'connected', { id, name, teamName, teamId, score });
@@ -37,11 +38,12 @@ export function broadcastControllersConnections(server) {
                 console.warn(`[${import.meta.filename}] Error in agent created listener:`, error.message);
             }
         };
-        myGrid.emitter.onAgentCreated(agentCreatedListener);
+        myGrid.agents.onChanged(agentCreatedListener);
 
         // Listen for deleted agents
-        const agentDeletedListener = (event, agent) => {
+        const agentDeletedListener = ({ object: agent, type }) => {
             try {
+                if (type !== 'removed') return;
                 if (!agent?.id) return;
                 const { id, name, teamName, teamId, score } = agent;
                 server.emit('controller', 'disconnected', { id, name, teamName, teamId, score });
@@ -49,7 +51,7 @@ export function broadcastControllersConnections(server) {
                 console.warn(`[${import.meta.filename}] Error in agent deleted listener:`, error.message);
             }
         };
-        myGrid.emitter.onAgentDeleted(agentDeletedListener);
+        myGrid.agents.onChanged(agentDeletedListener);
 
         console.log(`[${import.meta.filename}] Controller connection status broadcasting setup complete`);
     } catch (error) {

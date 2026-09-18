@@ -1,4 +1,6 @@
 import { EventEmitter } from 'events';
+import StandardMovementComponent from './movement/StandardMovementComponent.js';
+import ParcelCarrierComponent from './ParcelCarrierComponent.js';
 
 /**
  * @typedef {Object} AgentComponent
@@ -9,8 +11,8 @@ import { EventEmitter } from 'events';
 
 /**
  * Central registry of agent component factories and named presets.
- * Populated by global provider plugins (e.g. AgentComponentsPlugin) and
- * consumed by Grid.createAgent and the agent REST surface.
+ * The core registers the standard preset; optional provider plugins register
+ * additional presets. Grid.createAgent and the agent REST surface consume it.
  *
  * This registry stores factories and preset names only: commands are NOT
  * managed here. Components register command handlers directly on each
@@ -165,5 +167,8 @@ class AgentComponentRegistry extends EventEmitter {
  * @type {AgentComponentRegistry}
  */
 const agentComponentRegistry = new AgentComponentRegistry();
+agentComponentRegistry.registerComponent('standard-movement', StandardMovementComponent);
+agentComponentRegistry.registerComponent('parcel-carrier', ParcelCarrierComponent);
+agentComponentRegistry.registerPreset('standard', ['standard-movement', 'parcel-carrier']);
 
 export { agentComponentRegistry, AgentComponentRegistry };

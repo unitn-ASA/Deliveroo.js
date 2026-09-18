@@ -143,7 +143,7 @@ async function handleParcelSet(parcel, ack, socket, identity) {
         return;
     }
 
-    const p = myGrid.parcelRegistry.get(parcel.id);
+    const p = myGrid.parcels.get(parcel.id);
     if (p && typeof parcel.reward === 'number') {
         p.reward = parcel.reward;
         console.log(`✅ ${identity.name} set parcel ${parcel.id} reward to ${parcel.reward}`);
@@ -163,7 +163,7 @@ async function handleParcelSet(parcel, ack, socket, identity) {
 async function handleParcelDispose(parcel, ack, socket, identity) {
     if (parcel.id) {
         // Dispose by ID
-        const p = myGrid.parcelRegistry.get(parcel.id);
+        const p = myGrid.parcels.get(parcel.id);
         if (p) {
             p.delete();
             console.log(`✅ ${identity.name} disposed parcel ${parcel.id}`);
@@ -180,12 +180,12 @@ async function handleParcelDispose(parcel, ack, socket, identity) {
             return;
         }
 
-        const parcels = Array.from(myGrid.parcelRegistry.getIterator())
+        const parcels = Array.from(myGrid.parcels.getIterator())
             .filter(p => p.x == parcel.x && p.y == parcel.y);
 
         let disposed = 0;
         for (const p of parcels) {
-            myGrid.parcelRegistry.get(p.id)?.delete();
+            myGrid.parcels.get(p.id)?.delete();
             disposed++;
         }
 
@@ -265,7 +265,7 @@ async function handleCrateCreate(data, ack, socket, identity) {
 async function handleCrateDispose(data, ack, socket, identity) {
     if (data.id) {
         // Dispose by ID
-        const c = myGrid.crateRegistry.get(data.id);
+        const c = myGrid.crates.get(data.id);
         if (c) {
             c.delete();
             console.log(`✅ ${identity.name} disposed crate ${data.id}`);
@@ -282,12 +282,12 @@ async function handleCrateDispose(data, ack, socket, identity) {
             return;
         }
 
-        const crates = Array.from(myGrid.crateRegistry.getIterator())
+        const crates = Array.from(myGrid.crates.getIterator())
             .filter(c => c.x == data.x && c.y == data.y);
 
         let disposed = 0;
         for (const c of crates) {
-            myGrid.crateRegistry.get(c.id)?.delete();
+            myGrid.crates.get(c.id)?.delete();
             disposed++;
         }
 
@@ -323,7 +323,7 @@ async function handleTileCommand(t, socket, identity) {
             return;
         }
 
-        const tile = myGrid.tileRegistry.getOneByXy({ x, y });
+        const tile = myGrid.tiles.getOneByXy({ x, y });
         if (tile) {
             tile.type = parseIOTileType(type);
             console.log(`✅ ${identity.name} set tile at (${x}, ${y}) to ${type}`);
@@ -380,7 +380,7 @@ async function handleRewardCommand(data, socket, identity) {
         }
 
         console.log(`[AdminCommandHandlers] ${identity.name} rewarding agent ${agentId} with ${validatedPoints} points`);
-        const agent = myGrid.agentRegistry.get(agentId);
+        const agent = myGrid.agents.get(agentId);
 
         if (agent) {
             agent.score += validatedPoints;

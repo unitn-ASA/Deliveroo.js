@@ -1,0 +1,7 @@
+{
+    "id": "keys-doors",
+    "name": "Keys & Doors",
+    "version": "1.0.0",
+    "description": "Key items on '8' tiles as an infinite source, door entities on '7' tiles consuming a key on crossing",
+    "module": "./KeysDoorsPlugin.js"
+}

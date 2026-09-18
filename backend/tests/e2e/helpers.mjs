@@ -85,7 +85,7 @@ export async function bootServer({ fixture } = {}) {
 }
 
 /**
- * Connect a client (or admin) and track its state via 'you' events.
+ * Connect a client and track its local agent state via sensing.self.
  * @param {string} baseUrl
  * @param {string} name
  * @param {{admin?: boolean}} [options]
@@ -98,12 +98,12 @@ export async function connectClient(baseUrl, name, { admin = false } = {}) {
 
     const socket = io(baseUrl, { query: { token }, transports: ['websocket'] });
 
-    // Register BEFORE awaiting connection: the server emits the initial 'you'
+    // Register BEFORE awaiting connection: the server emits the initial sensing
     // during connection setup, and under load it can arrive before a listener
     // attached after 'connect' resolves
-    const youPromise = withTimeout(
-        new Promise((resolve) => socket.once('you', (you) => resolve(you))),
-        8000, `${name} initial 'you' event`
+    const sensingPromise = withTimeout(
+        new Promise((resolve) => socket.once('sensing', resolve)),
+        8000, `${name} initial sensing event`
     );
 
     await withTimeout(
@@ -114,11 +114,13 @@ export async function connectClient(baseUrl, name, { admin = false } = {}) {
         5000, `${name} socket connection`
     );
 
-    const you = await youPromise;
+    const sensing = await sensingPromise;
 
-    const state = { ...you };
-    socket.on('you', (y) => Object.assign(state, y));
-    return { socket, state, id: you.id };
+    const state = { ...(sensing.self ?? {}) };
+    socket.on('sensing', (snapshot) => {
+        if (snapshot.self) Object.assign(state, snapshot.self);
+    });
+    return { socket, state, id: sensing.self?.id };
 }
 
 /**
@@ -168,12 +170,13 @@ export async function rest(baseUrl, method, path, body) {
 }
 
 /**
- * Load and start a builtin plugin from disk, replacing the previous 'move' owner if any.
+ * Load and start a plugin from disk, replacing the previous 'move' owner if any.
+ * Requires admin: the plugins mutation routes are protected by authorizeAdmin.
  * @param {string} baseUrl
  * @param {string} modulePath
  */
 export function loadPlugin(baseUrl, modulePath) {
-    return rest(baseUrl, 'POST', '/api/plugins/load', { modulePath, autoStart: true });
+    return adminRest(baseUrl, 'POST', '/api/plugins/load', { modulePath, autoStart: true });
 }
 
 /**

@@ -28,7 +28,7 @@ export function DjsConnect ( host = process.env.HOST || 'http://localhost:8080',
         console.log( `Connected` );
     });
 
-    enhancedClientSocket.onceYou( me => {
+    enhancedClientSocket.me.then( me => {
         console.log( `Authenticated as ${me.name}(${me.id}) in team ${me.teamName}(${me.teamId})` );
     });
 

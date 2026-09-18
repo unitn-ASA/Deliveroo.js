@@ -31,6 +31,40 @@
     const mesh = tile.mesh = new THREE.Mesh(geometry, material);
     mesh.position.set( tile.x * 1.5, - 0.1 / 2, - tile.y * 1.5 );
 
+    // Door portal for tile type '7': two posts, a lintel, a semi-transparent
+    // panel and a golden knob, standing on the tile so the door is clearly
+    // visible from any angle (agents are still visible while crossing it)
+    const doorFrameMaterial = new THREE.MeshStandardMaterial( { color: 0x451a03 } );            // dark brown
+    const doorPanelMaterial = new THREE.MeshStandardMaterial( {
+        color: 0x92400e,                                                                        // brown
+        emissive: 0xb45309,                                                                     // light brown
+        emissiveIntensity: 0.4,
+        transparent: true,
+        opacity: 0.55
+    } );
+    const doorKnobMaterial = new THREE.MeshStandardMaterial( { color: 0xfacc15, emissive: 0xfde047, emissiveIntensity: 0.5 } );
+
+    const doorGroup = new THREE.Group();
+
+    const doorPostGeometry = new THREE.BoxGeometry( 0.15, 1.1, 0.15 );
+    const doorPostLeft = new THREE.Mesh( doorPostGeometry, doorFrameMaterial );
+    doorPostLeft.position.set( - 0.42, 0.55, 0 );
+    const doorPostRight = new THREE.Mesh( doorPostGeometry, doorFrameMaterial );
+    doorPostRight.position.set( 0.42, 0.55, 0 );
+
+    const doorLintel = new THREE.Mesh( new THREE.BoxGeometry( 1.0, 0.15, 0.15 ), doorFrameMaterial );
+    doorLintel.position.set( 0, 1.16, 0 );
+
+    const doorPanel = new THREE.Mesh( new THREE.BoxGeometry( 0.7, 0.95, 0.06 ), doorPanelMaterial );
+    doorPanel.position.set( 0, 0.5, 0 );
+
+    const doorKnob = new THREE.Mesh( new THREE.SphereGeometry( 0.045, 12, 12 ), doorKnobMaterial );
+    doorKnob.position.set( 0.22, 0.5, 0.06 );
+
+    doorGroup.add( doorPostLeft, doorPostRight, doorLintel, doorPanel, doorKnob );
+    doorGroup.visible = false;
+    mesh.add( doorGroup );
+
     const scene = inject('scene');
     const camera = inject('camera');
     
@@ -97,6 +131,22 @@
             emissive: 0xffff44, // light yellow
             texture: textures.crateSpawner
         },
+        '6': {                                      // Battery spawner
+            color: 0xf97316,    // orange
+            emissive: 0xfdba74  // light orange
+        },
+        '7': {                                      // Door
+            color: 0x92400e,    // brown
+            emissive: 0xb45309  // light brown
+        },
+        '8': {                                      // Key spawner
+            color: 0xfacc15,    // gold
+            emissive: 0xfde047  // light gold
+        },
+        '9': {                                      // Double delivery
+            color: 0x7f1d1d,    // dark red
+            emissive: 0x991b1b  // red
+        },
         '↑': {
             color: 0xffffff,    // white
             emissive: 0xffffff, // white
@@ -123,6 +173,9 @@
     watch( () => tile.type, (newVal) => {
         const key = String(newVal);
         const style = TILE_STYLES[key];
+
+        // The portal is only shown on door tiles
+        doorGroup.visible = key === '7';
 
         if (!style) return;
 

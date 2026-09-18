@@ -27,7 +27,7 @@ export function handleRemoteControl(socket, identity) {
         }
 
         // Get target agent
-        const agent = myGrid.agentRegistry.get(agentId);
+        const agent = myGrid.agents.get(agentId);
         if (!agent) {
             console.warn(`[ControlHandlers] Agent ${agentId} not found`);
             if (ack && typeof ack === 'function') {

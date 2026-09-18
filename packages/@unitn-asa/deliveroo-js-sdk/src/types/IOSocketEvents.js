@@ -47,7 +47,6 @@
  *      'config':           ( config: any ) => void,
  *      'map':              ( width: number, height: number, tiles: IOTile[] ) => void,
  *      'tile':             ( tile: IOTile ) => void,
- *      'you':              ( agent: IOAgent ) => void,
  *      'sensing':          ( sensing: IOSensing ) => void,
  *      'msg':              ( fromId: string, fromName: string, content: Object,
  *                            ack?: ( response: Object ) => void

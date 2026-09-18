@@ -4,14 +4,13 @@ import Parcel from './Parcel.js';
 import Crate from './Crate.js';
 import Xy from './Xy.js';
 import { config } from '../config/config.js';
-import GridEventEmitter from './GridEventEmitter.js';
+import EventEmitter from 'events';
 import Identity from './Identity.js';
 import myClock from '../myClock.js';
-import SpatialRegistry from './SpatialRegistry.js';
-import CrateFactory from './CrateFactory.js';
-import ParcelFactory from './ParcelFactory.js';
-import AgentFactory from './AgentFactory.js';
-import TileFactory from './TileFactory.js';
+import AgentsLayer from './AgentsLayer.js';
+import ParcelsLayer from './ParcelsLayer.js';
+import CratesLayer from './CratesLayer.js';
+import TilesLayer from './TilesLayer.js';
 import RewardDecayingSystem from '../systems/RewardDecayingSystem.js';
 import MapLoadingSystem from '../systems/MapLoadingSystem.js';
 import { atNextTick } from '../reactivity/postponeAt.js';
@@ -30,49 +29,43 @@ const mapLoadingSystem = new MapLoadingSystem();
 /**
  * @class Grid
  */
+/** @typedef {{mapLoaded: [Grid]}} GridLifecycleEvents */
+
 class Grid {
 
-    /** @property {import('./GridEventEmitter.js').GridEventEmitter} */
-    #emitter;
-    get emitter () {
-        return this.#emitter;
-    }
+    /** @type {EventEmitter<GridLifecycleEvents>} */
+    #emitter = new EventEmitter();
+    /** @returns {EventEmitter<GridLifecycleEvents>} */
+    get emitter() { return this.#emitter; }
+
+    /** @type {Map<string, {layer: import('./SpatialLayer.js').default, listener: (event: any) => void}>} */
+    #entityLayers = new Map();
+    /** @type {Set<(event: any) => void>} */
+    #entityLayerListeners = new Set();
 
 
 
-    /** @type {SpatialRegistry<Tile>} */
-    #tileRegistry;
-    get tileRegistry () { return this.#tileRegistry }
-
-    /** @type {TileFactory} */
-    #tileFactory;
+    /** @type {TilesLayer} */
+    #tiles;
+    get tiles() { return this.#tiles; }
 
 
 
-    /** @type {SpatialRegistry<Agent>} */
-    #agentRegistry;
-    get agentRegistry () { return this.#agentRegistry }
-
-    /** @type {AgentFactory} */
-    #agentFactory;
+    /** @type {AgentsLayer} */
+    #agents;
+    get agents() { return this.#agents; }
 
 
 
-    /** @type {SpatialRegistry<Parcel>} */
-    #parcelRegistry;
-    get parcelRegistry () { return this.#parcelRegistry }
-
-    /** @type {ParcelFactory} */
-    #parcelFactory;
+    /** @type {ParcelsLayer} */
+    #parcels;
+    get parcels() { return this.#parcels; }
 
 
 
-    /** @type {SpatialRegistry<Crate>} */
-    #crateRegistry;
-    get crateRegistry () { return this.#crateRegistry }
-
-    /** @type {CrateFactory} */
-    #crateFactory;
+    /** @type {CratesLayer} */
+    #crates;
+    get crates() { return this.#crates; }
 
 
 
@@ -81,21 +74,12 @@ class Grid {
      * @param {string[]} map - Fixed-width map rows stored top-to-bottom
      */
     constructor ( map = new Array(10).fill('0 '.repeat(9) + '0') ) {
+        this.#emitter.setMaxListeners(0);
 
-        this.#emitter = new GridEventEmitter();
-
-        // Initialize spatial registries and factories
-        this.#tileRegistry = new SpatialRegistry();
-        this.#tileFactory = new TileFactory( this.#tileRegistry );
-
-        this.#agentRegistry = new SpatialRegistry();
-        this.#agentFactory = new AgentFactory( this.#agentRegistry );
-
-        this.#parcelRegistry = new SpatialRegistry();
-        this.#parcelFactory = new ParcelFactory( this.#parcelRegistry );
-
-        this.#crateRegistry = new SpatialRegistry();
-        this.#crateFactory = new CrateFactory( this.#crateRegistry );
+        this.#tiles = new TilesLayer();
+        this.#agents = new AgentsLayer(this);
+        this.#parcels = new ParcelsLayer();
+        this.#crates = new CratesLayer();
 
         this.loadMap( map );
 
@@ -112,6 +96,9 @@ class Grid {
             console.error('Grid.js loadMap(tiles) failed:', result.error);
             return;
         }
+
+        // Let plugins resync their own world objects with the loaded map
+        this.#emitter.emit('mapLoaded', this);
     }
 
     /**
@@ -122,21 +109,12 @@ class Grid {
      */
     setTile ( xy, type ) {
 
-        var tile = this.tileRegistry.getOneByXy( xy );
+        var tile = this.#tiles.getOneByXy( xy );
         if ( tile ) {
             tile.type = type;
         } else {
-            tile = this.#tileFactory.create( xy, type )
+            tile = this.#tiles.create( xy, type )
             
-            // Emit tile updates when its type changes
-            tile.emitter.on( 'type' , (type) => this.emitter.emitTile( tile ) ); // immediate emission
-            // tile.emitter.on( 'type' , atPromise(myClock.synch(), () => this.emitTile( tile ) ) ); // emission at next clock frame
-
-            // Emit tile update when deleted
-            tile.emitter.on( 'deleted', () => this.emitter.emitTile( tile ) );
-            
-            // Initial emission
-            this.emitter.emitTile( tile );
         }
 
         // Create crates on tiles ending "!"
@@ -154,7 +132,7 @@ class Grid {
     createAgent ( identity ) {
 
         // Create agent using factory, it is automatically registered in spatial registry
-        var agent = this.#agentFactory.createAgent( this, identity );
+        var agent = this.#agents.create(identity);
 
         // Attach the default preset: components register commands on agent.commands
         try {
@@ -170,7 +148,7 @@ class Grid {
 
         // Initial position
         let tiles_unlocked =
-            Array.from( this.tileRegistry.getIterator() )
+            Array.from( this.#tiles.getIterator() )
             // walkable
             .filter( t => t.walkable )
             // not locked
@@ -185,17 +163,7 @@ class Grid {
         }
         else {
             console.warn('Grid.createAgent(): No tiles available, agent created without position.');
-            // tile = this.tileRegistry.getIterator().next().value;
         }
-
-        // Propagate events at Grid-scope when agent properties change
-        agent.emitter.on( 'xy', () => this.emitter.emitAgentXy( agent ) );
-        agent.emitter.on( 'score', () => this.emitter.emitAgentScore( agent ) );
-        agent.emitter.on( 'deleted', () => this.emitter.emitAgentDeleted( agent ) );
-        
-        // Finally, emit 'created' event after setting up everything else
-        this.emitter.emitAgentCreated( agent );
-
 
         return agent;
     }
@@ -206,13 +174,12 @@ class Grid {
      * @type {function(Xy): Parcel}
      */
     createParcel ( xy ) {
-        var tile = this.tileRegistry.getOneByXy( xy );
+        var tile = this.#tiles.getOneByXy( xy );
         if ( ! tile || ! tile.walkable )
             return undefined;
 
-        // Use factory to create parcel (auto-registers with parcelRegistry)
-        // Initial reward is computed here via the reward system, keeping Parcel agnostic of reward policy
-        var parcel = this.#parcelFactory.create( xy, null, rewardDecayingSystem.calculateReward() );
+        // Initial reward is computed here via the reward system, keeping Parcel agnostic of reward policy.
+        var parcel = this.#parcels.create( xy, null, rewardDecayingSystem.calculateReward() );
 
         parcel.emitter.once( 'expired', (...args) => {
             parcel.delete();
@@ -257,12 +224,6 @@ class Grid {
 
         // Emit expire when reward reaches 0: done inside Parcel.js
 
-        // Grid scoped event propagation
-        this.emitter.emitParcel( parcel )
-        parcel.emitter.on( 'reward', () => this.emitter.emitParcel( parcel ) );
-        parcel.emitter.on( 'carriedBy', () => this.emitter.emitParcel( parcel ) );
-        parcel.emitter.on( 'xy', () => this.emitter.emitParcel( parcel ) );
-
         return parcel;
     }
 
@@ -272,17 +233,11 @@ class Grid {
      * @type {function(Xy): Crate}
      */
     createCrate ( xy ) {
-        var tile = this.tileRegistry.getOneByXy( xy );
+        var tile = this.#tiles.getOneByXy( xy );
         if ( ! tile || ! tile.walkable )
             return undefined;
 
-        // Use factory to create crate (auto-registers with crateRegistry)
-        var crate = this.#crateFactory.create( xy );
-
-        // Grid scoped event propagation
-        this.emitter.emitCrate( crate );
-        crate.emitter.on( 'xy', () => this.emitter.emitCrate( crate ) );
-        crate.emitter.once( 'deleted', () => this.emitter.emitCrate( crate ) );
+        var crate = this.#crates.create( xy );
 
         return crate;
     }
@@ -295,26 +250,49 @@ class Grid {
     restart() {
         // console.log('Grid is restarting...');
 
-        // Clean up tiles
-        // for ( const tile of this.#tileRegistry.getIterator() ) {
-        //     tile.emitter.emit( 'deleted' );
-        // }
-
         // Clean up agents
-        for ( const agent of this.#agentRegistry.getIterator() ) {
+        for ( const agent of this.#agents.getIterator() ) {
             agent.delete();
         }
 
         // Clean up parcels
-        for ( const parcel of this.#parcelRegistry.getIterator() ) {
+        for ( const parcel of this.#parcels.getIterator() ) {
             parcel.delete();
         }
 
         // Clean up crates
-        for ( const crate of this.#crateRegistry.getIterator() ) {
+        for ( const crate of this.#crates.getIterator() ) {
             crate.delete();
         }
 
+        // Let plugins resync their own world objects with the current map
+        this.#emitter.emit('mapLoaded', this);
+
+    }
+
+    registerEntityLayer(layer) {
+        if (this.#entityLayers.has(layer.id)) throw new Error(`Grid: layer '${layer.id}' is already registered`);
+        const listener = (event) => this.#notifyEntityLayerListeners(event);
+        layer.onChanged(listener);
+        this.#entityLayers.set(layer.id, { layer, listener });
+        this.#notifyEntityLayerListeners({ layer, object: null, type: 'added' });
+    }
+
+    unregisterEntityLayer(id) {
+        const entry = this.#entityLayers.get(id);
+        if (!entry) return false;
+        entry.layer.offChanged(entry.listener);
+        this.#entityLayers.delete(id);
+        this.#notifyEntityLayerListeners({ layer: entry.layer, object: null, type: 'removed' });
+        return true;
+    }
+
+    getEntityLayers() { return Array.from(this.#entityLayers.values(), ({ layer }) => layer); }
+
+    onEntityLayerChanged(callback) { this.#entityLayerListeners.add(callback); }
+    offEntityLayerChanged(callback) { this.#entityLayerListeners.delete(callback); }
+    #notifyEntityLayerListeners(event) {
+        for (const callback of this.#entityLayerListeners) callback(event);
     }
 
 }

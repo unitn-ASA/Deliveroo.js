@@ -1,13 +1,13 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    bootServer, connectClient, disconnectAll, move, poll, rest, sleep, teleport, withTimeout
+    adminRest, bootServer, connectClient, disconnectAll, move, poll, rest, sleep, teleport, withTimeout
 } from './helpers.mjs';
 
 /**
  * Role-specific connection components:
- * - admins are agent-less observers: identity-only 'you', map-wide god
- *   sensing, no own action handlers, no entry in /api/agents
+ * - admins are agent-less observers: map-wide god sensing without self,
+ *   no own action handlers, no entry in /api/agents
  * - a plain user gets no admin handlers (agent:teleport has no listener)
  */
 
@@ -17,7 +17,7 @@ let user;
 
 before(async () => {
     server = await bootServer();
-    await rest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
+    await adminRest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
     admin = await connectClient(server.baseUrl, 'boss', { admin: true });
     user = await connectClient(server.baseUrl, 'plain');
     await sleep(300);
@@ -29,14 +29,14 @@ after(async () => {
 });
 
 test('admin connection is an agent-less observer', async () => {
-    // identity-only 'you': id arrives, no map coordinates
-    assert.equal(admin.state.id, admin.id);
-    assert.equal(admin.state.x, undefined);
+    // God sensing has no self because an admin has no map agent.
+    assert.equal(admin.id, undefined);
+    assert.equal(admin.state.id, undefined);
 
     // no agent on the map for the admin identity
     const { body: agents } = await rest(server.baseUrl, 'GET', '/api/agents');
     const ids = agents.map((a) => a.id);
-    assert.ok(!ids.includes(admin.id), 'admin must not have an agent');
+    assert.ok(!agents.some((agent) => agent.name === 'boss'), 'admin must not have an agent');
 });
 
 test('admin has no own action handlers', async () => {

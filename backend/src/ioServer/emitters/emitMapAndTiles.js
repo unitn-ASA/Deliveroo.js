@@ -23,11 +23,12 @@ export function emitMapAndTiles(socket) {
                 console.warn('[MapHandlers] Error emitting tile update:', error.message);
             }
         };
-        myGrid.emitter.onTile(tileListener);
+        const layerListener = ({ object }) => object && tileListener(object);
+        myGrid.tiles.onChanged(layerListener);
 
         // Emit all tiles for initial map state
         const tiles = [];
-        for (const { xy: { x, y }, type } of myGrid.tileRegistry.getIterator()) {
+        for (const { xy: { x, y }, type } of myGrid.tiles.getIterator()) {
             try {
                 socket.emitTile({ x, y, type });
                 tiles.push({ x, y, type });
@@ -37,13 +38,13 @@ export function emitMapAndTiles(socket) {
         }
 
         // Emit initial map state as bulk
-        socket.emitMap(myGrid.tileRegistry.getMaxX(), myGrid.tileRegistry.getMaxY(), tiles);
+        socket.emitMap(myGrid.tiles.getMaxX(), myGrid.tiles.getMaxY(), tiles);
 
         console.log('[MapHandlers] Map broadcasting setup complete');
 
         // Cleanup listeners on disconnect
         socket.onDisconnect(() => {
-            myGrid.emitter.offTile(tileListener);
+            myGrid.tiles.offChanged(layerListener);
         });
     } catch (error) {
         console.error('[MapHandlers] Error setting up map emission:', error.message);

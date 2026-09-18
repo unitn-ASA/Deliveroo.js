@@ -1,20 +1,20 @@
 
 /** @type {readonly IOTileType[]} */
 export const VALID_TILE_TYPES = Object.freeze([
-    '0', '1', '2', '3', '4', '5', '5!', '←', '↑', '→', '↓'
+    '0', '1', '2', '3', '4', '5', '5!', '6', '7', '8', '9', '←', '↑', '→', '↓'
 ]);
 
 /**
  * @typedef IOTileType
  * Tile type representation (string)
- * @type { '0' | '1' | '2' | '3' | '4' | '5' | '5!' | '←' | '↑' | '→' | '↓' }
+ * @type { '0' | '1' | '2' | '3' | '4' | '5' | '5!' | '6' | '7' | '8' | '9' | '←' | '↑' | '→' | '↓' }
 */
 
 /**
  * @typedef IOTile
  * @property {number} x
  * @property {number} y
- * @property {IOTileType} type - Tile type: '0' (wall), '1' (parcel spawner), '2' (delivery), '3' (walkable), '4' (base), '5' (crate sliding tile), '5!' (crate spawner), or directional arrows '↑', '→', '↓', '←'
+ * @property {IOTileType} type - Tile type: '0' (wall), '1' (parcel spawner), '2' (delivery), '3' (walkable), '4' (base), '5' (crate sliding tile), '5!' (crate spawner), '6' (battery spawner), '7' (door), '8' (key spawner), '9' (double delivery), or directional arrows '↑', '→', '↓', '←'
  */
 
 /**

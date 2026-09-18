@@ -15,7 +15,7 @@ export const VALID_CLOCK_EVENTS = ['frame', '1s', '2s', '5s', '10s', 'infinite']
  * Valid tile type values
  * @type {readonly string[]}
  */
-export const VALID_TILE_TYPES = ['0', '1', '2', '3', '4', '5', '5!', '←', '↑', '→', '↓'];
+export const VALID_TILE_TYPES = ['0', '1', '2', '3', '4', '5', '5!', '6', '7', '8', '9', '←', '↑', '→', '↓'];
 
 /**
  * Valid NPC types
@@ -417,6 +417,35 @@ export function validatePlayerOptions(player, path = 'player') {
 }
 
 /**
+ * Validate energy plugin options.
+ * @param {any} energy - Energy options to validate
+ * @param {string} path - Path for error messages
+ * @returns {ValidationResult} Validation result
+ */
+export function validateEnergyPluginOptions(energy, path = 'energy') {
+    const result = new ValidationResult();
+
+    for (const key of ['initial', 'move_cost', 'pickup_cost', 'putdown_cost', 'recharge_amount']) {
+        if (energy[key] !== undefined) {
+            const numResult = validatePositiveNumber(energy[key], `${path}.${key}`, 0);
+            result.merge(numResult);
+        }
+    }
+
+    // Validate recharge_event
+    if (energy.recharge_event !== undefined) {
+        const eventResult = validateClockEvent(energy.recharge_event, `${path}.recharge_event`);
+        result.merge(eventResult);
+    }
+
+    if (energy.batteries_generation_event !== undefined) {
+        result.merge(validateClockEvent(energy.batteries_generation_event, `${path}.batteries_generation_event`));
+    }
+
+    return result;
+}
+
+/**
  * Validate IOGameOptions
  * @param {any} game - Game options to validate
  * @returns {ValidationResult} Validation result
@@ -465,6 +494,11 @@ export function validateGameOptions(game) {
         result.merge(playerResult);
     } else {
         result.addError('Required property "player" is missing', 'player');
+    }
+
+    // Validate energy plugin configuration
+    if (game.energy !== undefined) {
+        result.merge(validateEnergyPluginOptions(game.energy, 'energy'));
     }
 
     return result;

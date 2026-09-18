@@ -113,6 +113,44 @@ changes. Autopilot behaviors live in `npc/` and are attached to agents created
 by this plugin. Also backs the REST surface `GET /api/npcs`, which answers 503
 while the plugin is stopped.
 
+## Game Plugins
+
+Optional plugins that add game mechanics. They are not auto-started: a game
+enables them through its JSON configuration (or the admin API):
+
+```json
+{
+    "plugins": ["energy", "keys-doors", "double-delivery"]
+}
+```
+
+At boot (and on configuration reload) `myGrid.js` loads each listed plugin
+from its manifest in `src/plugins/` and starts it. On reload, plugins the
+configuration started but that are no longer listed are stopped; plugins
+started by an admin through the REST surface are left alone. The
+`gamekit_test` asset is a full example.
+
+Game plugins keep their per-agent state plugin-owned (e.g. energy, keys) in
+`agent.attributes`. Attribute changes automatically trigger sensing updates,
+exactly like position and score changes do.
+
+### EnergyPlugin (`energy`)
+
+Energy attribute (`energy` in `sensing.self.attributes`), batteries on `'6'`
+tiles (`battery` in `sensing.entities`), action costs and passive
+recharge (`config.GAME.energy`, including `batteries_generation_event`), enforced through the
+action hook pipeline.
+
+### KeysDoorsPlugin (`keys-doors`)
+
+Keys on `'8'` tiles as an infinite source (`key`), doors on `'7'`
+tiles as plugin-owned entities (`door` in `sensing.entities`); crossing
+a door consumes one key.
+
+### DoubleDeliveryPlugin (`double-delivery`)
+
+Parcels delivered on `'9'` tiles score twice their reward.
+
 ## Example Plugins
 
 ### LeaderboardPlugin (`leaderboard-plugin`)

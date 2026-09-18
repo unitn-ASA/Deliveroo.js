@@ -7,6 +7,7 @@ import { connection } from "./states/myConnection.js";
 /** @typedef {import('./types/UITileType.js').UITile} UITile */
 /** @typedef {import('./types/UIParcelType.js').UIParcel} UIParcel */
 /** @typedef {import('./types/UICrateType.js').UICrate} UICrate */
+/** @typedef {import('./types/UIEntityType.js').UIEntity} UIEntity */
 
 
 
@@ -149,7 +150,35 @@ export class Grid {
 
 
 
-    /** @type {import("vue").Ref<UIAgent|UITile|UIParcel|UICrate>} */
+    /**
+     * @type {Map<string,UIEntity>} entities
+     */
+    entities = reactive (new Map());
+
+    /**
+     * @param {string} id
+     * @returns {UIEntity}
+     */
+    getOrCreateEntity ( id ) {
+        var entity = this.entities.get(id);
+        if ( ! entity ) {
+            /** @type {UIEntity} */
+            entity = {id, kind:'', x:-1, y:-1, attributes: []};
+            this.entities.set( id, entity );
+        }
+        return entity;
+    }
+
+    /**
+     * @type {(x:number,y:number)=>Array<UIEntity>}
+     */
+    getEntitiesAt ( x, y ) {
+        return Array.from(this.entities.values()).filter( entity => entity.x == x && entity.y == y );
+    }
+
+
+
+    /** @type {import("vue").Ref<UIAgent|UITile|UIParcel|UICrate|UIEntity>} */
     hoovered = ref();
 
     /** @type {import("vue").Ref<UITile>} */
@@ -163,6 +192,9 @@ export class Grid {
 
     /** @type {import("vue").Ref<UICrate>} */
     selectedCrate = ref();
+
+    /** @type {import("vue").Ref<UIEntity>} */
+    selectedEntity = ref();
 
     /**
 	 * @type {function(String):UIAgent}
@@ -179,9 +211,15 @@ export class Grid {
     /**
 	 * @type {function(String):UICrate}
 	 */
-	getCrateByMeshUUID ( uuid ) {
+    getCrateByMeshUUID ( uuid ) {
         return Array.from(this.crates.values()).find( crate => crate.mesh?.uuid == uuid );
-	}
+    }
+    /**
+     * @type {function(String):UIEntity}
+     */
+    getEntityByMeshUUID ( uuid ) {
+        return Array.from(this.entities.values()).find( entity => entity.mesh?.uuid == uuid );
+    }
     /**
      * @type {function(String):UITile}
     */
@@ -191,8 +229,8 @@ export class Grid {
 
     hooverByMesh ( mesh ) {
         // console.log( 'Grid.js hooverByMesh', mesh );
-        /** @type {UIAgent|UIParcel|UITile|UICrate|undefined} */
-        let byMesh = this.getAgentByMeshUUID( mesh?.uuid ) || this.getParcelByMeshUUID( mesh?.uuid ) || this.getCrateByMeshUUID( mesh?.uuid ) || this.getTileByMeshUUID( mesh?.uuid );
+        /** @type {UIAgent|UIParcel|UITile|UICrate|UIEntity|undefined} */
+        let byMesh = this.getAgentByMeshUUID( mesh?.uuid ) || this.getParcelByMeshUUID( mesh?.uuid ) || this.getCrateByMeshUUID( mesh?.uuid ) || this.getEntityByMeshUUID( mesh?.uuid ) || this.getTileByMeshUUID( mesh?.uuid );
         if (byMesh && 'hoovered' in byMesh && byMesh.hoovered) return; // null or already hoovered, return
 
         // Unhover previous hovered entity
@@ -235,7 +273,11 @@ export class Grid {
         let crate = this.getCrateByMeshUUID( mesh?.uuid );
         setSelected( crate, this.selectedCrate );
         if ( crate ) return;
-        
+
+        let item = this.getItemByMeshUUID( mesh?.uuid );
+        setSelected( item, this.selectedItem );
+        if ( item ) return;
+
     }
 
     /**
@@ -305,21 +347,6 @@ export class Grid {
         //     OBSERVATION_DISTANCE = config.OBSERVATION_DISTANCE;
         // } )
 
-        this.socket.on( "you", ( { id, name, teamId, teamName, x, y, score, penalty, rotation } ) => {
-            // console.log( "Grid.js socket.on(you)", id, name, teamId, teamName, x, y, score, clock )
-
-            let me = this.me.value = this.getOrCreateAgent( id );
-            me.name = name;
-            me.teamId = teamId;
-            me.teamName = teamName;
-            me.x = x
-            me.y = y
-            me.score = score
-            me.penalty = penalty
-            me.rotation = rotation
-
-        });
-
         socket.on( "controller", ( action, {id, name, teamId, teamName, score} ) => {
             // console.log( "Grid.js socket.on(agent", action, agent )
             var agent = this.getOrCreateAgent( id );
@@ -333,6 +360,22 @@ export class Grid {
         socket.on("sensing", (sensing) => {
 
             // console.log("sensing", sensing.agents.filter( a => a != undefined ).length, 'agents out of', sensing.positions.length, 'positions' )
+
+            // Player snapshots carry the local agent as sensing.self. Admin
+            // snapshots intentionally omit it because admins are agent-less.
+            if (sensing.self) {
+                const { id, name, teamId, teamName, x, y, score, penalty, rotation, attributes } = sensing.self;
+                const me = this.me.value = this.getOrCreateAgent(id);
+                me.name = name;
+                me.teamId = teamId;
+                me.teamName = teamName;
+                me.x = x;
+                me.y = y;
+                me.score = score;
+                me.penalty = penalty;
+                me.rotation = rotation;
+                me.attributes = attributes;
+            }
 
             // /** @type {IOSensing[]} */
             // var arrayOfSensing = Array.from(sensedReceived)
@@ -366,7 +409,7 @@ export class Grid {
             // for all known agents on the grid, if not sensed set status in 'out of range'
             for ( const agent of this.agents.values() ) {
                 // if not me
-                if ( agent.id != this.me.value.id ) {
+                if ( agent.id != this.me.value?.id ) {
                     // O(1) Set lookup instead of O(n) find()
                     if ( ! sensedAgentIds.has( agent.id ) ) {
                         // If it was online it should be now considered 'out of range'
@@ -389,7 +432,7 @@ export class Grid {
             for ( const agent of sensing.agents ) {
                 // console.log('Grid.js agents sensing loop', agent, agent?.id)
                 if ( agent && agent.id ) {
-                    const {id, name, teamId, teamName, x, y, score, penalty, rotation} = agent;
+                    const {id, name, teamId, teamName, x, y, score, penalty, rotation, attributes} = agent;
                     var sensedAgent = this.getOrCreateAgent( id );
                     // console.log(`Agent ${name}(${id}) is sensed at position (${x},${y})`);
                     sensedAgent.name = name;
@@ -400,6 +443,7 @@ export class Grid {
                     sensedAgent.score = score;
                     sensedAgent.penalty = penalty;
                     sensedAgent.rotation = rotation;
+                    sensedAgent.attributes = attributes;
                     sensedAgent.opacity = 1;
                     sensedAgent.status = 'online';
                     // console.log('Grid.js sensed agent', id, name, 'at', x, y);
@@ -467,6 +511,26 @@ export class Grid {
                 const was = this.getOrCreateCrate( id );
                 was.x = x;
                 was.y = y;
+            }
+
+            // for all known entities, if not in sensed, remove
+            const sensedEntities = sensing.entities || [];
+            const sensedEntityIds = new Set(
+                sensedEntities.map(({ id }) => id).filter(id => id !== undefined)
+            );
+            for ( const [id, was] of this.entities.entries() ) {
+                if ( ! sensedEntityIds.has(id) ) {
+                    this.entities.delete( id );
+                }
+            }
+
+            // for all sensed entities, update or create
+            for ( const {id, kind, x, y, attributes} of sensedEntities ) {
+                const was = this.getOrCreateEntity( id );
+                was.kind = kind;
+                was.x = x;
+                was.y = y;
+                was.attributes = attributes;
             }
 
         });

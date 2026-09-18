@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { bootServer, rest, parcelCount, poll, sleep } from './helpers.mjs';
+import { adminRest, bootServer, rest, parcelCount, poll, sleep } from './helpers.mjs';
 
 /**
  * Spawner plugins are runtime-toggleable: stopping halts spawning (existing
@@ -31,7 +31,7 @@ test('parcels spawn on the fixture map', async () => {
 });
 
 test('stopping parcel-spawner lets existing parcels decay away unreplaced', async () => {
-    const { body } = await rest(server.baseUrl, 'POST', '/api/plugins/parcel-spawner/stop');
+    const { body } = await adminRest(server.baseUrl, 'POST', '/api/plugins/parcel-spawner/stop');
     assert.equal(body.plugin.status, 'stopped');
 
     // reward 2, decay 1/s: everything on the grid expires within a few seconds
@@ -48,7 +48,7 @@ test('stopping parcel-spawner lets existing parcels decay away unreplaced', asyn
 });
 
 test('starting parcel-spawner resumes spawning', async () => {
-    await rest(server.baseUrl, 'POST', '/api/plugins/parcel-spawner/start');
+    await adminRest(server.baseUrl, 'POST', '/api/plugins/parcel-spawner/start');
     const count = await poll(
         () => parcelCount(server.baseUrl),
         (c) => c > 0,
@@ -62,11 +62,11 @@ test('NPC REST surface follows the npc-spawner plugin lifecycle', async () => {
     assert.equal(running.status, 200);
     assert.equal(running.body.length, 1, 'fixture configures one NPC');
 
-    await rest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
+    await adminRest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
     const stopped = await rest(server.baseUrl, 'GET', '/api/npcs');
     assert.equal(stopped.status, 503, 'NPC surface answers 503 while the plugin is stopped');
 
-    await rest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/start');
+    await adminRest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/start');
     const resumed = await rest(server.baseUrl, 'GET', '/api/npcs');
     assert.equal(resumed.status, 200);
     assert.equal(resumed.body.length, 1, 'NPC is recreated on restart');

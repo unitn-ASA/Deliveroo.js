@@ -10,6 +10,8 @@
  * @property {string} description                       Game description
  * @property {IOMapOptions} map                         Map configuration
  * @property {IONpcsOptions[]} npcs                     Array of NPC configurations
+ * @property {string[]} [plugins]                       Optional: ids of plugins to load and start (discovered from src/plugins/ manifests)
+ * @property {IOEnergyPluginOptions} [energy]            Optional: energy plugin configuration
  * @property {IOParcelsOptions} parcels                 Parcels configuration
  * @property {IOPlayerOptions} player                   Player configuration * 
  */
@@ -46,6 +48,18 @@
  * @property {number} movement_duration                 Duration of each movement in ms
  * @property {number} observation_distance              Observation distance
  * @property {number} capacity                          Capacity
+ */
+
+/**
+ * @typedef IOEnergyPluginOptions
+ * Energy plugin configuration
+ * @property {number} initial                           Initial (and maximum) energy
+ * @property {number} move_cost                         Energy cost of one successful move
+ * @property {number} pickup_cost                       Energy cost of one successful pickup
+ * @property {number} putdown_cost                       Energy cost of one successful putdown
+ * @property {IOClockEvent} recharge_event              Clock event triggering passive recharge
+ * @property {number} recharge_amount                   Energy restored at each passive recharge
+ * @property {IOClockEvent} batteries_generation_event   Clock event: empty battery-spawner tiles get a battery
  */
 
 export { };

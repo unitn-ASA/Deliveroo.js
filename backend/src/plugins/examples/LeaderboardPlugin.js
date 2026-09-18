@@ -16,7 +16,7 @@ class LeaderboardPlugin extends PluginBase {
     /** @type {LeaderboardItem[]} sorted by score, descending */
     leaderboard = [];
 
-    /** @type {(agent: import('../../core/Agent.js').default) => void} */
+    /** @type {(event: {object: import('../../core/Agent.js').default, type: string}) => void} */
     #handler = null;
 
     constructor() {
@@ -33,14 +33,16 @@ class LeaderboardPlugin extends PluginBase {
      * @returns {Promise<boolean>}
      */
     async init(context) {
-        this.#handler = (agent) => this.#onAgentScore(agent);
+        this.#handler = ({ object, type }) => {
+            if (type === 'changed' && object) this.#onAgentScore(object);
+        };
 
         // Initialize from agents already on the grid
-        for ( const agent of context.grid.agentRegistry.getIterator() ) {
+        for ( const agent of context.grid.agents.getIterator() ) {
             this.#onAgentScore(agent);
         }
 
-        context.grid.emitter.onAgentScore(this.#handler);
+        context.grid.agents.onChanged(this.#handler);
         console.log('[LeaderboardPlugin] Tracking agent scores');
         return true;
     }
@@ -66,7 +68,7 @@ class LeaderboardPlugin extends PluginBase {
      * @returns {Promise<boolean>}
      */
     async shutdown(context) {
-        context.grid.emitter.offAgentScore(this.#handler);
+        context.grid.agents.offChanged(this.#handler);
         return true;
     }
 

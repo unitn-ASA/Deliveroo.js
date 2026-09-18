@@ -19,7 +19,7 @@ function pickUp(grid, agent) {
         return picked;
     }
 
-    for (const parcel of grid.parcelRegistry.getByXy(agent?.xy?.rounded)) {
+    for (const parcel of grid.parcels.getByXy(agent?.xy?.rounded)) {
         if (parcel.carriedBy == null) {
             if (picked.length >= freeSlots) break;
 

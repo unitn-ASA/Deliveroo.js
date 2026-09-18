@@ -1,16 +1,15 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    bootServer, connectClient, disconnectAll, move, poll, rest,
+    adminRest, bootServer, connectClient, disconnectAll, move, poll, rest,
     setAgentPreset, sleep, teleport
 } from './helpers.mjs';
 
 /**
- * AgentComponentsPlugin lifecycle and the agent component registry:
- * - the provider populates presets at boot BEFORE agents are created
- *   (boot-order guard: the fixture's random NPC must actually move)
- * - stopping the provider empties the registry and degrades cleanly
- * - restarting it restores presets and per-agent behavior
+ * MovementModesPlugin lifecycle and the agent component registry:
+ * - standard behavior remains registered by the core
+ * - stopping the plugin removes only optional movement presets
+ * - restarting it restores optional modes
  */
 
 let server;
@@ -28,15 +27,13 @@ after(async () => {
     await server.stop();
 });
 
-test('registry is populated at boot: presets are listed', async () => {
+test('registry is populated at boot: standard and optional presets are listed', async () => {
     const { status, body } = await rest(server.baseUrl, 'GET', '/api/agent-presets');
     assert.equal(status, 200);
     assert.deepEqual(body.presets.sort(), ['ghost', 'push', 'rotation', 'standard']);
 });
 
-test('boot-order guard: the NPC created at boot has working movement components', async () => {
-    // npc-spawner creates agents during its own init: if the provider had not
-    // started first, the NPC would have no 'move' handler and never move
+test('NPC created at boot has core standard movement', async () => {
     const { body: npcs } = await rest(server.baseUrl, 'GET', '/api/npcs');
     const npc = npcs?.[0];
     assert.ok(npc, 'fixture NPC is running');
@@ -52,15 +49,15 @@ test('boot-order guard: the NPC created at boot has working movement components'
         `random NPC must move at boot (stuck at ${JSON.stringify(start)})`);
 });
 
-test('stopping the provider empties presets and rejects preset PATCH', async () => {
+test('stopping movement modes preserves standard and rejects optional presets', async () => {
     // stop the wandering NPC for deterministic client placement
-    await rest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
+    await adminRest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
 
-    const stop = await rest(server.baseUrl, 'POST', '/api/plugins/agent-components/stop');
+    const stop = await adminRest(server.baseUrl, 'POST', '/api/plugins/movement-modes/stop');
     assert.equal(stop.status, 200, JSON.stringify(stop.body));
 
     const { body } = await rest(server.baseUrl, 'GET', '/api/agent-presets');
-    assert.deepEqual(body.presets, []);
+    assert.deepEqual(body.presets, ['standard']);
 
     client = await connectClient(server.baseUrl, 'late-joiner');
     await sleep(200);
@@ -69,19 +66,19 @@ test('stopping the provider empties presets and rejects preset PATCH', async () 
     assert.match(patch.body.message, /Unknown agent preset/);
 });
 
-test('new agents created while the provider is stopped have no commands', async () => {
-    const ack = await move(client.socket, 'up');
-    assert.equal(ack, false, 'move must ack false when the agent has no components');
+test('new agents can still apply the core standard preset while movement modes are stopped', async () => {
+    const patch = await setAgentPreset(server.baseUrl, client.id, 'standard');
+    assert.equal(patch.status, 200, JSON.stringify(patch.body));
 });
 
-test('restarting the provider restores presets and agent behavior', async () => {
-    const start = await rest(server.baseUrl, 'POST', '/api/plugins/agent-components/start');
+test('restarting movement modes restores optional presets and behavior', async () => {
+    const start = await adminRest(server.baseUrl, 'POST', '/api/plugins/movement-modes/start');
     assert.equal(start.status, 200, JSON.stringify(start.body));
 
     const { body } = await rest(server.baseUrl, 'GET', '/api/agent-presets');
     assert.deepEqual(body.presets.sort(), ['ghost', 'push', 'rotation', 'standard']);
 
-    // 'late-joiner' was created without components: switch it to ghost via preset PATCH
+    // Switch the core-standard agent to the restored optional ghost preset.
     const patch = await setAgentPreset(server.baseUrl, client.id, 'ghost');
     assert.equal(patch.status, 200, JSON.stringify(patch.body));
 

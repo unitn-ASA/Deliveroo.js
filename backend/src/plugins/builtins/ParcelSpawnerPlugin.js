@@ -66,7 +66,7 @@ class ParcelSpawnerPlugin extends PluginBase {
      */
     #spawn(context) {
         const grid = context.grid;
-        if (grid.parcelRegistry.getSize() >= config.GAME.parcels.max) {
+        if (grid.parcels.getSize() >= config.GAME.parcels.max) {
             return;
         }
         const tilesWithNoParcels = this.#tilesWithNoParcels(grid);
@@ -83,12 +83,12 @@ class ParcelSpawnerPlugin extends PluginBase {
      * @returns {import('../../core/Tile.js').default[]}
      */
     #tilesWithNoParcels(grid) {
-        return Array.from(grid.tileRegistry.getIterator())
+        return Array.from(grid.tiles.getIterator())
             // parcel spawner tile
             .filter((t) => t.parcelSpawner)
             // no parcels exists on the tile
             .filter((t) =>
-                Array.from(grid.parcelRegistry.getIterator()).find((p) =>
+                Array.from(grid.parcels.getIterator()).find((p) =>
                     p.x == t.x && p.y == t.y
                 ) == undefined
             );

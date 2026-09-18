@@ -27,17 +27,20 @@ class MapLoadingSystem {
         }
 
         // Clear all crates from the map before loading new map
-        for (const crate of grid.crateRegistry.getIterator()) {
+        for (const crate of grid.crates.getIterator()) {
             crate.delete();
         }
 
         // Clear all parcels from the map before loading new map
-        for (const parcel of grid.parcelRegistry.getIterator()) {
+        for (const parcel of grid.parcels.getIterator()) {
             parcel.delete();
         }
 
         // Process tiles
         this.#processTiles(grid, tiles);
+
+        // Plugins resync their own world objects through the 'map loaded'
+        // grid event emitted by Grid.loadMap after this call succeeds.
 
         return {
             success: true
@@ -67,7 +70,7 @@ class MapLoadingSystem {
         const columns = mapRowsToColumns(tiles, newX + 1, newY + 1);
 
         // Calculate old dimensions
-        const { x: oldX, y: oldY } = grid.tileRegistry.getMaxXy();
+        const { x: oldX, y: oldY } = grid.tiles.getMaxXy();
 
         // Iterate over the maximum area
         for (let x = 0; x <= Math.max(newX, oldX); x++) {
@@ -79,7 +82,7 @@ class MapLoadingSystem {
                     grid.setTile(xy, parseIOTileType(columns[x][y]));
                 } else {
                     // Remove tile outside new dimensions
-                    grid.tileRegistry.getOneByXy(xy)?.delete();
+                    grid.tiles.getOneByXy(xy)?.delete();
                 }
             }
         }

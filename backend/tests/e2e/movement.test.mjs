@@ -1,6 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { bootServer, connectClient, disconnectAll, move, poll, rest, sleep, withTimeout } from './helpers.mjs';
+import { adminRest, bootServer, connectClient, disconnectAll, move, poll, rest, sleep, withTimeout } from './helpers.mjs';
 
 /**
  * Movement contract under the standard movement component:
@@ -13,7 +13,7 @@ let client;
 before(async () => {
     server = await bootServer();
     // the wandering NPC would make deterministic placement impossible
-    await rest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
+    await adminRest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
     client = await connectClient(server.baseUrl, 'mover');
     await sleep(300);
 });
@@ -36,7 +36,7 @@ test('invalid direction is penalized and acked false', async () => {
     const penaltyBefore = client.state.penalty;
     const ack = await move(client.socket, 'diagonal');
     assert.equal(ack, false, 'invalid direction acks false');
-    // the penalty reaches the client via a debounced 'you' event: wait for it
+    // the penalty reaches the client through the next sensing snapshot: wait for it
     const penalty = await poll(
         async () => client.state.penalty,
         (p) => p < penaltyBefore,

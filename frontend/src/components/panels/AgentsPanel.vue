@@ -24,7 +24,7 @@
             <tbody>
                 <tr v-for="agent in Array.from( connection?.grid.agents.values() ).sort((a,b)=>b.score-a.score)"
                         class="text-center"
-                        :class="{ 'change-bg-maybe': agent.id==grid.me.value.id }"
+                        :class="{ 'change-bg-maybe': agent.id == grid.me.value?.id }"
                         @mouseover="agent.hoovered=true"
                         @mouseleave="agent.hoovered=false"
                 >

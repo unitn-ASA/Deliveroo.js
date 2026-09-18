@@ -20,7 +20,7 @@ class PushMovementComponent {
     async move(agent, direction, grid) {
         const [dx, dy] = DELTAS[direction];
 
-        const pushed = grid.agentRegistry.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
+        const pushed = grid.agents.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
         if (pushed && pushed !== agent) {
             const pushOk = await worldRules.move(grid, pushed, dx, dy, { penalize: false });
             if (!pushOk) {
@@ -34,7 +34,7 @@ class PushMovementComponent {
 
     isMovePlausible(agent, direction, grid = agent.grid) {
         const [dx, dy] = DELTAS[direction];
-        const tile = grid.tileRegistry.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
+        const tile = grid.tiles.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
         return Boolean(tile && tile.walkable && !tile.locked);
     }
 }

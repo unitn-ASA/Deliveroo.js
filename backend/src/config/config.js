@@ -46,12 +46,18 @@ export async function loadGameConfig(json) {
     if (json.parcels?.decaying_event) {
         config.GAME.parcels.decaying_event = json.parcels.decaying_event;
     }
-    if (json.parcels.max !== undefined) {
+    if (json.parcels?.max !== undefined) {
         config.GAME.parcels.max = json.parcels.max;
     }
     if (json.parcels?.reward_avg !== undefined || json.parcels?.reward_variance !== undefined) {
         config.GAME.parcels.reward_avg = json.parcels.reward_avg;
         config.GAME.parcels.reward_variance = json.parcels.reward_variance;
+    }
+
+    // Plugins configuration: ids of plugins to load and start (discovered
+    // from their manifests in src/plugins/)
+    if (Array.isArray(json.plugins)) {
+        config.GAME.plugins = json.plugins.filter((id) => typeof id === 'string');
     }
 
     // Player configuration
@@ -66,6 +72,14 @@ export async function loadGameConfig(json) {
     }
     if (json.player?.capacity !== undefined) {
         config.GAME.player.capacity = json.player.capacity;
+    }
+
+    // Energy plugin configuration
+    if (json.energy !== undefined) {
+        config.GAME.energy = {
+            ...config.GAME.energy,
+            ...json.energy
+        };
     }
 
     // Emit configuration change events
@@ -182,6 +196,7 @@ export const config = {
                 count: 1
             }
         ],
+        plugins: [],
         parcels: {
             generation_event: '1s',
             decaying_event: '1s',
@@ -193,8 +208,17 @@ export const config = {
             agent_preset: 'standard',
             movement_duration: 50,
             observation_distance: 5,
-            capacity: 5,
+            capacity: 5
         },
+        energy: {
+            initial: 100,
+            move_cost: 1,
+            pickup_cost: 1,
+            putdown_cost: 1,
+            recharge_event: '5s',
+            recharge_amount: 10,
+            batteries_generation_event: '5s'
+        }
     }
 };
 

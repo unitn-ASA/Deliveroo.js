@@ -1,8 +1,8 @@
 import Xy from './Xy.js';
 import Agent from './Agent.js';
-import eventEmitter from 'events';
 import { watchProperty } from '../reactivity/watchProperty.js';
 import { atNextTick } from '../reactivity/postponeAt.js';
+import SpatialObject from './SpatialObject.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOParcel.js').IOParcel} IOParcel */
 
@@ -21,26 +21,13 @@ import { atNextTick } from '../reactivity/postponeAt.js';
  * @class Parcel
  * It once used to implements { IOParcel }
  */
-class Parcel {
-
-    /** @type { eventEmitter<ParcelEventsMap> } */
-    #emitter;
-    get emitter () { return this.#emitter; }
+class Parcel extends SpatialObject {
 
     /** @type {number} */
     static #lastId = 0;
     /** @type {string} */
     #id;
     get id () { return this.#id; }
-
-    /** @type {Xy} */
-    xy;
-    /** @type {number} */
-    get x () { return this.xy?.x }
-    /** @type {number} */
-    get y () { return this.xy?.y }
-
-
 
     /** @type {Agent} */
     carriedBy;
@@ -64,25 +51,18 @@ class Parcel {
      * @override
      */
     constructor ( xy, carriedBy = null, reward ) {
-
-        this.#emitter = new eventEmitter();
-        this.#emitter.setMaxListeners(0); // unlimited listeners
+        super({ xy });
 
         this.#id = 'p' + Parcel.#lastId++;
-
-        // xy watching
-        watchProperty({
-            target: this,
-            key: 'xy',
-            callback: atNextTick( (target, key, value) => target.#emitter.emit(key, value) )
-        });
-        this.xy = xy;
 
         // carriedBy watching
         watchProperty({
             target: this,
             key: 'carriedBy',
-            callback: atNextTick( (target, key, value) => target.#emitter.emit(key, value) )
+            callback: atNextTick((target, key, value) => {
+                target.emitter.emit(key, value);
+                target.emitter.emit('changed', { object: target, key });
+            })
         });
         this.carriedBy = carriedBy;
 
@@ -90,7 +70,10 @@ class Parcel {
         watchProperty({
             target: this,
             key: 'reward',
-            callback: (target, key, value) => target.emitter.emit(key, value)
+            callback: (target, key, value) => {
+                target.emitter.emit(key, value);
+                target.emitter.emit('changed', { object: target, key });
+            }
         });
         this.reward = reward;
 
@@ -98,7 +81,10 @@ class Parcel {
         watchProperty({
             target: this,
             key: 'expired',
-            callback: (target, key, value) => target.emitter.emit(key, value)
+            callback: (target, key, value) => {
+                target.emitter.emit(key, value);
+                target.emitter.emit('changed', { object: target, key });
+            }
         });
         this.expired = false;
 
@@ -120,8 +106,7 @@ class Parcel {
      * Deletes the parcel, emitting a 'deleted' event and cleaning up listeners.
      */
     delete () {
-        this.#emitter.emit( 'deleted', this );
-        this.#emitter.removeAllListeners();
+        super.delete();
     }
 
 }

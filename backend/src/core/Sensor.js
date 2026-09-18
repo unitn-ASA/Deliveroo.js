@@ -13,6 +13,7 @@ import { watchProperty } from '../reactivity/watchProperty.js';
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOAgent.js").IOAgent} IOAgent */
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOParcel.js").IOParcel} IOParcel */
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOCrate.js").IOCrate} IOCrate */
+/** @typedef {import("@unitn-asa/deliveroo-js-sdk/types/IOEntity.js").IOEntity} IOEntity */
 
 
 
@@ -43,8 +44,8 @@ class Sensor {
     /** @type {boolean} */
     #sensingEnabled = false;
 
-    /** @type {(who: Agent) => void} - Grid agent listener */
-    #agentListener = ( who ) => {
+    #agentListener = ({ object: who }) => {
+        if (!who) return;
         // On my movements emit sensing
         if ( this.#me.id == who.id ) {
             this.#sensingDirty = true;
@@ -59,21 +60,36 @@ class Sensor {
         }
     };
 
-    /** @type {(parcel: Parcel) => void} - Grid parcel listener */
-    #parcelListener = ( parcel ) => {
+    /** Marks local sensing dirty for self-only state not emitted by Grid. */
+    #selfStateChangedListener = () => {
+        this.#sensingDirty = true;
+    };
+
+    #parcelListener = ({ object: parcel }) => {
+        if (!parcel) return;
         if ( !( Xy.distance(this.#me, parcel) > config.GAME.player.observation_distance ) ) {
             this.#sensingDirty = true;
         }
     };
 
-    /** @type {(crate: Crate) => void} - Grid crate listener */
-    #crateListener = ( crate ) => {
+    #crateListener = ({ object: crate }) => {
+        if (!crate) return;
         if ( !( Xy.distance(this.#me, crate) > config.GAME.player.observation_distance ) ) {
             this.#sensingDirty = true;
         }
     };
 
-
+    /** @param {{layer: any, object: any, type: string}} event */
+    #layerChangeListener = ( { object } ) => {
+        if ( !object ) {
+            // Layer registered/unregistered: recompute to pick up or drop its entities
+            this.#sensingDirty = true;
+            return;
+        }
+        if ( !( Xy.distance(this.#me, object) > config.GAME.player.observation_distance ) ) {
+            this.#sensingDirty = true;
+        }
+    };
 
     /**
      * @constructor Agent
@@ -127,15 +143,21 @@ class Sensor {
             this.#sensingEnabled = true;
             
             // On myself or other agents changes
-            grid.emitter.onAgentXy( this.#agentListener );
-            grid.emitter.onAgentDeleted( this.#agentListener );
-            grid.emitter.onAgentScore( this.#agentListener );
+            grid.agents.onChanged(this.#agentListener);
+            me.emitter.on('penalty', this.#selfStateChangedListener);
+            me.emitter.on('rotation', this.#selfStateChangedListener);
+            me.emitter.on('carryingParcels', this.#selfStateChangedListener);
 
             // On parcel changes
-            grid.emitter.onParcel( this.#parcelListener );
+            grid.parcels.onChanged(this.#parcelListener);
 
             // On crate changes
-            grid.emitter.onCrate( this.#crateListener );
+            grid.crates.onChanged(this.#crateListener);
+
+            // On plugin-owned entity layer changes
+            grid.onEntityLayerChanged(this.#layerChangeListener);
+            grid.emitter.on('mapLoaded', this.#selfStateChangedListener);
+
         }
 
     }
@@ -151,11 +173,14 @@ class Sensor {
         this.#sensingEnabled = false;
         
         // Cleanup listeners
-        grid.emitter.offAgentXy( this.#agentListener );
-        grid.emitter.offAgentDeleted( this.#agentListener );
-        grid.emitter.offAgentScore( this.#agentListener );
-        grid.emitter.offParcel( this.#parcelListener );
-        grid.emitter.offCrate( this.#crateListener );
+        grid.agents.offChanged(this.#agentListener);
+        me.emitter.off('penalty', this.#selfStateChangedListener);
+        me.emitter.off('rotation', this.#selfStateChangedListener);
+        me.emitter.off('carryingParcels', this.#selfStateChangedListener);
+        grid.parcels.offChanged(this.#parcelListener);
+        grid.crates.offChanged(this.#crateListener);
+        grid.offEntityLayerChanged(this.#layerChangeListener);
+        grid.emitter.off('mapLoaded', this.#selfStateChangedListener);
         this.emitter.removeAllListeners();
     }
 
@@ -187,7 +212,8 @@ class Sensor {
                 y: a.y,
                 score: a.score,
                 penalty: a.penalty,
-                rotation: a.rotation
+                rotation: a.rotation,
+                attributes: a.attributes.toArray()
             } );
         }
 
@@ -215,27 +241,55 @@ class Sensor {
             } );
         };
 
+        // Plugin-owned entities, filtered by the perceived positions.
+        /** @type {Array<IOEntity>} */
+        const entities = [];
+        const collectLayers = ( visible ) => {
+            for ( const layer of this.#grid.getEntityLayers() ) {
+                for ( const entity of layer.getIterator() ) {
+                    if ( visible && ! visible.has( `${entity.x},${entity.y}` ) ) continue;
+                    entities.push( entity.toIO() );
+                }
+            }
+        };
+
+        // The sensing agent itself, with its plugin-owned attributes
+        const buildSelf = () => ( {
+            id: this.#me.id,
+            name: this.#me.name,
+            teamId: this.#me.teamId,
+            teamName: this.#me.teamName,
+            x: this.#me.x,
+            y: this.#me.y,
+            score: this.#me.score,
+            penalty: this.#me.penalty,
+            rotation: this.#me.rotation ?? null,
+            attributes: this.#me.attributes.toArray()
+        } );
+
         // if my position is undefined OR if unlimited observation_distance (-1), sense everything
         if ( this.#me.x == undefined || this.#me.y == undefined || config.GAME.player.observation_distance == -1 ) {
             // All tiles
-            for ( let tile of this.#grid.tileRegistry.getIterator() ) {
+            for ( let tile of this.#grid.tiles.getIterator() ) {
                 positions.push( {x: tile.x, y: tile.y} );
             }
             // All agents except myself
-            for ( let a of this.#grid.agentRegistry.getIterator() ) {
+            for ( let a of this.#grid.agents.getIterator() ) {
                 if ( a && a != this.#me ) {
                     pushAgent( a );
                 }
             }
             // All parcels
-            for ( let p of this.#grid.parcelRegistry.getIterator() ) {
+            for ( let p of this.#grid.parcels.getIterator() ) {
                 pushParcel( p );
             }
             // All crates
-            for ( let c of this.#grid.crateRegistry.getIterator() ) {
+            for ( let c of this.#grid.crates.getIterator() ) {
                 pushCrate( c );
             }
-            this.sensing = { frame: myClock.frame, positions, agents, parcels, crates };
+            // All layer objects, unfiltered
+            collectLayers( null );
+            this.sensing = { frame: myClock.frame, positions, agents, parcels, crates, entities, self: buildSelf() };
             return;
         }
 
@@ -256,25 +310,25 @@ class Sensor {
             visited.add(key);
 
             // Get tile at this position
-            const tile = this.#grid.tileRegistry.getOneByXy({ x, y });
+            const tile = this.#grid.tiles.getOneByXy({ x, y });
             if (!tile) continue;
 
             positions.push({ x, y });
 
             // Collect parcels at this position (using spatial registry)
-            for (let p of this.#grid.parcelRegistry.getByXy({ x, y })) {
+            for (let p of this.#grid.parcels.getByXy({ x, y })) {
                 pushParcel( p );
             }
 
             // Collect agents at this position (using spatial registry)
-            for (let a of this.#grid.agentRegistry.getByXy({ x, y })) {
+            for (let a of this.#grid.agents.getByXy({ x, y })) {
                 if (a !== this.#me) {
                     pushAgent( a );
                 }
             }
 
             // Collect crates at this position (using spatial registry)
-            for (let c of this.#grid.crateRegistry.getByXy({ x, y })) {
+            for (let c of this.#grid.crates.getByXy({ x, y })) {
                 pushCrate( c );
             }
 
@@ -307,7 +361,7 @@ class Sensor {
         for (const pos of borderQueue) {
             // Check for agents at border positions
             // Agents can have fractional positions, so verify actual distance
-            for (let a of this.#grid.agentRegistry.getByXy(pos)) {
+            for (let a of this.#grid.agents.getByXy(pos)) {
                 if (a !== this.#me && !agents.find(ag => ag.id === a.id)) {
                     const dist = Xy.distance(a, this.#me);
                     if (dist < config.GAME.player.observation_distance + 1) {
@@ -319,11 +373,13 @@ class Sensor {
 
         // console.log(`Sensor.js ${this.#agent.id} sensing an area of ${positions.length} tiles with: ${agents.length} agents, ${parcels.length} parcels, ${crates.length} crates`);
 
-        this.sensing = { frame: myClock.frame, positions, agents, parcels, crates };
+        // Only layer objects laying on perceived positions are sensed
+        const visible = new Set( positions.map( p => `${p.x},${p.y}` ) );
+        collectLayers( visible );
+
+        this.sensing = { frame: myClock.frame, positions, agents, parcels, crates, entities, self: buildSelf() };
 
     }
-
-
 
 }
 

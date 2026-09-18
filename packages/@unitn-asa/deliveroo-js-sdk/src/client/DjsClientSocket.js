@@ -30,9 +30,13 @@ export class DjsClientSocket extends Socket {
     
     /** @type { Promise < IOAgent > } */
     me = new Promise( (res) => {
-        this.once( 'you', (agent) => {
-            res( agent );
-        } );
+        /** @type { (sensing: IOSensing) => void } */
+        const listener = (sensing) => {
+            if (!sensing.self) return;
+            this.off('sensing', listener);
+            res(sensing.self);
+        };
+        this.on('sensing', listener);
     } );
     
     /** @type { Promise < IOConfig > } */
@@ -92,20 +96,6 @@ export class DjsClientSocket extends Socket {
      */
     onAgentConnected ( callback ) {
         this.on( "controller", callback )
-    }
-    
-    /**
-     * @param { function( IOAgent ) : void } callback
-     */
-    onYou ( callback ) {
-        this.on( "you", callback )
-    }
-
-    /**
-     * @param { function( IOAgent ) : void } callback
-     */
-    onceYou ( callback ) {
-        this.once( "you", callback )
     }
     
     /**
@@ -302,9 +292,6 @@ export class DjsClientSocket extends Socket {
 //     console.log( 'Move result:', result );
 // } );
 // enhancedSocket.emitShout( 'hellooooo!' );
-// enhancedSocket.onceYou( ( agent, info ) => {
-//     console.log( 'enhanceClientSocket.js I am', agent, info );
-// } );
 // // enhancedSocket.emitAndResolveOnAck( 'putdown' ).then( ( ack ) => {
 // //     console.log( 'Acknowledged with', ack );
 // // } );

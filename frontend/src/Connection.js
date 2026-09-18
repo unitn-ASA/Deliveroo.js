@@ -163,7 +163,6 @@ export class Connection {
         this.listenAndRegister( "msg" );
         this.listenAndRegister( "path" );
         this.listenAndRegister( "config" );
-        this.listenAndRegister( "you" );
         this.listenAndRegister( "agents sensing" );
         this.listenAndRegister( "parcels sensing" );
 

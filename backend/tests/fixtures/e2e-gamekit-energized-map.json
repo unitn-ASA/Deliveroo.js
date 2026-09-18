@@ -1,0 +1,40 @@
+{
+  "title": "e2e-gamekit-energized-map",
+  "description": "Deterministic 5x3 map for GameKit bundle tests (energy, keys-doors, double-delivery plugins). Key spawner '8' at (0,1), battery spawner '6' at (2,1), door '7' at (1,0), double delivery '9' at (2,0), parcel spawners at (1,2), (2,2), (3,2) and (3,0). Energy 10, move cost 1, pickup/putdown cost 1, no passive recharge, batteries respawn every 2s. Internal y grows upward, rows listed top-to-bottom.",
+  "map": {
+    "width": 5,
+    "height": 3,
+    "tiles": [
+      "0 1 1 1 0",
+      "8 3 6 0 0",
+      "0 7 9 1 0"
+    ]
+  },
+  "npcs": [],
+  "parcels": {
+    "generation_event": "1s",
+    "decaying_event": "10s",
+    "max": 5,
+    "reward_avg": 30,
+    "reward_variance": 0
+  },
+  "plugins": [
+    "energy",
+    "keys-doors",
+    "double-delivery"
+  ],
+  "player": {
+    "movement_duration": 50,
+    "observation_distance": 5,
+    "capacity": 2
+  },
+  "energy": {
+    "initial": 10,
+    "move_cost": 1,
+    "pickup_cost": 1,
+    "putdown_cost": 1,
+    "recharge_event": "infinite",
+    "recharge_amount": 0,
+    "batteries_generation_event": "2s"
+  }
+}

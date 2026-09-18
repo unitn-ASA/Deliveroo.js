@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
 
     console.log( `GET /api/parcels` );
 
-    const parcels = Array.from( myGrid.parcelRegistry.getIterator() ).map( parcel => {
+    const parcels = Array.from( myGrid.parcels.getIterator() ).map( parcel => {
         return {
             id: parcel.id
         };
@@ -69,8 +69,8 @@ router.delete('/', authorizeAdmin, async (req, res) => {
 
     console.log( `DELETE /api/parcels` );
 
-    for ( const parcel of myGrid.parcelRegistry.getIterator() ) {
-        myGrid.parcelRegistry.get( parcel.id )?.delete();
+    for ( const parcel of myGrid.parcels.getIterator() ) {
+        myGrid.parcels.get( parcel.id )?.delete();
     }
     
     res.status(200).json( { message: 'All parcels deleted' } );
@@ -123,9 +123,9 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
     console.log( `DELETE /api/parcels/${req.params.id}` );
 
     const id = req.params.id;
-    const parcel = myGrid.parcelRegistry.get( id );
+    const parcel = myGrid.parcels.get( id );
     if ( parcel ) {
-        myGrid.parcelRegistry.get( parcel.id )?.delete();
+        myGrid.parcels.get( parcel.id )?.delete();
         res.status(200).json( { message: `Parcel ${id} deleted` } );
     } else {
         res.status(404).json( { message: `Parcel ${id} not found` } );

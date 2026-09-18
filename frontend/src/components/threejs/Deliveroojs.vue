@@ -6,6 +6,8 @@
     import Agent from './Agent.vue';
     import Parcel from './Parcel.vue';
     import Crate from './Crate.vue';
+    import Battery from './Battery.vue';
+    import Key from './Key.vue';
     import { connection } from '@/states/myConnection.js';
 	import { Controller } from '@/utils/Controller.js'
 
@@ -13,6 +15,9 @@
     const agents = computed ( () => connection.grid.agents );
     const parcels = computed ( () => connection.grid.parcels );
     const crates = computed ( () => connection.grid.crates );
+    // Generic entities rendered by kind through dedicated components
+    const batteries = computed ( () => Array.from(connection.grid.entities.values()).filter( entity => entity.kind === 'battery' ) );
+    const keys = computed ( () => Array.from(connection.grid.entities.values()).filter( entity => entity.kind === 'key' ) );
 
 	// watch( () => connection.grid.me, (newVal) => {
 	// 	console.log( 'Deliveroojs.vue watch me', newVal.id );
@@ -48,6 +53,8 @@
             </template>
             <Parcel v-for="[key, p] in parcels.entries()" :key="key" :id="key" :parcel="p" />
             <Crate v-for="[key, c] in crates.entries()" :key="key" :id="key" :crate="c" />
+            <Battery v-for="b in batteries" :key="b.id" :id="b.id" :battery="b" />
+            <Key v-for="k in keys" :key="k.id" :id="k.id" :keyObj="k" />
         </ThreeScene>
     </main>
 </template>

@@ -22,7 +22,7 @@ export function emitGodSensing(socket) {
         let positions = [];
         let positionsDirty = true;
         const refreshPositions = () => {
-            for (const tile of myGrid.tileRegistry.getIterator()) {
+            for (const tile of myGrid.tiles.getIterator()) {
                 positions.push({ x: tile.x, y: tile.y });
             }
             positionsDirty = false;
@@ -36,7 +36,7 @@ export function emitGodSensing(socket) {
             }
 
             const agents = [];
-            for (const a of myGrid.agentRegistry.getIterator()) {
+            for (const a of myGrid.agents.getIterator()) {
                 agents.push({
                     id: a.id,
                     name: a.name,
@@ -46,12 +46,13 @@ export function emitGodSensing(socket) {
                     y: a.y,
                     score: a.score,
                     penalty: a.penalty,
-                    rotation: a.rotation
+                    rotation: a.rotation,
+                    attributes: a.attributes.toArray()
                 });
             }
 
             const parcels = [];
-            for (const p of myGrid.parcelRegistry.getIterator()) {
+            for (const p of myGrid.parcels.getIterator()) {
                 parcels.push({
                     id: p.id,
                     x: p.x,
@@ -62,11 +63,19 @@ export function emitGodSensing(socket) {
             }
 
             const crates = [];
-            for (const c of myGrid.crateRegistry.getIterator()) {
+            for (const c of myGrid.crates.getIterator()) {
                 crates.push({ id: c.id, x: c.x, y: c.y });
             }
 
-            return { frame: myClock.frame, positions, agents, parcels, crates };
+            // All plugin-owned entities
+            const entities = [];
+            for (const layer of myGrid.getEntityLayers()) {
+                for (const entity of layer.getIterator()) {
+                    entities.push(entity.toIO());
+                }
+            }
+
+            return { frame: myClock.frame, positions, agents, parcels, crates, entities };
         };
 
         let disconnected = false;
@@ -90,13 +99,13 @@ export function emitGodSensing(socket) {
             requestSnapshot();
         };
 
-        myGrid.emitter.onTile(requestTileSnapshot);
-        myGrid.emitter.onParcel(requestSnapshot);
-        myGrid.emitter.onCrate(requestSnapshot);
-        myGrid.emitter.onAgentCreated(requestSnapshot);
-        myGrid.emitter.onAgentXy(requestSnapshot);
-        myGrid.emitter.onAgentScore(requestSnapshot);
-        myGrid.emitter.onAgentDeleted(requestSnapshot);
+        const coreLayerListener = () => requestSnapshot();
+        myGrid.tiles.onChanged(requestTileSnapshot);
+        myGrid.parcels.onChanged(coreLayerListener);
+        myGrid.crates.onChanged(coreLayerListener);
+        myGrid.agents.onChanged(coreLayerListener);
+        myGrid.onEntityLayerChanged(coreLayerListener);
+        myGrid.emitter.on('mapLoaded', requestTileSnapshot);
 
         // Initial map-wide snapshot on connection
         socket.emitSensing(snapshot());
@@ -106,13 +115,12 @@ export function emitGodSensing(socket) {
         // Cleanup listeners on disconnect
         socket.onDisconnect(() => {
             disconnected = true;
-            myGrid.emitter.offTile(requestTileSnapshot);
-            myGrid.emitter.offParcel(requestSnapshot);
-            myGrid.emitter.offCrate(requestSnapshot);
-            myGrid.emitter.offAgentCreated(requestSnapshot);
-            myGrid.emitter.offAgentXy(requestSnapshot);
-            myGrid.emitter.offAgentScore(requestSnapshot);
-            myGrid.emitter.offAgentDeleted(requestSnapshot);
+            myGrid.tiles.offChanged(requestTileSnapshot);
+            myGrid.parcels.offChanged(coreLayerListener);
+            myGrid.crates.offChanged(coreLayerListener);
+            myGrid.agents.offChanged(coreLayerListener);
+            myGrid.offEntityLayerChanged(coreLayerListener);
+            myGrid.emitter.off('mapLoaded', requestTileSnapshot);
         });
     } catch (error) {
         console.error('[emitGodSensing] Error setting up god sensing:', error.message);

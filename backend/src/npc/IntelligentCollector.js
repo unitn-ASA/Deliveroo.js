@@ -72,7 +72,7 @@ class IntelligentCollector extends Autopilot {
         if (!this.agent?.grid) return;
 
         this.deliveryTiles = [];
-        for (let tile of this.agent.grid.tileRegistry.getIterator()) {
+        for (let tile of this.agent.grid.tiles.getIterator()) {
             if (tile.delivery) {
                 this.deliveryTiles.push({ x: tile.x, y: tile.y });
             }
@@ -178,7 +178,7 @@ class IntelligentCollector extends Autopilot {
         // Check if we're at the target
         if (this.currentTarget && agent.x === this.currentTarget.x && agent.y === this.currentTarget.y) {
             // Try to pick up or deliver
-            const currentTile = agent.grid.tileRegistry.getOneByXy({ x: agent.x, y: agent.y });
+            const currentTile = agent.grid.tiles.getOneByXy({ x: agent.x, y: agent.y });
 
             // If on delivery tile and carrying parcels, deliver
             if (currentTile && currentTile.delivery && agent.carryingParcels.size > 0) {
@@ -188,7 +188,7 @@ class IntelligentCollector extends Autopilot {
             }
 
             // Try to pick up parcels
-            if (currentTile && agent.grid.parcelRegistry.getByXy(currentTile.xy).length > 0) {
+            if (currentTile && agent.grid.parcels.getByXy(currentTile.xy).length > 0) {
                 await agent.commands.execute('pickup', {}, []);
                 this.currentTarget = null;
                 return;
@@ -299,7 +299,7 @@ class IntelligentCollector extends Autopilot {
      */
     hasVisibleParcels() {
         if (!this.agent?.grid) return false;
-        for (let p of this.agent.grid.parcelRegistry.getIterator()) {
+        for (let p of this.agent.grid.parcels.getIterator()) {
             if (!p.carriedBy) return true;
         }
         return false;
@@ -312,8 +312,8 @@ class IntelligentCollector extends Autopilot {
         const agent = this.agent;
 
         // Pick up any parcels on current tile
-        const currentTile = agent.grid.tileRegistry.getOneByXy({ x: agent.x, y: agent.y });
-        if (currentTile && agent.grid.parcelRegistry.getByXy(currentTile.xy).length > 0) {
+            const currentTile = agent.grid.tiles.getOneByXy({ x: agent.x, y: agent.y });
+            if (currentTile && agent.grid.parcels.getByXy(currentTile.xy).length > 0) {
             // console.log(`[IntelligentParcelNPC] ${agent.id || 'NPC'}: Picking up parcel on current tile`);
             await agent.commands.execute('pickup', {}, []);
             return;
@@ -337,7 +337,7 @@ class IntelligentCollector extends Autopilot {
      */
     async deliverParcels() {
         const agent = this.agent;
-        const currentTile = agent.grid.tileRegistry.getOneByXy({ x: agent.x, y: agent.y });
+            const currentTile = agent.grid.tiles.getOneByXy({ x: agent.x, y: agent.y });
 
         // If on delivery tile, deliver
         if (currentTile && currentTile.delivery) {
@@ -365,7 +365,7 @@ class IntelligentCollector extends Autopilot {
         let minDist = Infinity;
         const myPos = { x: this.agent.x, y: this.agent.y };
 
-        for (let parcel of this.agent.grid.parcelRegistry.getIterator()) {
+        for (let parcel of this.agent.grid.parcels.getIterator()) {
             if (!parcel.carriedBy) {
                 const dist = Xy.distance(myPos, { x: parcel.x, y: parcel.y });
                 // Prioritize higher reward parcels with slight weight
@@ -441,11 +441,11 @@ class IntelligentCollector extends Autopilot {
 
                 if (visited.has(key)) continue;
 
-                const tile = grid.tileRegistry.getOneByXy({ x: newX, y: newY });
+                const tile = grid.tiles.getOneByXy({ x: newX, y: newY });
                 if (!tile || !tile.walkable) continue;
 
                 // Check if current tile allows exit in this direction
-                const currentTile = grid.tileRegistry.getOneByXy(current.pos);
+                const currentTile = grid.tiles.getOneByXy(current.pos);
                 if (!currentTile.allowsExitInDirection(relPos[i].x, relPos[i].y)) continue;
 
                 // Check if new tile allows movement from current position
@@ -472,7 +472,7 @@ class IntelligentCollector extends Autopilot {
         let minDist = Infinity;
         const myPos = { x: agent.x, y: agent.y };
 
-        for (let tile of agent.grid.tileRegistry.getIterator()) {
+        for (let tile of agent.grid.tiles.getIterator()) {
             if (tile.walkable && !this.visitedTiles.has(`${tile.x},${tile.y}`)) {
                 const dist = Xy.distance(myPos, { x: tile.x, y: tile.y });
                 if (dist < minDist) {

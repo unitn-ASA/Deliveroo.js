@@ -22,7 +22,7 @@ export function handleTeleport(socket, identity) {
             return;
         }
 
-        const agent = myGrid.agentRegistry.get(agentId);
+        const agent = myGrid.agents.get(agentId);
         if (!agent) {
             console.warn(`${logPrefix} Agent ${agentId} not found`);
             if (ack) ack({ success: false, error: 'Agent not found' });
@@ -30,7 +30,7 @@ export function handleTeleport(socket, identity) {
         }
 
         const newxy = new Xy(x, y);
-        const tile = myGrid.tileRegistry.getOneByXy(newxy);
+        const tile = myGrid.tiles.getOneByXy(newxy);
 
         if (!tile || !tile.walkable) {
             console.warn(`${logPrefix} Invalid destination (${x}, ${y})`);
