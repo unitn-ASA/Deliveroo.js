@@ -1,23 +1,13 @@
+import MovementModeComponentBase from '../MovementModeComponentBase.js';
 import { config } from '../../config/config.js';
 import myClock from '../../myClock.js';
-import { DELTAS } from '../../core/movement/directions.js';
-import { applyMove } from '../../core/movement/applyMove.js';
+import { DELTAS, FORWARD } from '../../core/movement/directions.js';
 import * as worldRules from '../../core/movement/worldRules.js';
 
-const FORWARD = { 0: 'up', 1: 'right', 2: 'down', 3: 'left' };
+class RotationMovementComponent extends MovementModeComponentBase {
 
-class RotationMovementComponent {
-    id = 'rotation-movement';
-
-    start(agent) {
-        const handler = ({ direction, ack }) => void applyMove(agent, direction, this.move.bind(this), this.id, ack);
-        handler.plausible = ({ direction }) => this.isMovePlausible(agent, direction);
-        this.handler = handler;
-        agent.commands.handle('move', handler, this.id);
-    }
-
-    stop(agent) {
-        agent.commands.release('move', this.id);
+    constructor() {
+        super({ id: 'rotation-movement', mode: 'rotation' });
     }
 
     async move(agent, direction, grid) {
@@ -32,19 +22,16 @@ class RotationMovementComponent {
                 const [dx, dy] = DELTAS[FORWARD[rotation]];
                 return await worldRules.move(grid, agent, dx, dy);
             }
-            case 'down': {
-                const [dx, dy] = DELTAS[FORWARD[rotation]];
-                return await worldRules.move(grid, agent, -dx, -dy);
-            }
             default:
+                // 'down' (backward) is not a command in this mode: the agent
+                // must turn around with 'left'/'right' to face the other way
                 return false;
         }
     }
 
     isMovePlausible(agent, direction) {
         void agent;
-        void direction;
-        return true;
+        return direction !== 'down';
     }
 
     async #finishRotation(agent, newRotation) {

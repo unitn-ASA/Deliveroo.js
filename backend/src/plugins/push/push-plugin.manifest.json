@@ -1,0 +1,7 @@
+{
+  "id": "push",
+  "name": "Push Movement",
+  "version": "1.0.0",
+  "description": "Push movement mode: agents whose movement_mode attribute is 'push' displace blocking agents",
+  "module": "./PushPlugin.js"
+}

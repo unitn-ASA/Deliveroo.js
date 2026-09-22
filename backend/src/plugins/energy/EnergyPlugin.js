@@ -38,13 +38,13 @@ class EnergyPlugin extends PluginBase {
     /** @type {(() => void) | null} battery spawner self-scheduling listener */
     #batteryTick = null;
 
-    /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent | null} clock event the battery spawn is pending on */
+    /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent | null} clock event the battery spawn is pending on, null when idle (stopped or 'infinite' sentinel) */
     #batteryEvent = null;
 
     /** @type {(() => void) | null} energy recharge self-scheduling listener */
     #rechargeTick = null;
 
-    /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent | null} clock event the recharge is pending on */
+    /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent | null} clock event the recharge is pending on, null when idle (stopped or 'infinite' sentinel) */
     #rechargeEvent = null;
 
     #agentCreatedListener = ({ object, type }) => {
@@ -102,13 +102,11 @@ class EnergyPlugin extends PluginBase {
         // Spawn batteries on empty battery-spawner tiles, then self-schedule
         this.#spawnBatteries();
         this.#batteryTick = () => this.#spawnAndScheduleBatteries();
-        this.#batteryEvent = /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent} */ (config.GAME.energy.batteries_generation_event);
-        myClock.once(this.#batteryEvent, this.#batteryTick);
+        this.#scheduleBatteries();
 
         // Passive recharge, self-scheduled like the battery spawner
         this.#rechargeTick = () => this.#rechargeAndSchedule();
-        this.#rechargeEvent = /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent} */ (config.GAME.energy.recharge_event);
-        myClock.once(this.#rechargeEvent, this.#rechargeTick);
+        this.#scheduleRecharge();
 
         console.log('[EnergyPlugin] Energy started: energy resource, battery spawner and action costs active');
         return true;
@@ -146,7 +144,7 @@ class EnergyPlugin extends PluginBase {
         grid.unregisterEntityLayer(this.#batteries.id);
 
         for (const agent of grid.agents.getIterator()) {
-            agent.attributes.deleteByOwner('energy');
+            agent.attributes.delete('energy');
         }
         this.#grid = null;
 
@@ -160,7 +158,7 @@ class EnergyPlugin extends PluginBase {
      */
     #gateMove({ agent, dx, dy }) {
         const energy = config.GAME.energy;
-        const value = agent.attributes.get('energy')?.value ?? energy.initial;
+        const value = Number(agent.attributes.get('energy')?.value ?? energy.initial);
         if (value < energy.move_cost) {
             console.warn(`${agent.name}(${agent.id}) move to (${agent.x + dx},${agent.y + dy}) failed: out of energy`);
             return false;
@@ -186,7 +184,11 @@ class EnergyPlugin extends PluginBase {
      */
     #initAgent(agent) {
         const energy = config.GAME.energy;
-        agent.attributes.set('energy', energy.initial, energy.initial, { owner: 'energy' });
+        // A configuration seed, when present, is adopted as the initial value
+        const seeded = agent.attributes.get('energy');
+        const initial = Number(seeded?.value ?? energy.initial);
+        const max = seeded?.max ?? energy.initial;
+        agent.attributes.set('energy', initial, max);
     }
 
     /**
@@ -201,7 +203,7 @@ class EnergyPlugin extends PluginBase {
             value,
             max: max ?? current?.max ?? config.GAME.energy.initial
         };
-        agent.attributes.set('energy', next.value, next.max, { owner: 'energy' });
+        agent.attributes.set('energy', next.value, next.max);
     }
 
     /**
@@ -211,7 +213,7 @@ class EnergyPlugin extends PluginBase {
      */
     #spend(agent, cost) {
         const energy = agent.attributes.get('energy');
-        if (energy) this.#setEnergy(agent, energy.value - cost);
+        if (energy) this.#setEnergy(agent, Number(energy.value) - cost);
     }
 
     /**
@@ -227,13 +229,41 @@ class EnergyPlugin extends PluginBase {
     }
 
     /**
+     * Arm the next battery spawn. Read the event at scheduling time so
+     * config changes take effect on the next spawn; the 'infinite' sentinel
+     * is not a clock event and keeps the spawner idle.
+     * @returns {void}
+     */
+    #scheduleBatteries() {
+        const scheduledEvent = config.GAME.energy.batteries_generation_event;
+        if (scheduledEvent === 'infinite') {
+            this.#batteryEvent = null;
+            return;
+        }
+        this.#batteryEvent = scheduledEvent;
+        myClock.once(this.#batteryEvent, this.#batteryTick);
+    }
+
+    /**
+     * Arm the next passive recharge; the 'infinite' sentinel keeps it idle.
+     * @returns {void}
+     */
+    #scheduleRecharge() {
+        const scheduledEvent = config.GAME.energy.recharge_event;
+        if (scheduledEvent === 'infinite') {
+            this.#rechargeEvent = null;
+            return;
+        }
+        this.#rechargeEvent = scheduledEvent;
+        myClock.once(this.#rechargeEvent, this.#rechargeTick);
+    }
+
+    /**
      * @returns {void}
      */
     #spawnAndScheduleBatteries() {
         this.#spawnBatteries();
-        // Read the event at scheduling time so config changes take effect on the next spawn
-        this.#batteryEvent = /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent} */ (config.GAME.energy.batteries_generation_event);
-        myClock.once(this.#batteryEvent, this.#batteryTick);
+        this.#scheduleBatteries();
     }
 
     /**
@@ -247,8 +277,7 @@ class EnergyPlugin extends PluginBase {
                 this.#setEnergy(agent, Math.min(state.max, state.value + energy.recharge_amount));
             }
         }
-        this.#rechargeEvent = /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent} */ (config.GAME.energy.recharge_event);
-        myClock.once(this.#rechargeEvent, this.#rechargeTick);
+        this.#scheduleRecharge();
     }
 
 }

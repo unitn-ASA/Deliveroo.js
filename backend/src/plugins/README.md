@@ -130,6 +130,15 @@ configuration started but that are no longer listed are stopped; plugins
 started by an admin through the REST surface are left alone. The
 `gamekit_test` asset is a full example.
 
+The configuration is the single source of truth: nothing is auto-loaded on
+top of it. The backend only warns (loudly, without blocking) when the game
+lists a plugin id that no manifest provides — with the ids that are
+available — and when the seeded `player.attributes.movement_mode` has no
+provider plugin configured or running, since agents then silently fall
+back to the standard movement. Both checks re-run at every configuration
+reload, and an admin-started plugin (via REST) silences the movement_mode
+warning for its mode.
+
 Game plugins keep their per-agent state plugin-owned (e.g. energy, keys) in
 `agent.attributes`. Attribute changes automatically trigger sensing updates,
 exactly like position and score changes do.

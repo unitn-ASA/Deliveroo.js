@@ -1,0 +1,7 @@
+{
+  "id": "shooter",
+  "name": "Shooter",
+  "version": "1.0.0",
+  "description": "Registers a laser shoot action on every agent command bus: fires along the agent's facing; the first agent in line loses one point",
+  "module": "./ShooterPlugin.js"
+}

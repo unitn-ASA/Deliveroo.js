@@ -4,7 +4,7 @@
  *   kind: string,
  *   x: number,
  *   y: number,
- *   attributes: {kind: string, value: number, max?: number}[]
+ *   attributes: {kind: string, value: number | string, max?: number}[]
  * }} UIEntity
  */
 

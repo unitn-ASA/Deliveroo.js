@@ -42,9 +42,18 @@ export function handleRemoteControl(socket, identity) {
             let result;
 
             switch (action) {
-                case 'move':
-                    result = await agent.commands.execute('move', { direction: params.direction }, false);
+                case 'move': {
+                    // Movement commands are explicit on the bus: 'up', 'down', 'left', 'right'
+                    const { direction } = params;
+                    if ( typeof direction !== 'string' || ![ 'up', 'down', 'left', 'right' ].includes( direction ) ) {
+                        if (ack && typeof ack === 'function') {
+                            ack({ success: false, error: 'Invalid direction' });
+                        }
+                        return;
+                    }
+                    result = await agent.commands.execute(direction, {}, false);
                     break;
+                }
 
                 case 'pickup':
                     result = await agent.commands.execute('pickup', {}, []);

@@ -39,7 +39,7 @@ class KeysDoorsPlugin extends PluginBase {
     });
 
     #agentCreatedListener = ({ object, type }) => {
-        if (type === 'added') object.attributes.set('key', 0, undefined, { owner: 'keys-doors' });
+        if (type === 'added' && object.attributes.get('key') === undefined) object.attributes.set('key', 0);
     };
 
     #tileListener = ({ object }) => {
@@ -72,9 +72,9 @@ class KeysDoorsPlugin extends PluginBase {
         this.#grid = grid;
 
         // Initialize the key attribute of agents created before this plugin
-        // started (e.g. NPCs).
+        // started (e.g. NPCs), adopting any configuration seed.
         for (const agent of grid.agents.getIterator()) {
-            agent.attributes.set('key', 0, undefined, { owner: 'keys-doors' });
+            if (agent.attributes.get('key') === undefined) agent.attributes.set('key', 0);
         }
 
         // Expose keys and doors to the sensing pipeline.
@@ -118,7 +118,7 @@ class KeysDoorsPlugin extends PluginBase {
         grid.unregisterEntityLayer(this.#doors.id);
 
         for (const agent of grid.agents.getIterator()) {
-            agent.attributes.deleteByOwner('keys-doors');
+            agent.attributes.delete('key');
         }
         this.#grid = null;
 
@@ -132,7 +132,7 @@ class KeysDoorsPlugin extends PluginBase {
      */
     #gateDoor({ agent, dx, dy, toTile }) {
         if (!isDoor(toTile)) return undefined;
-        if ((agent.attributes.get('key')?.value ?? 0) <= 0) {
+        if (Number(agent.attributes.get('key')?.value ?? 0) <= 0) {
             console.warn(`${agent.name}(${agent.id}) move to (${agent.x + dx},${agent.y + dy}) failed: door locked (no key)`);
             return false;
         }
@@ -169,8 +169,8 @@ class KeysDoorsPlugin extends PluginBase {
      * @param {number} quantity
      */
     #addKeys(agent, quantity) {
-        const current = agent.attributes.get('key')?.value ?? 0;
-        agent.attributes.set('key', Math.max(0, current + quantity), undefined, { owner: 'keys-doors' });
+        const current = Number(agent.attributes.get('key')?.value ?? 0);
+        agent.attributes.set('key', Math.max(0, current + quantity));
     }
 
     /**

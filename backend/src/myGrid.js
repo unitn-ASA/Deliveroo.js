@@ -3,7 +3,6 @@ import { config, configEmitter } from './config/config.js';
 import { pluginRegistry } from './plugins/runtime.js';
 import ParcelSpawnerPlugin from './plugins/builtins/ParcelSpawnerPlugin.js';
 import NPCSpawnerPlugin from './plugins/builtins/NPCSpawnerPlugin.js';
-import MovementModesPlugin from './plugins/movementModes/MovementModesPlugin.js';
 
 
 
@@ -33,6 +32,29 @@ pluginRegistry.attachGrid(myGrid);
 const configStartedPlugins = new Set();
 
 /**
+ * Warn (without blocking) about plugin ids the game configuration lists
+ * that no manifest provides, and about a seeded movement_mode whose
+ * provider plugin is neither configured nor running: agents silently fall
+ * back to the standard movement, which would be confusing to debug
+ * without an explicit hint.
+ * @param {Set<string>} configured - plugin ids listed by the current game
+ */
+async function warnAboutPluginIssues(configured) {
+    const available = await pluginRegistry.getAvailableIds();
+    const unknown = Array.from(configured).filter((id) => !available.includes(id));
+    if (unknown.length > 0) {
+        console.warn(`⚠️  Game configuration lists unknown plugin(s): ${unknown.join(', ')} — available plugins: ${available.join(', ')}`);
+    }
+
+    // The mode value of the movement_mode attribute matches the provider
+    // plugin id; 'standard' is the built-in core default and needs no plugin
+    const mode = config.GAME.player?.attributes?.movement_mode;
+    if ( typeof mode === 'string' && mode !== 'standard' && !configured.has(mode) && !pluginRegistry.isRunning(mode) ) {
+        console.warn(`⚠️  Game seeds movement_mode '${mode}' but no '${mode}' plugin is configured or running: agents will use the standard movement`);
+    }
+}
+
+/**
  * Load and start every plugin configured in config.GAME.plugins that is
  * not running yet, and stop the plugins this configuration auto-started
  * that are no longer listed (plugins started by an admin are left alone).
@@ -40,6 +62,8 @@ const configStartedPlugins = new Set();
  */
 async function startConfiguredPlugins() {
     const configured = new Set(config.GAME.plugins ?? []);
+
+    await warnAboutPluginIssues(configured);
 
     for (const pluginId of configured) {
         try {
@@ -75,24 +99,12 @@ async function startConfiguredPlugins() {
 }
 
 /**
- * Optional movement modes. The core standard preset is already registered,
- * so NPC spawning does not depend on this plugin being active.
- */
-const movementModesPlugin = pluginRegistry.register(new MovementModesPlugin());
-try {
-    const ok = await pluginRegistry.start(movementModesPlugin.id);
-    if (ok) {
-        console.log(`✅ Plugin ${movementModesPlugin.id} started`);
-    } else {
-        console.error(`❌ Failed to start plugin ${movementModesPlugin.id}:`, movementModesPlugin.lastError);
-    }
-} catch (error) {
-    console.error(`❌ Failed to start plugin ${movementModesPlugin.id}:`, error);
-}
-
-/**
  * Game-behavior plugins: parcel and NPC spawning.
  * Both depend only on the grid, so they start here rather than in ioServer.js.
+ *
+ * Movement modes (ghost, push, rotation) are provided by their own plugins,
+ * discovered from manifests and started through the game "plugins"
+ * configuration like every other gameplay plugin.
  */
 const parcelSpawnerPlugin = pluginRegistry.register(new ParcelSpawnerPlugin());
 pluginRegistry.start(parcelSpawnerPlugin.id)

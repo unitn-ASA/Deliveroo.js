@@ -11,7 +11,7 @@
  * @property {number=} y
  * @property {number} score
  * @property {number} penalty
- * @property {(number|null)=} rotation - Facing when a rotation movement component is active: 0=North, 1=East, 2=South, 3=West; null when unset
+ * @property {number=} rotation - Facing: 0=North, 1=East, 2=South, 3=West. Always defined (defaults to 0); the standard movement autorotates it to the movement direction, rotation-based components turn it explicitly
  * @property {IOAttribute[]=} attributes - Plugin-owned numeric attributes
  */
 

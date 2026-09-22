@@ -17,7 +17,14 @@ import SpatialObject from './SpatialObject.js';
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent} IOAgent */
 
 /**
- * @typedef {{xy: [Xy], score: [number], penalty: [number], rotation: [number|undefined], carryingParcels: [Set<Parcel>], attributes: [any], deleted: [Agent]}} AgentEventsMap
+ * @typedef {Object} AgentComponent
+ * @property {string} [id]
+ * @property {(agent: Agent) => void} [start] - Registers commands on agent.commands
+ * @property {(agent: Agent) => void} [stop] - Releases what start acquired
+ */
+
+/**
+ * @typedef {{xy: [Xy], score: [number], penalty: [number], rotation: [number], carryingParcels: [Set<Parcel>], attributes: [any], deleted: [Agent]}} AgentEventsMap
 */
 
 
@@ -63,12 +70,13 @@ class Agent extends SpatialObject {
     penalty = 0;
 
     /**
-     * Facing direction when a rotation-based movement component is active:
-     * 0 = up (North), 1 = right (East), 2 = down (South), 3 = left (West).
-     * Undefined until the agent rotates.
-     * @type {number | undefined}
+     * Facing direction: 0 = up (North), 1 = right (East), 2 = down (South),
+     * 3 = left (West). Always defined (defaults to 0): the standard movement
+     * autorotates it to the movement direction, rotation-based components
+     * turn it explicitly.
+     * @type {number}
      */
-    rotation;
+    rotation = 0;
 
     /** @type {Set<Parcel>} #carryingParcels */
     carryingParcels = new Set();
@@ -88,7 +96,7 @@ class Agent extends SpatialObject {
     #commands;
     get commands () { return this.#commands; }
 
-    /** @type {Set<any>} */
+    /** @type {Set<AgentComponent>} */
     #components = new Set();
     get components () { return this.#components; }
 
@@ -98,9 +106,10 @@ class Agent extends SpatialObject {
      * @constructor Agent
      * @param {Grid} grid
      * @param {Identity} identity
+     * @param {{kind: string, value: number | string, max?: number}[]} [attributes] - Initial attributes, set before the layer 'added' event so plugins observe them
      */
-    constructor ( grid, identity ) {
-        super();
+    constructor ( grid, identity, attributes = [] ) {
+        super({ attributes });
         // this.#emitter.emit('xy', this.xy) // to immediately emit agent when spawning
         
         watchProperty({
@@ -172,13 +181,24 @@ class Agent extends SpatialObject {
 
     /**
      * Attach a per-agent component and let it register local commands.
-     * @param {{id?: string, start?: Function, stop?: Function}} component
+     * @param {AgentComponent} component
      */
     attachComponent(component) {
         if (this.#components.has(component)) return component;
         component.start?.(this);
         this.#components.add(component);
         return component;
+    }
+
+    /**
+     * Stop and remove a single attached component.
+     * @param {AgentComponent} component
+     * @returns {boolean}
+     */
+    detachComponent(component) {
+        if (!this.#components.delete(component)) return false;
+        component.stop?.(this);
+        return true;
     }
 
     async stopComponents() {

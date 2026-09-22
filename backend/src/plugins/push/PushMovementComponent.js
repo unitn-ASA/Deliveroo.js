@@ -1,20 +1,12 @@
+import MovementModeComponentBase from '../MovementModeComponentBase.js';
 import { config } from '../../config/config.js';
 import { DELTAS } from '../../core/movement/directions.js';
-import { applyMove } from '../../core/movement/applyMove.js';
 import * as worldRules from '../../core/movement/worldRules.js';
 
-class PushMovementComponent {
-    id = 'push-movement';
+class PushMovementComponent extends MovementModeComponentBase {
 
-    start(agent) {
-        const handler = ({ direction, ack }) => void applyMove(agent, direction, this.move.bind(this), this.id, ack);
-        handler.plausible = ({ direction }) => this.isMovePlausible(agent, direction);
-        this.handler = handler;
-        agent.commands.handle('move', handler, this.id);
-    }
-
-    stop(agent) {
-        agent.commands.release('move', this.id);
+    constructor() {
+        super({ id: 'push-movement', mode: 'push' });
     }
 
     async move(agent, direction, grid) {

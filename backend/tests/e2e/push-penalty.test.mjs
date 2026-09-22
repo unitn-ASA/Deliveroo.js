@@ -1,13 +1,15 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    adminRest, bootServer, connectClient, disconnectAll, move, rest, setAgentPreset, sleep, teleport
+    adminRest, bootServer, connectClient, disconnectAll, move, rest, setMovementMode, sleep, teleport
 } from './helpers.mjs';
 
 /**
- * Push movement component: penalties land on the actor, never on the pushed agent.
+ * Push movement mode: penalties land on the actor, never on the pushed agent.
  * Fixture map: wall at (2,1); rows y=0 and y=2 are open corridors.
  */
+
+const MODES_FIXTURE = new URL('../fixtures/e2e-movement-modes.json', import.meta.url).pathname;
 
 let server;
 let admin;
@@ -15,13 +17,13 @@ let pusher;
 let victim;
 
 before(async () => {
-    server = await bootServer();
+    server = await bootServer({ fixture: MODES_FIXTURE });
     await adminRest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
     admin = await connectClient(server.baseUrl, 'boss', { admin: true });
     pusher = await connectClient(server.baseUrl, 'pusherA');
     victim = await connectClient(server.baseUrl, 'victimB');
 
-    const { status, body } = await setAgentPreset(server.baseUrl, pusher.id, 'push');
+    const { status, body } = await setMovementMode(server.baseUrl, pusher.id, 'push');
     assert.equal(status, 200, body?.message);
     await sleep(200);
 });

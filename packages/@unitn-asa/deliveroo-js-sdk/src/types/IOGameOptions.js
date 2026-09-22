@@ -1,5 +1,6 @@
 
 /** @typedef { import("./IOClockEvent.js").IOClockEvent } IOClockEvent */
+/** @typedef { import("./IOClockEvent.js").IOClockEventSetting } IOClockEventSetting */
 /** @typedef { import("./IOTile.js").IOTileType } IOTileType */
 
 /**
@@ -26,7 +27,7 @@
 /**
  * @typedef IONpcsOptions
  * NPC configuration object
- * @property {IOClockEvent} moving_event                Event whenever the NPC moves
+ * @property {IOClockEventSetting} moving_event        Event whenever the NPC moves ('infinite' = never)
  * @property {'random'|'intelligent'} type                              NPC type (random, collector, etc.)
  * @property {number} count                             Number of NPCs of this type
 */
@@ -34,8 +35,8 @@
 /**
  * @typedef IOParcelsOptions
  * Parcels configuration object
- * @property {IOClockEvent} generation_event            Event for parcels generation
- * @property {IOClockEvent} decaying_event              Event for parcel decaying
+ * @property {IOClockEventSetting} generation_event     Event for parcels generation ('infinite' = never)
+ * @property {IOClockEventSetting} decaying_event       Event for parcel decaying ('infinite' = never)
  * @property {number} max                               Maximum number of parcels in the grid
  * @property {number} reward_avg                        Reward average
  * @property {number} reward_variance                   Reward variance
@@ -44,7 +45,7 @@
 /**
  * @typedef IOPlayerOptions
  * Player configuration object
- * @property {string} agent_preset                      Default agent component preset ('standard' | 'rotation' | 'ghost' | 'push')
+ * @property {Record<string, number|string>} attributes       Initial agent attributes seeded at creation (e.g. movement_mode: 'ghost', rank: 3)
  * @property {number} movement_duration                 Duration of each movement in ms
  * @property {number} observation_distance              Observation distance
  * @property {number} capacity                          Capacity
@@ -57,9 +58,9 @@
  * @property {number} move_cost                         Energy cost of one successful move
  * @property {number} pickup_cost                       Energy cost of one successful pickup
  * @property {number} putdown_cost                       Energy cost of one successful putdown
- * @property {IOClockEvent} recharge_event              Clock event triggering passive recharge
+ * @property {IOClockEventSetting} recharge_event              Clock event triggering passive recharge ('infinite' = never)
  * @property {number} recharge_amount                   Energy restored at each passive recharge
- * @property {IOClockEvent} batteries_generation_event   Clock event: empty battery-spawner tiles get a battery
+ * @property {IOClockEventSetting} batteries_generation_event   Clock event: empty battery-spawner tiles get a battery ('infinite' = never)
  */
 
 export { };

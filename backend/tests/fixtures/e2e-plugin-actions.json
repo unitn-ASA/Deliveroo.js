@@ -1,0 +1,29 @@
+{
+  "title": "e2e-plugin-actions",
+  "description": "Same as e2e-test-map but with the shooter laser plugin enabled from config",
+  "map": {
+    "width": 5,
+    "height": 3,
+    "tiles": [
+      "2 3 3 3 3",
+      "1 3 0 3 3",
+      "3 3 3 3 3"
+    ]
+  },
+  "npcs": [],
+  "parcels": {
+    "generation_event": "1s",
+    "decaying_event": "1s",
+    "max": 3,
+    "reward_avg": 2,
+    "reward_variance": 0
+  },
+  "plugins": [
+    "shooter"
+  ],
+  "player": {
+    "movement_duration": 400,
+    "observation_distance": 5,
+    "capacity": 5
+  }
+}

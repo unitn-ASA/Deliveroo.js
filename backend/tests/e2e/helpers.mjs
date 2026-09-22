@@ -85,16 +85,28 @@ export async function bootServer({ fixture } = {}) {
 }
 
 /**
+ * Fetch a player (or admin) token for the given name.
+ * @param {string} baseUrl
+ * @param {string} name
+ * @param {{admin?: boolean}} [options]
+ * @returns {Promise<string>}
+ */
+export async function fetchToken(baseUrl, name, { admin = false } = {}) {
+    const res = await fetch(`${baseUrl}/api/tokens?name=${name}`, admin ? { headers: { password: ADMIN_PASSWORD } } : {});
+    const { token } = await res.json();
+    assert.ok(token, 'token issued');
+    return token;
+}
+
+/**
  * Connect a client and track its local agent state via sensing.self.
  * @param {string} baseUrl
  * @param {string} name
  * @param {{admin?: boolean}} [options]
- * @returns {Promise<{socket: object, state: object, id: string}>}
+ * @returns {Promise<{socket: object, state: object, id: string, token: string}>}
  */
 export async function connectClient(baseUrl, name, { admin = false } = {}) {
-    const res = await fetch(`${baseUrl}/api/tokens?name=${name}`, admin ? { headers: { password: ADMIN_PASSWORD } } : {});
-    const { token } = await res.json();
-    assert.ok(token, 'token issued');
+    const token = await fetchToken(baseUrl, name, { admin });
 
     const socket = io(baseUrl, { query: { token }, transports: ['websocket'] });
 
@@ -116,11 +128,12 @@ export async function connectClient(baseUrl, name, { admin = false } = {}) {
 
     const sensing = await sensingPromise;
 
-    const state = { ...(sensing.self ?? {}) };
+    const state = { ...(sensing.self ?? {}), entities: sensing.entities ?? [] };
     socket.on('sensing', (snapshot) => {
         if (snapshot.self) Object.assign(state, snapshot.self);
+        state.entities = snapshot.entities ?? [];
     });
-    return { socket, state, id: sensing.self?.id };
+    return { socket, state, id: sensing.self?.id, token };
 }
 
 /**
@@ -254,13 +267,24 @@ export async function adminRest(baseUrl, method, path, body) {
 }
 
 /**
- * Attach an agent component preset.
+ * Write observable attributes onto an agent (merge, no deletion).
  * @param {string} baseUrl
  * @param {string} agentId
- * @param {string} agentPreset
+ * @param {Record<string, number|string>} attributes
  */
-export function setAgentPreset(baseUrl, agentId, agentPreset) {
-    return adminRest(baseUrl, 'PATCH', `/api/agents/${agentId}`, { agentPreset });
+export function setAgentAttributes(baseUrl, agentId, attributes) {
+    return adminRest(baseUrl, 'PATCH', `/api/agents/${agentId}`, { attributes });
+}
+
+/**
+ * Set an agent's movement mode: an observable attribute write; the mode
+ * provider plugins claim the 'move' command reactively.
+ * @param {string} baseUrl
+ * @param {string} agentId
+ * @param {string} movementMode
+ */
+export function setMovementMode(baseUrl, agentId, movementMode) {
+    return setAgentAttributes(baseUrl, agentId, { movement_mode: movementMode });
 }
 
 /**

@@ -9,6 +9,7 @@
     import Modal from '../modals/Modal.vue';
     import Login from '../modals/Login.vue';
     import Keyboard from './Keyboard.vue';
+    import PluginActions from './PluginActions.vue';
     import { connection } from '../../states/myConnection.js';
     import AgentsPanels from './AgentsPanel.vue';
     import ParcelsPanels from './ParcelsPanel.vue';
@@ -180,10 +181,13 @@
                             <progress v-if="attribute.max != null" class="progress progress-success w-20 h-2"
                                       :value="attribute.value" :max="attribute.max"></progress>
                             <span class="flex-none tabular-nums text-right" :class="attribute.max != null ? 'w-14' : 'w-20'">
-                                {{ Math.round(attribute.value) }}<template v-if="attribute.max != null">/{{ attribute.max }}</template>
+                                {{ typeof attribute.value === 'number' ? Math.round(attribute.value) : attribute.value }}<template v-if="attribute.max != null">/{{ attribute.max }}</template>
                             </span>
                         </div>
                     </div>
+
+                    <!-- Plugin actions (hidden when empty) -->
+                    <PluginActions v-if="connection?.payload?.role != 'admin'"/>
 
                     <div class="z-10 grid grid-flow-col gap-2 text-center">
                         <button class="btn btn-info btn-sm overflow-hidden" @click="levelsModal=true;"

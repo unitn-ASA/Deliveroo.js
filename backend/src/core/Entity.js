@@ -14,7 +14,7 @@ class Entity extends SpatialObject {
     kind;
 
     /**
-     * @param {{id: string, kind: string, xy: import('./Xy.js').default, attributes?: {kind: string, value: number, max?: number}[]}} options
+     * @param {{id: string, kind: string, xy: import('./Xy.js').default, attributes?: {kind: string, value: number | string, max?: number}[]}} options
      */
     constructor({ id, kind, xy, attributes = [] }) {
         super({ xy, attributes });

@@ -14,7 +14,8 @@ import TilesLayer from './TilesLayer.js';
 import RewardDecayingSystem from '../systems/RewardDecayingSystem.js';
 import MapLoadingSystem from '../systems/MapLoadingSystem.js';
 import { atNextTick } from '../reactivity/postponeAt.js';
-import { agentComponentRegistry } from '../agentComponents/registry.js';
+import StandardMovementComponent from '../agentComponents/movement/StandardMovementComponent.js';
+import ParcelCarrierComponent from '../agentComponents/ParcelCarrierComponent.js';
 
 // Shared reward policy system for parcel creation and decay
 const rewardDecayingSystem = new RewardDecayingSystem();
@@ -131,20 +132,25 @@ class Grid {
      */
     createAgent ( identity ) {
 
-        // Create agent using factory, it is automatically registered in spatial registry
-        var agent = this.#agents.create(identity);
-
-        // Attach the default preset: components register commands on agent.commands
-        try {
-            agentComponentRegistry.applyPreset(agent, config.GAME.player.agent_preset);
-        } catch (error) {
-            console.warn(`Grid.createAgent(): ${error.message}; falling back to 'standard' preset`);
-            try {
-                agentComponentRegistry.applyPreset(agent, 'standard');
-            } catch (fallbackError) {
-                console.error(`Grid.createAgent(): cannot attach 'standard' preset (${fallbackError.message}); agent created without command components`);
-            }
+        // Seed the observable attributes from the game configuration. They
+        // are set before the layer 'added' event, so provider plugins
+        // observe them (and adopt seeded values they manage).
+        const seeds = Object.entries(config.GAME.player.attributes)
+            .map( ( [kind, value] ) => ( { kind, value } ) );
+        // movement_mode is just a seeded attribute: default to standard so
+        // provider plugins can react to deviations from it
+        if ( ! seeds.some( ( { kind } ) => kind === 'movement_mode' ) ) {
+            seeds.push( { kind: 'movement_mode', value: 'standard' } );
         }
+
+        // Create agent using factory, it is automatically registered in spatial registry
+        var agent = this.#agents.create(identity, seeds);
+
+        // Core default components: they register commands on agent.commands.
+        // The standard movement is the self-healing default of the 'move'
+        // slot; mode provider plugins displace it attribute-driven.
+        agent.attachComponent(new StandardMovementComponent());
+        agent.attachComponent(new ParcelCarrierComponent());
 
         // Initial position
         let tiles_unlocked =
@@ -211,14 +217,18 @@ class Grid {
 
 
 
-        // Set up decay listener on clock, delegating reward policy to the system
-        const decayListener = () => rewardDecayingSystem.decayParcel(parcel);
+        // Set up decay listener on clock, delegating reward policy to the
+        // system. 'infinite' is not a clock event: it means parcels never
+        // decay, so no listener is registered at all
         const decaying_event = config.GAME.parcels.decaying_event;
-        myClock.on(decaying_event, decayListener);
-        // Ensure we unsubscribe from clock events when parcel is deleted to prevent memory leaks
-        parcel.emitter.once( 'deleted', () => {
-            myClock.off(decaying_event, decayListener);
-        } );
+        if (decaying_event !== 'infinite') {
+            const decayListener = () => rewardDecayingSystem.decayParcel(parcel);
+            myClock.on(decaying_event, decayListener);
+            // Ensure we unsubscribe from clock events when parcel is deleted to prevent memory leaks
+            parcel.emitter.once( 'deleted', () => {
+                myClock.off(decaying_event, decayListener);
+            } );
+        }
 
 
 

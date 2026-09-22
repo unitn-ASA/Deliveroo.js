@@ -7,7 +7,39 @@
 
 
 /**
+ * Acknowledgement envelope of the generic 'action' event: exactly one of
+ * the two shapes, acknowledged once at command completion.
+ * @typedef {{
+ *      success: true,
+ *      result: any
+ * } | {
+ *      success: false,
+ *      error: string
+ * }} IOActionEnvelope
+ */
+
+/**
+ * Documentation descriptor of a command, exposed by the REST discovery
+ * (GET /api/agents/:id/commands). Commands are joystick-like buttons:
+ * parameterless in practice; params is reserved for future plugin
+ * commands and is documentation-only (never validated by the server).
+ * @typedef {{
+ *      description?: string,
+ *      params?: Record<string, string>
+ * }} IOCommandDescriptor
+ */
+
+/**
  * Client -> Server events. Emitted by the client and listened by the server.
+ *
+ * The generic 'action' event is the complete command surface: explicit
+ * directional commands ('up', 'down', 'left', 'right'), 'pickup', 'putdown'
+ * and plugin commands (discoverable through GET /api/agents/:id/commands).
+ * The acknowledgement wraps every outcome in the IOActionEnvelope: the
+ * command result on success, an error message otherwise. The dedicated
+ * 'move' / 'pickup' / 'putdown' events keep their legacy raw
+ * acknowledgements.
+ *
  * @typedef {{
  *      'disconnect':   (                                                                   ) => void,
  *      'move':         ( direction: 'up' | 'right' | 'left' | 'down',
@@ -24,6 +56,9 @@
  *      'shout':        ( msg: any,
  *                        ack ? : function( any ) : void                                    ) => void,
  *      'log':          ( ...msg: any                                                       ) => void,
+ *      'action':       ( name: string,
+ *                        params ? : any,
+ *                        ack ? : function( IOActionEnvelope ) : void                       ) => void,
  * } & {
  *      'parcel':       ( what: 'create' | 'dispose' | 'set',
  *                        where: { x:number, y:number } | { id:string, reward?:number }     ) => void,

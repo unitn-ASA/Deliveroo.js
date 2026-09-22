@@ -7,7 +7,7 @@ class EntityLayer extends SpatialLayer {
     #lastId = 0;
 
     /**
-     * @param {{kind: string, xy: import('./Xy.js').default, attributes?: {kind: string, value: number, max?: number}[]}} descriptor
+     * @param {{kind: string, xy: import('./Xy.js').default, attributes?: {kind: string, value: number | string, max?: number}[]}} descriptor
      * @returns {Entity}
      */
     create({ kind, xy, attributes }) {

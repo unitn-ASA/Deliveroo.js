@@ -19,15 +19,17 @@ async function authorizeUser ( req, res, next ) {
     const token = req['token'];
     const payload = req['payload'];
     const error = req['error'] || 'Token not found';
-
     if ( ! payload || ! token ) {
 
-        res.status(403).json( {
+        // Respond and stop the chain: continuing would let protected
+        // handlers respond again (ERR_HTTP_HEADERS_SENT)
+        return res.status(403).json( {
 
             message: 'Authorization denied.',
             error: error
-        
+
         } );
+
     }
 
     next();

@@ -1,19 +1,11 @@
+import MovementModeComponentBase from '../MovementModeComponentBase.js';
 import { DELTAS } from '../../core/movement/directions.js';
-import { applyMove } from '../../core/movement/applyMove.js';
 import { stepByStep } from '../../core/movement/worldRules.js';
 
-class GhostMovementComponent {
-    id = 'ghost-movement';
+class GhostMovementComponent extends MovementModeComponentBase {
 
-    start(agent) {
-        const handler = ({ direction, ack }) => void applyMove(agent, direction, this.move.bind(this), this.id, ack);
-        handler.plausible = ({ direction }) => this.isMovePlausible(agent, direction);
-        this.handler = handler;
-        agent.commands.handle('move', handler, this.id);
-    }
-
-    stop(agent) {
-        agent.commands.release('move', this.id);
+    constructor() {
+        super({ id: 'ghost-movement', mode: 'ghost' });
     }
 
     async move(agent, direction, grid) {

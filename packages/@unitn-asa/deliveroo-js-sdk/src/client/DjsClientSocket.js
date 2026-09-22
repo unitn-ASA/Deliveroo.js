@@ -221,6 +221,37 @@ export class DjsClientSocket extends Socket {
     }
 
     /**
+     * Invoke a command registered on the agent's command bus: the explicit
+     * directional commands ('up', 'down', 'left', 'right'), 'pickup',
+     * 'putdown' or a plugin command, discoverable through the REST API
+     * (GET /api/agents/:id/commands). Commands are joystick-like buttons:
+     * parameterless in practice, params is reserved for future plugin
+     * commands.
+     *
+     * Unwraps the IOActionEnvelope acknowledgement: resolves with the
+     * command result, throws an Error when the command fails (unknown
+     * command, blocked movement, handler error).
+     * @param { string } name command name, e.g. 'up' or 'shoot'
+     * @param { any } [params] reserved for future plugin commands, unused by native ones
+     * @returns { Promise < any > } the command result
+     * @throws { Error } when the command fails
+     */
+    async emitAction ( name, params = {} ) {
+        // The wire acks the IOActionEnvelope; emitAndResolveOnAck typing is the
+        // ack function signature, so the resolved value is treated loosely here
+        /** @type { any } */
+        const envelope = await this.emitAndResolveOnAck( 'action', name, params );
+        if ( envelope && typeof envelope === 'object' && 'success' in envelope ) {
+            if ( ! envelope.success ) {
+                throw new Error( envelope.error ?? 'action failed' );
+            }
+            return envelope.result;
+        }
+        // Tolerance for servers acknowledging raw values
+        return envelope;
+    }
+
+    /**
      * @param { any [] } message
      */
     emitLog ( ...message ) {

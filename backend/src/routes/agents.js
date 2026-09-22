@@ -1,8 +1,7 @@
 import express from 'express';
 const router = express.Router();
 import { myGrid } from '../myGrid.js';
-import { authorizeAdmin } from '../middlewares/token.js';
-import { agentComponentRegistry } from '../agentComponents/registry.js';
+import { authorizeAdmin, authorizeUser } from '../middlewares/token.js';
 
 /** @typedef {import("@unitn-asa/deliveroo-js-sdk").IOAgent} IOAgent */
 
@@ -41,6 +40,79 @@ router.get('/', async (req, res) => {
     });
     res.status(200).json( agents );
   
+});
+
+
+
+/**
+ * @swagger
+ * /api/agents/{agentId}/commands:
+ *   get:
+ *     summary: Get the commands available to an agent
+ *     description: |
+ *       Lists every command registered on the agent's command bus, native
+ *       ones included (up, down, left, right, pickup, putdown). Commands are
+ *       joystick-like buttons, parameterless in practice; the optional
+ *       descriptor documents each command and is exposed here. Commands are
+ *       invoked through the socket 'action' event, acknowledged with the
+ *       IOActionEnvelope ({ success, result | error }). Readable by the
+ *       agent itself or by an admin.
+ *     tags: [Agents]
+ *     parameters:
+ *       - name: agentId
+ *         in: path
+ *         required: true
+ *         description: ID of the agent
+ *         schema:
+ *           type: string
+ *     security:
+ *       - AdminQueryToken: []
+ *         AdminHeaderToken: []
+ *     responses:
+ *       200:
+ *         description: Commands available to the agent
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 commands:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       command:
+ *                         type: string
+ *                       owner:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       params:
+ *                         type: object
+ *                         additionalProperties:
+ *                           type: string
+ *                         description: Documentation-only type labels, reserved for future plugin commands
+ *       403:
+ *         description: Only the agent itself or an admin can read the list
+ *       404:
+ *         description: Agent not found
+ */
+// GET /agents/:id/commands list the commands available to an agent
+router.get('/:id/commands', authorizeUser, async (req, res) => {
+
+    const id = req.params.id;
+
+    if ( req['payload'].id !== id && req['payload'].role !== 'admin' ) {
+        return res.status(403).json( { message: `Only the agent itself or an admin can read the command list` } );
+    }
+
+    const agent = myGrid.agents.get( id );
+    if ( ! agent ) {
+        return res.status(404).json( { message: `Agent ${id} not found` } );
+    }
+
+    res.status(200).json( { commands: agent.commands.getRegisteredCommands() } );
+
 });
 
 
@@ -131,10 +203,13 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *               penalty:
  *                 type: number
  *                 description: Current penalty of the agent
- *               agentPreset:
- *                 type: string
- *                 description: Built-in agent preset to attach, replacing current components
- *                 example: ghost
+ *               attributes:
+ *                 type: object
+ *                 description: Observable attributes to write (merge; no deletion). Values must be numbers or strings, e.g. {"movement_mode": "ghost", "rank": 5}
+ *                 additionalProperties:
+ *                   oneOf:
+ *                     - type: number
+ *                     - type: string
  *     responses:
  *       200:
  *         description: Agent information updated successfully
@@ -149,6 +224,20 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *                   type: number
  *                 penalty:
  *                   type: number
+ *                 attributes:
+ *                   type: array
+ *                   description: The updated observable attributes, in the same format exposed by sensing
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       kind:
+ *                         type: string
+ *                       value:
+ *                         oneOf:
+ *                           - type: number
+ *                           - type: string
+ *                       max:
+ *                         type: number
  *       400:
  *         description: No supported field provided
  *         content:
@@ -168,7 +257,7 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *                 message:
  *                   type: string
  */
-// PATCH /agents/:id update an agent's score, penalty, or component preset
+// PATCH /agents/:id update an agent's score, penalty, or observable attributes
 router.patch('/:id', authorizeAdmin, async (req, res) => {
 
     // log a message on same line as previous log
@@ -177,12 +266,21 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
     const id = req.params.id;
     const agent = myGrid.agents.get( id );
     if ( agent ) {
-        if ( req.body.agentPreset !== undefined ) {
-            if ( ! agentComponentRegistry.hasPreset(req.body.agentPreset) ) {
-                return res.status(400).json( { message: `Unknown agent preset '${req.body.agentPreset}'` } );
+        if ( req.body.attributes !== undefined ) {
+            const attributes = req.body.attributes;
+            if ( typeof attributes !== 'object' || attributes === null || Array.isArray( attributes ) ) {
+                return res.status(400).json( { message: `attributes must be an object mapping kinds to number or string values` } );
             }
-            await agent.stopComponents();
-            agentComponentRegistry.applyPreset(agent, req.body.agentPreset);
+            for ( const [kind, value] of Object.entries( attributes ) ) {
+                if ( typeof value !== 'number' && typeof value !== 'string' ) {
+                    return res.status(400).json( { message: `attribute '${kind}' must be a number or a string` } );
+                }
+            }
+            // Merge each kind onto the observable attributes (no deletion):
+            // watchers and plugins react to the changes
+            for ( const [kind, value] of Object.entries( attributes ) ) {
+                agent.attributes.set( kind, value );
+            }
         }
         if ( req.body.score !== undefined || req.body.penalty !== undefined ) {
             if ( req.body.score !== undefined )
@@ -190,13 +288,14 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
             if ( req.body.penalty !== undefined )
                 agent.penalty = Number.parseInt(req.body.penalty);
         }
-        if ( req.body.score === undefined && req.body.penalty === undefined && req.body.agentPreset === undefined ) {
-            return res.status(400).json( { message: `Score, penalty, or agentPreset not provided` } );
+        if ( req.body.score === undefined && req.body.penalty === undefined && req.body.attributes === undefined ) {
+            return res.status(400).json( { message: `Score, penalty, or attributes not provided` } );
         }
         res.status(200).json( {
             message: `Agent ${id} updated`,
             score: agent.score,
             penalty: agent.penalty,
+            attributes: agent.attributes.toArray(),
             components: agent.commands.getRegisteredCommands()
         } );
         console.log( `${agent.name}(${agent.id})`, JSON.stringify({score: agent.score, penalty: agent.penalty}) );

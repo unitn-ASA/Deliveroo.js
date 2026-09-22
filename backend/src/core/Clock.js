@@ -53,13 +53,16 @@ class Clock {
     }
 
     /**
+     * Register a listener for a clock event. The Clock emits only the
+     * IOClockEvent subset: configuration *_event fields carrying the
+     * 'infinite' sentinel must be resolved by the caller (no listener).
      * @arg { IOClockEvent } event
      * @arg { function(...any) : void } cb
      */
     on ( event, cb ) {
         this.#eventEmitter.on( event, cb );
     }
-    
+
     /**
      * @arg { IOClockEvent } event
      * @arg { function(...any) : void } cb

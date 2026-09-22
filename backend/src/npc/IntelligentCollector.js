@@ -1,8 +1,8 @@
-import myClock from '../myClock.js';
 import timersPromises from 'timers/promises';
 import Autopilot from './Autopilot.js';
 import Xy from '../core/Xy.js';
 import { config } from '../config/config.js';
+import waitForMovingEvent from './waitForMovingEvent.js';
 
 /** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOGameOptions.js').IONpcsOptions} IONpcsOptions */
 
@@ -56,7 +56,7 @@ class IntelligentCollector extends Autopilot {
             try {
                 await this.makeDecision();
                 // Wait before next action
-                await new Promise(res => myClock.once(this.options.moving_event, res));
+                await waitForMovingEvent(this.options.moving_event);
             } catch (e) {
                 console.error('[IntelligentCollector] Error in execute loop:', e);
                 // Handle any errors and continue
@@ -151,7 +151,8 @@ class IntelligentCollector extends Autopilot {
         // Find the action that moves us in the right direction
         for (let i = 0; i < 4; i++) {
             if (relPos[i].x === dx && relPos[i].y === dy) {
-                const moved = await agent.commands.execute('move', { direction: actions[i] }, false);
+                // Movement commands are explicit on the bus: 'up', 'down', 'left', 'right'
+                const moved = await agent.commands.execute(actions[i], {}, false);
                 // console.log(`[IntelligentParcelNPC] ${agent.id || 'NPC'}: Move ${actions[i]} returned ${moved}`);
                 if (!moved) {
                     // Path blocked, recalculate
@@ -489,7 +490,7 @@ class IntelligentCollector extends Autopilot {
             this.visitedTiles.clear();
             // Make a random move
             const index = Math.floor(Math.random() * 4);
-            await agent.commands.execute('move', { direction: actions[index] }, false);
+            await agent.commands.execute(actions[index], {}, false);
         }
     }
 }

@@ -7,8 +7,12 @@ class AgentsLayer extends SpatialLayer {
         this.grid = grid;
     }
 
-    create(identity) {
-        return this.add(new Agent(this.grid, identity));
+    /**
+     * @param {import('./Identity.js').default} identity
+     * @param {{kind: string, value: number | string, max?: number}[]} [attributes] - Initial attributes, set before the 'added' event
+     */
+    create(identity, attributes = []) {
+        return this.add(new Agent(this.grid, identity, attributes));
     }
 }
 

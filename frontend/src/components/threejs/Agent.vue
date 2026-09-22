@@ -20,11 +20,23 @@
 
     // Create mesh
     const geometry = new THREE.ConeGeometry( 0.5, 1, 32 );
+    // movement_mode 'rotation': a horizontal 4-sided arrow with the apex
+    // baked toward -z (map 'up'), yawed to face agent.rotation. Squashed
+    // diamond cross-section: a stealth-wing profile rather than a pyramid.
+    const arrowGeometry = new THREE.ConeGeometry( 0.5, 1, 4 );
+    arrowGeometry.rotateX( - Math.PI / 2 );
+    arrowGeometry.scale( 1.25, 0.35, 1 );
     const color = new THREE.Color( Math.random() * 0xffffff ); // color.setHex( Math.random() * 0xffffff );
     const material = new THREE.MeshStandardMaterial( { color, transparent: true, opacity: 1 } );
     /** @type {THREE.Mesh} */
     const mesh = agent.mesh = new THREE.Mesh( geometry, material );
     mesh.position.set(agent.x*1.5, 0.5, -agent.y*1.5);
+
+    // Observable attribute: swap the shape while the rotation mode is selected
+    const movementModeOf = () => agent.attributes?.find( ( attribute ) => attribute.kind === 'movement_mode' )?.value ?? 'standard';
+    watch( movementModeOf, ( mode ) => {
+        mesh.geometry = ( mode === 'rotation' ) ? arrowGeometry : geometry;
+    }, { immediate: true } );
 
     // Create label
     const labelContainer = useTemplateRef("labelContainer");
@@ -44,10 +56,11 @@
     });
 
     onUnmounted(() => {
-        // Remove mesh from scene 
+        // Remove mesh from scene
         agent.mesh.remove(label);
         scene.remove(mesh);
-        agent.mesh.geometry.dispose();
+        geometry.dispose();
+        arrowGeometry.dispose();
         // console.log( 'Agent.vue onUnmounted() agent.mesh:', agent.mesh );
     });
 
@@ -110,6 +123,17 @@
             agent.mesh.position.lerp( agentTargetVector3, 0.5 );
         } else { // if still moving
             agent.mesh.position.lerp( agentTargetVector3, 8 / ( Number(connection.configs.GAME.player?.movement_duration) + Number(connection.configs.CLOCK * 2) ) );
+        }
+
+        // Face agent.rotation while the rotation mode is selected (0=up -z,
+        // 1=right +x, 2=down +z, 3=left -x), shortest-path lerp
+        const targetYaw = ( movementModeOf() === 'rotation' ) ? - ( agent.rotation ?? 0 ) * Math.PI / 2 : 0;
+        let delta = targetYaw - mesh.rotation.y;
+        delta = Math.atan2( Math.sin( delta ), Math.cos( delta ) ); // shortest angle
+        if ( Math.abs( delta ) < 0.01 ) {
+            mesh.rotation.y = targetYaw;
+        } else {
+            mesh.rotation.y += delta * 0.2;
         }
 
         requestAnimationFrame(animate);

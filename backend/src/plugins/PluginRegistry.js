@@ -230,6 +230,31 @@ class PluginRegistry extends EventEmitter {
     }
 
     /**
+     * Discover the plugin ids available on disk, scanning the plugins
+     * directories for manifests. Unreadable or invalid manifests are
+     * skipped.
+     * @returns {Promise<string[]>}
+     */
+    async getAvailableIds() {
+        const pluginsDir = path.resolve(process.cwd(), 'src/plugins');
+        const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
+        const ids = [];
+        for (const entry of entries) {
+            if (!entry.isDirectory()) continue;
+            const dir = path.join(pluginsDir, entry.name);
+            const files = await fs.readdir(dir);
+            for (const file of files.filter((f) => f.endsWith('.manifest.json'))) {
+                try {
+                    const manifestPath = path.join(dir, file);
+                    const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+                    if (manifest?.id) ids.push(manifest.id);
+                } catch { /* skip unreadable/invalid manifests */ }
+            }
+        }
+        return ids;
+    }
+
+    /**
      * Reload a plugin from its original source files.
      * @param {string} pluginId
      * @param {{autoStart?: boolean}} params

@@ -7,7 +7,11 @@
         return connection?.payload?.role == 'admin';
     });
     const grid = connection?.grid;
-    const me = grid?.me;
+
+    // The token identity is always available (agents are created from it;
+    // admin connections have no agent at all)
+    const myId = computed(() => connection?.payload?.id ?? null);
+    const myName = computed(() => connection?.payload?.name ?? '');
 
     const selectedAgent = ref('All');
     const input = ref('');
@@ -28,9 +32,9 @@
                 msgId: connection.msgId++,
                 timestamp: Date.now(),
                 socket: connection.ioClient.id,
-                id: me.value.id,
+                id: myId.value,
                 msg: input.value,
-                name: me.value.name
+                name: myName.value
             });
             input.value = '';
         }
@@ -127,17 +131,17 @@
                  :key="`${msgId}`"
                  v-memo="[msgId, expandedCount > 0 && expandedMessages.has(`${msgId}`)]"
                  class="chat chat-end hover:pointer-events-auto"
-                 :class="id == me.id ? 'chat-start' : 'chat-end'"
+                 :class="id == myId ? 'chat-start' : 'chat-end'"
             >
                 <!-- Message bubble -->
                  <div class="chat-bubble opacity-100 text-left rounded-md px-2 pt-0 pb-1 min-w-0 min-h-0 pointer-events-auto"
-                      :class="id == me.id ? 'chat-bubble-info' : 'chat-bubble-neutral'"
-                >
-                    <div class="chat-header text-xs font-bold text-right">
-                        <!-- <time class="text-xs opacity-50">{{timestamp}}</time> -->
-                        {{ name.length > 10 ? name.slice(0,4) + '...' + name.slice(-3) : name }}
-                        <span class="font-none opacity-50">{{ id == me.id ? '(me)' : `${id}` }}</span>
-                    </div>
+                      :class="id == myId ? 'chat-bubble-info' : 'chat-bubble-neutral'"
+                 >
+                     <div class="chat-header text-xs font-bold text-right">
+                         <!-- <time class="text-xs opacity-50">{{timestamp}}</time> -->
+                         {{ name.length > 10 ? name.slice(0,4) + '...' + name.slice(-3) : name }}
+                         <span class="font-none opacity-50">{{ id == myId ? '(me)' : `${id}` }}</span>
+                     </div>
                     <span class="whitespace-pre-wrap break-words">
                         <template v-if="msg.length > 100 && !expandedMessages.has(`${msgId}`)">
                             {{ msg.slice(0,80) + ' . . .' }}
@@ -193,7 +197,7 @@
                     <option value="All">everyone</option>
                     <option
                         v-if="grid?.agents"
-                        v-for="agent in Array.from(grid?.agents?.values()).filter(agent => agent.id != me.id)"
+                        v-for="agent in Array.from(grid?.agents?.values?.() ?? []).filter(agent => agent.id != myId)"
                         :key="agent.id"
                         :value="agent.id"
                     >

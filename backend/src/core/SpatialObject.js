@@ -28,7 +28,7 @@ class SpatialObject {
     attributes = new ObservableAttributes();
     #deleted = false;
 
-    /** @param {{xy?: import('./Xy.js').default, attributes?: {kind: string, value: number, max?: number}[]}} [options] */
+    /** @param {{xy?: import('./Xy.js').default, attributes?: {kind: string, value: number | string, max?: number}[]}} [options] */
     constructor({ xy, attributes = [] } = {}) {
         this.#emitter.setMaxListeners(0);
         this.attributes.onChanged((next) => {

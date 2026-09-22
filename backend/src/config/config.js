@@ -61,8 +61,15 @@ export async function loadGameConfig(json) {
     }
 
     // Player configuration
-    if (json.player?.agent_preset !== undefined) {
-        config.GAME.player.agent_preset = json.player.agent_preset;
+    if (json.player?.attributes !== undefined) {
+        const seeds = json.player.attributes;
+        if (typeof seeds === 'object' && seeds !== null && !Array.isArray(seeds)) {
+            for (const [kind, value] of Object.entries(seeds)) {
+                if (typeof value === 'number' || typeof value === 'string') {
+                    config.GAME.player.attributes[kind] = value;
+                }
+            }
+        }
     }
     if (json.player?.movement_duration !== undefined) {
         config.GAME.player.movement_duration = json.player.movement_duration;
@@ -205,7 +212,7 @@ export const config = {
             reward_variance: 10,
         },
         player: {
-            agent_preset: 'standard',
+            attributes: {},
             movement_duration: 50,
             observation_distance: 5,
             capacity: 5

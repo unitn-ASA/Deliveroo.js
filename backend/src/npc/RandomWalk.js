@@ -1,6 +1,6 @@
-import myClock from '../myClock.js';
 import timersPromises from 'timers/promises'; // await timersPromises.setImmediate();
 import Autopilot from './Autopilot.js';
+import waitForMovingEvent from './waitForMovingEvent.js';
 
 /** @type {('up'|'right'|'down'|'left')[]} */
 const actions = [ 'up', 'right', 'down', 'left' ];
@@ -56,14 +56,14 @@ class RandomWalk extends Autopilot {
         while ( ! this.stopRequested ) {
 
             let moved = false;
-            const plausible = this.agent.commands.ask('move', 'plausible', { direction: actions[index] }, true);
+            const plausible = this.agent.commands.ask(actions[index], 'plausible', {}, true);
             if ( plausible ) {
-                moved = await this.agent.commands.execute( 'move', { direction: actions[index] }, false );
+                moved = await this.agent.commands.execute( actions[index], {}, false );
             }
 
             if (moved)
                 // wait before continue
-                await new Promise( res => myClock.once( this.options.moving_event, res ) );
+                await waitForMovingEvent(this.options.moving_event);
             else
                 // if agent is stucked, this avoid blocking the whole program
                 await timersPromises.setImmediate();

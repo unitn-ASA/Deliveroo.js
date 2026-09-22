@@ -1,18 +1,21 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    adminRest, bootServer, connectClient, disconnectAll, move, poll, rest,
-    setAgentPreset, sleep, teleport
+    adminRest, bootServer, connectClient, disconnectAll, move, poll, rest, sleep,
+    setMovementMode, teleport
 } from './helpers.mjs';
 
 const GHOST_FIXTURE = new URL('../fixtures/e2e-ghost-default.json', import.meta.url).pathname;
+const MODES_FIXTURE = new URL('../fixtures/e2e-movement-modes.json', import.meta.url).pathname;
 
 let server;
 let admin;
 let a, b;
 
+const modeOf = (s) => s?.attributes?.find((attribute) => attribute.kind === 'movement_mode')?.value;
+
 before(async () => {
-    server = await bootServer();
+    server = await bootServer({ fixture: MODES_FIXTURE });
     await adminRest(server.baseUrl, 'POST', '/api/plugins/npc-spawner/stop');
     admin = await connectClient(server.baseUrl, 'boss', { admin: true });
     a = await connectClient(server.baseUrl, 'agentA');
@@ -25,15 +28,16 @@ after(async () => {
     await server.stop();
 });
 
-test('GET /api/agent-presets lists built-in presets', async () => {
-    const { status, body } = await rest(server.baseUrl, 'GET', '/api/agent-presets');
-    assert.equal(status, 200);
-    assert.deepEqual(body.presets.sort(), ['ghost', 'push', 'rotation', 'standard']);
+test('agents expose their movement mode as a sensing attribute', async () => {
+    assert.equal(modeOf(a.state), 'standard');
+    assert.equal(modeOf(b.state), 'standard');
 });
 
-test('ghost preset passes through walls while standard preset is blocked in the same game', async () => {
-    await setAgentPreset(server.baseUrl, a.id, 'ghost');
-    await setAgentPreset(server.baseUrl, b.id, 'standard');
+test('ghost movement mode passes through walls while standard mode is blocked in the same game', async () => {
+    await setMovementMode(server.baseUrl, a.id, 'ghost');
+    await setMovementMode(server.baseUrl, b.id, 'standard');
+    await poll(async () => modeOf(a.state), (mode) => mode === 'ghost', 1500, 50);
+    await sleep(200);
 
     await teleport(admin.socket, a.id, 1, 1);
     await teleport(admin.socket, b.id, 3, 1);
@@ -45,8 +49,10 @@ test('ghost preset passes through walls while standard preset is blocked in the 
     assert.equal(bAck, false);
 });
 
-test('standard preset blocks walls', async () => {
-    await setAgentPreset(server.baseUrl, a.id, 'standard');
+test('standard movement mode blocks walls', async () => {
+    await setMovementMode(server.baseUrl, a.id, 'standard');
+    await sleep(200);
+
     await teleport(admin.socket, a.id, 1, 1);
     await sleep(200);
 
@@ -57,8 +63,10 @@ test('standard preset blocks walls', async () => {
     assert.ok(penalty < penaltyBefore);
 });
 
-test('rotation preset rotates in place, then forward moves along the facing', async () => {
-    await setAgentPreset(server.baseUrl, a.id, 'rotation');
+test('rotation movement mode rotates in place, then forward moves along the facing', async () => {
+    await setMovementMode(server.baseUrl, a.id, 'rotation');
+    await sleep(200);
+
     await teleport(admin.socket, a.id, 2, 2);
     await sleep(200);
 
@@ -69,9 +77,17 @@ test('rotation preset rotates in place, then forward moves along the facing', as
 
     const forward = await move(a.socket, 'up');
     assert.deepEqual({ x: forward.x, y: forward.y }, { x: 3, y: 2 });
+
+    // 'down' (backward) is rejected in rotation mode: the agent must turn
+    // around with 'left'/'right' to face the other way
+    const backward = await move(a.socket, 'down');
+    assert.equal(backward, false);
+    await sleep(200);
+    await poll(async () => a.state, (s) => s.x === 3 && s.y === 2, 1500, 50);
+    assert.deepEqual({ x: a.state.x, y: a.state.y }, { x: 3, y: 2 });
 });
 
-test('config agent_preset ghost attaches ghost movement by default', async () => {
+test('config movement_mode ghost attaches ghost movement by default', async () => {
     const legacy = await bootServer({ fixture: GHOST_FIXTURE });
     try {
         const agent = await connectClient(legacy.baseUrl, 'legacy-ghost');
@@ -89,22 +105,60 @@ test('config agent_preset ghost attaches ghost movement by default', async () =>
     }
 });
 
-test('invalid preset name is rejected and behavior is unchanged', async () => {
-    await setAgentPreset(server.baseUrl, a.id, 'standard');
-    const { status, body } = await setAgentPreset(server.baseUrl, a.id, 'teleport');
-    assert.equal(status, 400);
-    assert.match(body.message, /Unknown agent preset/);
+test('unknown mode name is accepted but leaves the standard movement active', async () => {
+    await setMovementMode(server.baseUrl, a.id, 'standard');
+    const { status, body } = await setMovementMode(server.baseUrl, a.id, 'teleport');
+    assert.equal(status, 200);
+    const mode = body.attributes?.find((attribute) => attribute.kind === 'movement_mode')?.value;
+    assert.equal(mode, 'teleport');
+    await sleep(200);
 
     await teleport(admin.socket, a.id, 1, 1);
     await sleep(200);
     const blocked = await move(a.socket, 'right');
     assert.equal(blocked, false);
+
+    // Back to a provided mode for the following tests
+    await setMovementMode(server.baseUrl, a.id, 'standard');
 });
 
 test('ghost is still stopped by the map boundary', async () => {
-    await setAgentPreset(server.baseUrl, a.id, 'ghost');
+    await setMovementMode(server.baseUrl, a.id, 'ghost');
+    await sleep(200);
+
     await teleport(admin.socket, a.id, 4, 2);
     await sleep(200);
     const ack = await move(a.socket, 'right');
     assert.equal(ack, false);
+});
+
+test('stopping the mode plugin leaves the attribute observable but the standard movement active', async () => {
+    // Drop 'ghost' from the configured plugins: the plugin stops, its
+    // components release the 'move' claim and the standard movement
+    // self-heals the slot
+    const patch = await adminRest(server.baseUrl, 'PATCH', '/api/configs', { GAME: { plugins: ['push', 'rotation'] } });
+    assert.equal(patch.status, 200, `patch failed: ${JSON.stringify(patch.body)}`);
+
+    const ghostStatus = async () =>
+        (await rest(server.baseUrl, 'GET', '/api/plugins')).body.plugins.find((p) => p.id === 'ghost')?.status;
+    await poll(ghostStatus, (status) => status !== 'running', 5000, 200);
+
+    // The attribute write is still accepted and observable...
+    const { status, body } = await setMovementMode(server.baseUrl, a.id, 'ghost');
+    assert.equal(status, 200);
+    const mode = body.attributes?.find((attribute) => attribute.kind === 'movement_mode')?.value;
+    assert.equal(mode, 'ghost');
+
+    // ...but with no plugin claiming the mode, the standard movement stays
+    await sleep(200);
+    await teleport(admin.socket, a.id, 1, 1);
+    await sleep(200);
+    const blocked = await move(a.socket, 'right');
+    assert.equal(blocked, false);
+
+    // Restore the mode plugins for any subsequent use
+    const restore = await adminRest(server.baseUrl, 'PATCH', '/api/configs', { GAME: { plugins: ['ghost', 'push', 'rotation'] } });
+    assert.equal(restore.status, 200);
+    await poll(ghostStatus, (status) => status === 'running', 5000, 200);
+    await setMovementMode(server.baseUrl, a.id, 'standard');
 });

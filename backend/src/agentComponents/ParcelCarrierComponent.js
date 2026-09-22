@@ -6,8 +6,10 @@ class ParcelCarrierComponent {
     id = 'parcel-carrier';
 
     start(agent) {
-        agent.commands.handle('pickup', ({ ack }) => void this.applyPickup(agent, ack), this.id);
-        agent.commands.handle('putdown', ({ selected, ack }) => void this.applyPutdown(agent, selected, ack), this.id);
+        agent.commands.handle('pickup', ({ ack }) => void this.applyPickup(agent, ack), this.id,
+            { description: 'Pick up all the parcels on the current tile' });
+        agent.commands.handle('putdown', ({ selected, ack }) => void this.applyPutdown(agent, selected, ack), this.id,
+            { description: 'Drop carried parcels (all of them when no selection)' });
     }
 
     stop(agent) {

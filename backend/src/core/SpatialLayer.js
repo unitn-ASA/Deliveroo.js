@@ -2,6 +2,17 @@ import SpatialRegistry from './SpatialRegistry.js';
 import EventEmitter from 'events';
 
 /**
+ * Minimum spatial object contract managed by a SpatialLayer.
+ * @typedef {{
+ *   id: string,
+ *   xy: import('./Xy.js').default,
+ *   x: number,
+ *   y: number,
+ *   emitter: EventEmitter<any>
+ * }} SpatialLayerObject
+ */
+
+/**
  * @template T
  * @typedef {{layer: SpatialLayer<any>, object: T | null, type: 'added' | 'changed' | 'removed'}} SpatialLayerChange
  */
@@ -17,7 +28,7 @@ import EventEmitter from 'events';
  * specialized layer such as EntityLayer decides how objects are created,
  * then adds them here for lifecycle management.
  *
- * @template {{id: string, xy: import('./Xy.js').default, x: number, y: number, emitter: EventEmitter<any>}} T
+ * @template {SpatialLayerObject} T
  * @class SpatialLayer
  */
 class SpatialLayer {

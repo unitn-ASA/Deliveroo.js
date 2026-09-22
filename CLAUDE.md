@@ -38,7 +38,7 @@ Key files:
 - `backend/src/core/Parcel.js`, `Tile.js`, `Crate.js` - Game entities
 - `backend/src/ioServer.js` - Socket.io server with enhanced event handling
 - `backend/src/systems/` - Game system implementations
-- `backend/src/agentComponents/` - Per-agent behavior components and preset registry
+- `backend/src/agentComponents/` - Per-agent behavior components attached via the agent command bus (movement modes, parcel carrier)
 - `backend/src/npc/` - Autonomous NPC autopilots and their lifecycle base
 
 ### Frontend Architecture
@@ -108,6 +108,9 @@ npm test            # Run SDK tests
 - **Sensing**: Limited observation distance for nearby entities
 - **Actions**: Move (up/down/left/right), pickup, putdown parcels
 - **Communication**: say (1-to-1), ask (request-reply), shout (broadcast)
+- **Movement modes**: The observable `movement_mode` attribute ('standard' | 'ghost' | 'push' | 'rotation', seeded from `GAME.player.attributes` or written via the agent REST API `attributes` body) drives the four explicit directional commands `up`/`down`/`left`/`right`: per-mode provider plugins (config-driven, from `plugins: ["ghost", "push", "rotation"]`) attach attribute-driven components that claim those command slots while their mode is selected; the core standard movement is the self-healing default of the slots
+- **Config-seeded attributes**: `GAME.player.attributes` maps attribute kinds to initial number/string values applied at agent creation; plugins adopt seeded values they manage (e.g. energy)
+- **Plugin actions (joystick protocol)**: Commands are joystick-like buttons, parameterless in practice: explicit directional commands (`up`/`down`/`left`/`right`), `pickup`, `putdown` (drop all), plus plugin ones (e.g. the config-driven `shooter` plugin fires a laser along the agent facing). Plugins register additional commands with an optional documentation descriptor (`{description?, params?}`, params reserved for future plugin commands, never validated) on each agent's command bus; clients discover the registered commands (native ones included) via REST (`GET /api/agents/:id/commands`, readable by the agent itself or an admin) and invoke any command via the generic `action` socket event or the SDK `emitAction()` (which unwraps the envelope and throws on failure). The `action` ack is the `IOActionEnvelope` (`{success: true, result} | {success: false, error}`), fired exactly once at command completion, when the action mutex is already released; the dedicated `move`/`pickup`/`putdown` events remain as validated backward-compatible wrappers with their legacy raw acknowledgements, translated to the same command bus
 
 ### Parcel System
 - **Spawning**: Time-based or event-based parcel generation

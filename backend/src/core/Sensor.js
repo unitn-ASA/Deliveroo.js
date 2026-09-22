@@ -263,7 +263,7 @@ class Sensor {
             y: this.#me.y,
             score: this.#me.score,
             penalty: this.#me.penalty,
-            rotation: this.#me.rotation ?? null,
+            rotation: this.#me.rotation,
             attributes: this.#me.attributes.toArray()
         } );
 

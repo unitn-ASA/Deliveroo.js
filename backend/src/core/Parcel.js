@@ -104,8 +104,12 @@ class Parcel extends SpatialObject {
 
     /**
      * Deletes the parcel, emitting a 'deleted' event and cleaning up listeners.
+     * A carried parcel that vanishes (decay while carried, admin dispose,
+     * map restart, ...) frees its carrier's capacity slot.
      */
     delete () {
+        this.carriedBy?.carryingParcels?.delete( this );
+        this.carriedBy = null;
         super.delete();
     }
 

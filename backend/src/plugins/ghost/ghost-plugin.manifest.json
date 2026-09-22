@@ -1,0 +1,7 @@
+{
+  "id": "ghost",
+  "name": "Ghost Movement",
+  "version": "1.0.0",
+  "description": "Ghost movement mode: agents whose movement_mode attribute is 'ghost' pass through walls",
+  "module": "./GhostPlugin.js"
+}

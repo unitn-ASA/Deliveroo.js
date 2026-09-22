@@ -6,10 +6,14 @@
 
 
 /**
- * Valid clock event values
+ * Valid values for the game configuration *_event fields. 'frame', '1s',
+ * '2s', '5s', '10s', '1m' and '1h' are the events the backend Clock
+ * actually emits (backend/src/core/Clock.js); 'infinite' is not a clock
+ * event — it is the "never" sentinel for these fields (the Clock never
+ * emits it, so a listener registered on it simply never fires).
  * @type {readonly string[]}
  */
-export const VALID_CLOCK_EVENTS = ['frame', '1s', '2s', '5s', '10s', 'infinite'];
+export const VALID_CLOCK_EVENTS = ['frame', '1s', '2s', '5s', '10s', '1m', '1h', 'infinite'];
 
 /**
  * Valid tile type values
@@ -375,10 +379,17 @@ export function validatePlayerOptions(player, path = 'player') {
         return objectResult;
     }
 
-    // Validate agent_preset (optional field)
-    if (player.agent_preset !== undefined) {
-        const agentPresetResult = validateString(player.agent_preset, `${path}.agent_preset`, false);
-        result.merge(agentPresetResult);
+    // Validate attributes (optional field): map of kind -> number | string
+    if (player.attributes !== undefined) {
+        if (typeof player.attributes !== 'object' || player.attributes === null || Array.isArray(player.attributes)) {
+            result.addError(`Attributes must be an object mapping attribute kinds to number or string values`, `${path}.attributes`, player.attributes);
+        } else {
+            for (const [kind, value] of Object.entries(player.attributes)) {
+                if (typeof value !== 'number' && typeof value !== 'string') {
+                    result.addError(`Attribute '${kind}' must be a number or a string`, `${path}.attributes.${kind}`, value);
+                }
+            }
+        }
     }
 
     // Validate movement_duration
@@ -446,6 +457,32 @@ export function validateEnergyPluginOptions(energy, path = 'energy') {
 }
 
 /**
+ * Validate the plugins list of a game: an optional array of non-empty
+ * strings (plugin ids). Whether the ids exist is checked at runtime by the
+ * backend, which knows the plugins discovered from its manifests.
+ * @param {any} plugins - Plugins list to validate
+ * @param {string} [path='plugins'] - JSON path to the value
+ * @returns {ValidationResult} Validation result
+ */
+export function validatePluginsOptions(plugins, path = 'plugins') {
+    const result = new ValidationResult();
+
+    if (!Array.isArray(plugins)) {
+        result.addError('Plugins must be an array of plugin ids', path, plugins);
+        return result;
+    }
+
+    for (let i = 0; i < plugins.length; i++) {
+        const id = plugins[i];
+        if (typeof id !== 'string' || id.trim().length === 0) {
+            result.addError(`Plugin id must be a non-empty string, got ${JSON.stringify(id)}`, `${path}[${i}]`, id);
+        }
+    }
+
+    return result;
+}
+
+/**
  * Validate IOGameOptions
  * @param {any} game - Game options to validate
  * @returns {ValidationResult} Validation result
@@ -499,6 +536,11 @@ export function validateGameOptions(game) {
     // Validate energy plugin configuration
     if (game.energy !== undefined) {
         result.merge(validateEnergyPluginOptions(game.energy, 'energy'));
+    }
+
+    // Validate plugins list
+    if (game.plugins !== undefined) {
+        result.merge(validatePluginsOptions(game.plugins, 'plugins'));
     }
 
     return result;

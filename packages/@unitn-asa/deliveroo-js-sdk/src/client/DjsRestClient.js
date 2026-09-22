@@ -3,7 +3,10 @@
  * @typedef {import("../types/IOAgent.js").IOAgent} IOAgent
  * @typedef {import("../types/IOParcel.js").IOParcel} IOParcel
  * @typedef {import("../types/IOConfig.js").IOConfig} IOConfig
+ * @typedef {import("../types/IOSocketEvents.js").IOCommandDescriptor} IOCommandDescriptor
  */
+
+/** A command as listed by the REST discovery (GET /agents/:id/commands). @typedef {{ command: string, owner: string } & IOCommandDescriptor} IOAgentCommand */
 
 
 
@@ -11,6 +14,7 @@
  * @typedef {{
  *      'agents': () => IOAgent[],
  *      'agents/:id': () => IOAgent,
+ *      'agents/:id/commands': () => { commands: IOAgentCommand[] },
  *      'configs': () => IOConfig,
  *      'levels': () => IOConfig[],
  *      'level': () => IOConfig,
@@ -308,10 +312,10 @@ export class DjsRestClient {
 
 
     /**
-     * @param {string} token 
-     * @param {string} id 
-     * @param {{score?:number, penalty?:number}} agent
-     * @returns 
+     * @param {string} token
+     * @param {string} id
+     * @param {{score?:number, penalty?:number, attributes?:Record<string, number|string>}} agent
+     * @returns
      */
     async patchAgent ( token, id, agent ) {
         return new Promise((resolve, reject) => {

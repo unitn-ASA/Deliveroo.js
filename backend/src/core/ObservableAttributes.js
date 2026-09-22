@@ -1,15 +1,16 @@
 import EventEmitter from 'events';
 
 /**
- * Observable numeric attributes owned by plugins.
+ * Observable attributes exposed through sensing.
  *
- * An owner can only update or remove attributes it created. This keeps
- * plugin shutdown local: deleteByOwner(pluginId) cannot erase another
- * plugin's state.
+ * Whoever knows a kind name may read, update or remove it: collisions
+ * between producers are prevented by kind naming conventions, not by
+ * enforcement. This lets configurations seed values that plugins later
+ * adopt and manage at runtime.
  */
 class ObservableAttributes extends EventEmitter {
 
-    /** @type {Map<string, [{kind: string, value: number, max?: number}, string | undefined]>} */
+    /** @type {Map<string, {kind: string, value: number | string, max?: number}>} */
     #attributes = new Map();
 
     constructor() {
@@ -19,67 +20,49 @@ class ObservableAttributes extends EventEmitter {
 
     /**
      * @param {string} kind
-     * @param {number} value
-     * @param {number} [max]
-     * @param {{owner?: string}} [options]
+     * @param {number | string} value
+     * @param {number} [max] - Only allowed when the value is numeric
      */
-    set(kind, value, max, { owner } = {}) {
-        const existing = this.#attributes.get(kind);
-        if (existing && existing[1] !== owner) {
-            throw new Error(`Attribute '${kind}' is owned by '${existing[1] ?? 'core'}'`);
+    set(kind, value, max) {
+        if (typeof value !== 'number' && typeof value !== 'string') {
+            throw new Error(`Attribute '${kind}' must have a number or string value`);
         }
-        this.#attributes.set(kind, [{ kind, value, ...(max === undefined ? {} : { max }) }, owner]);
+        if (max !== undefined && typeof value !== 'number') {
+            throw new Error(`Attribute '${kind}' can only have a max when its value is numeric`);
+        }
+        this.#attributes.set(kind, { kind, value, ...(max === undefined ? {} : { max }) });
         this.emit('changed', this.toArray());
     }
 
     /**
      * @param {string} kind
-     * @returns {{kind: string, value: number, max?: number} | undefined}
+     * @returns {{kind: string, value: number | string, max?: number} | undefined}
      */
     get(kind) {
-        const attribute = this.#attributes.get(kind)?.[0];
+        const attribute = this.#attributes.get(kind);
         return attribute && { ...attribute };
     }
 
     /**
      * @param {string} kind
-     * @param {{owner?: string}} [options]
      */
-    delete(kind, { owner } = {}) {
-        const existing = this.#attributes.get(kind);
-        if (!existing) return false;
-        if (existing[1] !== owner) {
-            throw new Error(`Attribute '${kind}' is owned by '${existing[1] ?? 'core'}'`);
-        }
-        this.#attributes.delete(kind);
-        this.emit('changed', this.toArray());
-        return true;
+    delete(kind) {
+        const deleted = this.#attributes.delete(kind);
+        if (deleted) this.emit('changed', this.toArray());
+        return deleted;
     }
 
-    /** @param {string} owner */
-    deleteByOwner(owner) {
-        let changed = false;
-        for (const [kind, [, attributeOwner]] of this.#attributes) {
-            if (attributeOwner === owner) {
-                this.#attributes.delete(kind);
-                changed = true;
-            }
-        }
-        if (changed) this.emit('changed', this.toArray());
-        return changed;
-    }
-
-    /** @returns {{kind: string, value: number, max?: number}[]} */
+    /** @returns {{kind: string, value: number | string, max?: number}[]} */
     toArray() {
-        return Array.from(this.#attributes.values(), ([attribute]) => ({ ...attribute }));
+        return Array.from(this.#attributes.values(), (attribute) => ({ ...attribute }));
     }
 
-    /** @param {(attributes: {kind: string, value: number, max?: number}[]) => void} callback */
+    /** @param {(attributes: {kind: string, value: number | string, max?: number}[]) => void} callback */
     onChanged(callback) {
         this.on('changed', callback);
     }
 
-    /** @param {(attributes: {kind: string, value: number, max?: number}[]) => void} callback */
+    /** @param {(attributes: {kind: string, value: number | string, max?: number}[]) => void} callback */
     offChanged(callback) {
         this.off('changed', callback);
     }

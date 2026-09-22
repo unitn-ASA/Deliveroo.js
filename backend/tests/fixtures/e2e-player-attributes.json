@@ -1,0 +1,42 @@
+{
+  "title": "e2e-player-attributes",
+  "description": "Same as e2e-test-map but with seeded player attributes (rank, team_color, energy: the energy plugin adopts 7 instead of its configured initial 100).",
+  "map": {
+    "width": 5,
+    "height": 3,
+    "tiles": [
+      "2 3 3 3 3",
+      "1 3 0 3 3",
+      "3 3 3 3 3"
+    ]
+  },
+  "npcs": [],
+  "parcels": {
+    "generation_event": "1s",
+    "decaying_event": "1s",
+    "max": 3,
+    "reward_avg": 2,
+    "reward_variance": 0
+  },
+  "plugins": [
+    "energy"
+  ],
+  "player": {
+    "attributes": {
+      "rank": 3,
+      "team_color": "red",
+      "energy": 7
+    },
+    "movement_duration": 50,
+    "observation_distance": 5,
+    "capacity": 5
+  },
+  "energy": {
+    "initial": 100,
+    "move_cost": 1,
+    "pickup_cost": 1,
+    "putdown_cost": 1,
+    "recharge_event": "infinite",
+    "recharge_amount": 0
+  }
+}

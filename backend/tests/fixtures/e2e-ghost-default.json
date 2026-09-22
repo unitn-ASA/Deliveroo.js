@@ -1,6 +1,6 @@
 {
   "title": "e2e-ghost-default",
-  "description": "Same as e2e-test-map but with ghost as the default agent preset",
+  "description": "Same as e2e-test-map but with ghost as the default movement mode (seeded attribute)",
   "map": {
     "width": 5,
     "height": 3,
@@ -18,8 +18,13 @@
     "reward_avg": 2,
     "reward_variance": 0
   },
+  "plugins": [
+    "ghost"
+  ],
   "player": {
-    "agent_preset": "ghost",
+    "attributes": {
+      "movement_mode": "ghost"
+    },
     "movement_duration": 50,
     "observation_distance": 5,
     "capacity": 5

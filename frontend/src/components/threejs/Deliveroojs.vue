@@ -8,6 +8,7 @@
     import Crate from './Crate.vue';
     import Battery from './Battery.vue';
     import Key from './Key.vue';
+    import Laser from './Laser.vue';
     import { connection } from '@/states/myConnection.js';
 	import { Controller } from '@/utils/Controller.js'
 
@@ -18,6 +19,7 @@
     // Generic entities rendered by kind through dedicated components
     const batteries = computed ( () => Array.from(connection.grid.entities.values()).filter( entity => entity.kind === 'battery' ) );
     const keys = computed ( () => Array.from(connection.grid.entities.values()).filter( entity => entity.kind === 'key' ) );
+    const lasers = computed ( () => Array.from(connection.grid.entities.values()).filter( entity => entity.kind === 'laser' ) );
 
 	// watch( () => connection.grid.me, (newVal) => {
 	// 	console.log( 'Deliveroojs.vue watch me', newVal.id );
@@ -55,6 +57,7 @@
             <Crate v-for="[key, c] in crates.entries()" :key="key" :id="key" :crate="c" />
             <Battery v-for="b in batteries" :key="b.id" :id="b.id" :battery="b" />
             <Key v-for="k in keys" :key="k.id" :id="k.id" :keyObj="k" />
+            <Laser v-for="l in lasers" :key="l.id" :id="l.id" :laser="l" />
         </ThreeScene>
     </main>
 </template>

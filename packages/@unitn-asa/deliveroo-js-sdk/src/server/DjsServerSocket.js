@@ -135,6 +135,14 @@ export class DjsServerSocket extends Socket {
         super.on( 'putdown', callback );
     }
 
+    /**
+     * Generic 'action' event, dispatched to the agent command bus.
+     * @param { IOClientEvents['action'] } callback ( name, params?, ack(envelope) )
+     */
+    onAction ( callback ) {
+        super.on( 'action', callback );
+    }
+
 
 
     /**

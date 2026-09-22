@@ -13,8 +13,9 @@ class ParcelSpawnerPlugin extends PluginBase {
     #tick = null;
 
     /**
-     * Event name the current schedule is pending on.
-     * Config values are clock events ('1s', '2s', ...) but typed as plain strings.
+     * Event name the current schedule is pending on, or null when no
+     * schedule is pending (stopped, or generation_event is the 'infinite'
+     * sentinel: generation never triggers again).
      * @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent | null}
      */
     #scheduledEvent = null;
@@ -57,7 +58,14 @@ class ParcelSpawnerPlugin extends PluginBase {
     #spawnAndSchedule(context) {
         this.#spawn(context);
         // Read the event at scheduling time so config changes take effect on the next spawn
-        this.#scheduledEvent = /** @type {import('@unitn-asa/deliveroo-js-sdk/types/IOClockEvent.js').IOClockEvent} */ (config.GAME.parcels.generation_event);
+        const scheduledEvent = config.GAME.parcels.generation_event;
+        if (scheduledEvent === 'infinite') {
+            // 'infinite' is not a clock event: generation never triggers
+            // again, the spawner stays idle
+            this.#scheduledEvent = null;
+            return;
+        }
+        this.#scheduledEvent = scheduledEvent;
         myClock.once(this.#scheduledEvent, this.#tick);
     }
 
