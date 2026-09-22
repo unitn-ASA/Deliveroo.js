@@ -17,8 +17,9 @@ import myClock from '../../myClock.js';
  */
 export function emitGodSensing(socket) {
     try {
-        // Tile positions are static between map edits, so do not rebuild them
-        // for every agent movement.
+        // Tile positions are static between map edits, so they are included in
+        // the payload only when rebuilt (first snapshot or map edit): admin
+        // clients mark every tile as sensed and never read them back
         let positions = [];
         let positionsDirty = true;
         const refreshPositions = () => {
@@ -30,9 +31,10 @@ export function emitGodSensing(socket) {
 
         // Full snapshot; payload shapes mirror the Sensor positionless path
         const snapshot = () => {
+            let positionsPayload = null;
             if (positionsDirty) {
-                positions = [];
                 refreshPositions();
+                positionsPayload = positions;
             }
 
             const agents = [];
@@ -75,17 +77,26 @@ export function emitGodSensing(socket) {
                 }
             }
 
-            return { frame: myClock.frame, positions, agents, parcels, crates, entities };
+            return { frame: myClock.frame, positions: positionsPayload, agents, parcels, crates, entities };
         };
 
         let disconnected = false;
 
-        // Re-snapshot on any game-state fact, but emit at most once per frame.
+        // Re-snapshot on any game-state fact, but emit at most once every
+        // SNAPSHOT_FRAME_SKIP frames: busy maps (many NPCs moving on every
+        // frame) would otherwise force a full payload on each clock frame and
+        // starve the browser client until its heartbeat times out
+        const SNAPSHOT_FRAME_SKIP = 4;
+        let lastSnapshotFrame = -Infinity;
+
         let emitSnapshot;
         const flushSnapshot = () => {
             if (disconnected) return;
             try {
-                socket.emitSensing(snapshot());
+                if (myClock.frame - lastSnapshotFrame >= SNAPSHOT_FRAME_SKIP) {
+                    lastSnapshotFrame = myClock.frame;
+                    socket.emitSensing(snapshot());
+                }
             } catch (error) {
                 console.warn('[emitGodSensing] Error emitting sensing:', error.message);
             }

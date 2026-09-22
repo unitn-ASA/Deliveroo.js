@@ -103,7 +103,7 @@ export async function fetchToken(baseUrl, name, { admin = false } = {}) {
  * @param {string} baseUrl
  * @param {string} name
  * @param {{admin?: boolean}} [options]
- * @returns {Promise<{socket: object, state: object, id: string, token: string}>}
+ * @returns {Promise<{socket: object, state: object, id: string, token: string, initialSensing: object}>}
  */
 export async function connectClient(baseUrl, name, { admin = false } = {}) {
     const token = await fetchToken(baseUrl, name, { admin });
@@ -133,7 +133,7 @@ export async function connectClient(baseUrl, name, { admin = false } = {}) {
         if (snapshot.self) Object.assign(state, snapshot.self);
         state.entities = snapshot.entities ?? [];
     });
-    return { socket, state, id: sensing.self?.id, token };
+    return { socket, state, id: sensing.self?.id, token, initialSensing: sensing };
 }
 
 /**

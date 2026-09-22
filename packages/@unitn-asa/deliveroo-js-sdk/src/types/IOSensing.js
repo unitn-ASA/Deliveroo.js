@@ -7,7 +7,7 @@
 /**
  * @typedef IOSensing
  * @property {number} [frame] Server frame when the sensing snapshot was produced
- * @property {{x:number, y:number}[]} positions
+ * @property {{x:number, y:number}[] | null} positions Sensed tile positions; admin observer snapshots include them only when rebuilt (first snapshot or map edit), null otherwise
  * @property {IOAgent[]} agents
  * @property {IOParcel[]} parcels
  * @property {IOCrate[]} crates

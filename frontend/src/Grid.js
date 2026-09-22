@@ -384,7 +384,9 @@ export class Grid {
             // This reduces complexity from O(tiles * positions) to O(tiles + positions)
             // For 2000 tiles and 100 positions: 200,000 comparisons -> ~2,100 operations
             const sensedPositionKeys = new Set();
-            for (const pos of sensing.positions) {
+            // Admin snapshots may omit the static tile positions (null after
+            // the first one): admins mark every tile as sensed anyway
+            for (const pos of sensing.positions || []) {
                 sensedPositionKeys.add(`${pos.x},${pos.y}`);
             }
 

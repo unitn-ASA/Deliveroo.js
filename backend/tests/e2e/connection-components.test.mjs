@@ -49,15 +49,26 @@ test('admin has no own action handlers', async () => {
 });
 
 test('admin receives map-wide god sensing', async () => {
-    const sensing = await withTimeout(
-        new Promise((resolve) => admin.socket.once('sensing', resolve)),
-        3000, 'god sensing'
-    );
-    // map-wide: sensing covers the far corners of the fixture map
-    const has = (x, y) => sensing.positions.some((p) => p.x === x && p.y === y);
-    assert.ok(has(0, 0) && has(4, 2), 'sensing must cover the whole map');
-    // includes other agents
-    assert.ok(sensing.agents.some((a) => a.id === user.id), 'sensing must include other agents');
+    // A fresh admin connection: connectClient captures the initial snapshot,
+    // which embeds the static tile positions; the following snapshots omit
+    // them until a map edit rebuilds them
+    const observer = await connectClient(server.baseUrl, 'sensed', { admin: true });
+    try {
+        const first = observer.initialSensing;
+        // map-wide: sensing covers the far corners of the fixture map
+        const has = (x, y) => first.positions.some((p) => p.x === x && p.y === y);
+        assert.ok(has(0, 0) && has(4, 2), 'sensing must cover the whole map');
+        // includes other agents
+        assert.ok(first.agents.some((a) => a.id === user.id), 'sensing must include other agents');
+
+        const second = await withTimeout(
+            new Promise((resolve) => observer.socket.once('sensing', resolve)),
+            3000, 'god sensing update'
+        );
+        assert.equal(second.positions, null, 'following snapshots omit the static positions');
+    } finally {
+        observer.socket.disconnect();
+    }
 });
 
 test('admin god sensing updates on agent movement', async () => {
@@ -77,6 +88,36 @@ test('admin god sensing updates on agent movement', async () => {
     );
     assert.ok(sensed, 'moved agent must be sensed');
     assert.deepEqual({ x: sensed.x, y: sensed.y }, { x: 1, y: 1 });
+});
+
+test('agent movements emit no tile events and keep god positions stale', async () => {
+    // Tile locks are movement coordination: they must not surface as 'tile'
+    // events to clients (they fire twice per move!) nor rebuild the admin god
+    // sensing positions, otherwise busy maps flood every connected client
+    const tileEvents = [];
+    const tileListener = (tile) => tileEvents.push(tile);
+    user.socket.on('tile', tileListener);
+
+    try {
+        const ack = await move(user.socket, 'up', 1500);
+        assert.ok(ack && typeof ack === 'object', 'the agent must move');
+        // cover the movement animation and the throttled god sensing flush
+        await sleep(300);
+
+        assert.equal(tileEvents.length, 0, 'movements must not emit tile events');
+
+        const sensing = await withTimeout(
+            new Promise((resolve) => admin.socket.once('sensing', resolve)),
+            3000, 'god sensing after movement'
+        );
+        assert.equal(sensing.positions, null, 'movements must not rebuild god sensing positions');
+        assert.ok(
+            sensing.agents.some((a) => a.id === user.id && a.x === ack.x && a.y === ack.y),
+            'the moved agent must be sensed at the destination'
+        );
+    } finally {
+        user.socket.off('tile', tileListener);
+    }
 });
 
 test('non-admin connection gets no admin handlers', async () => {

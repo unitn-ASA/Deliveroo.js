@@ -48,6 +48,10 @@ before(async () => {
     admin = await connectClient(server.baseUrl, 'boss', { admin: true });
     player = await connectClient(server.baseUrl, 'shooter');
     other = await connectClient(server.baseUrl, 'bystander');
+    // Spawn picks a random walkable tile: park the bystander far from the
+    // (0,0)-(0,1) corridor so the movement tests are deterministic (the
+    // shoot test teleports the bystander again where it needs it)
+    await teleport(admin.socket, other.id, 4, 2);
 });
 
 after(async () => {

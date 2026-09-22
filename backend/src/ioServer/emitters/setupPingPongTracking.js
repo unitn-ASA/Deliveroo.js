@@ -63,9 +63,11 @@ export function setupPingPongTracking(socket, identity) {
             }
         }, PING_INTERVAL);
 
-        // Cleanup ping interval on disconnect
+        // Cleanup ping interval and latency samples on disconnect, otherwise
+        // dead sockets would stay in the performance dashboard forever
         socket.onDisconnect(() => {
             clearInterval(pingInterval);
+            myPerformanceMonitor.clearLatencySamples(socket.id);
         });
     } catch (error) {
         console.warn('Error setting up ping/pong:', error.message);

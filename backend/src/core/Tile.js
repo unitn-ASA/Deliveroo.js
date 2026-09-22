@@ -152,14 +152,10 @@ import { parseIOTileType } from '@unitn-asa/deliveroo-js-sdk/types/IOTile.js';
         });
         this.type = parseIOTileType(type); // Ensure type is always a string
 
-        watchProperty({
-            target: this,
-            key: 'locked',
-            callback: (target, key, value) => {
-                target.#emitter.emit(key, value);
-                target.#emitter.emit('changed', { object: target, key });
-            }
-        });
+        // 'locked' is a plain field, deliberately not watched: locks change
+        // with every agent move (movement coordination read synchronously by
+        // the movement rules), nobody subscribes to their events and the
+        // watcher overhead would sit on the movement hot path
         this.locked = false;
 
     }
