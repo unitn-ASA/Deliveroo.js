@@ -156,11 +156,10 @@ class EnergyPlugin extends PluginBase {
      * Veto hook: an exhausted agent cannot move (no penalty, no cost).
      * @param {import('../../core/actions/ActionHooks.js').MoveHookContext} ctx
      */
-    #gateMove({ agent, dx, dy }) {
+    #gateMove({ agent }) {
         const energy = config.GAME.energy;
         const value = Number(agent.attributes.get('energy')?.value ?? energy.initial);
         if (value < energy.move_cost) {
-            console.warn(`${agent.name}(${agent.id}) move to (${agent.x + dx},${agent.y + dy}) failed: out of energy`);
             return false;
         }
     }

@@ -155,10 +155,11 @@ class IntelligentCollector extends Autopilot {
                 const moved = await agent.commands.execute(actions[i], {}, false);
                 // console.log(`[IntelligentParcelNPC] ${agent.id || 'NPC'}: Move ${actions[i]} returned ${moved}`);
                 if (!moved) {
-                    // Path blocked, recalculate
-                    // console.log(`[IntelligentParcelNPC] ${agent.id || 'NPC'}: Move failed, resetting path`);
+                    // Path blocked: back off one move duration before replanning,
+                    // otherwise the same first step is retried in a tight loop
                     this.currentPath = [];
                     this.currentTarget = null;
+                    await timersPromises.setTimeout( config.GAME.player.movement_duration );
                 }
                 return;
             }

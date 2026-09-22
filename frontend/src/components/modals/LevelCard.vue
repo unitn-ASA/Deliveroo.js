@@ -27,6 +27,9 @@
         return level.value.map.tiles.map(row => row.match(/.{1,2}/g)?.map(tile => tile.trim()) || []);
     });
 
+    // Player attributes seeded at agent creation (plugin-owned, e.g. movement_mode)
+    const attributeCount = computed(() => Object.keys(level.value?.player?.attributes ?? {}).length);
+
     // Check if a tile (in rendered coordinates) is within the sensing distance from center
     function isInSensingArea(rowIndex, colIndex) {
         if (!level.value?.map?.tiles) return false;
@@ -44,13 +47,6 @@
         const observationDistance = level.value?.player?.observation_distance ?? 0;
 
         return observationDistance !== -1 && manhattanDistance <= observationDistance;
-    }
-
-    // Check if a grid cell in the vision indicator diamond should be highlighted
-    function isInVisionDiamond(rowIndex, colIndex, distance) {
-        const center = distance; // Center index in a (distance*2+1) grid
-        const manhattanDistance = Math.abs(rowIndex - center) + Math.abs(colIndex - center);
-        return manhattanDistance <= distance;
     }
 
     // Generate random positions for NPCs with animation parameters
@@ -166,187 +162,87 @@
 
 <template>
     <div class="card bg-base-200 text-base-content shadow-sm hover:shadow-xl transition-shadow duration-300">
-        <!-- Card Header -->
-        <div class="card-body p-4">
+        <div class="card-body relative p-3 gap-2">
 
-            <!-- Title -->
-            <div class="flex justify-center gap-2 mb-1 tooltip" :data-tip="'Title: ' + level?.title">
-                <h3 class="card-title text-lg">
+            <!-- Link to the game json (top-right corner) -->
+            <a :href="HOST+level?.self" class="absolute top-2 right-2 tooltip" :data-tip="HOST+level?.self" target="_blank" rel="noopener noreferrer" v-if="level?.self">
+                🔗
+            </a>
+
+            <!-- Header: title on its own row, description when present -->
+            <div>
+                <h3 class="text-base font-semibold truncate text-center tooltip" :data-tip="'Title: ' + level?.title">
                     {{ level?.title }}
                 </h3>
-                <!-- open api/games/* in a separate window -->
-                <a :href="HOST+level?.self" class="tooltip" :data-tip="HOST+level?.self" target="_blank" rel="noopener noreferrer" v-if="level?.self">
-                    {{level.self ? '🔗' : ''}}
-                </a>
-            </div>
-
-            <!-- Description -->
-            <div class="p-2 bg-base-300 rounded-lg text-xs">
-                <div class=" italic"
-                    v-if="level?.description">
+                <div class="text-xs italic text-base-content/60 line-clamp-3 text-center tooltip" v-if="level?.description" :data-tip="level?.description">
                     {{ level?.description }}
                 </div>
             </div>
 
-            <!-- Player (spans 2 columns) -->
-            <div class="stat p-2 bg-base-300 rounded-lg p-0 col-span-2 text-xs text-left tooltip"
+            <!-- Player: compact chips + attributes (no container box, tooltip kept) -->
+            <div class="text-xs tooltip"
                     :data-tip="JSON.stringify(level?.player, null, 2)"
                     v-if="level?.player">
 
-                <!-- Player card title -->
-                <div class="stat-title text-[10px]">
-                    Player
-                </div>
-
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-2 gap-1">
-
-                    <!-- Type -->
-                    <div class="bg-base-300 rounded-lg text-left">
-                        <div class="stat-value">Type {{ level?.player?.agent_type ? level?.player?.agent_type : 'N/A' }}</div>
-                    </div>
-
-                    <!-- Movement -->
-                    <div class="bg-base-300 rounded-lg">
-                        <div class="stat-title text-[10px]">Move duration</div>
-                        <div class="grid grid-cols-2 items-center">
-                            <div class="stat-value text-sm">{{ level?.player?.movement_duration }}ms</div>
-                            <div class="relative h-1 bg-base-200 rounded-full overflow-hidden">
-                                <div
-                                    class="absolute top-0 left-0 h-full bg-info animate-progress"
-                                    :style="`animation-duration: ${level?.player?.movement_duration*10}ms;`">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Capacity -->
-                    <div class="bg-base-300 rounded-lg">
-                        <div class="stat-title text-[10px]">Capacity</div>
-                        <div class="flex flex-wrap gap-0.5 items-center">
-                            <div class="stat-value text-xs">{{ level?.player?.capacity == -1 ? '∞' : level?.player?.capacity }}</div>
-                            <div
-                                v-for="n in Math.max(0, level?.player?.capacity > 0 ? level?.player?.capacity : 0)"
-                                :key="n"
-                                class="w-2 h-2 rounded-sm bg-warning"
-                                :title="`Parcel ${n}`">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Vision -->
-                    <div class="bg-base-300 rounded-lg">
-                        <div class="stat-title text-[10px]">Vision</div>
-                        <div class="flex items-center justify-center gap-2">
-                            <div class="stat-value text-xs">{{ level?.player?.observation_distance == -1 ? '∞' : level?.player?.observation_distance }}</div>
-                            <div
-                                v-if="level?.player?.observation_distance != -1"
-                                class="grid gap-px"
-                                :style="{
-                                    gridTemplateColumns: `repeat(${level?.player?.observation_distance * 2 + 1}, 4px)`,
-                                    gridTemplateRows: `repeat(${level?.player?.observation_distance * 2 + 1}, 4px)`
-                                }"
-                            >
-                                <template v-for="(_, rowIndex) in (level?.player?.observation_distance * 2 + 1)" :key="`row-${rowIndex}`">
-                                    <div
-                                        v-for="(_, colIndex) in (level?.player?.observation_distance * 2 + 1)"
-                                        :key="`cell-${rowIndex}-${colIndex}`"
-                                        class="w-1 h-1"
-                                        :class="{ 'bg-info rounded-sm': isInVisionDiamond(rowIndex, colIndex, level?.player?.observation_distance) }"
-                                    />
-                                </template>
-                            </div>
-                            <div v-else class="text-info text-xs">∞</div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- NPCs Section -->
-            <div class="mb-0 p-2 bg-base-300 rounded-lg" v-if="level?.npcs && level?.npcs.length">
-                <div class="text-[11px] text-base-content/60">NPCs</div>
-                <div class="flex flex-wrap gap-1">
-                    <span class="badge badge-ghost badge-sm flex items-center gap-1 tooltip"
-                    :data-tip="JSON.stringify(npc, null, 2)"
-                    v-for="npc in level?.npcs" :key="npc.type">
-                        {{ npc.count }}
-                        <div class="flex flex-wrap gap-0.5">
-                            <div
-                                v-for="n in Math.max(0, npc.count || 0)"
-                                :key="n"
-                                class="w-2 h-2 rounded-full bg-info"
-                                :title="`NPC ${n}`">
-                            </div>
-                        </div>
-                        {{ npc.type }}
+                <div class="flex flex-wrap gap-1 items-center">
+                    <span class="inline-flex items-center gap-1 px-1.5 py-1 bg-base-300 rounded-lg text-xs">
+                        <span class="opacity-60">move</span>
+                        <span class="font-mono">{{ level?.player?.movement_duration }}ms</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-1.5 py-1 bg-base-300 rounded-lg text-xs">
+                        <span class="opacity-60">cap</span>
+                        <span class="font-mono">{{ level?.player?.capacity == -1 ? '∞' : level?.player?.capacity }}</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-1.5 py-1 bg-base-300 rounded-lg text-xs">
+                        <span class="opacity-60">obs</span>
+                        <span class="font-mono">{{ level?.player?.observation_distance == -1 ? '∞' : level?.player?.observation_distance }}</span>
                     </span>
                 </div>
+
+                <!-- Attributes seeded at agent creation (plugin-owned) -->
+                <div class="flex flex-wrap gap-1 items-center mt-1" v-if="attributeCount > 0">
+                    <span v-for="(value, key) in (level?.player?.attributes ?? {})" :key="key" class="inline-flex items-center gap-1 px-1.5 py-1 bg-base-300 rounded-lg text-xs font-mono">
+                        <span class="opacity-60">{{ key }}</span>
+                        <span class="text-info">{{ value }}</span>
+                    </span>
+                </div>
+
             </div>
 
-            <!-- Parcels Section -->
-            <div class="p-2 bg-base-300 rounded-lg tooltip"
+            <!-- Plugins + NPCs -->
+            <div class="flex flex-wrap gap-1 items-center" v-if="(level?.npcs && level?.npcs.length) || level?.plugins?.length">
+                <span v-for="plugin in (level?.plugins ?? [])" :key="plugin"
+                        class="badge badge-sm font-mono bg-primary/20 text-primary tooltip"
+                        :data-tip="'Plugin: ' + plugin">
+                    {{ plugin }}
+                </span>
+                <span v-for="npc in level?.npcs" :key="npc.type"
+                        class="inline-flex items-center gap-1 px-1.5 py-1 bg-base-300 rounded-lg text-xs tooltip"
+                        :data-tip="JSON.stringify(npc, null, 2)">
+                    🤖 <span class="font-mono">{{ npc.count }}×</span>
+                    {{ npc.type }}
+                </span>
+            </div>
+
+            <!-- Parcels -->
+            <div class="px-1.5 py-1 bg-base-300 rounded-lg text-xs font-mono tooltip flex flex-wrap gap-x-2 gap-y-0.5 items-center justify-between"
                     :data-tip="JSON.stringify(level?.parcels, null, 2)"
                     v-if="level?.parcels">
-                <div class="flex items-center justify-between text-xs mb-1">
-                    <span class="stat-title">Parcels</span>
-                    <span class="font-mono">
-                        {{ level?.parcels.max }} @{{ level?.parcels.generation_event }}
-                    </span>
-                </div>
-                <div class="mb-2">
-                    <div class="flex flex-wrap gap-0.5">
-                        <div
-                            v-for="n in Math.max(0, level?.parcels?.max || 0)"
-                            :key="n"
-                            class="w-2 h-2 rounded-sm bg-warning">
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between text-xs mb-1">
-                    <span class="stat-title"></span>
-                    <span class="font-mono">
-                        <span class="text-success">
-                            {{ level?.parcels.reward_avg }} ± {{ level?.parcels.reward_variance }}
-                        </span>
-                        <span class="text-error"
-                            v-if="level?.parcels.decaying_event !== 'infinite'">
-                            - 1pt/{{ level?.parcels.decaying_event }}
-                        </span>
-                        <span class="text-error" v-else>
-                            No decay
-                        </span>
-                    </span>
-                </div>
-                <div class="mb-2 text-xs font-mono">
-                    <div class="relative h-2 bg-base-content/20 rounded-full overflow-hidden flex">
-                        <!-- Upper range (avg <-> avg+variance) -->
-                        <div
-                            class="absolute h-full bg-warning"
-                            :style="`width: ${level?.parcels.reward_variance * 2}%; left: ${level?.parcels.reward_avg - level?.parcels.reward_variance}%`">
-                        </div>
-                    </div>
-                    <!-- Average label positioned below at precise location -->
-                    <div class="relative h-1 mt-0.5">
-                        <span
-                            class="absolute text-[10px] text-warning font-semibold transform -translate-x-2/3 bg-base-300 px-1 z-10"
-                            :style="`left: ${level?.parcels.reward_avg - level?.parcels.reward_variance}%`">
-                            {{ level?.parcels.reward_avg - level?.parcels.reward_variance }}
-                        </span>
-                        <span
-                            class="absolute text-[10px] text-warning font-semibold transform -translate-x-1/3"
-                            :style="`left: ${level?.parcels.reward_avg + level?.parcels.reward_variance}%`">
-                            {{ level?.parcels.reward_avg + level?.parcels.reward_variance }}
-                        </span>
-                    </div>
-                </div>
+                <span>📦 {{ level?.parcels.max }}× @{{ level?.parcels.generation_event }}</span>
+                <span class="text-success">{{ level?.parcels.reward_avg }}±{{ level?.parcels.reward_variance }}</span>
+                <span class="text-error" v-if="level?.parcels.decaying_event !== 'infinite'">−1pt/{{ level?.parcels.decaying_event }}</span>
+                <span class="text-error" v-else>no decay</span>
             </div>
 
-            <!-- Map Preview -->
-            <div class="bg-base-300 rounded-lg p-2">
-                <div class="stat-value text-xs mb-1">{{ level?.map?.width }}×{{ level?.map?.height }}</div>
-                <div v-if="level?.png" class="relative w-full bg-slate-800" :style="{ aspectRatio: `${level?.map?.width}/${level?.map?.height}` }">
+            <!-- Map Preview: the wrapper takes the map aspect ratio, so it coincides with the image area -->
+            <div v-if="level?.png" class="relative flex items-center justify-center">
+                <div
+                    class="relative rounded-lg overflow-hidden"
+                    :style="{
+                        aspectRatio: `${level?.map?.width}/${level?.map?.height}`,
+                        width: `min(100%, ${(10 * (level?.map?.width ?? 1) / (level?.map?.height ?? 1)).toFixed(3)}rem)`
+                    }"
+                >
                     <!-- Base Map Layer -->
                     <img :src="HOST+level?.png" class="absolute inset-0 w-full h-full" />
 
@@ -384,8 +280,14 @@
                             />
                         </template>
                     </div>
+
+                    <!-- Map size -->
+                    <span class="absolute top-1 right-1 badge badge-sm badge-ghost font-mono" v-if="level?.map?.width">
+                        {{ level?.map?.width }}×{{ level?.map?.height }}
+                    </span>
                 </div>
-                <div v-else class="relative">
+            </div>
+            <div v-else class="relative rounded-lg overflow-hidden">
                     <!-- <div class="text-xs text-center text-base-content/60">No map preview available</div> -->
                     <div class="flex justify-center" v-for="(row, rowIndex) in mapRows" >
                         <div class="bg-purple-500 text-white" v-for="(type, colIndex) in row" >
@@ -419,16 +321,15 @@
                         }"
                         :title="`${npc.type} NPC (${npc.movingEvent}) at (${npc.x}, ${npc.y})`"
                     />
-                </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex gap-2">
-                <button class="btn btn-primary btn-sm flex-1" @click="loadLevel()">
-                    Start {{ level?.title }}
+                <button class="btn btn-primary btn-xs flex-1 tooltip" @click="loadLevel()" :data-tip="'Start ' + level?.title">
+                    🏁 start
                 </button>
-                <button class="btn btn-secondary btn-sm flex-1" @click="openGameOptions()">
-                    Edit
+                <button class="btn btn-secondary btn-xs flex-1 tooltip" @click="openGameOptions()" data-tip="Edit game options">
+                    🛠 edit
                 </button>
             </div>
         </div>
@@ -436,32 +337,6 @@
 </template>
 
 <style scoped>
-.stat {
-    padding: 0.5rem;
-}
-.stat-value {
-    font-size: 0.875rem;
-    font-weight: 600;
-}
-.stat-title {
-    font-size: 0.625rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.animate-progress {
-    animation: fillProgress linear infinite;
-}
-
-@keyframes fillProgress {
-    0% {
-        width: 0%;
-    }
-    100% {
-        width: 100%;
-    }
-}
-
 .npc-indicator {
     position: absolute;
     width: 8px;

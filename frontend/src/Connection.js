@@ -76,6 +76,10 @@ export class Connection {
     /** @type {import("vue").Ref<number>} */
     sensingPerFrame = ref(0);
 
+    /** Live move duration in ms, measured from consecutive self positions (0 = not measured yet) */
+    /** @type {import("vue").Ref<number>} */
+    moveMs = ref(0);
+
     /**
      * @type {IOConfig} configs
      */
@@ -228,6 +232,8 @@ export class Connection {
 
         let previousSensingFrame;
         let previousSensingCount = 0;
+        let previousSelfPosition;
+        let previousSelfTime;
         ioClient.on( "sensing", ( sensing ) => {
             if ( typeof sensing?.frame !== 'number' ) return;
 
@@ -241,6 +247,24 @@ export class Connection {
             }
             previousSensingFrame = sensing.frame;
             previousSensingCount = sensingCount;
+
+            // Live move duration: wall time per manhattan tile between consecutive self
+            // positions, EMA-smoothed (0.7/0.3); frozen on the last value while standing still
+            if ( typeof sensing.self?.x === 'number' && typeof sensing.self?.y === 'number' ) {
+                const now = Date.now();
+                const position = { x: sensing.self.x, y: sensing.self.y };
+                if ( previousSelfPosition && ( position.x !== previousSelfPosition.x || position.y !== previousSelfPosition.y ) ) {
+                    const distance = Math.abs( position.x - previousSelfPosition.x ) + Math.abs( position.y - previousSelfPosition.y );
+                    if ( distance > 0 ) {
+                        const sample = ( now - previousSelfTime ) / distance;
+                        this.moveMs.value = this.moveMs.value > 0
+                            ? this.moveMs.value * 0.7 + sample * 0.3
+                            : sample;
+                    }
+                }
+                previousSelfPosition = position;
+                previousSelfTime = now;
+            }
         } );
 
         ioClient.on( "ping", ( latencyData, callback ) => {

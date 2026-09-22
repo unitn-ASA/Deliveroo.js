@@ -26,8 +26,15 @@ class PushMovementComponent extends MovementModeComponentBase {
 
     isMovePlausible(agent, direction, grid = agent.grid) {
         const [dx, dy] = DELTAS[direction];
-        const tile = grid.tiles.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
-        return Boolean(tile && tile.walkable && !tile.locked);
+        const target = { x: agent.x + dx, y: agent.y + dy };
+        const pushed = grid.agents.getOneByXy(target);
+        if (pushed && pushed !== agent) {
+            // The lock on the target is the pushed agent's own, not an obstacle:
+            // the move is feasible only if the pushed agent can move away too
+            return worldRules.isMoveFeasible(grid, pushed, dx, dy)
+                && worldRules.isMoveFeasible(grid, agent, dx, dy, { ignoreLockedAt: target });
+        }
+        return worldRules.isMoveFeasible(grid, agent, dx, dy);
     }
 }
 

@@ -130,10 +130,9 @@ class KeysDoorsPlugin extends PluginBase {
      * Veto hook: entering a door tile requires a key (no penalty, no cost).
      * @param {import('../../core/actions/ActionHooks.js').MoveHookContext} ctx
      */
-    #gateDoor({ agent, dx, dy, toTile }) {
+    #gateDoor({ agent, toTile }) {
         if (!isDoor(toTile)) return undefined;
         if (Number(agent.attributes.get('key')?.value ?? 0) <= 0) {
-            console.warn(`${agent.name}(${agent.id}) move to (${agent.x + dx},${agent.y + dy}) failed: door locked (no key)`);
             return false;
         }
     }

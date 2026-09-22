@@ -274,9 +274,9 @@ export class Grid {
         setSelected( crate, this.selectedCrate );
         if ( crate ) return;
 
-        let item = this.getItemByMeshUUID( mesh?.uuid );
-        setSelected( item, this.selectedItem );
-        if ( item ) return;
+        let entity = this.getEntityByMeshUUID( mesh?.uuid );
+        setSelected( entity, this.selectedEntity );
+        if ( entity ) return;
 
     }
 

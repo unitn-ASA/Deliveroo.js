@@ -29,9 +29,20 @@ class RotationMovementComponent extends MovementModeComponentBase {
         }
     }
 
-    isMovePlausible(agent, direction) {
-        void agent;
-        return direction !== 'down';
+    isMovePlausible(agent, direction, grid = agent.grid) {
+        if (direction === 'down') {
+            // 'down' (backward) is not a command in this mode: the agent
+            // must turn around with 'left'/'right' to face the other way
+            return false;
+        }
+        if (direction !== 'up') {
+            // turning in place is always feasible
+            return true;
+        }
+        // moving forward follows the standard world rules on the facing tile
+        const rotation = agent.rotation ?? 0;
+        const [dx, dy] = DELTAS[FORWARD[rotation]];
+        return worldRules.isMoveFeasible(grid, agent, dx, dy);
     }
 
     async #finishRotation(agent, newRotation) {

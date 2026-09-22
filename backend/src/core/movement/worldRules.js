@@ -5,47 +5,45 @@ import Xy from '../Xy.js';
 const MOVEMENT_STEPS = 1;
 
 /**
- * Move an agent by the given increments through the invariant world rules:
- * directional tiles, walkability, locks, crates, penalties and animation.
+ * Faithful dry-run of the movement preconditions, shared by the real move and
+ * by the command-bus plausibility checks: directional exit/entry, map
+ * boundary, walkability, tile locks and crate chain. No side effects.
  * @param {import('../Grid.js').default} grid
  * @param {import('../Agent.js').default} agent
  * @param {number} incr_x
  * @param {number} incr_y
- * @param {{penalize?: boolean}} [options]
- * @returns {Promise<Xy|boolean>}
+ * @param {{ignoreLockedAt?: {x: number, y: number} | null}} [options]
+ * @returns {boolean}
  */
-async function move(grid, agent, incr_x, incr_y, { penalize = true } = {}) {
+function isMoveFeasible(grid, agent, incr_x, incr_y, { ignoreLockedAt = null } = {}) {
     const fromTile = agent.tile;
     if (!fromTile) {
         return false;
     }
 
-    const fail = (reason = 'blocked') => {
-        console.warn(`${agent.name}(${agent.id}) move to (${agent.x + incr_x},${agent.y + incr_y}) failed: ${reason}`);
-        if (penalize) {
-            agent.penalty -= config.PENALTY;
-        }
+    if (fromTile.isDirectional && !fromTile.allowsExitInDirection(incr_x, incr_y)) {
         return false;
-    };
+    }
 
     const toTile = grid.tiles.getOneByXy({ x: agent.x + incr_x, y: agent.y + incr_y });
 
-    if (fromTile.isDirectional && !fromTile.allowsExitInDirection(incr_x, incr_y)) {
-        return fail('directional exit restriction');
-    }
-
     if (toTile && toTile.isDirectional && !toTile.allowsMovementFrom(agent.x, agent.y)) {
-        return fail('directional entry restriction');
+        return false;
     }
 
     if (!toTile) {
-        return fail('no tile (map boundary)');
+        return false;
     }
     if (!toTile.walkable) {
-        return fail('tile not walkable');
+        return false;
     }
     if (toTile.locked) {
-        return fail('tile locked (another agent standing or moving there)');
+        // A lock is only skipped where it is displaced out of the way by the
+        // move itself, e.g. the pushed agent's own lock on the push target
+        const skip = ignoreLockedAt && toTile.x === ignoreLockedAt.x && toTile.y === ignoreLockedAt.y;
+        if (!skip) {
+            return false;
+        }
     }
 
     const crate = grid.crates.getOneByXy({ x: agent.x + incr_x, y: agent.y + incr_y });
@@ -53,14 +51,48 @@ async function move(grid, agent, incr_x, incr_y, { penalize = true } = {}) {
         const crateDestTile = grid.tiles.getOneByXy({ x: crate.x + incr_x, y: crate.y + incr_y });
 
         if (!crateDestTile || !crateDestTile.type.startsWith('5') || crateDestTile.locked) {
-            return fail();
+            return false;
         }
 
         const crateAtDest = grid.crates.getOneByXy(new Xy({ x: crate.x + incr_x, y: crate.y + incr_y }));
         if (crateAtDest) {
-            return fail();
+            return false;
         }
+    }
 
+    return true;
+}
+
+/**
+ * Move an agent by the given increments through the invariant world rules:
+ * directional tiles, walkability, locks, crates, penalties and animation.
+ * @param {import('../Grid.js').default} grid
+ * @param {import('../Agent.js').default} agent
+ * @param {number} incr_x
+ * @param {number} incr_y
+ * @param {{penalize?: boolean, ignoreLockedAt?: {x: number, y: number} | null}} [options]
+ * @returns {Promise<Xy|boolean>}
+ */
+async function move(grid, agent, incr_x, incr_y, { penalize = true, ignoreLockedAt = null } = {}) {
+    const fromTile = agent.tile;
+    if (!fromTile) {
+        return false;
+    }
+
+    if (!isMoveFeasible(grid, agent, incr_x, incr_y, { ignoreLockedAt })) {
+        // Failed moves are routine contention (another agent standing there,
+        // walls, directional restrictions): they only apply the penalty and
+        // return false, no logging, otherwise busy NPCs would flood the output
+        if (penalize) {
+            agent.penalty -= config.PENALTY;
+        }
+        return false;
+    }
+
+    const toTile = grid.tiles.getOneByXy({ x: agent.x + incr_x, y: agent.y + incr_y });
+    const crate = grid.crates.getOneByXy({ x: agent.x + incr_x, y: agent.y + incr_y });
+    if (crate) {
+        const crateDestTile = grid.tiles.getOneByXy({ x: crate.x + incr_x, y: crate.y + incr_y });
         crate.xy = new Xy(crateDestTile.x, crateDestTile.y);
     }
 
@@ -109,4 +141,4 @@ async function stepByStep(agent, fromTile, toTile) {
     fromTile.unlock();
 }
 
-export { move, stepByStep };
+export { move, stepByStep, isMoveFeasible };

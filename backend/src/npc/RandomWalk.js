@@ -1,5 +1,6 @@
 import timersPromises from 'timers/promises'; // await timersPromises.setImmediate();
 import Autopilot from './Autopilot.js';
+import { config } from '../config/config.js';
 import waitForMovingEvent from './waitForMovingEvent.js';
 
 /** @type {('up'|'right'|'down'|'left')[]} */
@@ -56,7 +57,10 @@ class RandomWalk extends Autopilot {
         while ( ! this.stopRequested ) {
 
             let moved = false;
-            const plausible = this.agent.commands.ask(actions[index], 'plausible', {}, true);
+            // Never move without a positive feasibility check: when no
+            // movement provider is attached (or mid-switch) the slot is empty
+            // and the plausible fallback must not silently allow the attempt
+            const plausible = this.agent.commands.ask(actions[index], 'plausible', {}, false);
             if ( plausible ) {
                 moved = await this.agent.commands.execute( actions[index], {}, false );
             }
@@ -65,10 +69,9 @@ class RandomWalk extends Autopilot {
                 // wait before continue
                 await waitForMovingEvent(this.options.moving_event);
             else
-                // if agent is stucked, this avoid blocking the whole program
-                await timersPromises.setImmediate();
-                // await new Promise( res => process.nextTick( res ) ); // this may get stucked in infinite loop
-                // await myClock.once( 'frame' );
+                // if agent is stucked, wait one move duration before trying
+                // another direction, otherwise it spins in a tight retry loop
+                await timersPromises.setTimeout( config.GAME.player.movement_duration );
 
             // straigth or turn left or right, not going back
             index += [0,1,3][ Math.floor(Math.random()*3) ];

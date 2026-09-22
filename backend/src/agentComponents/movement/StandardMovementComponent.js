@@ -81,8 +81,9 @@ class StandardMovementComponent {
 
     isMovePlausible(agent, direction, grid = agent.grid) {
         const [dx, dy] = DELTAS[direction];
-        const tile = grid.tiles.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
-        return Boolean(tile && tile.walkable && !tile.locked);
+        // Faithful dry-run of worldRules.move: directional restrictions,
+        // boundary, walkability, locks and crate chains included
+        return worldRules.isMoveFeasible(grid, agent, dx, dy);
     }
 }
 
