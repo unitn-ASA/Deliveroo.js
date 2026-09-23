@@ -161,7 +161,7 @@ function saveJson() {
             </div>
 
             <!-- JSON editor -->
-            <textarea v-model="jsonText" rows="40" class="w-full textarea bg-base-300 text-base-content text-xs font-mono whitespace-nowrap"
+            <textarea v-model="jsonText" rows="40" class="w-full textarea bg-base-300 text-base-content text-xs font-mono whitespace-pre"
                 @focus="inputFocused = 'GAME_JSON'"
                 @input="onInputChange"
                 :disabled="!admin"
