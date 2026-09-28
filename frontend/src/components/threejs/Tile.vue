@@ -77,13 +77,15 @@
         scene.remove(mesh);
     });
 
-    // Set scale and emissiveIntensity based on selection or hoovering
+    // Set scale and emissiveIntensity based on selection or hoovering.
+    // Scaling is XZ-only: a Y-scaled top plane would shift geometry upward,
+    // feeding the camera-follow lerp and making the hover flip in a loop
     watch( [() => tile.hoovered, () => tile.selected ], ([hovered, selected]) => {
         if ( hovered ) {
-            mesh.scale.set( 1.5, 1.5, 1.5 );
+            mesh.scale.set( 1.5, 1, 1.5 );
             // material.emissiveIntensity = 1;
         } else if ( selected ) {
-            mesh.scale.set( 1.3, 1.3, 1.3 ); // replaced by animation below
+            mesh.scale.set( 1.3, 1, 1.3 ); // replaced by animation below
             // material.emissiveIntensity = 1;
         } else {
             mesh.scale.set( 1, 1, 1 );

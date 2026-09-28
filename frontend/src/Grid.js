@@ -72,7 +72,8 @@ export class Grid {
                 name:'unknown',
                 teamId:'unknown',
                 teamName:'unknown',
-                x: undefined, y: undefined, score: -1, penalty: 0,
+                x: undefined, y: undefined, score: -1,
+                attributes: new Array(),
                 carrying: new Array(),
                 hoovered: false,
                 selected: computed({
@@ -230,7 +231,13 @@ export class Grid {
     hooverByMesh ( mesh ) {
         // console.log( 'Grid.js hooverByMesh', mesh );
         /** @type {UIAgent|UIParcel|UITile|UICrate|UIEntity|undefined} */
-        let byMesh = this.getAgentByMeshUUID( mesh?.uuid ) || this.getParcelByMeshUUID( mesh?.uuid ) || this.getCrateByMeshUUID( mesh?.uuid ) || this.getEntityByMeshUUID( mesh?.uuid ) || this.getTileByMeshUUID( mesh?.uuid );
+        let byMesh;
+        // The picked mesh may be a child of a registered mesh (e.g. the door
+        // frame carried by a tile): climb the parent chain until something
+        // resolves
+        for ( let object = mesh; object && ! byMesh; object = object.parent ) {
+            byMesh = this.getAgentByMeshUUID( object.uuid ) || this.getParcelByMeshUUID( object.uuid ) || this.getCrateByMeshUUID( object.uuid ) || this.getEntityByMeshUUID( object.uuid ) || this.getTileByMeshUUID( object.uuid );
+        }
         if (byMesh && 'hoovered' in byMesh && byMesh.hoovered) return; // null or already hoovered, return
 
         // Unhover previous hovered entity
@@ -258,23 +265,28 @@ export class Grid {
             }
         }
 
-        let agent = this.getAgentByMeshUUID( mesh?.uuid );
+        let agent, tile, parcel, crate, entity;
+        // Same parent-chain resolution as hooverByMesh: children of a
+        // registered mesh (door frame, knob, ...) select their root object
+        for ( let object = mesh; object && ! ( agent || tile || parcel || crate || entity ); object = object.parent ) {
+            agent = this.getAgentByMeshUUID( object.uuid );
+            tile = this.getTileByMeshUUID( object.uuid );
+            parcel = this.getParcelByMeshUUID( object.uuid );
+            crate = this.getCrateByMeshUUID( object.uuid );
+            entity = this.getEntityByMeshUUID( object.uuid );
+        }
         this.selectedAgent.value = this.selectedAgent.value == agent ? undefined : agent;
         if ( agent ) return;
 
-        let tile = this.getTileByMeshUUID( mesh?.uuid );
         setSelected( tile, this.selectedTile );
         if ( tile ) return;
 
-        let parcel = this.getParcelByMeshUUID( mesh?.uuid );
         setSelected( parcel, this.selectedParcel );
         if ( parcel ) return;
 
-        let crate = this.getCrateByMeshUUID( mesh?.uuid );
         setSelected( crate, this.selectedCrate );
         if ( crate ) return;
 
-        let entity = this.getEntityByMeshUUID( mesh?.uuid );
         setSelected( entity, this.selectedEntity );
         if ( entity ) return;
 
@@ -364,7 +376,7 @@ export class Grid {
             // Player snapshots carry the local agent as sensing.self. Admin
             // snapshots intentionally omit it because admins are agent-less.
             if (sensing.self) {
-                const { id, name, teamId, teamName, x, y, score, penalty, rotation, attributes } = sensing.self;
+                const { id, name, teamId, teamName, x, y, score, rotation, attributes } = sensing.self;
                 const me = this.me.value = this.getOrCreateAgent(id);
                 me.name = name;
                 me.teamId = teamId;
@@ -372,7 +384,6 @@ export class Grid {
                 me.x = x;
                 me.y = y;
                 me.score = score;
-                me.penalty = penalty;
                 me.rotation = rotation;
                 me.attributes = attributes;
             }
@@ -434,7 +445,7 @@ export class Grid {
             for ( const agent of sensing.agents ) {
                 // console.log('Grid.js agents sensing loop', agent, agent?.id)
                 if ( agent && agent.id ) {
-                    const {id, name, teamId, teamName, x, y, score, penalty, rotation, attributes} = agent;
+                    const {id, name, teamId, teamName, x, y, score, rotation, attributes} = agent;
                     var sensedAgent = this.getOrCreateAgent( id );
                     // console.log(`Agent ${name}(${id}) is sensed at position (${x},${y})`);
                     sensedAgent.name = name;
@@ -443,7 +454,6 @@ export class Grid {
                     sensedAgent.x = x;
                     sensedAgent.y = y;
                     sensedAgent.score = score;
-                    sensedAgent.penalty = penalty;
                     sensedAgent.rotation = rotation;
                     sensedAgent.attributes = attributes;
                     sensedAgent.opacity = 1;
