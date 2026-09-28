@@ -10,7 +10,6 @@ export function broadcastConfig(socket) {
         try {
             const _config = {
                 CLOCK: config.CLOCK,
-                PENALTY: config.PENALTY,
                 AGENT_TIMEOUT: config.AGENT_TIMEOUT,
                 BROADCAST_LOGS: config.BROADCAST_LOGS,
                 GAME: config.GAME

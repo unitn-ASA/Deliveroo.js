@@ -75,8 +75,7 @@ async function applyPickup(agent, ack) {
     try {
         result = await agent.actionMutex.execute(() => pickUp(agent.grid, agent)) || [];
     } catch (error) {
-        console.error(`[parcel] Pickup error for ${agent.name}(${agent.id}):`, error.message);
-        agent.penalty -= config.PENALTY;
+        agent.addWarning(`pickup failed: ${error.message}`);
         result = [];
     }
     if (ack) ack(result);
@@ -95,8 +94,7 @@ async function applyPutdown(agent, ids = [], ack) {
     try {
         result = await agent.actionMutex.execute(() => putDown(agent.grid, agent, ids)) || [];
     } catch (error) {
-        console.error(`[parcel] Putdown error for ${agent.name}(${agent.id}):`, error.message);
-        agent.penalty -= config.PENALTY;
+        agent.addWarning(`putdown failed: ${error.message}`);
         result = [];
     }
     if (ack) ack(result.map((parcel) => ({ id: parcel.id })));

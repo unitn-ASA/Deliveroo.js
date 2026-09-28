@@ -137,6 +137,16 @@ export async function connectClient(baseUrl, name, { admin = false } = {}) {
 }
 
 /**
+ * Warnings count (invalid client actions) of an agent state tracked via
+ * connectClient: the count rides the observable 'warnings' attribute.
+ * @param {{attributes?: {kind: string, value: number|string}[]}} state
+ * @returns {number}
+ */
+export function warningsOf(state) {
+    return Number(state.attributes?.find((attribute) => attribute.kind === 'warnings')?.value ?? 0);
+}
+
+/**
  * Emit a move and await its acknowledgement (bounded, never hangs).
  * @param {any} socket
  * @param {string} direction

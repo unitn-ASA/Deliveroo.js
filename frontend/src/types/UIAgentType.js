@@ -8,6 +8,8 @@
  *   status?: 'online' | 'offline' | 'lost' | 'out of range';
  *   opacity?: number;
  *   carrying?: string[];
+ *   lastSeenAt?: number;
+ *   lastSensing?: object;
  * }} UIAgent
  */
 

@@ -47,7 +47,6 @@ export function emitGodSensing(socket) {
                     x: a.x,
                     y: a.y,
                     score: a.score,
-                    penalty: a.penalty,
                     rotation: a.rotation,
                     attributes: a.attributes.toArray()
                 });

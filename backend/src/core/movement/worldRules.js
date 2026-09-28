@@ -70,10 +70,10 @@ function isMoveFeasible(grid, agent, incr_x, incr_y, { ignoreLockedAt = null } =
  * @param {import('../Agent.js').default} agent
  * @param {number} incr_x
  * @param {number} incr_y
- * @param {{penalize?: boolean, ignoreLockedAt?: {x: number, y: number} | null}} [options]
+ * @param {{countInvalid?: boolean, ignoreLockedAt?: {x: number, y: number} | null}} [options]
  * @returns {Promise<Xy|boolean>}
  */
-async function move(grid, agent, incr_x, incr_y, { penalize = true, ignoreLockedAt = null } = {}) {
+async function move(grid, agent, incr_x, incr_y, { countInvalid = true, ignoreLockedAt = null } = {}) {
     const fromTile = agent.tile;
     if (!fromTile) {
         return false;
@@ -81,10 +81,11 @@ async function move(grid, agent, incr_x, incr_y, { penalize = true, ignoreLocked
 
     if (!isMoveFeasible(grid, agent, incr_x, incr_y, { ignoreLockedAt })) {
         // Failed moves are routine contention (another agent standing there,
-        // walls, directional restrictions): they only apply the penalty and
-        // return false, no logging, otherwise busy NPCs would flood the output
-        if (penalize) {
-            agent.penalty -= config.PENALTY;
+        // walls, directional restrictions): they only count an invalid action
+        // and return false, no logging, otherwise busy NPCs would flood the
+        // output
+        if (countInvalid) {
+            agent.addWarning('blocked move');
         }
         return false;
     }

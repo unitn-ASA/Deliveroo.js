@@ -1,5 +1,3 @@
-import { config } from '../../config/config.js';
-
 const VALID_DIRECTIONS = ['up', 'down', 'left', 'right'];
 
 /**
@@ -32,8 +30,7 @@ function dispatchAction( agent, name, params, acknowledgementCallback ) {
     if ( name === 'move' ) {
         const { direction } = params;
         if ( typeof direction !== 'string' || ! VALID_DIRECTIONS.includes( direction ) ) {
-            agent.penalty -= config.PENALTY;
-            console.warn( `${agent.name}(${agent.id}) got penalty ${agent.penalty}: invalid move direction '${direction}'` );
+            agent.addWarning( `invalid move direction '${direction}'` );
             if ( acknowledgementCallback )
                 acknowledgementCallback( false );
             return;

@@ -23,11 +23,6 @@ parser.add_argument('-g', '--game', {
     help: 'Specify path to a game file. Examples are in @unitn-asa/deliveroo-js-assets package /assets/games/'
 });
 
-parser.add_argument('-pp', '--penalty', {
-    dest: 'PENALTY', type: 'int',
-    help: "Specify penalty in case of invalid action, default is 1"
-});
-
 parser.add_argument('-t', '--timeout', {
     dest: 'AGENT_TIMEOUT', type: 'int',
     help: "Specify the timeout for agents, default is 10000"
@@ -44,7 +39,6 @@ parser.add_argument('--broadcast-logs', {
  * @property {Number} [PORT]
  * @property {Number} [CLOCK]
  * @property {String} [GAME_FILE]
- * @property {Number} [PENALTY]
  * @property {Number} [AGENT_TIMEOUT]
  * @property {Boolean} [BROADCAST_LOGS]
  */

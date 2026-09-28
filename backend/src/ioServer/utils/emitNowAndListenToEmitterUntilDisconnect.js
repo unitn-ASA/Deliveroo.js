@@ -94,16 +94,16 @@ export function enhanceEmitter(emitter) {
 //     { on: (event, callback) => console.log(`Emitter listening to ${event}`),
 //       off: (event, callback) => console.log(`Emitter stopped listening to ${event}`)
 //     },
-//     'penalty',
-//     () => console.log('Penalty event emitted')
+//     'attributes',
+//     () => console.log('Attributes event emitted')
 // );
 
 // listenToEmitter(
 //     { on: (event, callback) => console.log(`Emitter listening to ${event}`),
 //       off: (event, callback) => console.log(`Emitter stopped listening to ${event}`)
 //     },
-//     'penalty',
-//     () => console.log('Penalty event emitted')
+//     'attributes',
+//     () => console.log('Attributes event emitted')
 // ).untilDisconnect(
 //     { on: (event, callback) => console.log(`Socket listening to ${event}`) }
 // ).emitNow();

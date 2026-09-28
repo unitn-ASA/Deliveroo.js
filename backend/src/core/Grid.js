@@ -142,6 +142,11 @@ class Grid {
         if ( ! seeds.some( ( { kind } ) => kind === 'movement_mode' ) ) {
             seeds.push( { kind: 'movement_mode', value: 'standard' } );
         }
+        // warnings counts invalid client actions (Agent.addWarning): seeded
+        // so the attribute always exists and is sensed from the start
+        if ( ! seeds.some( ( { kind } ) => kind === 'warnings' ) ) {
+            seeds.push( { kind: 'warnings', value: 0 } );
+        }
 
         // Create agent using factory, it is automatically registered in spatial registry
         var agent = this.#agents.create(identity, seeds);

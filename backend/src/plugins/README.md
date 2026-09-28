@@ -229,7 +229,7 @@ curl -X DELETE http://localhost:8080/api/plugins/leaderboard-plugin
 Client
     ↓ socket.emit('move', 'up')
 ioServer handleActions
-    ↓ validates direction (invalid -> penalty + ack(false))
+    ↓ validates direction (invalid -> warning + ack(false))
     ↓ agent.commands.dispatch('move', { direction, ack })
 Agent movement component
     ↓ applyMove: acquire action mutex, isolate errors, ack once

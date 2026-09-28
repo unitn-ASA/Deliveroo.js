@@ -101,9 +101,9 @@ export function setupConnectionHandlers(socket, agent) {
         setInterval(() => socket.emit('metrics', ...), 1000);
     }
 
-    // Penalty-based auto-kick
-    agent.emitter.on('penalty', () => {
-        if (agent.penalty < -1000) socket.disconnect();
+    // Warnings-based auto-kick
+    agent.emitter.on('attributes', () => {
+        if (Number(agent.attributes.get('warnings')?.value ?? 0) >= 1000) socket.disconnect();
     });
 }
 ```
@@ -116,7 +116,7 @@ export function setupConnectionHandlers(socket, agent) {
 - **Config emission:** Send game configuration
 - **Map/tiles updates:** Real-time tile changes
 - **Agent broadcasting:** Agent connection/disconnection
-- **"Me" updates:** Position, score, penalty, parcels
+- **"Me" updates:** Position, score, parcels, observable attributes
 - **Sensing updates:** Agent sensing data
 
 ```javascript
@@ -135,7 +135,7 @@ export function setupStateBroadcasting(socket, agent) {
     // Setup "me" updates
     agent.emitter.on('xy', meListener);
     agent.emitter.on('score', meListener);
-    agent.emitter.on('penalty', meListener);
+    agent.emitter.on('attributes', meListener);
     agent.emitter.on('carryingParcels', meListener);
 
     // Setup sensing updates

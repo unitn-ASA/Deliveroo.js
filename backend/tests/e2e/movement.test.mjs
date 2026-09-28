@@ -1,11 +1,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { adminRest, bootServer, connectClient, disconnectAll, move, poll, rest, sleep, teleport, withTimeout } from './helpers.mjs';
+import { adminRest, bootServer, connectClient, disconnectAll, move, poll, rest, sleep, teleport, warningsOf, withTimeout } from './helpers.mjs';
 
 /**
  * Movement contract under the standard movement component:
- * every action gets an acknowledgement, penalties land on the actor,
- * successful moves autorotate the agent to the movement direction.
+ * every action gets an acknowledgement, invalid actions count warnings on
+ * the actor, successful moves autorotate the agent to the movement direction.
  */
 
 let server;
@@ -39,31 +39,31 @@ test('every direction acknowledges (position or false), never hangs', async () =
     }
 });
 
-test('invalid direction is penalized and acked false', async () => {
-    const penaltyBefore = client.state.penalty;
+test('invalid direction counts a warning and acks false', async () => {
+    const warningsBefore = warningsOf(client.state);
     const ack = await move(client.socket, 'diagonal');
     assert.equal(ack, false, 'invalid direction acks false');
-    // the penalty reaches the client through the next sensing snapshot: wait for it
-    const penalty = await poll(
-        async () => client.state.penalty,
-        (p) => p < penaltyBefore,
+    // the warning reaches the client through the next sensing snapshot: wait for it
+    const warnings = await poll(
+        async () => warningsOf(client.state),
+        (w) => w > warningsBefore,
         1500, 50
     );
-    assert.ok(penalty < penaltyBefore,
-        `penalty must decrease (${penaltyBefore} -> ${penalty})`);
+    assert.ok(warnings > warningsBefore,
+        `warnings must increase (${warningsBefore} -> ${warnings})`);
 });
 
-test('non-string direction is penalized and acked false', async () => {
-    const penaltyBefore = client.state.penalty;
+test('non-string direction counts a warning and acks false', async () => {
+    const warningsBefore = warningsOf(client.state);
     // deliberately invalid non-string input
     const ack = await move(client.socket, /** @type {any} */ (42));
     assert.equal(ack, false, 'non-string direction acks false');
-    const penalty = await poll(
-        async () => client.state.penalty,
-        (p) => p < penaltyBefore,
+    const warnings = await poll(
+        async () => warningsOf(client.state),
+        (w) => w > warningsBefore,
         1500, 50
     );
-    assert.ok(penalty < penaltyBefore);
+    assert.ok(warnings > warningsBefore);
 });
 
 test('parallel moves both acknowledge; the conflict is rejected', async () => {

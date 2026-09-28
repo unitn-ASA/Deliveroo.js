@@ -8,8 +8,7 @@
  *     constructor() {
  *         this.actionMutex = new ActionMutex(myClock, {
  *             onConflict: () => {
- *                 this.penalty -= config.PENALTY;
- *                 console.warn(`${this.name} got penalty!`);
+ *                 this.addWarning('conflicting action!');
  *             }
  *         });
  *     }

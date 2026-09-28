@@ -314,7 +314,7 @@ export class DjsRestClient {
     /**
      * @param {string} token
      * @param {string} id
-     * @param {{score?:number, penalty?:number, attributes?:Record<string, number|string>}} agent
+     * @param {{score?:number, attributes?:Record<string, number|string>}} agent
      * @returns
      */
     async patchAgent ( token, id, agent ) {
@@ -650,7 +650,6 @@ export class DjsRestClient {
 //     teamId: 'team-1',
 //     teamName: 'Team 1',
 //     score: 0,
-//     penalty: 0,
 //     x: 0,
 //     y: 0
 // } )

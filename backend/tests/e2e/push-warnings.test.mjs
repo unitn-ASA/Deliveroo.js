@@ -1,11 +1,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    adminRest, bootServer, connectClient, disconnectAll, move, rest, setMovementMode, sleep, teleport
+    adminRest, bootServer, connectClient, disconnectAll, move, rest, setMovementMode, sleep, teleport, warningsOf
 } from './helpers.mjs';
 
 /**
- * Push movement mode: penalties land on the actor, never on the pushed agent.
+ * Push movement mode: warnings land on the actor, never on the pushed agent.
  * Fixture map: wall at (2,1); rows y=0 and y=2 are open corridors.
  */
 
@@ -45,26 +45,26 @@ test('successful push displaces the blocking agent', async () => {
     assert.deepEqual({ x: ack.x, y: ack.y }, { x: 1, y: 0 }, 'pusher takes the pushed agent cell');
     assert.deepEqual({ x: victim.state.x, y: victim.state.y }, { x: 2, y: 0 },
         'pushed agent is displaced one tile');
-    assert.equal(victim.state.penalty, 0, 'a successful push never penalizes the pushed agent');
+    assert.equal(warningsOf(victim.state), 0, 'a successful push never warns the pushed agent');
 });
 
-test('failed push penalizes the pusher only, never the pushed agent', async () => {
+test('failed push warns the pusher only, never the pushed agent', async () => {
     // B(1,1) is backed by the wall at (2,1): A(0,1) cannot push B into it
     await teleport(admin.socket, pusher.id, 0, 1);
     await teleport(admin.socket, victim.id, 1, 1);
     await sleep(300);
 
-    const pusherPenaltyBefore = pusher.state.penalty;
-    const victimPenaltyBefore = victim.state.penalty;
+    const pusherWarningsBefore = warningsOf(pusher.state);
+    const victimWarningsBefore = warningsOf(victim.state);
 
     const ack = await move(pusher.socket, 'right');
     await sleep(300);
 
     assert.equal(ack, false, 'push into the wall fails');
-    assert.ok(pusher.state.penalty < pusherPenaltyBefore,
-        `pusher pays for the impossible push (${pusherPenaltyBefore} -> ${pusher.state.penalty})`);
-    assert.equal(victim.state.penalty, victimPenaltyBefore,
-        `pushed agent pays nothing (${victimPenaltyBefore} -> ${victim.state.penalty})`);
+    assert.ok(warningsOf(pusher.state) > pusherWarningsBefore,
+        `pusher pays for the impossible push (${pusherWarningsBefore} -> ${warningsOf(pusher.state)})`);
+    assert.equal(warningsOf(victim.state), victimWarningsBefore,
+        `pushed agent pays nothing (${victimWarningsBefore} -> ${warningsOf(victim.state)})`);
     // neither agent moved
     assert.deepEqual({ x: pusher.state.x, y: pusher.state.y }, { x: 0, y: 1 });
     assert.deepEqual({ x: victim.state.x, y: victim.state.y }, { x: 1, y: 1 });

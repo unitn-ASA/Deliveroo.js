@@ -144,7 +144,6 @@ class Sensor {
             
             // On myself or other agents changes
             grid.agents.onChanged(this.#agentListener);
-            me.emitter.on('penalty', this.#selfStateChangedListener);
             me.emitter.on('rotation', this.#selfStateChangedListener);
             me.emitter.on('carryingParcels', this.#selfStateChangedListener);
 
@@ -174,7 +173,6 @@ class Sensor {
         
         // Cleanup listeners
         grid.agents.offChanged(this.#agentListener);
-        me.emitter.off('penalty', this.#selfStateChangedListener);
         me.emitter.off('rotation', this.#selfStateChangedListener);
         me.emitter.off('carryingParcels', this.#selfStateChangedListener);
         grid.parcels.offChanged(this.#parcelListener);
@@ -211,7 +209,6 @@ class Sensor {
                 x: a.x,
                 y: a.y,
                 score: a.score,
-                penalty: a.penalty,
                 rotation: a.rotation,
                 attributes: a.attributes.toArray()
             } );
@@ -262,7 +259,6 @@ class Sensor {
             x: this.#me.x,
             y: this.#me.y,
             score: this.#me.score,
-            penalty: this.#me.penalty,
             rotation: this.#me.rotation,
             attributes: this.#me.attributes.toArray()
         } );

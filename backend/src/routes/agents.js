@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
             teamId: agent.teamId,
             teamName: agent.teamName,
             score: agent.score,
-            penalty: agent.penalty
+            attributes: agent.attributes.toArray()
         };
     });
     res.status(200).json( agents );
@@ -190,20 +190,17 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *       - AdminQueryToken: []
  *         AdminHeaderToken: []
  *     requestBody:
- *       description: The agent information to be updated. Only the fields that are present will be updated.
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               score:
- *                 type: number
- *                 description: Current score of the agent
- *               penalty:
- *                 type: number
- *                 description: Current penalty of the agent
- *               attributes:
+    *       description: The agent information to be updated. Only the fields that are present will be updated.
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               score:
+    *                 type: number
+    *                 description: Current score of the agent
+    *               attributes:
  *                 type: object
  *                 description: Observable attributes to write (merge; no deletion). Values must be numbers or strings, e.g. {"movement_mode": "ghost", "rank": 5}
  *                 additionalProperties:
@@ -218,13 +215,11 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 message:
- *                   type: string
- *                 score:
- *                   type: number
- *                 penalty:
- *                   type: number
- *                 attributes:
+    *                 message:
+    *                   type: string
+    *                 score:
+    *                   type: number
+    *                 attributes:
  *                   type: array
  *                   description: The updated observable attributes, in the same format exposed by sensing
  *                   items:
@@ -257,8 +252,8 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
  *                 message:
  *                   type: string
  */
-// PATCH /agents/:id update an agent's score, penalty, or observable attributes
-router.patch('/:id', authorizeAdmin, async (req, res) => {
+    // PATCH /agents/:id update an agent's score or observable attributes
+    router.patch('/:id', authorizeAdmin, async (req, res) => {
 
     // log a message on same line as previous log
     process.stdout.write( `PATCH /api/agents/${req.params.id} ${JSON.stringify(req.body)}: ` );
@@ -282,23 +277,19 @@ router.patch('/:id', authorizeAdmin, async (req, res) => {
                 agent.attributes.set( kind, value );
             }
         }
-        if ( req.body.score !== undefined || req.body.penalty !== undefined ) {
-            if ( req.body.score !== undefined )
-                agent.score = Number.parseInt(req.body.score);
-            if ( req.body.penalty !== undefined )
-                agent.penalty = Number.parseInt(req.body.penalty);
+        if ( req.body.score !== undefined ) {
+            agent.score = Number.parseInt(req.body.score);
         }
-        if ( req.body.score === undefined && req.body.penalty === undefined && req.body.attributes === undefined ) {
-            return res.status(400).json( { message: `Score, penalty, or attributes not provided` } );
+        if ( req.body.score === undefined && req.body.attributes === undefined ) {
+            return res.status(400).json( { message: `Score or attributes not provided` } );
         }
         res.status(200).json( {
             message: `Agent ${id} updated`,
             score: agent.score,
-            penalty: agent.penalty,
             attributes: agent.attributes.toArray(),
             components: agent.commands.getRegisteredCommands()
         } );
-        console.log( `${agent.name}(${agent.id})`, JSON.stringify({score: agent.score, penalty: agent.penalty}) );
+        console.log( `${agent.name}(${agent.id})`, JSON.stringify({score: agent.score}) );
     } else {
         res.status(404).json( { message: `Agent ${id} not found` } );
         console.warn( `Agent ${id} not found` );

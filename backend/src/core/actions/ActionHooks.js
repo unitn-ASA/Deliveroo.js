@@ -5,7 +5,7 @@
  * agent components run them while keeping a single command handler per
  * action. Hooks compose instead of replacing:
  *
- * - beforeMove: may veto a move by returning false (no penalty, no cost)
+ * - beforeMove: may veto a move by returning false (no warnings, no cost)
  * - afterMove: runs after a successful move (spend costs, consume items)
  * - pickup: intercepting handlers, ordered by priority; the first handler
  *   returning a non-undefined result handles the pickup, otherwise the core

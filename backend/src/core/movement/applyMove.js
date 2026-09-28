@@ -1,5 +1,3 @@
-import { config } from '../../config/config.js';
-
 /**
  * Execute one movement command under the agent action mutex and acknowledge once.
  * The movement behavior is supplied by the active command plugin.
@@ -15,8 +13,7 @@ async function applyMove(agent, direction, move, owner, ack) {
     try {
         result = await agent.actionMutex.execute(() => move(agent, direction, agent.grid));
     } catch (error) {
-        console.error(`[movement:${owner}] Move error for ${agent.name}(${agent.id}):`, error.message);
-        agent.penalty -= config.PENALTY;
+        agent.addWarning(`move failed: ${error.message}`);
         result = false;
     }
     if (ack) ack(result);

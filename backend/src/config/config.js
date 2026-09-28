@@ -137,9 +137,6 @@ async function lazyLoading( config ) {
     }
 
     // 5. Overwrite config with values specified as args
-    if (args.PENALTY !== undefined) {
-        config.PENALTY = args.PENALTY;
-    }
     if (args.AGENT_TIMEOUT !== undefined) {
         config.AGENT_TIMEOUT = args.AGENT_TIMEOUT;
     }
@@ -147,7 +144,7 @@ async function lazyLoading( config ) {
         config.BROADCAST_LOGS = args.BROADCAST_LOGS;
     }
 
-    console.log("config.js lazyLoading() config:", { CLOCK: config.CLOCK, PENALTY: config.PENALTY, AGENT_TIMEOUT: config.AGENT_TIMEOUT, BROADCAST_LOGS: config.BROADCAST_LOGS });
+    console.log("config.js lazyLoading() config:", { CLOCK: config.CLOCK, AGENT_TIMEOUT: config.AGENT_TIMEOUT, BROADCAST_LOGS: config.BROADCAST_LOGS });
     
 }
 
@@ -164,9 +161,6 @@ export const config = {
 
     /** @type {Number} */
     CLOCK:          args.CLOCK   || Number(process.env.CLOCK)           || 50,
-    
-    /** @type {Number} */
-    PENALTY:                        Number(process.env.PENALTY)         || 1,
     
     /** @type {Number} */
     AGENT_TIMEOUT:                  Number(process.env.AGENT_TIMEOUT)   || 10000,
@@ -246,11 +240,6 @@ watchProperty( {
     target: config,
     key: 'GAME',
     callback: atNextTick( (target, key, value) => configEmitter.emit('GAME', config.GAME) )
-} );
-watchProperty( {
-    target: config,
-    key: 'PENALTY',
-    callback: atNextTick((target, key, value) => configEmitter.emit('PENALTY', config.PENALTY) )
 } );
 watchProperty( {
     target: config,

@@ -32,9 +32,6 @@ const router = express.Router();
  *                 BROADCAST_LOGS:
  *                   type: boolean
  *                   description: Whether logs are broadcast
- *                 PENALTY:
- *                   type: number
- *                   description: Penalty for invalid actions
  *                 GAME:
  *                   type: object
  *                   description: Game configuration
@@ -51,7 +48,6 @@ router.get('/', async (req, res) => {
         CLOCK: config.CLOCK,
         AGENT_TIMEOUT: config.AGENT_TIMEOUT,
         BROADCAST_LOGS: config.BROADCAST_LOGS,
-        PENALTY: config.PENALTY,
         GAME: config.GAME,
     };
 
@@ -85,9 +81,6 @@ router.get('/', async (req, res) => {
  *               CLOCK:
  *                 type: number
  *                 description: Clock speed in milliseconds
- *               PENALTY:
- *                 type: number
- *                 description: Penalty for invalid actions
  *               GAME:
  *                 type: object
  *                 description: Game configuration
@@ -107,8 +100,6 @@ router.get('/', async (req, res) => {
  *                   type: number
  *                 BROADCAST_LOGS:
  *                   type: boolean
- *                 PENALTY:
- *                   type: number
  */
 /**
  * PATCH /api/config/server
@@ -119,7 +110,7 @@ router.patch('/', authorizeAdmin, async (req, res) => {
     console.log(`PATCH /api/config/server`, req.body);
 
     // Update only server-configurable properties
-    const updatable = ['BROADCAST_LOGS', 'AGENT_TIMEOUT', 'CLOCK', 'PENALTY'];
+    const updatable = ['BROADCAST_LOGS', 'AGENT_TIMEOUT', 'CLOCK'];
 
     for (const key of updatable) {
         if (req.body[key] !== undefined && config[key] !== req.body[key]) {
@@ -142,7 +133,6 @@ router.patch('/', authorizeAdmin, async (req, res) => {
         CLOCK: config.CLOCK,
         AGENT_TIMEOUT: config.AGENT_TIMEOUT,
         BROADCAST_LOGS: config.BROADCAST_LOGS,
-        PENALTY: config.PENALTY,
     });
 });
 

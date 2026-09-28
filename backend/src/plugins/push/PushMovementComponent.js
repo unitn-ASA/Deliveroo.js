@@ -1,5 +1,4 @@
 import MovementModeComponentBase from '../MovementModeComponentBase.js';
-import { config } from '../../config/config.js';
 import { DELTAS } from '../../core/movement/directions.js';
 import * as worldRules from '../../core/movement/worldRules.js';
 
@@ -14,9 +13,9 @@ class PushMovementComponent extends MovementModeComponentBase {
 
         const pushed = grid.agents.getOneByXy({ x: agent.x + dx, y: agent.y + dy });
         if (pushed && pushed !== agent) {
-            const pushOk = await worldRules.move(grid, pushed, dx, dy, { penalize: false });
+            const pushOk = await worldRules.move(grid, pushed, dx, dy, { countInvalid: false });
             if (!pushOk) {
-                agent.penalty -= config.PENALTY;
+                agent.addWarning('push blocked by the pushed agent');
                 return false;
             }
         }

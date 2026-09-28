@@ -1,4 +1,3 @@
-import { config } from '../config/config.js';
 import Xy from './Xy.js';
 import Grid from './Grid.js';
 import Tile from './Tile.js';
@@ -24,7 +23,7 @@ import SpatialObject from './SpatialObject.js';
  */
 
 /**
- * @typedef {{xy: [Xy], score: [number], penalty: [number], rotation: [number], carryingParcels: [Set<Parcel>], attributes: [any], deleted: [Agent]}} AgentEventsMap
+ * @typedef {{xy: [Xy], score: [number], warnings: [number], rotation: [number], carryingParcels: [Set<Parcel>], attributes: [any], deleted: [Agent]}} AgentEventsMap
 */
 
 
@@ -65,9 +64,6 @@ class Agent extends SpatialObject {
     
     /** @type {Number} score */
     score;
-
-    /** @type {Number} */
-    penalty = 0;
 
     /**
      * Facing direction: 0 = up (North), 1 = right (East), 2 = down (South),
@@ -124,16 +120,6 @@ class Agent extends SpatialObject {
 
         watchProperty({
             target: this,
-            key: 'penalty',
-            callback: atNextTick((target, key, value) => {
-                target.emitter.emit('penalty', value);
-                target.emitter.emit('changed', { object: target, key });
-            })
-        });
-        // this.#emitter.emit('penalty', this.penalty) // to immediately emit agent when spawning
-
-        watchProperty({
-            target: this,
             key: 'rotation',
             callback: atNextTick((target, key, value) => {
                 target.emitter.emit(key, value);
@@ -172,11 +158,23 @@ class Agent extends SpatialObject {
         // Create exclusive action wrapper (isDoing is managed internally via WeakMap)
         this.#actionMutex = new ActionMutex(myClock, {
             onConflict: () => {
-                this.penalty -= config.PENALTY;
-                console.warn(`${this.name}(${this.id}) got penalty ${this.penalty}: trying to do something without waiting for previous action to finish!`);
+                this.addWarning('trying to do something without waiting for previous action to finish!');
             }
         });
 
+    }
+
+    /**
+     * Record an invalid client action on the observable 'warnings' attribute:
+     * monitoring only, it never touches the score. The attribute is seeded at
+     * creation (Grid.createAgent) and sensed by the agent itself and by the
+     * other agents nearby.
+     * @param {string} reason
+     */
+    addWarning ( reason ) {
+        const current = Number( this.attributes.get('warnings')?.value ?? 0 );
+        this.attributes.set( 'warnings', current + 1 );
+        console.warn( `${this.name}(${this.id}) warning #${current + 1}: ${reason}` );
     }
 
     /**

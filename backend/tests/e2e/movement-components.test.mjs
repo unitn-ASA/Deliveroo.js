@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import {
     adminRest, bootServer, connectClient, disconnectAll, move, poll, rest, sleep,
-    setMovementMode, teleport
+    setMovementMode, teleport, warningsOf
 } from './helpers.mjs';
 
 const GHOST_FIXTURE = new URL('../fixtures/e2e-ghost-default.json', import.meta.url).pathname;
@@ -56,11 +56,11 @@ test('standard movement mode blocks walls', async () => {
     await teleport(admin.socket, a.id, 1, 1);
     await sleep(200);
 
-    const penaltyBefore = a.state.penalty;
+    const warningsBefore = warningsOf(a.state);
     const ack = await move(a.socket, 'right');
     assert.equal(ack, false);
-    const penalty = await poll(async () => a.state.penalty, (p) => p < penaltyBefore, 1500, 50);
-    assert.ok(penalty < penaltyBefore);
+    const warnings = await poll(async () => warningsOf(a.state), (w) => w > warningsBefore, 1500, 50);
+    assert.ok(warnings > warningsBefore);
 });
 
 test('rotation movement mode rotates in place, then forward moves along the facing', async () => {

@@ -75,6 +75,7 @@ export class Grid {
                 x: undefined, y: undefined, score: -1,
                 attributes: new Array(),
                 carrying: new Array(),
+                lastSeenAt: 0,
                 hoovered: false,
                 selected: computed({
                     get: () => this.selectedAgent.value?.id == id,
@@ -386,6 +387,8 @@ export class Grid {
                 me.score = score;
                 me.rotation = rotation;
                 me.attributes = attributes;
+                me.lastSeenAt = Date.now();
+                me.lastSensing = sensing.self;
             }
 
             // /** @type {IOSensing[]} */
@@ -457,6 +460,8 @@ export class Grid {
                     sensedAgent.rotation = rotation;
                     sensedAgent.attributes = attributes;
                     sensedAgent.opacity = 1;
+                    sensedAgent.lastSeenAt = Date.now();
+                    sensedAgent.lastSensing = agent;
                     sensedAgent.status = 'online';
                     // console.log('Grid.js sensed agent', id, name, 'at', x, y);
                 }

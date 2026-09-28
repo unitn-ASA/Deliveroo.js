@@ -153,7 +153,7 @@ class EnergyPlugin extends PluginBase {
     }
 
     /**
-     * Veto hook: an exhausted agent cannot move (no penalty, no cost).
+     * Veto hook: an exhausted agent cannot move (no warnings, no cost).
      * @param {import('../../core/actions/ActionHooks.js').MoveHookContext} ctx
      */
     #gateMove({ agent }) {

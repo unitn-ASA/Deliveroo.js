@@ -20,7 +20,7 @@ const actions = [ 'up', 'right', 'down', 'left' ];
  * stopRequested    false               | true      | false
  *
  * Moves through the agent-local command bus. Component-specific plausibility
- * prechecks keep wandering penalty-free when available.
+ * prechecks keep wandering warning-free when available.
  *
  * @class
  * @extends { Autopilot }

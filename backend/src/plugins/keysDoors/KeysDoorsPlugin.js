@@ -127,7 +127,7 @@ class KeysDoorsPlugin extends PluginBase {
     }
 
     /**
-     * Veto hook: entering a door tile requires a key (no penalty, no cost).
+     * Veto hook: entering a door tile requires a key (no warnings, no cost).
      * @param {import('../../core/actions/ActionHooks.js').MoveHookContext} ctx
      */
     #gateDoor({ agent, toTile }) {

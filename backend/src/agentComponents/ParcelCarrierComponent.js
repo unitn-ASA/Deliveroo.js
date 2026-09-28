@@ -1,4 +1,3 @@
-import { config } from '../config/config.js';
 import { pickUp, putDown } from '../core/parcelActions.js';
 import { actionHooks } from '../core/actions/ActionHooks.js';
 
@@ -42,8 +41,7 @@ class ParcelCarrierComponent {
                 return picked;
             }) ?? [];
         } catch (error) {
-            console.error(`[parcel] Pickup error for ${agent.name}(${agent.id}):`, error.message);
-            agent.penalty -= config.PENALTY;
+            agent.addWarning(`pickup failed: ${error.message}`);
             result = [];
         }
         if (ack) ack(result);
@@ -77,8 +75,7 @@ class ParcelCarrierComponent {
                 return dropped;
             }) ?? [];
         } catch (error) {
-            console.error(`[parcel] Putdown error for ${agent.name}(${agent.id}):`, error.message);
-            agent.penalty -= config.PENALTY;
+            agent.addWarning(`putdown failed: ${error.message}`);
             result = [];
         }
         if (ack) ack(result.map((parcel) => ({ id: parcel.id })));

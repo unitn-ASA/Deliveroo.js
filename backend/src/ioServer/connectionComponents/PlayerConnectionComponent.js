@@ -1,6 +1,6 @@
 import { myGrid } from '../../myGrid.js';
 import { deleteAgentWhenNoConnectionsLeft } from '../connections/deleteAgentWhenNoConnectionsLeft.js';
-import { disconnectWhenPenaltyExceeded } from '../connections/disconnectWhenPenaltyExceeded.js';
+import { disconnectWhenTooManyWarnings } from '../connections/disconnectWhenTooManyWarnings.js';
 import { emitSensing } from '../emitters/emitSensing.js';
 import { handleActions } from '../handlers/handleActions.js';
 
@@ -40,8 +40,8 @@ class PlayerConnectionComponent {
         // Setup connection lifecycle handlers
         deleteAgentWhenNoConnectionsLeft(socket, me);
 
-        // Setup penalty-based auto-kick
-        disconnectWhenPenaltyExceeded(socket, me);
+        // Setup warnings-based auto-kick
+        disconnectWhenTooManyWarnings(socket, me);
 
         // Sensing updates
         emitSensing(socket, me);
