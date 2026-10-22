@@ -66,6 +66,10 @@ The `@unitn-asa/deliveroo-js-sdk` package provides:
 
 ## Common Development Commands
 
+## Git Workflow
+
+- Never stage changes (`git add`) or create commits unless the user explicitly asks to do so.
+
 ### Backend (Node.js + Express)
 
 ```bash
@@ -108,6 +112,7 @@ npm test            # Run SDK tests
 - **Sensing**: Limited observation distance for nearby entities
 - **Actions**: Move (up/down/left/right), pickup, putdown parcels
 - **Communication**: say (1-to-1), ask (request-reply), shout (broadcast)
+- **Communications hub**: `backend/src/ioServer/communicationsHub.js` is the server-wide bus between socket traffic and plugins — every say/shout/ask is published as a hub `msg` event, and plugins announce server-side messages (`communicationsHub.announce()`) that `ioServer.js` broadcasts to all clients as ordinary `msg` events from a server identity (e.g. `mission-master`, `tournament-master`)
 - **Movement modes**: The observable `movement_mode` attribute ('standard' | 'ghost' | 'push' | 'rotation', seeded from `GAME.player.attributes` or written via the agent REST API `attributes` body) drives the four explicit directional commands `up`/`down`/`left`/`right`: per-mode provider plugins (config-driven, from `plugins: ["ghost", "push", "rotation"]`) attach attribute-driven components that claim those command slots while their mode is selected; the core standard movement is the self-healing default of the slots
 - **Config-seeded attributes**: `GAME.player.attributes` maps attribute kinds to initial number/string values applied at agent creation; plugins adopt seeded values they manage (e.g. energy)
 - **Plugin actions (joystick protocol)**: Commands are joystick-like buttons, parameterless in practice: explicit directional commands (`up`/`down`/`left`/`right`), `pickup`, `putdown` (drop all), plus plugin ones (e.g. the config-driven `shooter` plugin fires a laser along the agent facing). Plugins register additional commands with an optional documentation descriptor (`{description?, params?}`, params reserved for future plugin commands, never validated) on each agent's command bus; clients discover the registered commands (native ones included) via REST (`GET /api/agents/:id/commands`, readable by the agent itself or an admin) and invoke any command via the generic `action` socket event or the SDK `emitAction()` (which unwraps the envelope and throws on failure). The `action` ack is the `IOActionEnvelope` (`{success: true, result} | {success: false, error}`), fired exactly once at command completion, when the action mutex is already released; the dedicated `move`/`pickup`/`putdown` events remain as validated backward-compatible wrappers with their legacy raw acknowledgements, translated to the same command bus
@@ -117,6 +122,12 @@ npm test            # Run SDK tests
 - **Rewards**: Decaying reward value over time
 - **Delivery**: Points scored by delivering to delivery tiles
 - **Capacity**: Agents have limited parcel carrying capacity
+
+### Missions
+- **Scripted missions**: `config.GAME.missions` (enabled by `plugins: ["missions"]`) is loaded into one internal plugin instance per descriptor (`goto`, `deliverAt`, `deliverExactlyNParcels`, `deliverLessValueThan`, `onePickupAnotherDeliver`, `questionAnswer`, `redLightGreenLight`). Each mission subscribes directly to its own action/communication hooks and owns its activation timer; the `missions` plugin only loads and disposes these instances. A game without a `missions` field carries no missions (the previous map's script is never inherited)
+- **Common fields**: `prompt`, `bonus` (negative = penalty), `unatantum` (default true, claimable once per agent per round), `announce` (default true), `startAfter` (delay in seconds before the mission activates — until its timer fires the mission is listed but inactive: no game fact reaches it and nothing can be claimed); invalid entries are warned and skipped
+- **Chat integration**: the `mission-master` identity announces prompts and awards; agents answer `questionAnswer` missions by shouting or saying to `mission-master`
+- **Secrecy**: the missions script never reaches non-admin agents — it is stripped from the `config` socket payload and `GET /api/games` payloads they receive (admins keep it, the level editor needs to re-send it) and `GET /api/missions` (admin-only) is the only REST surface: agents must interpret the announced prompts, not read the script
 
 ### Admin Mode
 - Login as `god` for unlimited observation and admin capabilities

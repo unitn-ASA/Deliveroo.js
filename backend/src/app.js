@@ -15,6 +15,7 @@ import { gamesRouter } from '@unitn-asa/deliveroo-js-assets';
 import agentsRoutes from './routes/agents.js';
 import npcsRoutes from './routes/npcs.js';
 import parcelsRoutes from './routes/parcels.js';
+import missionsRoutes from './routes/missions.js';
 import { tokenMiddleware, verifyTokenMiddleware, signTokenMiddleware, authorizeAdmin } from './middlewares/token.js';
 import { createPluginRoutes } from './routes/plugins.js';
 
@@ -115,6 +116,7 @@ app.use('/api/configs', configsRoutes);          // api/configs      GET configs
 app.use('/api/agents', agentsRoutes);           // api/agents       GET, POST, GET/:id, PATCH/:id agents on the grid
 app.use('/api/npcs', npcsRoutes);               // api/npcs         GET, GET/:id, PATCH, POST
 app.use('/api/parcels', parcelsRoutes);         // api/parcels      GET, GET/:id, POST
+app.use('/api/missions', missionsRoutes);       // api/missions     GET missions of the game script
 
 // Plugin management routes
 app.use('/api/plugins', createPluginRoutes(pluginRegistry));
@@ -122,7 +124,23 @@ app.use('/api/plugins', createPluginRoutes(pluginRegistry));
 // Content API routes (static content delivery - mounted at /api/content/*)
 // GET requests are public, POST requests require admin authorization
 app.post('/api/games', authorizeAdmin, gamesRouter);
-app.use('/api/games', gamesRouter);
+app.use('/api/games', (req, res, next) => {
+    if (req.method !== 'GET' || req['user']?.role === 'admin') {
+        next();
+        return;
+    }
+
+    const json = res.json.bind(res);
+    res.json = (body) => {
+        const stripMissions = (game) => {
+            if (!game || typeof game !== 'object') return game;
+            const { missions, ...publicGame } = game;
+            return publicGame;
+        };
+        return json(Array.isArray(body) ? body.map(stripMissions) : stripMissions(body));
+    };
+    next();
+}, gamesRouter);
 
 app.use( (req, res, next) => { 
     console.error(`${req.method} ${req.url} - Not Found`);

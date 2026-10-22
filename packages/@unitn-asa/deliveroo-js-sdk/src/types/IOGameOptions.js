@@ -5,7 +5,7 @@
 
 /**
  * @typedef IOGameOptions
- * 
+ *
  * config.js
  * @property {string} title                             Game title
  * @property {string} description                       Game description
@@ -14,8 +14,31 @@
  * @property {string[]} [plugins]                       Optional: ids of plugins to load and start (discovered from src/plugins/ manifests)
  * @property {IOEnergyPluginOptions} [energy]            Optional: energy plugin configuration
  * @property {IOParcelsOptions} parcels                 Parcels configuration
- * @property {IOPlayerOptions} player                   Player configuration * 
+ * @property {IOPlayerOptions} player                   Player configuration *
+ * @property {IOMissionDescriptor[]} [missions]         Optional: missions script consumed by the missions plugin
  */
+
+/**
+ * @typedef IOMissionDescriptor
+ * Mission script entry consumed by the missions plugin
+ * @property {'goto'|'deliverAt'|'deliverExactlyNParcels'|'deliverLessValueThan'|'onePickupAnotherDeliver'|'questionAnswer'|'redLightGreenLight'} type    Mission type
+ * @property {string} [prompt]                          Prompt announced in chat
+ * @property {number} [bonus]                           Points awarded (negative for penalties)
+ * @property {boolean} [unatantum]                      Claimable at most once per agent (default true)
+ * @property {boolean} [announce]                          Announce the mission in chat (default true)
+ * @property {number} [startAfter]                        Delay in seconds before the mission activates (default 0: immediately)
+ * @property {{x: number, y: number}[]} [coordinates]   goto/deliverAt target tiles
+ * @property {boolean} [requireDelivery]                deliverAt: score only on a delivery tile (default true)
+ * @property {number} [parcels]                         deliverExactlyNParcels: exact delivered-parcels count
+ * @property {number} [threshold]                       deliverLessValueThan: carrying value threshold
+ * @property {string} [question]                        questionAnswer: announced question
+ * @property {string[]} [answers]                       questionAnswer: accepted answers
+ * @property {number} [greenMs]                         redLightGreenLight: green phase duration in ms
+ * @property {number} [redMs]                           redLightGreenLight: red phase duration in ms
+ * @property {number} [rounds]                          redLightGreenLight: number of cycles, 0 = until disposed
+ */
+
+
 
 /**
  * @typedef IOMapOptions

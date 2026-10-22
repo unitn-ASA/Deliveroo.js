@@ -1,0 +1,70 @@
+{
+  "title": "e2e-missions",
+  "description": "Deterministic 5x3 map for missions E2E tests. First JSON row is the top (y flipped): delivery at (0,2), parcel spawner at (0,1), wall at (2,1); rows y=0 and y=2 are fully walkable corridors. No NPCs, no parcel generation: tests control parcels via admin commands.",
+  "map": {
+    "width": 5,
+    "height": 3,
+    "tiles": [
+      "2 3 3 3 3",
+      "1 3 0 3 3",
+      "3 3 3 3 3"
+    ]
+  },
+  "npcs": [],
+  "parcels": {
+    "generation_event": "infinite",
+    "decaying_event": "infinite",
+    "max": 10,
+    "reward_avg": 2,
+    "reward_variance": 0
+  },
+  "player": {
+    "movement_duration": 50,
+    "observation_distance": 5,
+    "capacity": 5
+  },
+  "plugins": ["missions"],
+  "missions": [
+    {
+      "type": "goto",
+      "prompt": "Reach (4,0)",
+      "bonus": 50,
+      "unatantum": true,
+      "coordinates": [{ "x": 4, "y": 0 }]
+    },
+    {
+      "type": "goto",
+      "prompt": "Do not pass through (1,2)",
+      "bonus": -5,
+      "unatantum": false,
+      "coordinates": [{ "x": 1, "y": 2 }]
+    },
+    {
+      "type": "deliverExactlyNParcels",
+      "prompt": "Deliver exactly one parcel",
+      "bonus": 60,
+      "unatantum": true,
+      "parcels": 1
+    },
+    {
+      "type": "questionAnswer",
+      "prompt": "What is the answer to everything?",
+      "question": "What is the answer to everything?",
+      "bonus": 70,
+      "unatantum": true,
+      "answers": ["42"]
+    },
+    {
+      "type": "goto",
+      "prompt": "Delayed reach (3,2)",
+      "bonus": 10,
+      "unatantum": true,
+      "startAfter": 3,
+      "coordinates": [{ "x": 3, "y": 2 }]
+    },
+    {
+      "type": "nope",
+      "prompt": "this invalid mission must be skipped"
+    }
+  ]
+}

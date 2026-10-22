@@ -21,6 +21,7 @@ import { authorizeAdmin } from '../middlewares/token.js';
  */
 export function createPluginRoutes(pluginRegistry) {
     const router = Router();
+    const canSeePlugin = (req, plugin) => !plugin.internal || req['user']?.role === 'admin';
 
     /**
      * @swagger
@@ -66,7 +67,7 @@ export function createPluginRoutes(pluginRegistry) {
      */
     router.get('/', (req, res) => {
         try {
-            const plugins = pluginRegistry.getAll().map((plugin) => ({
+            const plugins = pluginRegistry.getAll().filter((plugin) => canSeePlugin(req, plugin)).map((plugin) => ({
                 ...plugin.getManifest(),
                 status: plugin.status,
                 running: pluginRegistry.isRunning(plugin.id),
@@ -125,7 +126,14 @@ export function createPluginRoutes(pluginRegistry) {
      */
     router.get('/status', (req, res) => {
         try {
-            res.json({ success: true, ...pluginRegistry.getStatus() });
+            const visible = pluginRegistry.getAll().filter((plugin) => canSeePlugin(req, plugin));
+            res.json({
+                success: true,
+                totalPlugins: visible.length,
+                runningPlugins: visible.filter((plugin) => pluginRegistry.isRunning(plugin.id)).length,
+                commandHandlers: pluginRegistry.commandBus.getRegisteredCommands(),
+                plugins: visible.map((plugin) => plugin.getStatus())
+            });
         } catch (error) {
             res.status(500).json({ success: false, error: error.message });
         }
@@ -465,7 +473,7 @@ export function createPluginRoutes(pluginRegistry) {
         try {
             const { id } = req.params;
             const plugin = pluginRegistry.get(id);
-            if (!plugin) {
+            if (!plugin || !canSeePlugin(req, plugin)) {
                 return res.status(404).json({ success: false, error: `Plugin ${id} not found` });
             }
 

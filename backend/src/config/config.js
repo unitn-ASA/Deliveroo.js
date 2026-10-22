@@ -60,6 +60,11 @@ export async function loadGameConfig(json) {
         config.GAME.plugins = json.plugins.filter((id) => typeof id === 'string');
     }
 
+    // Missions script: consumed by the missions plugin when the game lists
+    // it in plugins; a game without a missions field carries no missions
+    // (the previous map's script is not inherited)
+    config.GAME.missions = Array.isArray(json.missions) ? json.missions : [];
+
     // Player configuration
     if (json.player?.attributes !== undefined) {
         const seeds = json.player.attributes;
@@ -198,6 +203,7 @@ export const config = {
             }
         ],
         plugins: [],
+        missions: [],
         parcels: {
             generation_event: '1s',
             decaying_event: '1s',

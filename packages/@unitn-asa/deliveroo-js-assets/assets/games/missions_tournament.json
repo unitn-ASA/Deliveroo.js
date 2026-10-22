@@ -1,0 +1,126 @@
+{
+  "title": "missions_tournament",
+  "description": "Demo 10x8 map with the missions and tournament plugins active: 7 missions announced by mission-master, endless tournament rounds cycling three maps with championship points",
+  "map": {
+    "width": 10,
+    "height": 8,
+    "tiles": [
+      "3 3 3 3 2 3 3 3 3 3",
+      "3 0 0 3 3 3 0 3 3 3",
+      "3 0 3 3 3 3 0 3 1 3",
+      "3 3 3 0 3 3 3 3 3 3",
+      "3 3 3 3 3 0 3 3 0 3",
+      "3 3 3 3 1 3 3 3 3 3",
+      "3 0 3 3 3 3 0 3 3 3",
+      "3 1 3 3 3 2 3 3 3 3"
+    ]
+  },
+  "npcs": [
+    {
+      "moving_event": "2s",
+      "type": "random",
+      "count": 1
+    }
+  ],
+  "parcels": {
+    "generation_event": "2s",
+    "decaying_event": "infinite",
+    "max": 15,
+    "reward_avg": 8,
+    "reward_variance": 4
+  },
+  "player": {
+    "movement_duration": 100,
+    "observation_distance": 5,
+    "capacity": 5
+  },
+  "plugins": [
+    "missions",
+    "tournament"
+  ],
+  "missions": [
+    {
+      "type": "goto",
+      "prompt": "Reach the top-right corner of the map at (8,6)",
+      "bonus": 30,
+      "coordinates": [
+        {
+          "x": 8,
+          "y": 6
+        }
+      ],
+      "startAfter": 5
+    },
+    {
+      "type": "goto",
+      "prompt": "Forbidden zone! Do not step on (2,2)",
+      "bonus": -10,
+      "unatantum": false,
+      "coordinates": [
+        {
+          "x": 2,
+          "y": 2
+        }
+      ],
+      "startAfter": 8
+    },
+    {
+      "type": "deliverAt",
+      "prompt": "Deliver a parcel on the bottom delivery tile at (5,0)",
+      "bonus": 35,
+      "coordinates": [
+        {
+          "x": 5,
+          "y": 0
+        }
+      ],
+      "startAfter": 11
+    },
+    {
+      "type": "deliverExactlyNParcels",
+      "prompt": "Deliver exactly 2 parcels at once",
+      "parcels": 2,
+      "bonus": 50,
+      "startAfter": 14
+    },
+    {
+      "type": "deliverLessValueThan",
+      "prompt": "Deliver parcels for a total value below 10",
+      "threshold": 10,
+      "bonus": 40,
+      "startAfter": 17
+    },
+    {
+      "type": "questionAnswer",
+      "prompt": "What is the capital of Italy? Shout the answer!",
+      "question": "What is the capital of Italy?",
+      "answers": [
+        "rome",
+        "roma"
+      ],
+      "bonus": 20,
+      "startAfter": 20
+    },
+    {
+      "type": "redLightGreenLight",
+      "prompt": "Green: move freely! Yellow: red is coming, stop! Red: moving is penalized!",
+      "greenMs": 3000,
+      "yellowMs": 2000,
+      "redMs": 4000,
+      "rounds": 0,
+      "bonus": -15,
+      "unatantum": false,
+      "startAfter": 12
+    }
+  ],
+  "tournament": {
+    "auto_start": true,
+    "round_duration": 300,
+    "include_npcs": false,
+    "games": [
+      "missions_tournament",
+      "missions_tournament_2",
+      "missions_tournament_3"
+    ]
+  }
+}

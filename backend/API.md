@@ -115,3 +115,32 @@ Status codes:
 - `400` - Bad request
 - `404` - Game not found
 - `500` - Server error
+
+---
+
+## Missions & Tournament API
+
+### `GET /api/missions` ⚠️ Admin
+Get every mission of the game script (`config.GAME.missions`), including the
+ones still waiting for their `startAfter` timer (listed with `active: false`
+and their `startsAt` epoch). The mission script never reaches non-admin agents
+through the config broadcast: this is the only surface reading it, admin-only
+by design — agents must interpret the announced prompts. Answers `403`
+without admin privileges and `503` when the missions plugin is not running.
+
+**Response:**
+```json
+{
+  "missions": [
+    {
+      "index": 0,
+      "type": "goto",
+      "prompt": "Reach (4,0)",
+      "bonus": 50,
+      "unatantum": true,
+      "config": { "coordinates": [{ "x": 4, "y": 0 }] },
+      "stats": { "awards": 2 }
+    }
+  ]
+}
+```

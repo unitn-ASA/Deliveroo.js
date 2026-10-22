@@ -1,0 +1,36 @@
+{
+  "title": "e2e-missions-rlgl",
+  "description": "Deterministic 3x1 map for the RedLightGreenLight missions E2E test: a single walkable row with one delivery tile.",
+  "map": {
+    "width": 3,
+    "height": 1,
+    "tiles": [
+      "2 3 3"
+    ]
+  },
+  "npcs": [],
+  "parcels": {
+    "generation_event": "infinite",
+    "decaying_event": "infinite",
+    "max": 0,
+    "reward_avg": 2,
+    "reward_variance": 0
+  },
+  "player": {
+    "movement_duration": 50,
+    "observation_distance": 5,
+    "capacity": 5
+  },
+  "plugins": ["missions"],
+  "missions": [
+    {
+      "type": "redLightGreenLight",
+      "prompt": "Red light green light",
+      "bonus": -10,
+      "greenMs": 700,
+      "yellowMs": 1200,
+      "redMs": 700,
+      "rounds": 3
+    }
+  ]
+}

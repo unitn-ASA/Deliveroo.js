@@ -483,6 +483,146 @@ export function validatePluginsOptions(plugins, path = 'plugins') {
 }
 
 /**
+ * Valid mission types for the missions plugin script (backend
+ * src/plugins/missions). The per-type required fields are checked by
+ * validateMissionDescriptor.
+ * @type {readonly string[]}
+ */
+export const VALID_MISSION_TYPES = [
+    'goto',
+    'deliverAt',
+    'deliverExactlyNParcels',
+    'deliverLessValueThan',
+    'onePickupAnotherDeliver',
+    'questionAnswer',
+    'redLightGreenLight'
+];
+
+/**
+ * Validate one mission descriptor of the game missions script.
+ * @param {any} mission - Mission descriptor to validate
+ * @param {string} path - JSON path to the descriptor
+ * @returns {ValidationResult} Validation result
+ */
+export function validateMissionDescriptor(mission, path) {
+    const result = new ValidationResult();
+
+    const objectResult = validateObject(mission, path, true);
+    if (!objectResult.valid) {
+        return result;
+    }
+
+    // Common fields
+    if (mission.type === undefined || !VALID_MISSION_TYPES.includes(mission.type)) {
+        result.addError(`Invalid mission type '${mission.type}'. Must be one of: ${VALID_MISSION_TYPES.join(', ')}`, `${path}.type`, mission.type);
+        return result;
+    }
+
+    const promptResult = validateString(mission.prompt, `${path}.prompt`);
+    result.merge(promptResult);
+
+    if (mission.bonus !== undefined) {
+        const bonusResult = validatePositiveNumber(mission.bonus, `${path}.bonus`, -Number.MAX_SAFE_INTEGER);
+        result.merge(bonusResult);
+    }
+
+    if (mission.unatantum !== undefined && typeof mission.unatantum !== 'boolean') {
+        result.addError(`Must be a boolean, got ${typeof mission.unatantum}`, `${path}.unatantum`, mission.unatantum);
+    }
+
+    if (mission.startAfter !== undefined) {
+        const startAfterResult = validatePositiveNumber(mission.startAfter, `${path}.startAfter`, 0);
+        result.merge(startAfterResult);
+    }
+
+    if (mission.announce !== undefined && typeof mission.announce !== 'boolean') {
+        result.addError(`Must be a boolean, got ${typeof mission.announce}`, `${path}.announce`, mission.announce);
+    }
+
+    // Per-type fields
+    const validateCoordinates = () => {
+        if (mission.coordinates === undefined) {
+            result.addError(`Required property "coordinates" is missing for '${mission.type}' missions`, `${path}.coordinates`);
+            return;
+        }
+        if (!Array.isArray(mission.coordinates) || mission.coordinates.length === 0) {
+            result.addError('Coordinates must be a non-empty array of {x, y}', `${path}.coordinates`, mission.coordinates);
+            return;
+        }
+        for (let i = 0; i < mission.coordinates.length; i++) {
+            const xy = mission.coordinates[i];
+            if (!xy || typeof xy !== 'object' || typeof xy.x !== 'number' || typeof xy.y !== 'number') {
+                result.addError(`Coordinate must be an object with numeric x and y`, `${path}.coordinates[${i}]`, xy);
+            }
+        }
+    };
+
+    switch (mission.type) {
+        case 'goto':
+        case 'deliverAt':
+            validateCoordinates();
+            if (mission.requireDelivery !== undefined && typeof mission.requireDelivery !== 'boolean') {
+                result.addError(`Must be a boolean, got ${typeof mission.requireDelivery}`, `${path}.requireDelivery`, mission.requireDelivery);
+            }
+            break;
+        case 'deliverExactlyNParcels': {
+            const parcelsResult = validatePositiveNumber(mission.parcels, `${path}.parcels`, 1);
+            result.merge(parcelsResult);
+            break;
+        }
+        case 'deliverLessValueThan': {
+            const thresholdResult = validatePositiveNumber(mission.threshold, `${path}.threshold`, 0);
+            result.merge(thresholdResult);
+            break;
+        }
+        case 'questionAnswer': {
+            const questionResult = validateString(mission.question, `${path}.question`);
+            result.merge(questionResult);
+            if (!Array.isArray(mission.answers) || mission.answers.length === 0 || mission.answers.some((a) => typeof a !== 'string')) {
+                result.addError('Answers must be a non-empty array of strings', `${path}.answers`, mission.answers);
+            }
+            break;
+        }
+        case 'redLightGreenLight': {
+            for (const key of ['greenMs', 'yellowMs', 'redMs']) {
+                if (mission[key] !== undefined) {
+                    result.merge(validatePositiveNumber(mission[key], `${path}.${key}`, 500));
+                }
+            }
+            if (mission.rounds !== undefined && (typeof mission.rounds !== 'number' || !Number.isFinite(mission.rounds) || mission.rounds < 0)) {
+                result.addError('Rounds must be a non-negative number (0 = endless)', `${path}.rounds`, mission.rounds);
+            }
+            break;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Validate the missions script of a game: an optional array of mission
+ * descriptors consumed by the missions plugin.
+ * @param {any} missions - Missions script to validate
+ * @param {string} [path='missions'] - JSON path to the value
+ * @returns {ValidationResult} Validation result
+ */
+export function validateMissionsOptions(missions, path = 'missions') {
+    const result = new ValidationResult();
+
+    if (!Array.isArray(missions)) {
+        result.addError('Missions must be an array of mission descriptors', path, missions);
+        return result;
+    }
+
+    for (let i = 0; i < missions.length; i++) {
+        result.merge(validateMissionDescriptor(missions[i], `${path}[${i}]`));
+    }
+
+    return result;
+}
+
+
+/**
  * Validate IOGameOptions
  * @param {any} game - Game options to validate
  * @returns {ValidationResult} Validation result
@@ -541,6 +681,11 @@ export function validateGameOptions(game) {
     // Validate plugins list
     if (game.plugins !== undefined) {
         result.merge(validatePluginsOptions(game.plugins, 'plugins'));
+    }
+
+    // Validate missions script
+    if (game.missions !== undefined) {
+        result.merge(validateMissionsOptions(game.missions, 'missions'));
     }
 
     return result;

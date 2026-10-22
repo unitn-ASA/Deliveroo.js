@@ -57,6 +57,8 @@ class PluginBase {
         this.version = manifest.version || '1.0.0';
         this.description = manifest.description || '';
         this.options = options;
+        /** Internal plugins are omitted from public plugin discovery APIs. */
+        this.internal = false;
         /** @type {'idle'|'starting'|'running'|'stopped'|'error'} */
         this.status = 'idle';
         this.startedAt = null;

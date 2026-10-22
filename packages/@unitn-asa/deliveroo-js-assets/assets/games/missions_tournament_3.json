@@ -1,0 +1,118 @@
+{
+  "title": "missions_tournament_3",
+  "description": "Demo 14x10 map of the missions tournament rotation: corner race and tricky red lights announced by the mission-master. Listed by the tournament.games rotation of missions_tournament",
+  "map": {
+    "width": 14,
+    "height": 10,
+    "tiles": [
+      "3 3 3 3 3 3 3 3 3 3 3 3 2 3",
+      "3 0 0 0 3 3 3 3 3 0 0 0 3 3",
+      "3 3 3 0 3 1 3 3 0 3 3 0 3 3",
+      "3 0 3 0 3 3 3 3 3 3 0 3 3 3",
+      "3 0 3 3 3 0 0 3 1 3 3 3 0 3",
+      "3 0 0 0 3 3 3 3 3 3 3 0 0 3",
+      "3 3 3 3 3 3 0 3 3 0 3 3 3 3",
+      "3 0 3 3 0 3 3 3 3 3 3 0 3 3",
+      "3 3 0 3 3 3 3 0 3 3 0 3 3 3",
+      "3 3 3 3 3 1 2 3 3 3 3 3 3 3"
+    ]
+  },
+  "npcs": [
+    {
+      "moving_event": "3s",
+      "type": "random",
+      "count": 1
+    }
+  ],
+  "parcels": {
+    "generation_event": "2s",
+    "decaying_event": "infinite",
+    "max": 20,
+    "reward_avg": 10,
+    "reward_variance": 5
+  },
+  "player": {
+    "movement_duration": 100,
+    "observation_distance": 5,
+    "capacity": 5
+  },
+  "plugins": [
+    "missions",
+    "tournament"
+  ],
+  "missions": [
+    {
+      "type": "goto",
+      "prompt": "Race to the southwest corner of the map at (0,0)",
+      "bonus": 40,
+      "coordinates": [
+        {
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "startAfter": 5
+    },
+    {
+      "type": "goto",
+      "prompt": "Forbidden tile! Do not step on (7,3)",
+      "bonus": -10,
+      "unatantum": false,
+      "coordinates": [
+        {
+          "x": 7,
+          "y": 3
+        }
+      ],
+      "startAfter": 7
+    },
+    {
+      "type": "deliverAt",
+      "prompt": "Deliver a parcel on the top delivery tile at (12,9)",
+      "bonus": 30,
+      "coordinates": [
+        {
+          "x": 12,
+          "y": 9
+        }
+      ],
+      "startAfter": 10
+    },
+    {
+      "type": "deliverExactlyNParcels",
+      "prompt": "Deliver exactly 2 parcels at once",
+      "parcels": 2,
+      "bonus": 50,
+      "startAfter": 13
+    },
+    {
+      "type": "deliverLessValueThan",
+      "prompt": "Deliver parcels for a total value below 12",
+      "threshold": 12,
+      "bonus": 35,
+      "startAfter": 16
+    },
+    {
+      "type": "questionAnswer",
+      "prompt": "How many tiles wide is this map? Shout the answer!",
+      "question": "How many tiles wide is this map?",
+      "answers": [
+        "14",
+        "fourteen"
+      ],
+      "bonus": 20,
+      "startAfter": 19
+    },
+    {
+      "type": "redLightGreenLight",
+      "prompt": "Green: move freely! Yellow: red is coming, stop! Red: moving is penalized!",
+      "greenMs": 2500,
+      "yellowMs": 2000,
+      "redMs": 3500,
+      "rounds": 0,
+      "bonus": -20,
+      "unatantum": false,
+      "startAfter": 20
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "id": "missions",
+  "name": "Missions",
+  "version": "1.0.0",
+  "description": "Scripted missions from the game configuration (config.GAME.missions): GoTo, DeliverAt, DeliverExactlyNParcels, DeliverLessValueThan, OnePickupAnotherDeliver, QuestionAnswer, RedLightGreenLight; awards bonus/penalty points and announces prompts in chat",
+  "module": "./MissionsPlugin.js"
+}

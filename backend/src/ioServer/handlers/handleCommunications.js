@@ -1,5 +1,6 @@
 import Identity from '../../core/Identity.js';
 import myClock from '../../myClock.js';
+import { communicationsHub } from '../communicationsHub.js';
 
 /**
  * Setup communication handlers for any identity
@@ -25,6 +26,8 @@ export function handleCommunications(socket, identity) {
 
         console.log(`[CommunicationHandlers] ${fromName}(${fromId}) saying to ${toId}: ${msg}`);
 
+        communicationsHub.publishMsg({ channel: 'say', fromId, fromName, toId, msg });
+
         socket.emitMsg(fromId, fromName, toId, msg);
 
         if (ack) ack("successful") // { success: true }
@@ -42,6 +45,8 @@ export function handleCommunications(socket, identity) {
 
         console.log(`[CommunicationHandlers] ${fromName} asking ${toId}: ${msg}`);
 
+        communicationsHub.publishMsg({ channel: 'ask', fromId, fromName, toId, msg });
+
         const reply = await socket.emitAsk(fromId, fromName, toId, msg);
         console.log(`[CommunicationHandlers] Received reply from ${toId} to ${fromName}: ${reply}`);
         if (ack) ack(reply);
@@ -57,6 +62,8 @@ export function handleCommunications(socket, identity) {
         }
 
         console.log(`[CommunicationHandlers] ${fromName} shouting: ${msg}`);
+
+        communicationsHub.publishMsg({ channel: 'shout', fromId, fromName, toId: null, msg });
 
         socket.broadcastMsg(fromId, fromName, msg); // Emit to self
 

@@ -18,6 +18,7 @@
     import ChatPanel from './ChatPanel.vue';
     import Chrono from './Chrono.vue';
     import Tournament from './Tournament.vue';
+    import Missions from './Missions.vue';
     import PerformancePanel from './PerformancePanel.vue';
 
     const levelsModal = ref(false); // Reactive variable for overlay visibility
@@ -92,6 +93,18 @@
                              style="min-height:auto!important">
 
                             <Tournament/>
+
+                        </div>
+                    </div>
+
+                    <!-- Missions panel: admin only (the script holds the answers) -->
+                    <div v-if="connection?.payload.role == 'admin'"
+                         class="z-10 collapse collapse-arrow w-80 bg-neutral opacity-80 hover:opacity-100">
+                        <input type="checkbox" />
+                        <div class="collapse-title font-medium">Missions</div>
+                        <div class="collapse-content overflow-hidden p-0" style="min-height:auto!important">
+
+                            <Missions/>
 
                         </div>
                     </div>

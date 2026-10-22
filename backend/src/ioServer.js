@@ -10,6 +10,7 @@ import { broadcastConfig } from './ioServer/broadcast/broadcastConfig.js';
 import { broadcastControllersConnections } from './ioServer/broadcast/broadcastControllersConnections.js';
 import { broadcastMetrics } from './ioServer/broadcast/broadcastMetrics.js';
 import { handleCommunications } from './ioServer/handlers/handleCommunications.js';
+import { communicationsHub } from './ioServer/communicationsHub.js';
 import { handleClientsLogAndBroadcastToAdmins } from './ioServer/handlers/handleClientsLogAndBroadcastToAdmins.js';
 import { setupPingPongTracking } from './ioServer/emitters/setupPingPongTracking.js';
 import { emitMapAndTiles } from './ioServer/emitters/emitMapAndTiles.js';
@@ -64,6 +65,12 @@ broadcastMetrics(enhancedIoServer);
 // Controller Connections broadcasting
 broadcastControllersConnections(enhancedIoServer);
 
+// Server-side announcements (plugins, ...) broadcast to every client as
+// ordinary 'msg' events from a server identity
+communicationsHub.on('announce', ({ fromId, fromName, msg }) => {
+    enhancedIoServer.emit('msg', fromId, fromName, msg);
+});
+
 
 
 enhancedIoServer.on('connection', async ( socket ) => {
@@ -94,7 +101,7 @@ enhancedIoServer.on('connection', async ( socket ) => {
         const enhancedIoSocket = DjsServerSocket.enhance(socket);
 
         // broadcast Config to clients on connection and on updates
-        broadcastConfig(enhancedIoSocket);
+        broadcastConfig(enhancedIoSocket, identity);
 
         // Map/tiles broadcasting (universal: players and admin observers)
         emitMapAndTiles(enhancedIoSocket);

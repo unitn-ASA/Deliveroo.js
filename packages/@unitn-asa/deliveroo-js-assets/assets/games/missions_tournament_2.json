@@ -1,0 +1,116 @@
+{
+  "title": "missions_tournament_2",
+  "description": "Demo 12x9 map of the missions tournament rotation: delivery-focused missions announced by the mission-master. Listed by the tournament.games rotation of missions_tournament",
+  "map": {
+    "width": 12,
+    "height": 9,
+    "tiles": [
+      "3 3 3 3 3 3 2 3 3 3 3 3",
+      "3 3 0 0 3 3 3 3 0 0 3 3",
+      "3 3 3 0 3 1 3 3 0 3 3 3",
+      "3 0 3 0 3 3 3 0 3 0 3 3",
+      "3 0 3 3 3 0 3 3 3 3 3 3",
+      "3 0 3 1 3 0 0 3 3 0 3 3",
+      "3 3 3 3 3 3 3 3 3 3 3 3",
+      "3 3 0 3 3 3 3 3 0 3 3 3",
+      "3 3 3 3 3 1 2 3 3 3 3 3"
+    ]
+  },
+  "npcs": [
+    {
+      "moving_event": "2s",
+      "type": "random",
+      "count": 1
+    }
+  ],
+  "parcels": {
+    "generation_event": "2s",
+    "decaying_event": "infinite",
+    "max": 18,
+    "reward_avg": 6,
+    "reward_variance": 3
+  },
+  "player": {
+    "movement_duration": 100,
+    "observation_distance": 5,
+    "capacity": 4
+  },
+  "plugins": [
+    "missions",
+    "tournament"
+  ],
+  "missions": [
+    {
+      "type": "goto",
+      "prompt": "Reach the east wall of the map at (11,4)",
+      "bonus": 25,
+      "coordinates": [
+        {
+          "x": 11,
+          "y": 4
+        }
+      ],
+      "startAfter": 6
+    },
+    {
+      "type": "goto",
+      "prompt": "Forbidden crossing! Do not step on (8,2)",
+      "bonus": -10,
+      "unatantum": false,
+      "coordinates": [
+        {
+          "x": 8,
+          "y": 2
+        }
+      ],
+      "startAfter": 9
+    },
+    {
+      "type": "deliverAt",
+      "prompt": "Deliver a parcel on the top delivery tile at (6,8)",
+      "bonus": 30,
+      "coordinates": [
+        {
+          "x": 6,
+          "y": 8
+        }
+      ],
+      "startAfter": 12
+    },
+    {
+      "type": "deliverExactlyNParcels",
+      "prompt": "Deliver exactly 3 parcels at once",
+      "parcels": 3,
+      "bonus": 60,
+      "startAfter": 15
+    },
+    {
+      "type": "deliverLessValueThan",
+      "prompt": "Deliver parcels for a total value below 8",
+      "threshold": 8,
+      "bonus": 35,
+      "startAfter": 18
+    },
+    {
+      "type": "questionAnswer",
+      "prompt": "How much is 7 times 6? Shout the answer!",
+      "question": "How much is 7 times 6?",
+      "answers": [
+        "42"
+      ],
+      "bonus": 20,
+      "startAfter": 20
+    },
+    {
+      "type": "redLightGreenLight",
+      "prompt": "Green: move freely! Yellow: red is coming, stop! Red: moving is penalized!",
+      "greenMs": 4000,
+      "yellowMs": 2000,
+      "redMs": 3000,
+      "rounds": 0,
+      "bonus": -15,
+      "unatantum": false,
+      "startAfter": 10
+    }
+  ]
+}

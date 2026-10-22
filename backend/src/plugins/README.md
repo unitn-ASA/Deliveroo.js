@@ -160,6 +160,45 @@ a door consumes one key.
 
 Parcels delivered on `'9'` tiles score twice their reward.
 
+### MissionsPlugin (`missions`)
+
+Loads the mission script of the current game (`config.GAME.missions`) into one
+internal plugin instance per descriptor. The loader owns only construction and
+disposal: each mission instance wires itself directly to the action hooks,
+communications hub and `tournament:round_started` grid event. The
+`mission-master` identity announces prompts and awards in chat. A game
+configuration change (tournament map rotation or a level loaded live by an
+admin) disposes the previous mission plugins and creates the new script
+instances; a game without a missions field carries no missions.
+- each mission waits for its own `startAfter` delay (seconds, default 0)
+  before activating: until its timer fires it is listed but inactive — no
+  game fact reaches it and nothing can be claimed. The timers start when
+  the map loads
+
+Mission types: `goto`, `deliverAt`, `deliverExactlyNParcels`,
+`deliverLessValueThan`, `onePickupAnotherDeliver`, `questionAnswer`,
+`redLightGreenLight`. Common descriptor fields: `prompt`, `bonus` (negative for
+penalties), `unatantum` (default true), `announce` (default true), `startAfter`
+(default 0: immediate); each type adds its own fields (`coordinates`,
+`requireDelivery`, `parcels`, `threshold`, `question`/`answers`,
+`greenMs`/`yellowMs`/`redMs`/`rounds`). Invalid script entries are
+reported loudly and skipped: a broken mission never prevents the game from
+starting. Every mission of the script (including the ones still waiting for
+their start timer, greyed out) is exposed through the admin-only endpoint
+`GET /api/missions`; the script itself never reaches non-admin agents through
+the config broadcast, so agents only get the announced prompts.
+
+## The Communications Hub
+
+`src/ioServer/communicationsHub.js` is the server-wide bus between socket
+traffic and server-side components:
+
+- communication handlers publish every say/shout/ask as a hub `msg` event
+  (observability only: the socket delivery flow is unchanged)
+- plugins announce server-side messages with `communicationsHub.announce()`,
+  broadcast by `ioServer.js` to every connected client as an ordinary `msg`
+  event from a server identity (e.g. `mission-master`, `tournament-master`)
+
 ## Example Plugins
 
 ### LeaderboardPlugin (`leaderboard-plugin`)

@@ -1,5 +1,5 @@
 import express from 'express';
-import { config, PORT } from '../config/config.js';
+import { config, configEmitter, PORT } from '../config/config.js';
 import { authorizeAdmin } from '../middlewares/token.js';
 import { loadGameConfig } from '../config/config.js';
 
@@ -124,9 +124,10 @@ router.patch('/', authorizeAdmin, async (req, res) => {
             loadGameConfig(req.body['GAME']);
     }
 
-    // Notify clients of config change
-    const { default: ioServer } = await import('../ioServer.js');
-    ioServer.emit('config', config);
+    // Notify clients of the config change through the per-socket broadcast
+    // (broadcastConfig): the mission script is stripped from the payload
+    // non-admin agents receive
+    configEmitter.emit('update');
 
     res.status(200).json({
         PORT: PORT,
