@@ -1,6 +1,5 @@
 /**
  * Image generation module for game maps and layers
- * @module image-generation
  */
 
 import { createCanvas } from 'canvas';

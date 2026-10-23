@@ -63,7 +63,7 @@
                         </button>
                     </div>
                     <!-- Body slot -->
-                    <div class="bg-neutral/85 dark:bg-gray-700 rounded-lg" :style="{ position: 'relative', zIndex: contentZIndex }">
+                    <div class="bg-neutral/85 dark:bg-gray-700 rounded-lg overflow-y-auto" :style="{ position: 'relative', zIndex: contentZIndex }">
                         <slot/>
                     </div>
                 </div>

@@ -1,7 +1,6 @@
-#!/usr/bin/env node
-
 /**
- * Generate OpenAPI schemas from JSDoc type definitions in the SDK
+ * Generate OpenAPI schemas from JSDoc type definitions in the SDK,
+ * used by swagger.config.js for the components of the OpenAPI spec
  */
 
 import fs from 'fs';
@@ -68,8 +67,9 @@ function parseJSDocType(content, typeName) {
 
 /**
  * Main schema generation
+ * @returns {Record<string, object>} OpenAPI schemas by name
  */
-function generateSchemas() {
+export function generateSchemas() {
   const schemas = {};
 
   // Define types to extract
@@ -102,18 +102,3 @@ function generateSchemas() {
 
   return schemas;
 }
-
-// Generate and export schemas
-const schemas = generateSchemas();
-
-// Output the schemas as a module that can be imported
-const output = `
-/**
- * Auto-generated OpenAPI schemas from SDK JSDoc types
- * Run 'npm run schemas:generate' to regenerate
- */
-export const generatedSchemas = ${JSON.stringify(schemas, null, 2)};
-`;
-
-fs.writeFileSync(path.join(__dirname, '../src/generated-schemas.js'), output);
-console.log('\n✓ Schemas written to src/generated-schemas.js');

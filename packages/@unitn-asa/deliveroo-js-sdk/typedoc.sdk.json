@@ -1,0 +1,27 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "./src/client/index.js",
+    "./src/server/index.js",
+    "./src/types/*.js"
+  ],
+  "tsconfig": "./tsconfig.json",
+  "readme": "./README.MD",
+  "out": "../../../backend/docs/typedoc-sdk",
+  "name": "Deliveroo.js SDK",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "categorizeByGroup": true,
+  "defaultCategory": "Other",
+  "commentStyle": "jsdoc",
+  "theme": "default",
+  "hostedBaseUrl": "https://github.com/unitn-ASA/Deliveroo.js",
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  },
+  "logLevel": "Error"
+}

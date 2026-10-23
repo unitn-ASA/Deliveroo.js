@@ -21,6 +21,9 @@
             <h2 class="p-5 text-m">How to play</h2>
             
             Play online from your browser at <a href="https://deliveroojs.onrender.com">deliveroojs.onrender.com</a>
+            or at <a href="https://deliveroojs.azurewebsites.net/">https://deliveroojs.azurewebsites.net/</a>,
+            or preview the latest version at <a href="https://deliveroojsdev.azurewebsites.net/">https://deliveroojsdev.azurewebsites.net/</a>
+            
             <br/>
 
             a: left, s: down, d: right, w: up, q: pickup, e: putdown

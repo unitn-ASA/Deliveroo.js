@@ -70,6 +70,16 @@ The `@unitn-asa/deliveroo-js-sdk` package provides:
 
 - Never stage changes (`git add`) or create commits unless the user explicitly asks to do so.
 
+### Documentation (from the repo root)
+
+```bash
+npm run docs        # Build both TypeDoc sites
+```
+
+Two TypeDoc sites:
+- **Developer docs**: the root `typedoc.json` uses `entryPointStrategy: "packages"` over backend, SDK, assets and frontend (each with its own `typedoc.json` listing entry points); output goes to `backend/docs/typedoc`, served at `/docs`.
+- **SDK docs** for agent developers: `packages/@unitn-asa/deliveroo-js-sdk/typedoc.sdk.json` (standalone, also `npm run docs` in the SDK package); output goes to `backend/docs/typedoc-sdk`, served at `/docs/sdk`.
+
 ### Backend (Node.js + Express)
 
 ```bash
@@ -77,9 +87,7 @@ cd backend
 npm start           # Start production server
 npm run dev         # Start development server with nodemon
 npm run build       # Build the application
-npm run schemas:generate    # Generate JSON schemas
-npm run swagger:generate     # Generate API documentation
-npm run docs        # Generate documentation
+npm run build:swagger     # Generate swagger.json (OpenAPI spec served at /api-docs; run by build and predev)
 ```
 
 ### Frontend (Vue.js + Three.js)
@@ -89,7 +97,6 @@ cd frontend
 npm run dev         # Start development server with hot reload
 npm run build       # Build for production
 npm run preview     # Preview production build
-npm run docs        # Generate TypeScript documentation
 ```
 
 ### SDK Package

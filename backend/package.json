@@ -1,6 +1,6 @@
 {
   "name": "@unitn-asa/deliveroo-js-backend",
-  "version": "3.0.1",
+  "version": "3.0.3",
   "description": "Deliveroo.js Development Kit - Autonomous Software Agents - 2023",
   "author": "Marco Robol <marco.robol@unitn.it>",
   "license": "ISC",
@@ -15,14 +15,13 @@
     "prepublishOnly": "",
     "prepare": "",
     "start": "node index.js",
-    "prebuild": "npm install && npm run typecheck",
     "typecheck": "tsc --noEmit",
-    "build": "node scripts/build.js",
+    "prebuild": "npm install && npm run typecheck",
+    "build": "npm run build:swagger && node scripts/generateGitRevision.js",
+    "build:swagger": "node scripts/generate-swagger.js",
+    "predev": "npm run build:swagger",
     "dev": "nodemon --inspect -r dotenv/config index.js --",
-    "test": "node --test tests/e2e/*.test.mjs",
-    "schemas:generate": "node scripts/generate-schemas.js",
-    "swagger:generate": "npm run schemas:generate && node scripts/generate-swagger.js",
-    "docs": "npm run schemas:generate && typedoc"
+    "test": "node --test tests/e2e/*.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -30,9 +29,9 @@
   },
   "devDependencies": {
     "dotenv": "^16.0.3",
-    "nodemon": "^3.1.9",
+    "nodemon": "^3.1.14",
     "socket.io-client": "^4.7.2",
-    "typedoc": "^0.28.17"
+    "swagger-jsdoc": "^6.3.0"
   },
   "dependencies": {
     "@unitn-asa/deliveroo-js-assets": "*",
@@ -43,7 +42,6 @@
     "jsonwebtoken": "^9.0.0",
     "serve-index": "^1.9.1",
     "socket.io": "^4.4.1",
-    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uid": "^2.0.1"
   },

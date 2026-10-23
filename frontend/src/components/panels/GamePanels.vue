@@ -53,7 +53,7 @@
 <template>
     <main class="text-sm text-neutral-content">
 
-        <Modal v-model="loginModal" title="Login / Signup">
+        <Modal v-model="loginModal" title="Deliveroo.js">
             <Login/>
         </Modal>
 

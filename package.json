@@ -12,14 +12,15 @@
   "scripts": {
     "prepublishOnly": "",
     "start": "cd backend && npm start",
-    "clean": "rm -r node_modules && rm -r backend/docs && rm backend/.git-revision && rm -r frontend/dist && rm -r frontend/docs && rm -r frontend/node_modules",
+    "clean": "rm -rf node_modules backend/node_modules frontend/node_modules packages/@unitn-asa/*/node_modules backend/docs backend/.git-revision backend/swagger.json frontend/dist",
     "prebuild": "npm install && npm run docs",
     "build": "cd frontend && npm run build && cd ../backend && npm run build",
     "postbuild": "",
+    "test": "cd backend && npm test && cd ../packages/@unitn-asa/deliveroo-js-sdk && npm test",
     "dev": "cd backend && npm run dev",
     "dev-ui": "cd frontend && npm run dev",
     "dev-all": "npm run dev & npm run dev-ui",
-    "docs": "cd backend && npm run docs && cd ../frontend && npm run docs",
+    "docs": "typedoc && npm run docs -w @unitn-asa/deliveroo-js-sdk",
     "publish:sdk": "npm version --workspace=@unitn-asa/deliveroo-js-sdk patch && npm publish --workspace=@unitn-asa/deliveroo-js-sdk",
     "publish:pddl": "npm version --workspace=@unitn-asa/pddl-client patch && npm publish --workspace=@unitn-asa/pddl-client"
   },
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "typedoc": "^0.28.20",
     "typescript": "^6.0.2"
   },
   "overrides": {

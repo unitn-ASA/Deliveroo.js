@@ -1,0 +1,8 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "extends": ["./typedoc.json"],
+  "hostedBaseUrl": "https://unitn-asa.github.io/Deliveroo.js/",
+  "navigationLinks": {
+    "SDK docs": "/Deliveroo.js/sdk/"
+  }
+}

@@ -1,5 +1,7 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import swaggerJsdoc from 'swagger-jsdoc';
-import { generatedSchemas } from './src/generated-schemas.js';
+import { generateSchemas } from './scripts/generate-schemas.js';
 
 const options = {
   definition: {
@@ -51,11 +53,13 @@ const options = {
         },
       },
       schemas: {
-        ...generatedSchemas
+        ...generateSchemas()
       },
     },
   },
-  apis: ['./src/routes/*.js'],
+  apis: [path.join(path.dirname(fileURLToPath(import.meta.url)), 'src/routes/*.js')],
+  // Invalid route JSDoc YAML fails the build instead of being silently skipped
+  failOnErrors: true,
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

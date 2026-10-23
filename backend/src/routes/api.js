@@ -1,9 +1,13 @@
 import express from 'express';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 const router = express.Router();
 
+const backendPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
 const packageVersion = new Promise( res =>
-    fs.readFile('./package.json', { encoding: 'utf8'}, (err, data) => {
+    fs.readFile(path.join(backendPath, 'package.json'), { encoding: 'utf8'}, (err, data) => {
         
         let packageData = {};
         let packageName = 'no package.json';
@@ -27,7 +31,7 @@ const packageVersion = new Promise( res =>
 );
 
 const commitHash = new Promise( res =>
-    fs.readFile('./.git-revision', { encoding: 'utf8'}, (err, data) => {
+    fs.readFile(path.join(backendPath, '.git-revision'), { encoding: 'utf8'}, (err, data) => {
 
         let commitHash = 'no git';
 

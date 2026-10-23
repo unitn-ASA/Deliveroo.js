@@ -1,6 +1,5 @@
 /**
  * Validation module for game configuration
- * @module validation
  */
 
 

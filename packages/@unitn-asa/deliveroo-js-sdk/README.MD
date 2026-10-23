@@ -12,12 +12,11 @@ This package exposes small helpers for interacting with the Deliveroo.js backend
 
 ## Installation
 
-This package is part of the monorepo and is consumed via file: references in the workspace. If you publish it standalone, install normally with npm/yarn.
-
-From the monorepo root (already linked via workspace):
+This package is part of the monorepo where it is consumed via file.
+Install it in you project with npm/yarn.
 
 ```bash
-# frontend or other package: npm install ../packages/@unitn-asa/deliveroo-js-sdk
+npm install @unitn-asa/deliveroo-js-sdk
 ```
 
 ## Usage (ESM)

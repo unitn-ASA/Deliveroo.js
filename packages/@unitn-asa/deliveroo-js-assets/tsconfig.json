@@ -13,6 +13,7 @@
     "types": ["node"]
   },
   "include": [
+    "index.js",
     "cli.js",
     "src"
   ],

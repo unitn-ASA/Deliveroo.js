@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
 import Path from 'path';
 import { fileURLToPath } from 'url';
 import serveIndex from 'serve-index';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from '../swagger.config.js';
 import { pluginRegistry } from './plugins/runtime.js';
 
 const app = express();
@@ -54,13 +54,34 @@ app.use( '/',
 
 
 
-// Serve Swagger API documentation
+// Serve Swagger API documentation, generated at build time by 'npm run build:swagger'
+const swaggerPath = Path.join(__dirname, '..', 'swagger.json');
+let swaggerSpec;
+try {
+    swaggerSpec = JSON.parse( fs.readFileSync( swaggerPath, 'utf8' ) );
+} catch ( error ) {
+    console.warn( `API documentation unavailable, ${swaggerPath} not loaded (${error.message}). Run 'npm run build:swagger' in backend/` );
+    swaggerSpec = {
+        openapi: '3.0.4',
+        info: {
+            title: 'Deliveroo.js API',
+            version: 'unavailable',
+            description: "The OpenAPI spec has not been generated: run `npm run build:swagger` in backend/ and restart the server.",
+        },
+        paths: {},
+    };
+}
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customSiteTitle: 'Deliveroo.js API Documentation',
     customCss: '.swagger-ui .topbar { display: none }',
 }));
 
-// Serve TypeDoc documentation (code documentation)
+// Serve TypeDoc documentation: SDK docs for agent developers, mounted before /docs to take precedence
+app.use('/docs/sdk', express.static(Path.join(__dirname, '..', 'docs', 'typedoc-sdk'), {
+    dotfiles: 'ignore',
+    index: 'index.html'
+}));
+// Developer docs (all packages)
 app.use('/docs', express.static(Path.join(__dirname, '..', 'docs', 'typedoc'), {
     dotfiles: 'ignore',
     index: 'index.html'
