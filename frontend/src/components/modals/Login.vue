@@ -91,7 +91,8 @@
         
         <div class="my-6">
             <p>
-                To play, create or paste a <bold class="font-bold">token</bold> below, then move with
+                To play, create or paste a <bold class="font-bold">token</bold> below, then click "Play".
+                Move with
                 <kbd class="kbd kbd-xs">W</kbd> <kbd class="kbd kbd-xs">A</kbd> <kbd class="kbd kbd-xs">S</kbd> <kbd class="kbd kbd-xs">D</kbd>,
                 pick up parcels with <kbd class="kbd kbd-xs">Q</kbd> and put them down with <kbd class="kbd kbd-xs">E</kbd>.
             </p>
