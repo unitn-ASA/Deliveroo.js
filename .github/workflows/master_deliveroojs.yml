@@ -6,7 +6,7 @@ name: Build and deploy Node.js app to Azure Web App - deliveroojs
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 jobs:
