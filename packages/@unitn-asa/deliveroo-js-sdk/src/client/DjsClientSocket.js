@@ -20,38 +20,62 @@ import { Socket } from 'socket.io-client';
  */
 export class DjsClientSocket extends Socket {
 
-    /** @type { Promise < string > } */
-    token = new Promise( (res) => {
-        this.once( 'token', (token) => {
-            // console.log( 'New token for ' + NAME + ': ' + token )
-            res( token );
-        } );
-    } );
-    
-    /** @type { Promise < IOAgent > } */
-    me = new Promise( (res) => {
-        /** @type { (sensing: IOSensing) => void } */
-        const listener = (sensing) => {
-            if (!sensing.self) return;
-            this.off('sensing', listener);
-            res(sensing.self);
-        };
-        this.on('sensing', listener);
-    } );
-    
-    /** @type { Promise < IOConfig > } */
-    config = new Promise( (res) => {
-        this.once( 'config', (config) => {
-            res( config );
-        } );
-    } );
+    /**
+     * @param { ConstructorParameters < typeof Socket > } args
+     */
+    constructor ( ...args ) {
+        super( ...args );
+        const promises = DjsClientSocket.#createPromises( this );
+        /** @type { Promise < string > } */
+        this.token = promises.token;
+        /** @type { Promise < IOAgent > } */
+        this.me = promises.me;
+        /** @type { Promise < IOConfig > } */
+        this.config = promises.config;
+        /** @type { Promise < { width:number, height:number, tiles: IOTile [] } > } */
+        this.map = promises.map;
+    }
 
-    /** @type { Promise < { width:number, height:number, tiles: IOTile [] } > } */
-    map = new Promise ( (res) => {
-        this.once( 'map', (width, height, tiles) => {
-            res( {width, height, tiles} );
+    /**
+     * Instance promises resolved by the first matching server event.
+     * @param { Socket < IOServerEvents, IOClientEvents > } socket
+     */
+    static #createPromises ( socket ) {
+
+        /** @type { Promise < string > } */
+        const token = new Promise( (res) => {
+            socket.once( 'token', (token) => {
+                res( token );
+            } );
         } );
-    } );
+
+        /** @type { Promise < IOAgent > } */
+        const me = new Promise( (res) => {
+            /** @type { (sensing: IOSensing) => void } */
+            const listener = (sensing) => {
+                if (!sensing.self) return;
+                socket.off('sensing', listener);
+                res(sensing.self);
+            };
+            socket.on('sensing', listener);
+        } );
+
+        /** @type { Promise < IOConfig > } */
+        const config = new Promise( (res) => {
+            socket.once( 'config', (config) => {
+                res( config );
+            } );
+        } );
+
+        /** @type { Promise < { width:number, height:number, tiles: IOTile [] } > } */
+        const map = new Promise ( (res) => {
+            socket.once( 'map', (width, height, tiles) => {
+                res( {width, height, tiles} );
+            } );
+        } );
+
+        return { token, me, config, map };
+    }
 
 
 
@@ -293,6 +317,9 @@ export class DjsClientSocket extends Socket {
             return target;
         }
         applyMixin(socket, DjsClientSocket);
+        // The mixin copies only prototype methods: the instance promises (token, me,
+        // config, map) are set in the constructor, which never runs here, so create them now
+        Object.assign( socket, DjsClientSocket.#createPromises( socket ) );
 
         /**
          * Original socket enhanced with ClientSocketEnhancer methods casted as EnhancedSocket

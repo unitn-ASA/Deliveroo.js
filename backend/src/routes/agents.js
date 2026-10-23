@@ -202,7 +202,7 @@ router.delete('/:id', authorizeAdmin, async (req, res) => {
     *                 description: Current score of the agent
     *               attributes:
  *                 type: object
- *                 description: Observable attributes to write (merge; no deletion). Values must be numbers or strings, e.g. {"movement_mode": "ghost", "rank": 5}
+ *                 description: 'Observable attributes to write (merge; no deletion). Values must be numbers or strings, e.g. {"movement_mode": "ghost", "rank": 5}'
  *                 additionalProperties:
  *                   oneOf:
  *                     - type: number

@@ -20,7 +20,7 @@ function getMissionsPlugin() {
  * /api/missions:
  *   get:
  *     summary: Get the missions of the game
- *     description: Retrieves every mission of the game script (config.GAME.missions), including the ones still waiting for their start timer, with their prompts, bonuses, activation state and award statistics. Requires admin privileges: agents must interpret the announced prompts, not read the script.
+ *     description: 'Retrieves every mission of the game script (config.GAME.missions), including the ones still waiting for their start timer, with their prompts, bonuses, activation state and award statistics. Requires admin privileges: agents must interpret the announced prompts, not read the script.'
  *     tags: [Missions]
  *     responses:
  *       200:
