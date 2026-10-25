@@ -41,5 +41,6 @@
   },
   "engines": {
     "node": "22.x"
-  }
+  },
+  "license": "ISC"
 }

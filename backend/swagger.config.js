@@ -12,7 +12,8 @@ const options = {
       description: `Deliveroo.js is a simple grid-based multi-player game
         where players can move around, collect items, and interact with each other.`,
       license: {
-        name: 'MIT',
+        name: 'ISC',
+        url: 'https://github.com/unitn-ASA/Deliveroo.js/blob/main/LICENSE.md',
       },
       contact: {
         name: 'Marco Robol',

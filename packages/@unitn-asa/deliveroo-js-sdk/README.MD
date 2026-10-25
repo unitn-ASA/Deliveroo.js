@@ -1,89 +1,94 @@
 # @unitn-asa/deliveroo-js-sdk
 
-Shared SDK utilities and types for Deliveroo.js (client & server integration helpers).
+SDK for [Deliveroo.js](https://github.com/unitn-ASA/Deliveroo.js): connect autonomous agents to a game server, call its REST API, and use the JSDoc types of the game entities.
 
-This package exposes small helpers for interacting with the Deliveroo.js backend (HTTP API helpers, socket helpers and shared JSDoc typedefs) so frontend and other packages can import them from a single entry point.
-
-## Key features
-
-- **HTTP API Clients**: REST clients for game entities
-- **Socket Helpers**: Socket-related helpers and types for Deliveroo.js
-- **Type Definitions**: JSDoc typedefs that can be used by editors/TypeScript for type hints
+Full reference: [deliveroojs.azurewebsites.net/docs/sdk/](https://deliveroojs.azurewebsites.net/docs/sdk/), also served at `/docs/sdk/` by every Deliveroo.js server.
 
 ## Installation
-
-This package is part of the monorepo where it is consumed via file.
-Install it in you project with npm/yarn.
 
 ```bash
 npm install @unitn-asa/deliveroo-js-sdk
 ```
 
-## Usage (ESM)
+The package is ESM only. It has `socket.io-client` (and, for the server helpers, `socket.io`) as peer dependencies.
 
-Import the functions and types you need from the package root:
+## Entry points
 
-```js
-import {
-    DjsRestClient,
-    DjsClientSocket,
-    DjsConnect
-} from '@unitn-asa/deliveroo-js-sdk/client';
-```
+| Import | Content |
+| --- | --- |
+| `@unitn-asa/deliveroo-js-sdk` or `@unitn-asa/deliveroo-js-sdk/client` | `DjsConnect`, `DjsClientSocket`, `DjsRestClient` |
+| `@unitn-asa/deliveroo-js-sdk/server` | `DjsServer`, `DjsServerSocket`, the typed Socket.io server used by the backend |
+| `@unitn-asa/deliveroo-js-sdk/types/*.js` | JSDoc typedefs (`IOAgent`, `IOParcel`, `IOSensing`, `IOGameOptions`, ...) |
 
-### Game API Client
+## Connect an agent
 
 ```js
-import { DjsRestClient } from '@unitn-asa/deliveroo-js-sdk/client';
+import { DjsConnect } from '@unitn-asa/deliveroo-js-sdk';
 
-const api = new DjsRestClient('http://localhost:8080');
+// DjsConnect( host, token, name, autoconnect = true )
+// host, token and name default to the HOST, TOKEN and NAME environment variables
+const socket = DjsConnect( 'http://localhost:8080', 'YOUR_TOKEN' );
 
-// Get authentication token
-const { token } = await api.getToken('MyAgent', 'MyTeam');
+// Promises resolved by the first matching server event
+const me = await socket.me;           // the agent itself
+const config = await socket.config;   // game configuration
+const { width, height, tiles } = await socket.map;
 
-// Get game configuration
-const config = await api.getConfig(token);
+// Events
+socket.onSensing( ( { agents, parcels, crates, self } ) => { /* ... */ } );
+socket.onMsg( ( id, name, msg, reply ) => { /* reply is set for emitAsk */ } );
 
-// List agents
-const agents = await api.getAll('agents', token);
+// Actions, resolved with the server acknowledgement
+await socket.emitMove( 'up' );        // 'up' | 'down' | 'left' | 'right', resolves to {x, y} or false
+await socket.emitPickup();            // picked up parcels
+await socket.emitPutdown();           // all carried parcels, or emitPutdown( [ids] )
+await socket.emitAction( 'shoot' );   // any command, plugin ones included; throws on failure
+
+// Communication
+await socket.emitSay( agentId, 'hello' );
+const answer = await socket.emitAsk( agentId, 'question' );
+await socket.emitShout( 'hello everyone' );
 ```
 
-### Socket.IO Client
+To get a token, pass an empty token and a name: the server creates a new agent and sends its token, available as `await socket.token`. Tokens can also be created from the login panel of the web client, or with `DjsRestClient.getToken()`.
+
+Other events: `onConnect`, `onDisconnect`, `onConfig`, `onMap`, `onTile`, `onAgentConnected`, `onInfo`, `onLog`.
+
+## REST API client
 
 ```js
-import { DjsConnect } from '@unitn-asa/deliveroo-js-sdk/client';
+import { DjsRestClient } from '@unitn-asa/deliveroo-js-sdk';
 
-// Connect to game server
-const socket = await DjsConnect('http://localhost:8080', {
-    id: 'agent-1',
-    name: 'My Agent',
-    team: 'MyTeam'
-});
+const api = new DjsRestClient( 'http://localhost:8080' );
 
-// Listen to events
-socket.on('sensing', (data) => {
-    console.log('Sensing:', data);
-});
-
-// Send actions
-socket.emit('move', 'up', (result) => {
-    console.log('Move result:', result);
-});
+const { token } = await api.getToken( 'MyAgent', 'MyTeam' );
+const config = await api.getConfig( token );
+const agents = await api.getAll( 'agents', token );
 ```
+
+The REST API is documented at `/api-docs` on every server.
 
 ## Types
 
-The package contains JSDoc typedef files describing `IOAgent`, `IOParcel`, `IOConfig`, `IOGameOptions` and other structures used across the project. When authoring code that consumes this SDK you can import the types in JSDoc.
-
-Example JSDoc import:
+Import the typedefs in JSDoc for editor hints and type checking:
 
 ```js
-/** @typedef {import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent} IOAgent */
+/** @typedef { import('@unitn-asa/deliveroo-js-sdk/types/IOAgent.js').IOAgent } IOAgent */
+/** @typedef { import('@unitn-asa/deliveroo-js-sdk/types/IOSensing.js').IOSensing } IOSensing */
+```
+
+## Development
+
+From this package folder:
+
+```bash
+npm test        # run the tests
+npm run docs    # build the SDK documentation site
 ```
 
 ## License
 
-ISC
+[ISC](LICENSE.md) © Marco Robol, University of Trento
 
 ---
 _Maintainer: Marco Robol <marco.robol@unitn.it>_
